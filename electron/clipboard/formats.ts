@@ -33,10 +33,39 @@ const COLOR_HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 /** Sensitive clipboard formats used by password managers and transient scripts. */
 const IGNORED_FORMATS = [
   'ClipboardViewerIgnore',
-  'ExcludeClipboardContentFromMonitorProcessing',
   'org.nspasteboard.ConcealedType',
   'com.agilebits.onepassword'
 ]
+
+/** Read a DWORD (32-bit uint) from a clipboard format, if present. */
+function getClipboardDword(format: string): number | undefined {
+  try {
+    const buf = clipboard.readBuffer(format)
+    if (buf && buf.length >= 4) {
+      return buf.readUInt32LE(0)
+    }
+    // If present but empty buffer, we can't return a number, return null to indicate presence without value
+    if (buf && buf.length === 0) {
+      return -1
+    }
+  } catch {
+    // ignore
+  }
+  return undefined
+}
+
+/**
+ * Windows registered clipboard format names are compared case-insensitively by
+ * the OS, but `availableFormats()` returns whatever casing the registering app
+ * used. So a privacy flag like `ExcludeClipboardContentFromMonitorProcessing`
+ * may arrive in any casing — we must match it case-insensitively, otherwise
+ * content a password manager / dictation tool explicitly marked "do not record"
+ * still leaks into our history (and out of Windows' own Win+V history).
+ */
+function isIgnoredFormat(format: string): boolean {
+  const lower = format.toLowerCase()
+  return IGNORED_FORMATS.some((f) => f.toLowerCase() === lower)
+}
 
 /**
  * Snapshot the current clipboard into a single ItemData, or null if it's empty.
@@ -47,12 +76,38 @@ export function readClipboard(): ItemData | null {
   const formats = clipboard.availableFormats()
 
   // Skip content that password managers / secret managers explicitly mark as
-  // sensitive. These are *explicit* opt-out flags — we do NOT check
-  // CanIncludeInClipboardHistory or ExcludeClipboardContentFromMonitorProcessing
-  // with a byte-length test because Windows populates those for most normal
-  // clipboard content (setting them != 0 is how many apps signal "yes include
-  // me"). Checking `byteLength > 0` was rejecting nearly everything.
-  if (formats.some((f) => IGNORED_FORMATS.includes(f))) {
+  // sensitive.
+  if (formats.some((f) => isIgnoredFormat(f))) {
+    return null
+  }
+  // Explicitly check known privacy formats because Chromium often hides them from availableFormats()
+  const checkExplicitExclusion = (format: string, isExcluded: (buf: Buffer) => boolean) => {
+    try {
+      const buf = clipboard.readBuffer(format)
+      if (!buf || buf.length === 0) return false
+      return isExcluded(buf)
+    } catch {
+      return false
+    }
+  }
+
+  // CanIncludeInClipboardHistory: 0 means DO NOT include
+  if (checkExplicitExclusion('CanIncludeInClipboardHistory', (buf) => buf.length >= 4 && buf.readUInt32LE(0) === 0)) {
+    return null
+  }
+
+  // CanUploadToCloudClipboard: 0 means DO NOT include
+  if (checkExplicitExclusion('CanUploadToCloudClipboard', (buf) => buf.length >= 4 && buf.readUInt32LE(0) === 0)) {
+    return null
+  }
+
+  // ExcludeClipboardContentFromMonitorProcessing: non-zero means EXCLUDE
+  if (checkExplicitExclusion('ExcludeClipboardContentFromMonitorProcessing', (buf) => buf.length >= 4 && buf.readUInt32LE(0) !== 0)) {
+    return null
+  }
+
+  // Clipboard Viewer Ignore: presence of format with data means EXCLUDE
+  if (checkExplicitExclusion('Clipboard Viewer Ignore', () => true)) {
     return null
   }
 

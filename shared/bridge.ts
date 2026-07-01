@@ -16,6 +16,7 @@ export interface EdgeApi {
   clearItems: () => Promise<import('./types').ClipboardItemDto[]>
   removeSubitem: (req: DragRequest) => Promise<boolean>
   copyItem: (id: string) => Promise<boolean>
+  copySubitem: (req: DragRequest) => Promise<boolean>
   /**
    * Begin a native OS drag-out. Fire-and-forget: must be called synchronously
    * from the DOM `dragstart` event, and main calls `event.sender.startDrag`.
@@ -34,4 +35,5 @@ export interface EdgeApi {
   onToggle: (cb: () => void) => () => void
   onDragEnd: (cb: () => void) => () => void
   onInternalDrop: (cb: (pos: { x: number; y: number }) => void) => () => void
+  onCursorEdge: (cb: (data: { x: number; y: number; inEdge: boolean; inZone: boolean }) => void) => () => void
 }

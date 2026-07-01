@@ -39,25 +39,36 @@ export class ClipboardWatcher {
       if (this.paused) return
       const sig = clipboardSignature()
       if (sig === this.lastSig) return
-      console.log('[Watcher] clipboard changed sig=', sig.slice(0, 60))
-      this.lastSig = sig
 
-      const data = readClipboard()
-      if (!data) {
-        console.log('[Watcher] readClipboard returned null')
-        return
-      }
-      console.log('[Watcher] detected kind=', data.kind)
+      // We detected a change. Wait a short moment to ensure it's not a transient 
+      // injection by a dictation app or macro that quickly restores the clipboard.
+      setTimeout(() => {
+        if (this.paused) return
+        const stableSig = clipboardSignature()
+        
+        // If the signature changed AGAIN during this tiny window, it was a transient
+        // copy-paste-restore operation. Ignore it and let the next tick handle the restored state.
+        if (stableSig !== sig) {
+          return
+        }
 
-      // Images need their bytes persisted + an id assigned before publishing.
-      if (data.kind === 'image') {
-        const img = clipboard.readImage()
-        data.imageId = createId()
-        data.bytes = img.toPNG().length
-        onNew(data, img.toPNG())
-      } else {
-        onNew(data)
-      }
+        this.lastSig = sig
+
+        const data = readClipboard()
+        if (!data) {
+          return
+        }
+
+        // Images need their bytes persisted + an id assigned before publishing.
+        if (data.kind === 'image') {
+          const img = clipboard.readImage()
+          data.imageId = createId()
+          data.bytes = img.toPNG().length
+          onNew(data, img.toPNG())
+        } else {
+          onNew(data)
+        }
+      }, 250)
     }, this.intervalMs)
   }
 

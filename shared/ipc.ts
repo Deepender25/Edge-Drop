@@ -34,6 +34,10 @@ export interface InvokeMap {
   /** Copy an item back onto the system clipboard. */
   'item:copy': { args: [id: string]; result: boolean }
 
+  /** Copy a single sub-item (one file of a bundle, or one image of a
+   *  collection) onto the system clipboard. */
+  'item:copy-subitem': { args: [req: DragRequest]; result: boolean }
+
   /** Add local file paths dragged into the shelf. */
   'item:add-files': { args: [paths: string[]]; result: ClipboardItemDto[] }
 
@@ -65,6 +69,14 @@ export interface EventMap {
   'item:drag-end': []
   /** Internal drop triggered by the main process when startDrag ends inside the window */
   'item:internal-drop': [pos: { x: number; y: number }]
+  /**
+   * Main-process cursor poll signals: fired when the cursor enters/leaves
+   * the screen-edge hot zone. The renderer uses this to open/close the panel
+   * instead of relying on `forward:true` pointermove (which is unreliable on
+   * Windows transparent windows).
+   * payload: { x, y, inEdge, inZone }
+   */
+  'window:cursor-edge': [data: { x: number; y: number; inEdge: boolean; inZone: boolean }]
 }
 
 /* ------------------------------------------------------------------ */

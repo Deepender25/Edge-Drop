@@ -13,13 +13,12 @@
   pointer-events: none; /* Let clicks pass through empty space */
 }
 
-.root > * {
-  pointer-events: auto; /* Re-enable clicks for the panel itself */
-}
+/* pointer-events on individual children is set inline via React (open ? auto : none) */
 
 /* The blade itself — a tall rounded-right panel. */
 .blade {
   position: relative; /* Inside motion wrapper */
+  flex-shrink: 0;
   width: var(--panel-width);
   display: flex;
   flex-direction: column;

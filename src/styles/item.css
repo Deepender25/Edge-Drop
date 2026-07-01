@@ -270,6 +270,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .fluid-grid {
@@ -344,10 +345,36 @@
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  padding: 4px 0 8px;
+  padding: 6px 0 10px;
   width: 100%;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   margin-bottom: 4px;
+}
+
+/* The invisible buffer area covering the left side to collapse the bundle */
+.bundle-collapse-zone {
+  display: flex;
+  align-items: center;
+  flex: 1; /* stretches to push actions-pill to the right */
+  height: 100%;
+  padding-left: 8px;
+  cursor: pointer;
+  align-self: stretch; /* fill the vertical space of the actions bar */
+}
+
+/* Hovering anywhere in the buffer area highlights the button */
+.bundle-collapse-zone:hover .bundle-collapse-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Larger hit area for the collapse (chevron) button */
+.bundle-collapse-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  pointer-events: none; /* Let the zone handle the click */
 }
 
 .bundle-actions-label {

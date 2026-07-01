@@ -8,8 +8,9 @@
  * transparent and click-through.
  */
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useStore } from '../store/appStore'
+import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
 import { ItemList } from './ItemList'
 import { Settings } from './Settings'
@@ -33,6 +34,23 @@ export function Panel() {
   const setDragActive = useStore((s) => s.setDragActive)
   const setInternalDragReq = useStore((s) => s.setInternalDragReq)
   const internalDragReq = useStore((s) => s.internalDragReq)
+
+  const bladeRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const blade = bladeRef.current
+    if (!blade) return
+
+    const handleLeave = () => window.dispatchEvent(new Event(PANEL_LEAVE_EVENT))
+    const handleEnter = () => window.dispatchEvent(new Event(PANEL_ENTER_EVENT))
+
+    blade.addEventListener('mouseleave', handleLeave)
+    blade.addEventListener('mouseenter', handleEnter)
+    return () => {
+      blade.removeEventListener('mouseleave', handleLeave)
+      blade.removeEventListener('mouseenter', handleEnter)
+    }
+  }, [])
 
   useEffect(() => {
     const unsubDragEnd = window.edge.onDragEnd(() => {
@@ -105,6 +123,8 @@ export function Panel() {
   }
 
   const onDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     console.log('[Panel] onDrop internalDragReq=', internalDragReq)
     if (internalDragReq) {
       e.preventDefault()
@@ -125,27 +145,26 @@ export function Panel() {
   }
 
   return (
-    <div
-      className="root"
-      onDragEnter={onDragEnter}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-    >
+    <div className="root">
       <motion.div
         className="blade-container"
         initial={false}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
         style={{
           top: topOffset,
           y: '-50%',
           position: 'absolute',
           left: 0,
-          zIndex: 10
+          zIndex: 10,
+          pointerEvents: open ? 'auto' : 'none'
         }}
         animate={{
           clipPath: open
             ? 'inset(-100px -100px -100px 0px round 0px 24px 24px 0px)'
-            : `inset(calc(50% - ${halfTrigger}px) calc(100% - 6px) calc(50% - ${halfTrigger}px) 0px round 0px 12px 12px 0px)`
+            : `inset(calc(50% - ${halfTrigger}px) calc(100% - 3px) calc(50% - ${halfTrigger}px) 0px round 0px 12px 12px 0px)`
         }}
         transition={{
           type: 'tween',
@@ -155,7 +174,11 @@ export function Panel() {
       >
         <div className="flare-top" />
         <div className="flare-bottom" />
-        <div className="blade" style={{ height: panelHeightStr }}>
+        <div
+          ref={bladeRef}
+          className="blade"
+          style={{ height: panelHeightStr }}
+        >
           <Header />
 
           <AnimatePresence mode="wait">

@@ -94,6 +94,7 @@ const api = {
   deleteItem: (id: string) => invoke('item:delete', id),
   clearItems: () => invoke('item:clear'),
   copyItem: (id: string) => invoke('item:copy', id),
+  copySubitem: (req: import('../../shared/types').DragRequest) => invoke('item:copy-subitem', req),
   startDrag: (req: DragRequest) => send('item:start-drag', req),
   addFiles: (paths: string[]) => invoke('item:add-files', paths),
   removeSubitem: (req: import('../../shared/types').DragRequest) => invoke('item:remove-subitem', req),
@@ -110,6 +111,7 @@ const api = {
   onToggle: (cb: () => void) => on('window:toggle', cb),
   onDragEnd: (cb: () => void) => on('item:drag-end', cb),
   onInternalDrop: (cb: (pos: { x: number; y: number }) => void) => on('item:internal-drop', cb),
+  onCursorEdge: (cb: (data: { x: number; y: number; inEdge: boolean; inZone: boolean }) => void) => on('window:cursor-edge', cb),
 
   /* Drag helpers */
   // (Handled natively by capturing drop event above)

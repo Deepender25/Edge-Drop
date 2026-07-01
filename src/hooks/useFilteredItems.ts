@@ -18,7 +18,11 @@ function matches(it: ClipboardItemDto, q: string): boolean {
     case 'files':
       return it.data.paths.some((p) => basename(p).toLowerCase().includes(needle))
     case 'image':
-      return false // images have no searchable text; hidden by query
+      // images have no searchable text; hidden by query
+      return false
+    case 'image-collection':
+      // image collections have no searchable text; hidden by query
+      return false
   }
 }
 

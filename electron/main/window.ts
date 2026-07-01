@@ -10,14 +10,15 @@
  * hot zone. This is what produces the "invisible until you approach the edge"
  * effect without a separate hidden trigger window.
  *
- * Drag-in support: because click-through windows cannot receive HTML5 drag
- * events (only pointer events are forwarded), we create a separate thin
- * "detector" window layered behind the main panel. It is always interactive
- * and transparent — its body uses CSS `pointer-events: none` so regular clicks
- * pass through to the desktop, but the BrowserWindow itself *does* receive
- * OS drag events. When it detects a Files-type dragenter, it sends an IPC
- * signal (`detector:file-drag-enter`) that is handled in index.ts to open
- * the panel and make it interactive.
+ * Drag-in support: a separate thin "detector" window is layered behind the
+ * main panel. Historically it was kept non-click-through so it could receive
+ * OS dragenter events, but on Windows that made it swallow all desktop clicks
+ * across the hint-bar band (a transparent always-on-top BrowserWindow still
+ * hit-tests across a minimum footprint). It is now click-through too; drag-in
+ * still works because the main-process cursor poll (startCursorPoll) reads the
+ * OS cursor position independently of mouse events, so it fires during an OS
+ * file drag — the edge dwell opens the panel and makes the main window
+ * interactive, and the drop then lands on the main window.
  *
  * NOTE: this module must NOT import from state.ts to avoid circular dependencies.
  */
@@ -46,14 +47,82 @@ export function isInteractive(): boolean {
 /**
  * Toggle whether the panel swallows pointer events.
  *
- * - interactive=false -> click-through (cursor passes to the desktop) but mouse
- *   move events are still forwarded so we can detect the hot zone.
- * - interactive=true  -> normal interactive window.
+ * - interactive=false (collapsed) -> click-through: Windows passes ALL mouse
+ *   clicks to apps beneath. Edge detection is done by the main-process cursor
+ *   poll (startCursorPoll), which reads screen.getCursorScreenPoint() directly,
+ *   so no mouse-event forwarding is needed.
+ * - interactive=true  (expanded) -> normal interactive window: the black blade
+ *   captures all clicks.
  */
 export function setInteractive(value: boolean): void {
   if (!mainWindow || value === interactive) return
   interactive = value
-  mainWindow.setIgnoreMouseEvents(!value, { forward: !value })
+  if (value) {
+    // Panel is open: disable click-through so user can interact.
+    mainWindow.setIgnoreMouseEvents(false)
+  } else {
+    // Panel is closed: full click-through, no forwarding needed.
+    // Cursor edge detection is done by the main-process poll (startCursorPoll)
+    // via screen.getCursorScreenPoint() + IPC, so forward:true is not required
+    // and omitting it ensures Windows passes ALL mouse clicks to apps beneath.
+    mainWindow.setIgnoreMouseEvents(true, { forward: false })
+  }
+}
+
+/**
+ * Poll the OS cursor position every ~16ms and send `window:cursor-edge` to
+ * the renderer. This is the reliable alternative to `forward:true` on Windows
+ * transparent windows, where pointermove forwarding often silently stops
+ * working.
+ */
+let cursorPollTimer: ReturnType<typeof setInterval> | null = null
+let lastEdgeState = false
+
+export function startCursorPoll(): void {
+  if (cursorPollTimer !== null) return
+  cursorPollTimer = setInterval(() => {
+    if (!mainWindow || !mainWindow.isVisible()) return
+
+    const pt = screen.getCursorScreenPoint()
+    const display = screen.getDisplayNearestPoint(pt)
+    const wa = display.workArea
+
+    // Translate screen coords → window-client coords.
+    // getCursorScreenPoint() returns physical pixels on Windows; workArea is
+    // already in physical pixels when scaleFactor > 1 in Electron's screen API.
+    const clientX = pt.x - wa.x
+    const clientY = pt.y - wa.y
+
+    // Guard against garbage values that Windows occasionally sends.
+    if (clientX < -1000 || clientX > 10000 || clientY < -1000 || clientY > 10000) return
+
+    const inEdge = clientX <= 3
+    const newState = inEdge
+
+    // Keep streaming the cursor position to the renderer while it is near the
+    // edge (so opening works) OR while the panel is open (so closing works in
+    // EVERY direction). Previously we only streamed while clientX <= 60, which
+    // froze the renderer's last-known position the moment the cursor moved to
+    // the right past 60px — so it never learned the cursor had left and the
+    // blade refused to retract horizontally. When the panel is closed and the
+    // cursor is away from the edge we stop streaming to avoid needless IPC.
+    if (clientX <= 60 || interactive || newState !== lastEdgeState) {
+      lastEdgeState = newState
+      mainWindow.webContents.send('window:cursor-edge', {
+        x: clientX,
+        y: clientY,
+        inEdge,
+        inZone: true
+      })
+    }
+  }, 16)
+}
+
+export function stopCursorPoll(): void {
+  if (cursorPollTimer !== null) {
+    clearInterval(cursorPollTimer)
+    cursorPollTimer = null
+  }
 }
 
 /** Compute geometry anchored to the left edge of the primary display. */
@@ -74,7 +143,7 @@ export function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
     x,
     y,
-    width,
+    width: PANEL_WIDTH,
     height,
     show: false,
     frame: false,
@@ -88,6 +157,7 @@ export function createWindow(): BrowserWindow {
     hasShadow: false,
     skipTaskbar: true,
     alwaysOnTop: true,
+    focusable: false,
     backgroundColor: '#00000000',
     roundedCorners: false,
     webPreferences: {
@@ -99,8 +169,8 @@ export function createWindow(): BrowserWindow {
     }
   })
 
-  // Start click-through so the panel is invisible to clicks until hovered.
-  mainWindow.setIgnoreMouseEvents(true, { forward: true })
+  // Start click-through with no forwarding — edge detection is done via cursor poll.
+  mainWindow.setIgnoreMouseEvents(true, { forward: false })
 
   // Keep the panel glued to the primary display if the work area changes.
   screen.on('display-metrics-changed', () => {
@@ -108,7 +178,7 @@ export function createWindow(): BrowserWindow {
     const g = edgeGeometry()
     mainWindow.setBounds({ ...g })
     if (detectorWindow && !detectorWindow.isDestroyed()) {
-      detectorWindow.setBounds({ x: g.x, y: g.y, width: g.width, height: g.height })
+      detectorWindow.setBounds({ x: g.x, y: g.y, width: 1, height: g.height })
     }
   })
 
@@ -151,16 +221,13 @@ export function createWindow(): BrowserWindow {
 }
 
 /**
- * Thin invisible detector window for OS file drag awareness.
+ * Thin invisible detector window.
  *
- * When the main panel is click-through, HTML5 drag events (dragenter/dragover/drop)
- * are NOT forwarded — only pointer events are. This window sits in the same
- * position but is always interactive and transparent. It detects incoming file
- * drags and sends `detector:file-drag-enter` via the preload bridge so the
- * main process (handled in index.ts) can open the panel + make it interactive.
- *
- * The body has `pointer-events: none` so regular mouse clicks pass through
- * to the desktop, but the BrowserWindow itself still receives drag events.
+ * It is click-through just like the main window, so when the panel is collapsed
+ * it does not steal desktop clicks. It no longer drives opening (the cursor
+ * poll does that). It is kept around as a fallback drag surface and a no-op
+ * drag-event absorber; its inline script still forwards file drags to the main
+ * window via `window.edge.setInteractive(true)` should it ever receive one.
  */
 function createDetectorWindow(x: number, y: number, w: number, h: number): void {
   // Minimal HTML: the detector uses the preload bridge (window.edge) to send IPC.
@@ -196,7 +263,7 @@ function createDetectorWindow(x: number, y: number, w: number, h: number): void 
   detectorWindow = new BrowserWindow({
     x,
     y: detY,
-    width: 20,
+    width: 1,
     height: detHeight,
     show: false,
     frame: false,
@@ -220,8 +287,18 @@ function createDetectorWindow(x: number, y: number, w: number, h: number): void 
     }
   })
 
-  // This window must NOT be click-through — it needs to receive drag events.
-  detectorWindow.setIgnoreMouseEvents(false)
+  // Click-through, like the main window. A non-click-through always-on-top
+  // window here used to swallow all desktop clicks across the hint-bar band
+  // even though it was only 1px wide (Windows still hit-tests a transparent
+  // always-on-top BrowserWindow across a minimum footprint). Keeping it
+  // click-through means the collapsed panel passes clicks through everywhere.
+  //
+  // Drag-in is NOT lost: the main-process cursor poll
+  // (screen.getCursorScreenPoint) reads the OS cursor position every ~16ms
+  // regardless of mouse events, so it still fires while an OS file drag is in
+  // progress — the 120ms edge dwell opens the panel and makes the main window
+  // interactive, and the drop then lands on the main window.
+  detectorWindow.setIgnoreMouseEvents(true, { forward: false })
 
   // Layer behind the main panel (lower always-on-top level).
   detectorWindow.setAlwaysOnTop(true, 'normal')

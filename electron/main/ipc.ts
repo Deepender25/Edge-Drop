@@ -68,6 +68,42 @@ export function registerIpc(): void {
     return true
   })
 
+  handle('item:copy-subitem', (req) => {
+    // Resolve a single sub-item (one file of a bundle, or one image of a
+    // collection) and write just that onto the clipboard — not the whole item.
+    const dto = getStore().toDto().find((d) => d.id === req.id)
+    if (!dto) return false
+
+    let wrote = false
+    if (dto.data.kind === 'files' && req.paths && req.paths.length > 0) {
+      // Electron has no public files-write API; fall back to paths as text,
+      // mirroring writeItemToClipboard's behaviour for whole file items.
+      clipboard.clear()
+      clipboard.writeText(req.paths.join('\r\n'))
+      wrote = true
+    } else if (dto.data.kind === 'image-collection' && req.imageId) {
+      const img = dto.data.images.find((i) => i.imageId === req.imageId)
+      if (img && img.preview) {
+        const native = nativeImage.createFromDataURL(img.preview)
+        if (!native.isEmpty()) {
+          clipboard.clear()
+          clipboard.writeImage(native)
+          wrote = true
+        }
+      }
+    }
+
+    if (!wrote) return false
+
+    const watcher = getWatcher()
+    watcher.setPaused(true)
+    setTimeout(() => {
+      watcher.setPaused(loadSettings().incognito)
+    }, 200)
+
+    return true
+  })
+
   handle('item:add-files', (paths) => {
     addFiles(paths)
     return getStore().toDto()

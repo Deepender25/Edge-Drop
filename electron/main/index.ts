@@ -11,7 +11,7 @@
 import { app, BrowserWindow, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, cleanTemp, PATHS } from '../store/paths'
-import { createWindow, getMainWindow, setInteractive, setVisible } from './window'
+import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll } from './window'
 import { createTray, registerIncognitoApplier } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
 import { initState, getWatcher, loadSettings, pushState } from './state'
@@ -61,6 +61,7 @@ app.whenReady().then(() => {
   registerImageProtocol()
 
   createWindow()
+  startCursorPoll()
   createTray()
   registerIpc()
   registerSendListeners()
