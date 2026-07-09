@@ -2,13 +2,13 @@
  * ClipboardItem — a single history/shelf entry.
  *
  * Interactions:
- *   - Double-click body   -> copy item back to clipboard
- *   - Drag the tile       -> native OS drag-out (via useDragOut)
+ *   - Click body            -> paste item (write to clipboard + simulate Ctrl+V)
+ *   - Drag the tile         -> native OS drag-out (via useDragOut)
  *   - File bundle: click body -> expand/collapse
  *   - Drag collapsed bundle -> drag all files as one entity
- *   - Drag expanded sub-row  -> drag just that one file
- *   - Pin / Delete           -> quick actions on hover
- *   - Copy button (⧉)      -> single-click copy (explicit affordance)
+ *   - Drag expanded sub-row -> drag just that one file
+ *   - Pin / Delete          -> quick actions on hover
+ *   - Copy button (⧉)      -> single-click copy (just clipboard, no Ctrl+V)
  *
  * Visual: a raised dark tile. Image items show a thumbnail; text items show a
  * clamped preview; file items list names or bundle badge. Motion is handled by
@@ -25,6 +25,23 @@ import { basename, formatBytes, previewText, relativeTime } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { CopyIcon, FileKindIcon, ImageIcon, LinkIcon, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon } from './icons'
 import '../styles/item.css'
+
+/**
+ * Module-level paste guard — shared across ALL item instances.
+ * Tracks the timestamp of the last paste so that any subsequent click
+ * (including the second click of a double-click) within PASTE_COOLDOWN ms
+ * is silently dropped. This is the only reliable way to prevent double-paste:
+ * it is synchronous, stateless across renders, and immune to async IPC races.
+ */
+let _lastPasteAt = 0
+const PASTE_COOLDOWN = 600 // ms
+
+function tryPaste(fn: () => void): void {
+  const now = Date.now()
+  if (now - _lastPasteAt < PASTE_COOLDOWN) return
+  _lastPasteAt = now
+  fn()
+}
 
 interface Props {
   item: ClipboardItemDto
@@ -92,17 +109,6 @@ function ClipboardItemBase({ item }: Props) {
 
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
 
-  const onDoubleClick = useCallback((e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    if (clickTimerRef.current !== undefined) {
-      window.clearTimeout(clickTimerRef.current)
-      clickTimerRef.current = undefined
-    }
-    copy(item.id)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 900)
-  }, [copy, item.id])
-
   const onCopy = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     copy(item.id)
@@ -112,17 +118,8 @@ function ClipboardItemBase({ item }: Props) {
 
   const onPaste = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
-    if (clickTimerRef.current !== undefined) {
-      window.clearTimeout(clickTimerRef.current)
-      clickTimerRef.current = undefined
-      onDoubleClick(e)
-      return
-    }
-    clickTimerRef.current = window.setTimeout(() => {
-      clickTimerRef.current = undefined
-      paste(item.id)
-    }, 220)
-  }, [paste, item.id, onDoubleClick])
+    tryPaste(() => paste(item.id))
+  }, [paste, item.id])
 
   const onExpand = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
@@ -141,12 +138,10 @@ function ClipboardItemBase({ item }: Props) {
 
   const handleDragStart = useCallback((e: React.DragEvent, req: DragRequest) => {
     if (item.data.kind === 'text') {
-      // Native HTML5 drag handles text perfectly and gives us a ghost image.
-      // We ONLY set text/plain so that target applications (like browsers or Word)
-      // treat the drop as pure text insertion rather than rendering a rich HTML block.
-      e.dataTransfer.setData('text/plain', item.data.text)
-      e.dataTransfer.effectAllowed = 'copy'
-      setupTextDragImage(e, item.data.text, item.data.isUrl)
+      // We no longer support dragging text/links.
+      // Prevent the default browser drag behavior (e.g. text selection dragging) entirely.
+      e.preventDefault()
+      return
     } else {
       // Images and files need OS-level file handles via Electron's startDrag.
       // Cancel the HTML5 drag (preventDefault) so the browser doesn't run its
@@ -171,7 +166,7 @@ function ClipboardItemBase({ item }: Props) {
       <div
         className="item-main"
         data-id={item.id}
-        draggable={!isBundle || !expanded}
+        draggable={item.data.kind !== 'text' && (!isBundle || !expanded)}
         onDragStart={(e) => handleDragStart(e, { id: item.id })}
         onDragEnd={() => setInternalDragReq(null)}
         onDragOver={(e) => {
@@ -199,7 +194,6 @@ function ClipboardItemBase({ item }: Props) {
             setInternalDragReq(null)
           }
         }}
-        onDoubleClick={!isBundle ? onDoubleClick : undefined}
         onClick={isBundle && !expanded ? onExpand : (!isBundle ? onPaste : undefined)}
       >
         <div className="body">
@@ -331,8 +325,7 @@ function BundleFluidPreview({
                   className="fluid-list-row"
                   draggable
                   onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
-                  onClick={(e) => onSubitemClick(e, { id: item.id, imageId: img.imageId })}
-                  onDoubleClick={(e) => { e.stopPropagation(); if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = undefined; } window.edge.copySubitem({ id: item.id, imageId: img.imageId }); setCopied(true); setTimeout(() => setCopied(false), 900); }}
+                  onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, zIndex: 1 }}
                   exit={{ opacity: 0 }}
@@ -435,9 +428,7 @@ function BundleFluidPreview({
                     className="fluid-list-row"
                     draggable
                     onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, paths: [filePath] }) }}
-                    onClick={(e) => onSubitemClick(e, { id: item.id, paths: [filePath] })}
-                    onDoubleClick={(e) => { e.stopPropagation(); if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = undefined; } window.edge.copySubitem({ id: item.id, paths: [filePath] }); setCopied(true); setTimeout(() => setCopied(false), 900); }}
-                    initial={{ opacity: 0 }}
+                    onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [filePath] })) }}
                     animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, zIndex: 1 }}
                     exit={{ opacity: 0 }}
                   >

@@ -36,6 +36,12 @@ let mainWindow: BrowserWindow | null = null
 let detectorWindow: BrowserWindow | null = null
 let interactive = false
 
+export let currentHotZoneWidth = 3
+
+export function setHotZoneWidth(width: number): void {
+  currentHotZoneWidth = width
+}
+
 export function getMainWindow(): BrowserWindow | null {
   return mainWindow
 }
@@ -128,7 +134,7 @@ export function startCursorPoll(): void {
     // Guard against garbage values that Windows occasionally sends.
     if (clientX < -1000 || clientX > 10000 || clientY < -1000 || clientY > 10000) return
 
-    const inEdge = clientX <= 3
+    const inEdge = clientX <= currentHotZoneWidth
     const newState = inEdge
 
     // Keep streaming the cursor position to the renderer while it is near the

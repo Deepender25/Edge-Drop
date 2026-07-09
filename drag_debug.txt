@@ -1902,3 +1902,754 @@
 [2026-07-08T20:28:41.858Z] createFileStackDragIcon returning cached for stack|dark|image|1
 [2026-07-08T20:28:41.859Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
 [2026-07-08T20:28:41.859Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\agentScreenshot.png, item.files=["C:\\Users\\yadav\\Downloads\\agentScreenshot.png"]
+[2026-07-08T20:56:55.507Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-08T20:56:56.043Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T20:56:56.044Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-08T20:56:56.212Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T20:56:56.213Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-08T20:56:56.368Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T20:57:41.704Z] startDragOut called for kind=image
+[2026-07-08T20:57:41.707Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T20:57:41.707Z] dragIcon called for kind=image
+[2026-07-08T20:57:41.708Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T20:57:41.709Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T20:57:41.710Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T20:57:41.710Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:04:23.309Z] startDragOut called for kind=image
+[2026-07-08T21:04:23.312Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:04:23.313Z] dragIcon called for kind=image
+[2026-07-08T21:04:23.313Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:04:23.313Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:04:23.314Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:04:23.314Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:04:33.787Z] startDragOut called for kind=image
+[2026-07-08T21:04:33.789Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:04:33.790Z] dragIcon called for kind=image
+[2026-07-08T21:04:33.791Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:04:33.791Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:04:33.792Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:04:33.792Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:04:43.791Z] startDragOut called for kind=image
+[2026-07-08T21:04:43.793Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:04:43.795Z] dragIcon called for kind=image
+[2026-07-08T21:04:43.795Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:04:43.796Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:04:43.796Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:04:43.797Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:04:56.294Z] startDragOut called for kind=image
+[2026-07-08T21:04:56.296Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:04:56.296Z] dragIcon called for kind=image
+[2026-07-08T21:04:56.297Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:04:56.298Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:04:56.298Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:04:56.299Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:17:35.102Z] startDragOut called for kind=image
+[2026-07-08T21:17:35.104Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:17:35.105Z] dragIcon called for kind=image
+[2026-07-08T21:17:35.105Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:17:35.105Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:17:35.106Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:17:35.106Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:19:54.827Z] startDragOut called for kind=image
+[2026-07-08T21:19:54.829Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrckzvlo-75yi8bjt.png, files=undefined
+[2026-07-08T21:19:54.830Z] dragIcon called for kind=image
+[2026-07-08T21:19:54.831Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:19:54.832Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:19:54.832Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:19:54.833Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrckzvlo-75yi8bjt.png, item.files=undefined
+[2026-07-08T21:23:09.722Z] startDragOut called for kind=image
+[2026-07-08T21:23:09.724Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:23:09.725Z] dragIcon called for kind=image
+[2026-07-08T21:23:09.725Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:23:09.726Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:23:09.726Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:23:09.727Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:23:12.352Z] startDragOut called for kind=image
+[2026-07-08T21:23:12.355Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-08T21:23:12.356Z] dragIcon called for kind=image
+[2026-07-08T21:23:12.357Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:23:12.357Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:23:12.358Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:23:12.359Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-08T21:23:23.284Z] startDragOut called for kind=image
+[2026-07-08T21:23:23.286Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:23:23.286Z] dragIcon called for kind=image
+[2026-07-08T21:23:23.287Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:23:23.287Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:23:23.287Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:23:23.289Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:23:46.288Z] startDragOut called for kind=image
+[2026-07-08T21:23:46.290Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:23:46.291Z] dragIcon called for kind=image
+[2026-07-08T21:23:46.292Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:23:46.293Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:23:46.294Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:23:46.295Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:23:54.243Z] startDragOut called for kind=image
+[2026-07-08T21:23:54.245Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-08T21:23:54.246Z] dragIcon called for kind=image
+[2026-07-08T21:23:54.247Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:23:54.248Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:23:54.249Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:23:54.250Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-08T21:23:58.807Z] startDragOut called for kind=image
+[2026-07-08T21:23:58.812Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=undefined
+[2026-07-08T21:23:58.814Z] dragIcon called for kind=image
+[2026-07-08T21:23:58.815Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:23:58.816Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:23:58.817Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:23:58.818Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=undefined
+[2026-07-08T21:25:36.908Z] startDragOut called for kind=image
+[2026-07-08T21:25:36.910Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-08T21:25:36.911Z] dragIcon called for kind=image
+[2026-07-08T21:25:36.911Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:25:36.912Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:25:36.913Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:25:36.913Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-08T21:25:39.240Z] startDragOut called for kind=image
+[2026-07-08T21:25:39.242Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-08T21:25:39.242Z] dragIcon called for kind=image
+[2026-07-08T21:25:39.243Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:25:39.244Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:25:39.244Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:25:39.245Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-08T21:32:40.779Z] startDragOut called for kind=image
+[2026-07-08T21:32:40.783Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, files=undefined
+[2026-07-08T21:32:40.784Z] dragIcon called for kind=image
+[2026-07-08T21:32:40.787Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-08T21:32:40.788Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-08T21:32:40.790Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-08T21:32:40.791Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, item.files=undefined
+[2026-07-09T05:49:09.886Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T05:49:11.362Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T05:49:11.364Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T05:49:11.810Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T05:49:11.811Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T05:49:12.231Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:03:37.285Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:03:37.518Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:03:37.519Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:03:37.665Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:03:37.666Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:03:37.811Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:12:51.094Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:12:51.263Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:12:51.264Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:12:51.405Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:12:51.406Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:12:51.574Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:16:10.593Z] startDragOut called for kind=image
+[2026-07-09T06:16:10.599Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, files=undefined
+[2026-07-09T06:16:10.602Z] dragIcon called for kind=image
+[2026-07-09T06:16:10.604Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:16:10.605Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:16:10.606Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:16:10.606Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, item.files=undefined
+[2026-07-09T06:16:13.028Z] startDragOut called for kind=image
+[2026-07-09T06:16:13.031Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=undefined
+[2026-07-09T06:16:13.033Z] dragIcon called for kind=image
+[2026-07-09T06:16:13.035Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:16:13.036Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:16:13.038Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:16:13.038Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=undefined
+[2026-07-09T06:16:28.902Z] startDragOut called for kind=image
+[2026-07-09T06:16:28.905Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:16:28.907Z] dragIcon called for kind=image
+[2026-07-09T06:16:28.908Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:16:28.910Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:16:28.910Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:16:28.911Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:16:31.645Z] startDragOut called for kind=image
+[2026-07-09T06:16:31.650Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:16:31.651Z] dragIcon called for kind=image
+[2026-07-09T06:16:31.653Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:16:31.654Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:16:31.654Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:16:31.655Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:16:36.903Z] startDragOut called for kind=image
+[2026-07-09T06:16:36.904Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=undefined
+[2026-07-09T06:16:36.905Z] dragIcon called for kind=image
+[2026-07-09T06:16:36.905Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:16:36.906Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:16:36.906Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:16:36.907Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=undefined
+[2026-07-09T06:17:04.643Z] startDragOut called for kind=image
+[2026-07-09T06:17:04.645Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:17:04.646Z] dragIcon called for kind=image
+[2026-07-09T06:17:04.649Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:04.650Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:04.651Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:04.651Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:17:06.533Z] startDragOut called for kind=image
+[2026-07-09T06:17:06.534Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=undefined
+[2026-07-09T06:17:06.535Z] dragIcon called for kind=image
+[2026-07-09T06:17:06.538Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:06.539Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:06.540Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:06.540Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=undefined
+[2026-07-09T06:17:11.422Z] startDragOut called for kind=image
+[2026-07-09T06:17:11.425Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:17:11.426Z] dragIcon called for kind=image
+[2026-07-09T06:17:11.427Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:11.427Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:11.428Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:11.429Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:17:15.662Z] startDragOut called for kind=image
+[2026-07-09T06:17:15.663Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=undefined
+[2026-07-09T06:17:15.664Z] dragIcon called for kind=image
+[2026-07-09T06:17:15.665Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:15.665Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:15.666Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:15.666Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=undefined
+[2026-07-09T06:17:22.477Z] startDragOut called for kind=image
+[2026-07-09T06:17:22.478Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:17:22.479Z] dragIcon called for kind=image
+[2026-07-09T06:17:22.479Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:22.480Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:22.480Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:22.481Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:17:26.167Z] startDragOut called for kind=image
+[2026-07-09T06:17:26.168Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:17:26.168Z] dragIcon called for kind=image
+[2026-07-09T06:17:26.169Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:26.170Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:26.170Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:26.171Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:17:33.463Z] startDragOut called for kind=image
+[2026-07-09T06:17:33.465Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:17:33.465Z] dragIcon called for kind=image
+[2026-07-09T06:17:33.466Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:33.467Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:33.468Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:33.468Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:17:35.305Z] startDragOut called for kind=image
+[2026-07-09T06:17:35.306Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:17:35.306Z] dragIcon called for kind=image
+[2026-07-09T06:17:35.307Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:35.308Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:35.308Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:35.309Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:17:41.544Z] startDragOut called for kind=image
+[2026-07-09T06:17:41.545Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:17:41.546Z] dragIcon called for kind=image
+[2026-07-09T06:17:41.546Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:41.547Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:41.547Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:41.548Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:17:43.967Z] startDragOut called for kind=image
+[2026-07-09T06:17:43.969Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:17:43.970Z] dragIcon called for kind=image
+[2026-07-09T06:17:43.971Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:43.971Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:43.972Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:43.973Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:17:50.690Z] startDragOut called for kind=image
+[2026-07-09T06:17:50.692Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:17:50.692Z] dragIcon called for kind=image
+[2026-07-09T06:17:50.693Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:50.694Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:50.695Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:50.696Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:17:52.763Z] startDragOut called for kind=image
+[2026-07-09T06:17:52.765Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:17:52.765Z] dragIcon called for kind=image
+[2026-07-09T06:17:52.766Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:17:52.766Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:17:52.767Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:17:52.768Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:25:33.142Z] startDragOut called for kind=image
+[2026-07-09T06:25:33.146Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, files=undefined
+[2026-07-09T06:25:33.147Z] dragIcon called for kind=image
+[2026-07-09T06:25:33.149Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:33.150Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:33.151Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:33.152Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, item.files=undefined
+[2026-07-09T06:25:35.133Z] startDragOut called for kind=image
+[2026-07-09T06:25:35.135Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:25:35.135Z] dragIcon called for kind=image
+[2026-07-09T06:25:35.136Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:35.136Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:35.137Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:35.137Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:25:36.824Z] startDragOut called for kind=image
+[2026-07-09T06:25:36.826Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:25:36.826Z] dragIcon called for kind=image
+[2026-07-09T06:25:36.827Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:36.827Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:36.827Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:36.828Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:25:39.840Z] startDragOut called for kind=image
+[2026-07-09T06:25:39.842Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:25:39.842Z] dragIcon called for kind=image
+[2026-07-09T06:25:39.842Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:39.843Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:39.843Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:39.843Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:25:42.161Z] startDragOut called for kind=image
+[2026-07-09T06:25:42.163Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:25:42.164Z] dragIcon called for kind=image
+[2026-07-09T06:25:42.165Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:42.166Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:42.167Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:42.167Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:25:46.515Z] startDragOut called for kind=image
+[2026-07-09T06:25:46.517Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:25:46.518Z] dragIcon called for kind=image
+[2026-07-09T06:25:46.519Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:46.520Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:46.520Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:46.521Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:25:48.119Z] startDragOut called for kind=image
+[2026-07-09T06:25:48.120Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T06:25:48.121Z] dragIcon called for kind=image
+[2026-07-09T06:25:48.121Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:48.122Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:48.122Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:48.122Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T06:25:50.410Z] startDragOut called for kind=image
+[2026-07-09T06:25:50.411Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T06:25:50.411Z] dragIcon called for kind=image
+[2026-07-09T06:25:50.412Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T06:25:50.413Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T06:25:50.413Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:50.414Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T06:25:54.035Z] startDragOut called for kind=image-collection
+[2026-07-09T06:25:54.037Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T06:25:54.038Z] dragIcon called for kind=image-collection
+[2026-07-09T06:25:54.039Z] image drag requested: count=3. Returning custom image card stack icon!
+[2026-07-09T06:25:54.040Z] createFileStackDragIcon calling Resvg for count=3
+[2026-07-09T06:25:54.423Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:54.424Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:25:54.425Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T06:47:14.280Z] startDragOut called for kind=image-collection
+[2026-07-09T06:47:14.287Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd585dq-e685r8ku.jpg, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd585dq-e685r8ku.jpg","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd585dy-g4hofq6b.png"]
+[2026-07-09T06:47:14.289Z] dragIcon called for kind=image-collection
+[2026-07-09T06:47:14.289Z] image drag requested: count=2. Returning custom image card stack icon!
+[2026-07-09T06:47:14.291Z] createFileStackDragIcon calling Resvg for count=2
+[2026-07-09T06:47:14.718Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:47:14.718Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:47:14.719Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd585dq-e685r8ku.jpg, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd585dq-e685r8ku.jpg","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd585dy-g4hofq6b.png"]
+[2026-07-09T06:50:34.549Z] startDragOut called for kind=files
+[2026-07-09T06:50:34.552Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\quick_reference.pdf, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\quick_reference.pdf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\showcase_notes.txt","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\config.yml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\script.js","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\app_config.json","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\archive_backup.zip","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\dashboard_preview.html","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv"]
+[2026-07-09T06:50:34.554Z] dragIcon called for kind=files
+[2026-07-09T06:50:34.555Z] files check: count=10, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\quick_reference.pdf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\showcase_notes.txt","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\config.yml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\script.js","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\app_config.json","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\archive_backup.zip","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\dashboard_preview.html","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv"]
+[2026-07-09T06:50:34.556Z] createFileStackDragIcon calling Resvg for count=10
+[2026-07-09T06:50:34.809Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:50:34.810Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:50:34.811Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\quick_reference.pdf, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\quick_reference.pdf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\showcase_notes.txt","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\config.yml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\script.js","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\app_config.json","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\archive_backup.zip","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\dashboard_preview.html","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv"]
+[2026-07-09T06:50:40.339Z] startDragOut called for kind=files
+[2026-07-09T06:50:40.340Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\settings.xml, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml"]
+[2026-07-09T06:50:40.341Z] dragIcon called for kind=files
+[2026-07-09T06:50:40.341Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml"]
+[2026-07-09T06:50:40.342Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:50:40.515Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:50:40.516Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:50:40.516Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\settings.xml, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml"]
+[2026-07-09T06:56:10.102Z] startDragOut called for kind=files
+[2026-07-09T06:56:10.105Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\settings.xml, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\showcase_notes.txt","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\quick_reference.pdf"]
+[2026-07-09T06:56:10.106Z] dragIcon called for kind=files
+[2026-07-09T06:56:10.107Z] files check: count=5, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\showcase_notes.txt","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\quick_reference.pdf"]
+[2026-07-09T06:56:10.108Z] createFileStackDragIcon calling Resvg for count=5
+[2026-07-09T06:56:10.329Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:56:10.330Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:56:10.332Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\settings.xml, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\showcase_notes.txt","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv","C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\quick_reference.pdf"]
+[2026-07-09T06:56:19.340Z] startDragOut called for kind=files
+[2026-07-09T06:56:19.341Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\settings.xml, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml"]
+[2026-07-09T06:56:19.341Z] dragIcon called for kind=files
+[2026-07-09T06:56:19.344Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml"]
+[2026-07-09T06:56:19.345Z] createFileStackDragIcon returning cached for stack|dark|code|1
+[2026-07-09T06:56:19.346Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:56:19.346Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\settings.xml, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\settings.xml"]
+[2026-07-09T06:57:17.473Z] startDragOut called for kind=files
+[2026-07-09T06:57:17.474Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\styled_doc.rtf, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:57:17.474Z] dragIcon called for kind=files
+[2026-07-09T06:57:17.475Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:57:17.477Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:57:17.650Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:57:17.651Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:57:17.653Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\styled_doc.rtf, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:57:21.300Z] startDragOut called for kind=files
+[2026-07-09T06:57:21.302Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\dashboard_preview.html, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\dashboard_preview.html"]
+[2026-07-09T06:57:21.305Z] dragIcon called for kind=files
+[2026-07-09T06:57:21.306Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\dashboard_preview.html"]
+[2026-07-09T06:57:21.307Z] createFileStackDragIcon returning cached for stack|dark|code|1
+[2026-07-09T06:57:21.308Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:57:21.308Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\dashboard_preview.html, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\dashboard_preview.html"]
+[2026-07-09T06:57:24.961Z] startDragOut called for kind=files
+[2026-07-09T06:57:24.962Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\styled_doc.rtf, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:57:24.963Z] dragIcon called for kind=files
+[2026-07-09T06:57:24.963Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:57:24.965Z] createFileStackDragIcon returning cached for stack|dark|word|1
+[2026-07-09T06:57:24.966Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:57:24.966Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\styled_doc.rtf, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:58:34.191Z] startDragOut called for kind=files
+[2026-07-09T06:58:34.192Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\styled_doc.rtf, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:58:34.193Z] dragIcon called for kind=files
+[2026-07-09T06:58:34.193Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:58:34.194Z] createFileStackDragIcon returning cached for stack|dark|word|1
+[2026-07-09T06:58:34.194Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:58:34.195Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\styled_doc.rtf, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\styled_doc.rtf"]
+[2026-07-09T06:58:37.731Z] startDragOut called for kind=files
+[2026-07-09T06:58:37.732Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\file_list.csv, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv"]
+[2026-07-09T06:58:37.732Z] dragIcon called for kind=files
+[2026-07-09T06:58:37.733Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv"]
+[2026-07-09T06:58:37.733Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T06:58:37.961Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:58:37.962Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T06:58:37.963Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\file_list.csv, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\file_list.csv"]
+[2026-07-09T07:24:18.507Z] startDragOut called for kind=image
+[2026-07-09T07:24:18.511Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T07:24:18.511Z] dragIcon called for kind=image
+[2026-07-09T07:24:18.511Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T07:24:18.512Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:24:18.512Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:24:18.513Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T07:24:20.123Z] startDragOut called for kind=image-collection
+[2026-07-09T07:24:20.127Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:24:20.128Z] dragIcon called for kind=image-collection
+[2026-07-09T07:24:20.130Z] image drag requested: count=2. Returning custom image card stack icon!
+[2026-07-09T07:24:20.130Z] createFileStackDragIcon returning cached for stack|dark|image-image|2
+[2026-07-09T07:24:20.131Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:24:20.131Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:24:21.850Z] startDragOut called for kind=image-collection
+[2026-07-09T07:24:21.857Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:24:21.858Z] dragIcon called for kind=image-collection
+[2026-07-09T07:24:21.859Z] image drag requested: count=3. Returning custom image card stack icon!
+[2026-07-09T07:24:21.861Z] createFileStackDragIcon returning cached for stack|dark|image-image-image|3
+[2026-07-09T07:24:21.862Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:24:21.863Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:24:29.919Z] startDragOut called for kind=image-collection
+[2026-07-09T07:24:29.924Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl0cyg-pqoui33u.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:24:29.924Z] dragIcon called for kind=image-collection
+[2026-07-09T07:24:29.926Z] image drag requested: count=4. Returning custom image card stack icon!
+[2026-07-09T07:24:29.928Z] createFileStackDragIcon calling Resvg for count=4
+[2026-07-09T07:24:30.493Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:24:30.494Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:24:30.494Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl0cyg-pqoui33u.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:35:05.417Z] startDragOut called for kind=image
+[2026-07-09T07:35:05.423Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T07:35:05.425Z] dragIcon called for kind=image
+[2026-07-09T07:35:05.428Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T07:35:05.429Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:35:05.430Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:05.430Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T07:35:07.175Z] startDragOut called for kind=files
+[2026-07-09T07:35:07.176Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\images\mrcl0cyg-pqoui33u.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\images\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:07.177Z] dragIcon called for kind=files
+[2026-07-09T07:35:07.180Z] files check: count=1, paths=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\images\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:07.180Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:35:07.181Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:07.182Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\images\mrcl0cyg-pqoui33u.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\images\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:10.065Z] startDragOut called for kind=files
+[2026-07-09T07:35:10.066Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\images\mrcl0cyg-pqoui33u.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\images\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:10.067Z] dragIcon called for kind=files
+[2026-07-09T07:35:10.070Z] files check: count=1, paths=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\images\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:10.071Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:35:10.072Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:10.073Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\images\mrcl0cyg-pqoui33u.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\images\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:14.855Z] startDragOut called for kind=image-collection
+[2026-07-09T07:35:14.857Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:35:14.858Z] dragIcon called for kind=image-collection
+[2026-07-09T07:35:14.859Z] image drag requested: count=2. Returning custom image card stack icon!
+[2026-07-09T07:35:14.860Z] createFileStackDragIcon returning cached for stack|dark|image-image|2
+[2026-07-09T07:35:14.860Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:14.861Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2eee-5l7zvuqg.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcdw7vn-2yrfsmmq.png"]
+[2026-07-09T07:35:19.194Z] startDragOut called for kind=image
+[2026-07-09T07:35:19.198Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T07:35:19.199Z] dragIcon called for kind=image
+[2026-07-09T07:35:19.201Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T07:35:19.202Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:35:19.204Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:19.205Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T07:35:20.689Z] startDragOut called for kind=image-collection
+[2026-07-09T07:35:20.691Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:20.692Z] dragIcon called for kind=image-collection
+[2026-07-09T07:35:20.692Z] image drag requested: count=2. Returning custom image card stack icon!
+[2026-07-09T07:35:20.692Z] createFileStackDragIcon returning cached for stack|dark|image-image|2
+[2026-07-09T07:35:20.693Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:20.693Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl2qkc-079bveyz.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrcl0cyg-pqoui33u.png"]
+[2026-07-09T07:35:32.422Z] startDragOut called for kind=image
+[2026-07-09T07:35:32.423Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, files=undefined
+[2026-07-09T07:35:32.426Z] dragIcon called for kind=image
+[2026-07-09T07:35:32.426Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T07:35:32.427Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:35:32.427Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:32.428Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2qkc-079bveyz.png, item.files=undefined
+[2026-07-09T07:35:33.713Z] startDragOut called for kind=image
+[2026-07-09T07:35:33.715Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, files=undefined
+[2026-07-09T07:35:33.717Z] dragIcon called for kind=image
+[2026-07-09T07:35:33.718Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T07:35:33.718Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:35:33.720Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:33.721Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcdw7vn-2yrfsmmq.png, item.files=undefined
+[2026-07-09T07:35:35.077Z] startDragOut called for kind=image
+[2026-07-09T07:35:35.078Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, files=undefined
+[2026-07-09T07:35:35.080Z] dragIcon called for kind=image
+[2026-07-09T07:35:35.082Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T07:35:35.083Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:35:35.085Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:35:35.085Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl2eee-5l7zvuqg.png, item.files=undefined
+[2026-07-09T07:40:16.181Z] startDragOut called for kind=image
+[2026-07-09T07:40:16.187Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, files=undefined
+[2026-07-09T07:40:16.189Z] dragIcon called for kind=image
+[2026-07-09T07:40:16.191Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T07:40:16.192Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T07:40:16.193Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:40:16.194Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrcl0cyg-pqoui33u.png, item.files=undefined
+[2026-07-09T07:50:40.480Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T07:50:40.844Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:50:40.845Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T07:50:40.988Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:50:40.988Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T07:50:41.126Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:52:57.826Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T07:52:57.984Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:52:57.984Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T07:52:58.124Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T07:52:58.125Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T07:52:58.262Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:01:49.327Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:01:49.684Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:01:49.685Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:01:49.833Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:01:49.833Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:01:49.976Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:02:45.350Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:02:45.513Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:02:45.513Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:02:45.671Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:02:45.672Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:02:45.817Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:03:12.516Z] startDragOut called for kind=image
+[2026-07-09T08:03:12.519Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7z3q3-5bax2miu.png, files=undefined
+[2026-07-09T08:03:12.521Z] dragIcon called for kind=image
+[2026-07-09T08:03:12.522Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T08:03:12.524Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T08:03:12.525Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:03:12.526Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7z3q3-5bax2miu.png, item.files=undefined
+[2026-07-09T08:03:13.680Z] startDragOut called for kind=image-collection
+[2026-07-09T08:03:13.683Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7yzil-q214e9rp.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7yzil-q214e9rp.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7z3q3-5bax2miu.png"]
+[2026-07-09T08:03:13.685Z] dragIcon called for kind=image-collection
+[2026-07-09T08:03:13.685Z] image drag requested: count=2. Returning custom image card stack icon!
+[2026-07-09T08:03:13.686Z] createFileStackDragIcon calling Resvg for count=2
+[2026-07-09T08:03:13.898Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:03:13.898Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:03:13.899Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7yzil-q214e9rp.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7yzil-q214e9rp.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7z3q3-5bax2miu.png"]
+[2026-07-09T08:03:15.542Z] startDragOut called for kind=image-collection
+[2026-07-09T08:03:15.547Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7ytgd-1naj3q3d.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7ytgd-1naj3q3d.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7yzil-q214e9rp.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7z3q3-5bax2miu.png"]
+[2026-07-09T08:03:15.547Z] dragIcon called for kind=image-collection
+[2026-07-09T08:03:15.548Z] image drag requested: count=3. Returning custom image card stack icon!
+[2026-07-09T08:03:15.549Z] createFileStackDragIcon calling Resvg for count=3
+[2026-07-09T08:03:15.783Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:03:15.783Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:03:15.784Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7ytgd-1naj3q3d.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7ytgd-1naj3q3d.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7yzil-q214e9rp.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7z3q3-5bax2miu.png"]
+[2026-07-09T08:03:19.955Z] startDragOut called for kind=image-collection
+[2026-07-09T08:03:19.958Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7ytgd-1naj3q3d.png, files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7ytgd-1naj3q3d.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7yzil-q214e9rp.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7z3q3-5bax2miu.png"]
+[2026-07-09T08:03:19.959Z] dragIcon called for kind=image-collection
+[2026-07-09T08:03:19.961Z] image drag requested: count=3. Returning custom image card stack icon!
+[2026-07-09T08:03:19.962Z] createFileStackDragIcon returning cached for stack|dark|image-image-image|3
+[2026-07-09T08:03:19.963Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:03:19.964Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrd7ytgd-1naj3q3d.png, item.files=["C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7ytgd-1naj3q3d.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7yzil-q214e9rp.png","C:\\Users\\yadav\\AppData\\Roaming\\edge-drop\\temp\\mrd7z3q3-5bax2miu.png"]
+[2026-07-09T08:08:02.792Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:08:02.960Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:08:02.960Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:08:03.101Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:08:03.101Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:08:03.246Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:11:15.970Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:11:16.144Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:11:16.145Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:11:16.283Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:11:16.284Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:11:16.424Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:19:46.995Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:19:47.155Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:19:47.156Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:19:47.309Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:19:47.309Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:19:47.440Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:23:22.804Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:23:22.949Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:23:22.950Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:23:23.089Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:23:23.089Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:23:23.234Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:35:48.465Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:35:48.799Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:35:48.799Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:35:48.947Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:35:48.948Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:35:49.081Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:43:55.833Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:43:56.174Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:43:56.175Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:43:56.316Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:43:56.317Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:43:56.449Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:47:46.110Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:47:46.386Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:47:46.387Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:47:46.525Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T08:47:46.526Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T08:47:46.657Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T09:06:13.415Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T09:06:13.738Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T09:06:13.738Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T09:06:13.876Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T09:06:13.877Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T09:06:14.006Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:12:56.895Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:12:57.290Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:12:57.290Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:12:57.551Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:12:57.551Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:12:57.790Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:23:17.328Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:23:17.695Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:23:17.695Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:23:17.939Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:23:17.939Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:23:18.192Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:27:33.972Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:27:34.293Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:27:34.293Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:27:34.443Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:27:34.443Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:27:34.583Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:35:32.049Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:35:32.204Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:35:32.205Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:35:32.349Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:35:32.349Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:35:32.494Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:35:49.418Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:35:49.601Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:35:49.602Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:35:49.784Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:35:49.785Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:35:49.988Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:38:46.370Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:38:46.527Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:38:46.528Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:38:46.666Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:38:46.666Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:38:46.803Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:39:08.164Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:39:08.320Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:39:08.321Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:39:08.465Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:39:08.466Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:39:08.604Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:39:38.417Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:39:38.575Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:39:38.576Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:39:38.766Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:39:38.767Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:39:38.921Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:41:09.350Z] startDragOut called for kind=image
+[2026-07-09T12:41:09.353Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrdhut3f-kkexxg9y.png, files=undefined
+[2026-07-09T12:41:09.354Z] dragIcon called for kind=image
+[2026-07-09T12:41:09.354Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T12:41:09.355Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T12:41:09.355Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:41:09.355Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrdhut3f-kkexxg9y.png, item.files=undefined
+[2026-07-09T12:41:27.050Z] startDragOut called for kind=files
+[2026-07-09T12:41:27.051Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\app_config.json, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\app_config.json"]
+[2026-07-09T12:41:27.052Z] dragIcon called for kind=files
+[2026-07-09T12:41:27.052Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\app_config.json"]
+[2026-07-09T12:41:27.052Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:41:27.239Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:41:27.240Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:41:27.240Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\app_config.json, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\app_config.json"]
+[2026-07-09T12:41:29.408Z] startDragOut called for kind=files
+[2026-07-09T12:41:29.409Z] staged: file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\archive_backup.zip, files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\archive_backup.zip"]
+[2026-07-09T12:41:29.410Z] dragIcon called for kind=files
+[2026-07-09T12:41:29.410Z] files check: count=1, paths=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\archive_backup.zip"]
+[2026-07-09T12:41:29.411Z] createFileStackDragIcon returning cached for stack|dark|archive|1
+[2026-07-09T12:41:29.411Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:41:29.412Z] calling sender.startDrag with item.file=C:\Users\yadav\Downloads\Clipboard_Showcase_Files\archive_backup.zip, item.files=["C:\\Users\\yadav\\Downloads\\Clipboard_Showcase_Files\\archive_backup.zip"]
+[2026-07-09T12:43:09.492Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:43:09.639Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:43:09.640Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:43:09.777Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:43:09.778Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:43:09.918Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:43:30.736Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:43:30.882Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:43:30.882Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:43:31.026Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:43:31.026Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:43:31.178Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:46:25.686Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:46:25.848Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:46:25.849Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:46:25.989Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T12:46:25.990Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T12:46:26.131Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:02:47.444Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:02:47.611Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:02:47.612Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:02:47.748Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:02:47.749Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:02:47.886Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:05:25.620Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:05:25.795Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:05:25.796Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:05:25.958Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:05:25.958Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:05:26.107Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:11:40.134Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:11:40.309Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:11:40.310Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:11:40.476Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:11:40.476Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:11:40.637Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:12:11.931Z] startDragOut called for kind=image
+[2026-07-09T13:12:11.936Z] staged: file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrdhzvd9-3dnhbk5l.png, files=undefined
+[2026-07-09T13:12:11.937Z] dragIcon called for kind=image
+[2026-07-09T13:12:11.939Z] image drag requested: count=1. Returning custom image card stack icon!
+[2026-07-09T13:12:11.942Z] createFileStackDragIcon returning cached for stack|dark|image|1
+[2026-07-09T13:12:11.944Z] dragIcon result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:12:11.944Z] calling sender.startDrag with item.file=C:\Users\yadav\AppData\Roaming\edge-drop\temp\mrdhzvd9-3dnhbk5l.png, item.files=undefined
+[2026-07-09T13:15:16.097Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:15:16.248Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:15:16.249Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:15:16.392Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:15:16.392Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:15:16.538Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:18:04.908Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:18:05.091Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:18:05.092Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:18:05.245Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:18:05.246Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:18:05.388Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:20:21.076Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:20:21.257Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:20:21.258Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:20:21.417Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:20:21.417Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:20:21.574Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:24:34.270Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:24:34.619Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:24:34.619Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:24:34.778Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T13:24:34.778Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T13:24:34.919Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:07:14.478Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:07:15.876Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:07:15.877Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:07:16.106Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:07:16.107Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:07:16.404Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:14:53.489Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:14:53.849Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:14:53.849Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:14:54.004Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:14:54.005Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:14:54.160Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:32:27.816Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:32:28.161Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:32:28.161Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:32:28.315Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}
+[2026-07-09T14:32:28.316Z] createFileStackDragIcon calling Resvg for count=1
+[2026-07-09T14:32:28.459Z] createFileStackDragIcon resvg result: isEmpty=false, size={"width":96,"height":96}

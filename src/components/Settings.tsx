@@ -100,6 +100,31 @@ export function Settings() {
 
       <div className="setting-divider" />
 
+      {/* Edge trigger width */}
+      <div className="setting-row vertical">
+        <div className="setting-info">
+          <div className="setting-title">Edge trigger thickness</div>
+          <div className="setting-desc">Physical thickness of the trigger area</div>
+        </div>
+        <div className="setting-pills">
+          {[
+            { label: 'Small', val: 3 },
+            { label: 'Medium', val: 6 },
+            { label: 'Large', val: 12 }
+          ].map((opt) => (
+            <button
+              key={opt.label}
+              className={`pill ${settings.hotZoneWidth === opt.val ? 'active' : ''}`}
+              onClick={() => patch({ hotZoneWidth: opt.val })}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="setting-divider" />
+
       {/* Panel height */}
       <div className="setting-row vertical">
         <div className="setting-info">

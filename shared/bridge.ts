@@ -29,6 +29,7 @@ export interface EdgeApi {
   splitItem: (req: import('./types').DragRequest) => Promise<boolean>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   setInteractive: (value: boolean) => Promise<void>
+  minimizeWindow: () => Promise<void>
   setInternalDrag: (active: boolean) => void
 
   /* Main -> Renderer */

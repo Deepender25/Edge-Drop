@@ -21,7 +21,6 @@ export function createOnboardingWindow(): void {
     show: false,
     frame: false,
     resizable: false,
-    alwaysOnTop: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       nodeIntegration: false,
@@ -29,17 +28,22 @@ export function createOnboardingWindow(): void {
     }
   })
 
-  // Set floating always on top to ensure it covers even other always-on-top windows
-  onboardingWindow.setAlwaysOnTop(true, 'normal')
+  // Standard window behavior (not always on top)
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    onboardingWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '#/onboarding')
+  if (process.env.ELECTRON_RENDERER_URL) {
+    onboardingWindow.loadURL(process.env.ELECTRON_RENDERER_URL + '#/onboarding')
   } else {
     onboardingWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: 'onboarding' })
   }
 
   onboardingWindow.once('ready-to-show', () => {
-    onboardingWindow?.show()
+    if (!onboardingWindow) return
+    // Force the window to the very front to steal focus on initial launch
+    onboardingWindow.setAlwaysOnTop(true)
+    onboardingWindow.show()
+    onboardingWindow.focus()
+    // Then immediately revert to normal window behavior so it can go behind others
+    onboardingWindow.setAlwaysOnTop(false)
   })
 
   onboardingWindow.on('closed', () => {

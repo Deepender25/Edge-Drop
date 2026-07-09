@@ -37,12 +37,14 @@
 /* Reverse curves (flares) connecting blade to screen edge */
 .flare-top, .flare-bottom {
   position: absolute;
-  left: 0;
-  width: 30px;
+  left: -30px;
+  width: 60px;
   height: 30px;
   pointer-events: none;
   z-index: -1;
   display: flex;
+  background: linear-gradient(to right, #000000 30px, transparent 30px);
+  justify-content: flex-end;
 }
 .flare-top {
   top: -30px;
@@ -51,9 +53,22 @@
   bottom: -30px;
 }
 .flare-top svg, .flare-bottom svg {
-  width: 100%;
-  height: 100%;
+  width: 30px;
+  height: 30px;
   display: block;
+}
+
+/* Parent container solid block extension to prevent screen edge blur transparency */
+.blade-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -30px;
+  width: 31px;
+  background: #000000;
+  pointer-events: none;
+  z-index: -2;
 }
 
 

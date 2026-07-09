@@ -110,6 +110,22 @@ export class ClipboardWatcher {
     this.lastSig = clipboardSignature()
   }
 
+  /**
+   * Invalidate the watcher's last-seen signature by setting it to a sentinel
+   * that can never match a real clipboard signature.
+   *
+   * Call this after a paste action completes. Unlike resyncSignature(), which
+   * would seed lastSig to the current clipboard content (blocking re-detection
+   * of the same content), this ensures that the VERY NEXT genuine Ctrl+C —
+   * even of the exact same text/image — is always detected and counted.
+   *
+   * Without this, paste → re-copy same content would be invisible to the watcher
+   * (clipboard never changed), so hitCount would never increment on re-copy.
+   */
+  invalidateSignature(): void {
+    this.lastSig = '__post-paste__'
+  }
+
   stop(): void {
     if (this.timer) {
       clearInterval(this.timer)

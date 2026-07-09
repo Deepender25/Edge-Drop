@@ -172,8 +172,9 @@ export function Panel() {
         animate={{
           clipPath: open
             ? 'inset(calc(0% - 100px) calc(0% - 100px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
-            : `inset(calc(50% - ${halfTrigger}px) calc(100% - 3px) calc(50% - ${halfTrigger}px) 0px round 0px 12px 12px 0px)`,
-          scale: open ? [0.92, 1.05, 0.98, 1] : 1
+            : `inset(calc(50% - ${halfTrigger}px) calc(100% - ${settings.hotZoneWidth || 3}px) calc(50% - ${halfTrigger}px) 0px round 0px 24px 24px 0px)`,
+          scale: open ? [0.92, 1.05, 0.98, 1] : 1,
+          filter: open ? 'blur(0px)' : 'blur(16px)'
         }}
         transition={{
           scale: {
@@ -184,6 +185,10 @@ export function Panel() {
             type: 'spring',
             bounce: 0.5,
             duration: 0.6
+          },
+          filter: {
+            duration: open ? 0.8 : 0.45,
+            ease: open ? [0.16, 1, 0.3, 1] : [0.4, 0, 0.2, 1]
           }
         }}
       >
@@ -258,6 +263,7 @@ export function Panel() {
   )
 }
 
+/*
 function getTutorialText(step: number): string {
   switch (step) {
     case 1:
@@ -274,6 +280,7 @@ function getTutorialText(step: number): string {
       return ''
   }
 }
+*/
 
 function DropOverlay() {
   const dragActive = useStore((s) => s.dragActive)

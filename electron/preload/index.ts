@@ -107,6 +107,7 @@ const api = {
   updateSettings: (patch: Partial<InvokeResult<'settings:update'>>) =>
     invoke('settings:update', patch),
   setInteractive: (value: boolean) => invoke('window:set-interactive', value),
+  minimizeWindow: () => invoke('window:minimize'),
   setInternalDrag: (active: boolean) => { internalDrag = active },
   broadcastTutorialStep: (step: number) => send('tutorial:set-step', step),
 

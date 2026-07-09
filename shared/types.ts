@@ -88,6 +88,8 @@ export interface MergeResult {
 export interface Settings {
   /** Fraction of the screen height the hot zone occupies (0.2 - 0.6). */
   hotZoneHeight: number
+  /** Physical thickness (in pixels) of the screen edge hover trigger. */
+  hotZoneWidth: number
   /** Maximum number of unpinned history items kept. */
   historyLimit: number
   /** Fraction of the screen height the panel occupies (0.4 - 1.0). */
@@ -109,7 +111,8 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  hotZoneHeight: 0.60,
+  hotZoneHeight: 0.25,
+  hotZoneWidth: 3,
   historyLimit: 500,
   panelHeight: 0.5,
   incognito: false,

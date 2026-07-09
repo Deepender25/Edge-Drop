@@ -11,7 +11,7 @@
 import { app, BrowserWindow, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, cleanTemp, PATHS } from '../store/paths'
-import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat } from './window'
+import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth } from './window'
 import { createTray, registerIncognitoApplier } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
 import { prewarmDragIcons } from './drag'
@@ -96,10 +96,13 @@ app.whenReady().then(() => {
   initState()
   prewarmDragIcons()
 
-  // Reflect incognito setting into the watcher immediately.
+  // Reflect settings immediately.
   const settings = loadSettings()
+  setHotZoneWidth(settings.hotZoneWidth || 3)
   if (!settings.tutorialCompleted) {
-    createOnboardingWindow()
+    setTimeout(() => {
+      createOnboardingWindow()
+    }, 2000)
   }
   
   if (app.isPackaged) {

@@ -119,7 +119,7 @@ export class ItemStore {
       const idx = this.items.findIndex((it) => it.id === existingId)
       if (idx >= 0) {
         const it = this.items[idx]
-        // Bump count and move to front (unless pinned keeps its own group).
+        // Bump count and move to front.
         const updated: ClipboardItem = { ...it, hitCount: it.hitCount + 1, capturedAt: now }
         this.items.splice(idx, 1)
         this.items.unshift(updated)

@@ -11,7 +11,8 @@ import { existsSync } from 'node:fs'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
 import { getMainWindow } from './window'
-import { setInteractive, setHeartbeatPaused } from './window'
+import { setInteractive, setHeartbeatPaused, setHotZoneWidth } from './window'
+import { getOnboardingWindow } from './onboardingWindow'
 import { startDragOut, resolveDragData } from './drag'
 import { clipboardSignature } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
@@ -262,7 +263,22 @@ export function registerIpc(): void {
     return true
   })
 
+  // ---------------------------------------------------------------------------
+  // Paste guard — prevents double-paste from rapid/double clicks.
+  // Stored at module scope so it's authoritative across all renderer invocations.
+  // The renderer-side tryPaste() is a best-effort pre-filter; this is the hard gate.
+  // ---------------------------------------------------------------------------
+  let _lastPasteTime = 0
+  const PASTE_GUARD_MS = 600
+
   handle('item:paste', (id) => {
+    const now = Date.now()
+    if (now - _lastPasteTime < PASTE_GUARD_MS) {
+      console.log('[IPC] item:paste blocked — too soon after last paste')
+      return false
+    }
+    _lastPasteTime = now
+
     const item = getStore().get(id)
     console.log('[IPC] item:paste id=', id, 'found=', !!item)
     if (!item) return false
@@ -274,11 +290,11 @@ export function registerIpc(): void {
       writeItemToClipboard(item.data)
       console.log('[IPC] item:paste wrote to clipboard, kind=', item.data.kind)
 
-      // Promote the pasted item to the top of the history stack
-      getStore().add(item.data, loadSettings().historyLimit)
-      pushState.items()
+      // DO NOT call store.add() here. hitCount must only increment when the user
+      // genuinely copies the content from a source app (detected by the watcher).
+      // Pasting from Edge-Drop is a retrieval action, not a new copy.
 
-      // Close panel via toggle so focus returns to the user's active input/text box
+      // Close panel so focus returns to the user's active input/text box
       pushState.togglePanel()
 
       // Wait 200ms for OS focus to settle, then simulate Ctrl+V
@@ -286,7 +302,12 @@ export function registerIpc(): void {
         simulatePaste()
       }, 200)
     } finally {
+      // Invalidate (not resync) the watcher signature after the pause expires.
+      // This ensures that if the user re-copies the SAME content from the source
+      // app right after paste, the watcher detects it as new (clipboard sig never
+      // changed, but our sentinel '__post-paste__' guarantees the next poll sees a diff).
       setTimeout(() => {
+        watcher.invalidateSignature()
         watcher.setPaused(loadSettings().incognito)
       }, 350)
     }
@@ -295,6 +316,13 @@ export function registerIpc(): void {
   })
 
   handle('item:paste-subitem', (req) => {
+    const now = Date.now()
+    if (now - _lastPasteTime < PASTE_GUARD_MS) {
+      console.log('[IPC] item:paste-subitem blocked — too soon after last paste')
+      return false
+    }
+    _lastPasteTime = now
+
     const dto = getStore().toDto().find((d) => d.id === req.id)
     if (!dto) return false
 
@@ -319,12 +347,8 @@ export function registerIpc(): void {
 
       if (!wrote) return false
 
-      // Promote the parent item to the top of the history stack
-      const parentItem = getStore().get(req.id)
-      if (parentItem) {
-        getStore().add(parentItem.data, loadSettings().historyLimit)
-        pushState.items()
-      }
+      // DO NOT promote/bump hitCount here — same reason as item:paste.
+      // Only the watcher (genuine user Ctrl+C) should increment hitCount.
 
       pushState.togglePanel()
 
@@ -333,6 +357,7 @@ export function registerIpc(): void {
       }, 200)
     } finally {
       setTimeout(() => {
+        watcher.invalidateSignature()
         watcher.setPaused(loadSettings().incognito)
       }, 350)
     }
@@ -387,12 +412,22 @@ export function registerIpc(): void {
         })
       } catch { /* ignore */ }
     }
+    if (patch.hotZoneWidth !== undefined) {
+      setHotZoneWidth(patch.hotZoneWidth)
+    }
     pushState.settings(next)
     return next
   })
 
   handle('window:set-interactive', (value) => {
     setInteractive(value)
+  })
+
+  handle('window:minimize', () => {
+    const win = getOnboardingWindow()
+    if (win && !win.isDestroyed()) {
+      win.minimize()
+    }
   })
 }
 

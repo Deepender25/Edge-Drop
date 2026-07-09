@@ -1,42 +1,50 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import logoUrl from './assets/logo.svg'
+import { Settings } from './components/Settings'
 
 const slides = [
   {
     id: 'slide-1',
     title: 'Welcome to Edge-Drop',
     description: 'Edge-Drop lives hidden on the left edge of your screen. Simply move your mouse to the left edge to open the panel, and move away to hide it.',
-    videoSrc: 'placeholder_welcome.mp4',
+    videoSrc: '/placeholder_welcome.mp4',
     placeholderColor: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)'
   },
   {
     id: 'slide-2',
     title: 'Collect Anything',
     description: 'Whenever you press Ctrl+C to copy text, images, or files, Edge-Drop automatically catches and saves them in the background.',
-    videoSrc: 'placeholder_copy.mp4',
+    videoSrc: '/placeholder_copy.mp4',
     placeholderColor: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)'
   },
   {
     id: 'slide-3',
     title: 'Drag & Drop Anywhere',
     description: 'Need to use an item? Just open the panel and drag the card directly into any application, folder, or document.',
-    videoSrc: 'placeholder_drag.mp4',
+    videoSrc: '/placeholder_drag.mp4',
     placeholderColor: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)'
   },
   {
     id: 'slide-4',
     title: 'Explore File Stacks',
     description: 'Copying multiple files groups them into a stack. You can drag the entire stack, or click it to view and extract individual files.',
-    videoSrc: 'placeholder_stacks.mp4',
+    videoSrc: '/placeholder_stacks.mp4',
     placeholderColor: 'linear-gradient(135deg, #FA709A 0%, #FEE140 100%)'
   },
   {
     id: 'slide-5',
-    title: 'Keep it Clean',
-    description: 'Click the Settings gear to configure the app, and click the Clear button at the bottom to wipe unpinned items when you are done.',
-    videoSrc: 'placeholder_clean.mp4',
+    title: 'Combine & Merge Items',
+    description: 'Combine separate file or image cards by dragging them directly onto each other. This organizes your shelf by bundling related assets into a stack.',
+    videoSrc: '/placeholder_merge.mp4',
     placeholderColor: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)'
+  },
+  {
+    id: 'slide-6',
+    title: 'Configure Your Clipboard',
+    description: 'Customize how Edge-Drop works for you.',
+    videoSrc: '',
+    placeholderColor: 'transparent'
   }
 ]
 
@@ -49,6 +57,10 @@ export function Onboarding() {
     } else {
       finish()
     }
+  }
+
+  const handleSkip = () => {
+    setCurrentIndex(slides.length - 1)
   }
 
   const handlePrev = () => {
@@ -78,45 +90,46 @@ export function Onboarding() {
       {/* Titlebar & Header */}
       <div style={{
         height: '60px',
-        WebkitAppRegion: 'drag' as any,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '16px 24px',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        ...({ WebkitAppRegion: 'drag' } as any)
       }}>
         {/* Logo Area */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
           <img src={logoUrl} alt="Edge-Drop Logo" style={{ width: '42px', height: '42px' }} />
         </div>
 
-        {/* Skip & Close Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', WebkitAppRegion: 'no-drag' as any }}>
+        {/* Header Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', ...({ WebkitAppRegion: 'no-drag' } as any) }}>
+          {currentIndex !== slides.length - 1 && (
+            <button
+              onClick={handleSkip}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#888',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                transition: 'color 0.2s, background 0.2s'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)' }}
+              onMouseOut={(e) => { e.currentTarget.style.color = '#888'; e.currentTarget.style.background = 'transparent' }}
+            >
+              Skip
+            </button>
+          )}
           <button
-            onClick={finish}
+            onClick={() => window.edge.minimizeWindow()}
             style={{
               background: 'transparent',
               border: 'none',
               color: '#888',
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              transition: 'color 0.2s, background 0.2s'
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)' }}
-            onMouseOut={(e) => { e.currentTarget.style.color = '#888'; e.currentTarget.style.background = 'transparent' }}
-          >
-            Skip
-          </button>
-
-          <button
-            onClick={finish}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#666',
               width: '32px',
               height: '32px',
               borderRadius: '6px',
@@ -127,84 +140,117 @@ export function Onboarding() {
               transition: 'background 0.2s, color 0.2s'
             }}
             onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.color = '#fff' }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#666' }}
-            title="Close Onboarding"
+            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#888' }}
+            title="Minimize"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg width="14" height="2" viewBox="0 0 14 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 1H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </button>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 48px' }}>
-
-        {/* Video / Placeholder Area */}
-        <div style={{
-          width: '100%',
-          maxWidth: '560px',
-          height: '315px', // 16:9 aspect ratio
-          background: '#1a1a1c',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          position: 'relative',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
-          marginBottom: '36px',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
-        }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSlide.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: currentSlide.placeholderColor
-              }}
-            >
-              <video
-                src={currentSlide.videoSrc}
-                autoPlay
-                loop
-                muted
+      {currentSlide.id === 'slide-6' ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'row', alignItems: 'stretch', padding: '16px 48px', gap: '40px', width: '100%', boxSizing: 'border-box', minHeight: 0 }}>
+          {/* Left Side: Textual Description */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <h1 style={{ fontSize: '28px', margin: '0 0 16px 0', fontWeight: 700, letterSpacing: '-0.01em' }}>
+              {currentSlide.title}
+            </h1>
+            <p style={{ fontSize: '15px', lineHeight: 1.6, color: 'rgba(255,255,255,0.7)', margin: '0 0 24px 0' }}>
+              {currentSlide.description}
+            </p>
+            <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', marginBottom: '8px' }}>Quick Tips:</div>
+              <ul style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', margin: 0, paddingLeft: '20px', lineHeight: 1.6 }}>
+                <li>Press <strong>Alt + C</strong> to instantly toggle the shelf.</li>
+                <li>Access settings anytime via the gear icon (top right).</li>
+                <li>Drag & drop files to the left edge to add them.</li>
+                <li>Click a text box, then a clipboard item to auto-paste.</li>
+                <li>Stack files with files (e.g., zip, md, json) or images with images (max 10). Text cannot be stacked.</li>
+              </ul>
+            </div>
+          </div>
+          {/* Right Side: Settings */}
+          <div style={{ flex: 1, background: '#1a1a1c', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', overflow: 'hidden', display: 'flex', minHeight: 0 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+              <Settings />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 48px' }}>
+          {/* Video / Placeholder Area */}
+          <div style={{
+            width: '100%',
+            maxWidth: '560px',
+            height: '315px', // 16:9 aspect ratio
+            background: '#1a1a1c',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            position: 'relative',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+            marginBottom: '36px',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: currentSlide.placeholderColor
                 }}
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
+              >
+                <video
+                  key={currentSlide.videoSrc}
+                  src={`${currentSlide.videoSrc}?v=1`}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  onError={(e) => {
+                    console.error("Video loading error:", currentSlide.videoSrc, e.currentTarget.error);
+                  }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-        {/* Text Area */}
-        <div style={{ textAlign: 'center', height: '100px', maxWidth: '480px' }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSlide.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-            >
-              <h1 style={{ fontSize: '24px', margin: '0 0 12px 0', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                {currentSlide.title}
-              </h1>
-              <p style={{ fontSize: '15px', lineHeight: 1.6, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
-                {currentSlide.description}
-              </p>
-            </motion.div>
-          </AnimatePresence>
+          {/* Text Area */}
+          <div style={{ textAlign: 'center', height: '100px', maxWidth: '480px' }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <h1 style={{ fontSize: '24px', margin: '0 0 12px 0', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                  {currentSlide.title}
+                </h1>
+                <p style={{ fontSize: '15px', lineHeight: 1.6, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                  {currentSlide.description}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-
-      </div>
+      )}
 
       {/* Footer Navigation */}
       <div style={{
@@ -277,7 +323,7 @@ export function Onboarding() {
             onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
             onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
           >
-            {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+            {currentIndex === slides.length - 1 ? "Save & Let's Go" : 'Next'}
           </button>
         </div>
       </div>

@@ -58,6 +58,9 @@ export interface InvokeMap {
 
   /** Toggle whether the window is interactive (mouse-ignore). */
   'window:set-interactive': { args: [interactive: boolean]; result: void }
+
+  /** Minimize the window (used by Onboarding). */
+  'window:minimize': { args: []; result: void }
 }
 
 /* ------------------------------------------------------------------ */

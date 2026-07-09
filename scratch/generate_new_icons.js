@@ -22,16 +22,15 @@ const appIconSvg = `<svg width="256" height="256" viewBox="0 0 256 256" xmlns="h
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02"/>
     </linearGradient>
     <clipPath id="round-clip">
-      <rect x="16" y="16" width="224" height="224" rx="48"/>
+      <rect x="0" y="0" width="256" height="256" rx="56"/>
     </clipPath>
   </defs>
-  <!-- Rounded dark background card -->
-  <rect x="16" y="16" width="224" height="224" rx="48" fill="url(#bg-grad)"/>
-  <rect x="18" y="18" width="220" height="220" rx="46" fill="none" stroke="url(#border-grad)" stroke-width="1.5"/>
+  <!-- Rounded dark background card - filling the full size for a larger app icon footprint -->
+  <rect x="0" y="0" width="256" height="256" rx="56" fill="url(#bg-grad)"/>
+  <rect x="2" y="2" width="252" height="252" rx="54" fill="none" stroke="url(#border-grad)" stroke-width="1.5"/>
 
-  <!-- Embed the full original SVG, scaled to fill the padded area (56px padding each side) -->
-  <!-- The nested SVG inherits all internal transforms and draws perfectly -->
-  <svg x="56" y="56" width="144" height="144" viewBox="0 0 1800 1800" preserveAspectRatio="xMidYMid meet">
+  <!-- Embed the full original SVG, scaled to fill the padded area (much larger now) -->
+  <svg x="32" y="32" width="192" height="192" viewBox="378 387 1072 1072" preserveAspectRatio="xMidYMid meet">
     ${rawLogo.replace(/<svg[^>]*>/, '').replace('</svg>', '')}
   </svg>
 </svg>`;
@@ -56,9 +55,9 @@ const icoBuffer = Buffer.concat([header, dirEntry, appPngBuffer]);
 writeFileSync('resources/icon.ico', icoBuffer);
 
 // 2. Tray Icon — pure white logo, no background, fills the 256x256 canvas
-// Use 8px padding on each side so it has breathing room in the taskbar
+// Removed internal padding to make it as large as possible in the system tray
 const trayIconSvg = `<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-  <svg x="8" y="8" width="240" height="240" viewBox="0 0 1800 1800" preserveAspectRatio="xMidYMid meet">
+  <svg x="0" y="0" width="256" height="256" viewBox="378 387 1072 1072" preserveAspectRatio="xMidYMid meet">
     ${rawLogo.replace(/<svg[^>]*>/, '').replace('</svg>', '')}
   </svg>
 </svg>`;
