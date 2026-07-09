@@ -6,8 +6,9 @@
  * is a compile-time error rather than a runtime one.
  */
 import { app, ipcMain, clipboard, nativeImage } from 'electron'
-import { execFile, execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
+import { execFile } from 'node:child_process'
+import { psHost } from './powershell'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
 import { getMainWindow } from './window'
@@ -71,7 +72,7 @@ function simulatePaste(): void {
  * Shell IDList Array + all other shell formats in a single atomic transaction.
  * Paths are base64-encoded so any character (spaces, quotes, Unicode) is safe.
  */
-function writeFileListToClipboard(paths: string[]): void {
+async function writeFileListToClipboard(paths: string[]): Promise<void> {
   if (process.platform === 'win32' && paths.length > 0) {
     try {
       const addLines = paths
@@ -83,11 +84,7 @@ function writeFileListToClipboard(paths: string[]): void {
         addLines,
         '[Windows.Forms.Clipboard]::SetFileDropList($c)'
       ].join(';')
-      const encoded = Buffer.from(script, 'utf16le').toString('base64')
-      execSync(`powershell.exe -NoProfile -NonInteractive -EncodedCommand ${encoded}`, {
-        stdio: ['ignore', 'pipe', 'ignore'],
-        timeout: 3000
-      })
+      await psHost.run(script, 3000)
       return
     } catch (err) {
       console.error('[ipc] writeFileListToClipboard PowerShell failed, using text fallback:', err)
@@ -98,19 +95,9 @@ function writeFileListToClipboard(paths: string[]): void {
   clipboard.writeText(paths.join('\r\n'))
 }
 
-/**
- * Write an image onto the clipboard with BOTH bitmap data (for paste into
- * Slack, Word, image editors, etc.) AND a file drop reference (for paste into
- * Explorer). Uses PowerShell's DataObject to set both formats atomically —
- * Electron's API can't do this because each write empties the clipboard first.
- *
- * Falls back to bitmap-only via Electron if PowerShell fails.
- */
-function writeImageToClipboard(imagePath: string | null, previewDataUrl: string): void {
+async function writeImageToClipboard(imagePath: string | null, previewDataUrl: string): Promise<void> {
   if (process.platform === 'win32' && imagePath && existsSync(imagePath)) {
     try {
-      // Build a script that sets both Bitmap and FileDrop on a single DataObject.
-      // The image is loaded from disk (not from data URL) so it is full-resolution.
       const b64Path = Buffer.from(imagePath, 'utf8').toString('base64')
       const script = [
         'Add-Type -AssemblyName System.Windows.Forms',
@@ -125,11 +112,7 @@ function writeImageToClipboard(imagePath: string | null, previewDataUrl: string)
         '[Windows.Forms.Clipboard]::SetDataObject($d,$true)',
         '$bmp.Dispose()'
       ].join(';')
-      const encoded = Buffer.from(script, 'utf16le').toString('base64')
-      execSync(`powershell.exe -NoProfile -NonInteractive -EncodedCommand ${encoded}`, {
-        stdio: ['ignore', 'pipe', 'ignore'],
-        timeout: 4000
-      })
+      await psHost.run(script, 3000)
       return
     } catch (err) {
       console.error('[ipc] writeImageToClipboard PowerShell failed, using bitmap fallback:', err)
@@ -199,14 +182,14 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
-  handle('item:copy', (id) => {
+  handle('item:copy', async (id) => {
     const item = getStore().get(id)
     console.log('[IPC] item:copy id=', id, 'found=', !!item)
     if (!item) return false
 
     const watcher = getWatcher()
     watcher.setPaused(true)
-    writeItemToClipboard(item.data)
+    await writeItemToClipboard(item.data)
     console.log('[IPC] item:copy wrote to clipboard, kind=', item.data.kind)
 
     // Promote the copied item to the top of the history stack
@@ -222,7 +205,7 @@ export function registerIpc(): void {
     return true
   })
 
-  handle('item:copy-subitem', (req) => {
+  handle('item:copy-subitem', async (req) => {
     // Resolve a single sub-item (one file of a bundle, or one image of a
     // collection) and write just that onto the clipboard — not the whole item.
     const dto = getStore().toDto().find((d) => d.id === req.id)
@@ -232,7 +215,7 @@ export function registerIpc(): void {
     if (dto.data.kind === 'files' && req.paths && req.paths.length > 0) {
       // Write real file references so pasting into Explorer copies the file,
       // not a path string.
-      writeFileListToClipboard(req.paths)
+      await writeFileListToClipboard(req.paths)
       wrote = true
     } else if (dto.data.kind === 'image-collection' && req.imageId) {
       const img = dto.data.images.find((i) => i.imageId === req.imageId)
@@ -240,7 +223,7 @@ export function registerIpc(): void {
         // Single image from a collection: write full bitmap + file reference atomically.
         const src = getStore().getImagePath(img.imageId, img.ext)
         const preview = img.preview ?? ''
-        writeImageToClipboard(src && existsSync(src) ? src : null, preview)
+        await writeImageToClipboard(src && existsSync(src) ? src : null, preview)
         wrote = true
       }
     }
@@ -271,7 +254,7 @@ export function registerIpc(): void {
   let _lastPasteTime = 0
   const PASTE_GUARD_MS = 600
 
-  handle('item:paste', (id) => {
+  handle('item:paste', async (id) => {
     const now = Date.now()
     if (now - _lastPasteTime < PASTE_GUARD_MS) {
       console.log('[IPC] item:paste blocked — too soon after last paste')
@@ -287,7 +270,7 @@ export function registerIpc(): void {
     watcher.setPaused(true)
 
     try {
-      writeItemToClipboard(item.data)
+      await writeItemToClipboard(item.data)
       console.log('[IPC] item:paste wrote to clipboard, kind=', item.data.kind)
 
       // DO NOT call store.add() here. hitCount must only increment when the user
@@ -315,7 +298,7 @@ export function registerIpc(): void {
     return true
   })
 
-  handle('item:paste-subitem', (req) => {
+  handle('item:paste-subitem', async (req) => {
     const now = Date.now()
     if (now - _lastPasteTime < PASTE_GUARD_MS) {
       console.log('[IPC] item:paste-subitem blocked — too soon after last paste')
@@ -332,7 +315,7 @@ export function registerIpc(): void {
     try {
       let wrote = false
       if (dto.data.kind === 'files' && req.paths && req.paths.length > 0) {
-        writeFileListToClipboard(req.paths)
+        await writeFileListToClipboard(req.paths)
         wrote = true
       } else if (dto.data.kind === 'image-collection' && req.imageId) {
         const img = dto.data.images.find((i) => i.imageId === req.imageId)
@@ -340,7 +323,7 @@ export function registerIpc(): void {
           // Single image from a collection: write full bitmap + file reference atomically.
           const src = getStore().getImagePath(img.imageId, img.ext)
           const preview = img.preview ?? ''
-          writeImageToClipboard(src && existsSync(src) ? src : null, preview)
+          await writeImageToClipboard(src && existsSync(src) ? src : null, preview)
           wrote = true
         }
       }
@@ -487,7 +470,7 @@ export function registerSendListeners(): void {
 }
 
 /** Write any item payload back onto the system clipboard. */
-export function writeItemToClipboard(data: ItemData): void {
+export async function writeItemToClipboard(data: ItemData): Promise<void> {
   switch (data.kind) {
     case 'text':
       clipboard.clear()
@@ -503,7 +486,7 @@ export function writeItemToClipboard(data: ItemData): void {
         // This lets the user paste into Slack/Word (reads bitmap) AND into
         // Explorer (reads CF_HDROP file reference) from the same clipboard write.
         const src = getStore().getImagePath(dto.data.imageId, dto.data.ext)
-        writeImageToClipboard(src && existsSync(src) ? src : null, dto.data.preview)
+        await writeImageToClipboard(src && existsSync(src) ? src : null, dto.data.preview)
       }
       break
     }
@@ -527,7 +510,7 @@ export function writeItemToClipboard(data: ItemData): void {
           const firstPreview = firstImg?.preview ?? ''
           if (paths.length === 1) {
             // Single resolved path: use full atomic image+file write
-            writeImageToClipboard(paths[0], firstPreview)
+            await writeImageToClipboard(paths[0], firstPreview)
           } else {
             // Multiple files: write CF_HDROP for all + bitmap for first
             try {
@@ -548,11 +531,7 @@ export function writeItemToClipboard(data: ItemData): void {
                 '[Windows.Forms.Clipboard]::SetDataObject($d,$true)',
                 '$bmp.Dispose()'
               ].join(';')
-              const encoded = Buffer.from(script, 'utf16le').toString('base64')
-              execSync(`powershell.exe -NoProfile -NonInteractive -EncodedCommand ${encoded}`, {
-                stdio: ['ignore', 'pipe', 'ignore'],
-                timeout: 4000
-              })
+              await psHost.run(script, 3000)
             } catch (err) {
               console.error('[ipc] image-collection clipboard write failed:', err)
               // Fallback: write first image bitmap only
@@ -570,7 +549,7 @@ export function writeItemToClipboard(data: ItemData): void {
     case 'files':
       // Write real file references so pasting into Explorer copies the files,
       // not path strings.
-      writeFileListToClipboard(data.paths)
+      await writeFileListToClipboard(data.paths)
       break
   }
 }

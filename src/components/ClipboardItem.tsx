@@ -251,6 +251,82 @@ function ClipboardItemBase({ item }: Props) {
   )
 }
 
+const containerVariants = {
+  hidden: { opacity: 0, filter: 'blur(6px)' },
+  visible: { 
+    opacity: 1, 
+    filter: 'blur(0px)',
+    transition: { 
+      opacity: { duration: 0.22, ease: 'easeOut' },
+      filter: { duration: 0.22, ease: 'easeOut' },
+      staggerChildren: 0.05,
+      delayChildren: 0.02
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    filter: 'blur(6px)',
+    transition: { 
+      opacity: { duration: 0.16, ease: 'easeIn' },
+      filter: { duration: 0.16, ease: 'easeIn' },
+      staggerChildren: 0.03,
+      staggerDirection: -1
+    }
+  }
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.97, filter: 'blur(4px)' },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: { 
+      y: { type: 'spring', stiffness: 420, damping: 28 },
+      scale: { type: 'spring', stiffness: 420, damping: 28 },
+      opacity: { duration: 0.2, ease: 'easeOut' },
+      filter: { duration: 0.2, ease: 'easeOut' }
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -8, 
+    scale: 0.97,
+    filter: 'blur(4px)',
+    transition: { 
+      y: { duration: 0.14, ease: 'easeIn' },
+      scale: { duration: 0.14, ease: 'easeIn' },
+      opacity: { duration: 0.14, ease: 'easeIn' },
+      filter: { duration: 0.14, ease: 'easeIn' }
+    }
+  }
+};
+
+const stackVariants = {
+  hidden: { opacity: 0, filter: 'blur(5px)', scale: 0.96 },
+  visible: { 
+    opacity: 1, 
+    filter: 'blur(0px)', 
+    scale: 1,
+    transition: { 
+      scale: { type: 'spring', stiffness: 420, damping: 28 },
+      opacity: { duration: 0.2, ease: 'easeOut' },
+      filter: { duration: 0.2, ease: 'easeOut' }
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    filter: 'blur(5px)', 
+    scale: 0.96,
+    transition: { 
+      scale: { duration: 0.16, ease: 'easeIn' },
+      opacity: { duration: 0.16, ease: 'easeIn' },
+      filter: { duration: 0.16, ease: 'easeIn' }
+    }
+  }
+};
+
 function BundleFluidPreview({
   item,
   expanded,
@@ -289,10 +365,17 @@ function BundleFluidPreview({
   if (item.data.kind === 'image-collection') {
     const more = item.data.images.length - 1
     return (
-      <motion.div layout className="fluid-bundle" transition={{ type: 'spring', stiffness: 400, damping: 35 }}>
-        <AnimatePresence initial={false} mode="popLayout">
+      <div className="fluid-bundle">
+        <AnimatePresence initial={false} mode="wait">
           {expanded ? (
-            <motion.div key="expanded" layout className="fluid-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div
+              key="expanded"
+              className="fluid-list"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
               <div className="bundle-actions">
                 <div 
                   className="bundle-collapse-zone" 
@@ -323,22 +406,19 @@ function BundleFluidPreview({
                 <motion.div
                   key={img.imageId}
                   className="fluid-list-row"
+                  variants={rowVariants}
                   draggable
                   onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
                   onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, zIndex: 1 }}
-                  exit={{ opacity: 0 }}
                 >
                   <motion.img
-                    layoutId={`img-${item.id}-${img.imageId}`}
                     src={img.preview}
                     style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4, background: 'rgba(0,0,0,0.5)' }}
                     draggable={false}
                   />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
-                      Image • {img.width} × {img.height}
+                       Image • {img.width} × {img.height}
                     </span>
                     <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
                       {formatBytes(img.bytes)}
@@ -356,13 +436,19 @@ function BundleFluidPreview({
               ))}
             </motion.div>
           ) : (
-            <motion.div key="collapsed" layout style={{ width: '100%' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div
+              key="collapsed"
+              style={{ width: '100%' }}
+              variants={stackVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
               <div className="bundle-stack-large">
                 {item.data.images.slice(0, 4).reverse().map((img, idx, arr) => {
                   const realIndex = arr.length - 1 - idx
                   return (
                     <motion.img
-                      layoutId={`img-${item.id}-${img.imageId}`}
                       key={img.imageId}
                       src={img.preview}
                       className="bundle-stack-card"
@@ -383,7 +469,7 @@ function BundleFluidPreview({
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     )
   }
 
@@ -392,10 +478,17 @@ function BundleFluidPreview({
     const paths = item.data.paths
     const count = paths.length
     return (
-      <motion.div layout className="fluid-bundle" transition={{ type: 'spring', stiffness: 400, damping: 35 }}>
-        <AnimatePresence initial={false} mode="popLayout">
+      <div className="fluid-bundle">
+        <AnimatePresence initial={false} mode="wait">
           {expanded ? (
-            <motion.div key="expanded" layout className="fluid-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div
+              key="expanded"
+              className="fluid-list"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
               <div className="bundle-actions">
                 <div
                   className="bundle-collapse-zone"
@@ -426,11 +519,10 @@ function BundleFluidPreview({
                   <motion.div
                     key={`${item.id}-${idx}`}
                     className="fluid-list-row"
+                    variants={rowVariants}
                     draggable
                     onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, paths: [filePath] }) }}
                     onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [filePath] })) }}
-                    animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, zIndex: 1 }}
-                    exit={{ opacity: 0 }}
                   >
                     {entry?.isImage && entry.preview ? (
                       <div className="fluid-list-icon" style={{ overflow: 'hidden', padding: 0 }}>
@@ -471,14 +563,20 @@ function BundleFluidPreview({
               })}
             </motion.div>
           ) : (
-            <motion.div key="collapsed" layout style={{ width: '100%' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div
+              key="collapsed"
+              style={{ width: '100%' }}
+              variants={stackVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
               <div className="bundle-stack-large">
                 {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
                   const realIndex = arr.length - 1 - idx
                   const entry = entries?.[pathIndex]
                   return (
                     <motion.div
-                      layoutId={`file-${item.id}-${pathIndex}`}
                       key={`${item.id}-${pathIndex}`}
                       className="bundle-stack-card bundle-file-stack-card"
                       animate={{
@@ -514,7 +612,7 @@ function BundleFluidPreview({
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     )
   }
   return null

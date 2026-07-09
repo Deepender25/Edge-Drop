@@ -8,7 +8,7 @@
  * transparent and click-through.
  */
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../store/appStore'
 import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
@@ -83,6 +83,14 @@ export function Panel() {
       const el = document.elementFromPoint(pos.x, pos.y)
       if (!el) {
         if (req.imageId || (req.paths && req.paths.length > 0)) window.edge.splitItem(req)
+        return
+      }
+
+      if (el.closest('.split-dropzone')) {
+        console.log('[Panel] Dropped in split dropzone, splitting')
+        if (req.imageId || (req.paths && req.paths.length > 0)) {
+          window.edge.splitItem(req)
+        }
         return
       }
 
@@ -257,6 +265,7 @@ export function Panel() {
             )}
           </AnimatePresence>
           <DropOverlay />
+          <SplitDropZone />
         </div>
       </motion.div>
     </div>
@@ -338,6 +347,45 @@ function DropOverlay() {
               Any file, image, link, or text
             </div>
           </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function SplitDropZone() {
+  const internalDragReq = useStore((s) => s.internalDragReq)
+  const isSubitemDragging = !!(
+    internalDragReq &&
+    (internalDragReq.imageId || (internalDragReq.paths && internalDragReq.paths.length > 0))
+  )
+
+  const [isOver, setIsOver] = useState(false)
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsOver(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsOver(false)
+  }
+
+  return (
+    <AnimatePresence>
+      {isSubitemDragging && (
+        <motion.div
+          className={`split-dropzone${isOver ? ' active' : ''}`}
+          onDragOver={(e) => e.preventDefault()}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          initial={{ opacity: 0, x: -15 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -15 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+          style={{ y: '-50%' }}
+        >
+          <div className="glow-line" />
         </motion.div>
       )}
     </AnimatePresence>

@@ -1,14 +1,36 @@
-# Edge-Drop
+<p align="center">
+  <img src="public/logo-white.png" alt="Edge-Drop Logo" width="100" height="100" />
+</p>
 
-An engineering-grade, zero-click, hover-activated desktop clipboard shelf and native OS file transfer hub built with **Electron**, **React**, **TypeScript**, and **Framer Motion**.
+<h1 align="center">Edge-Drop</h1>
+
+<p align="center">
+  <strong>An engineering-grade, zero-click, hover-activated desktop clipboard shelf and native OS file transfer hub.</strong>
+</p>
+
+<p align="center">
+  Built with Electron, React, TypeScript, and Framer Motion.
+</p>
 
 ---
 
 ## Overview
 
-Traditional clipboard managers disrupt workflow by requiring repetitive keyboard shortcuts (`Win+V`, `Cmd+Shift+V`) or manual navigation to system tray menus. **Edge-Drop** eliminates cognitive friction by acting as a transparent, frameless, always-on-top desktop accessory anchored to the leftmost pixel edge of your monitor. 
+Traditional clipboard managers disrupt workflow by requiring repetitive keyboard shortcuts (`Win+V`, `Cmd+Shift+V`) or manual navigation to system tray menus. **Edge-Drop** eliminates cognitive friction by acting as a transparent, frameless, always-on-top desktop accessory anchored to the leftmost pixel edge of your monitor.
 
 When your cursor approaches the left boundary of your screen, Edge-Drop dynamically reveals itself with synchronized elastic spring physics. You can drag images, file stacks, rich text snippets, and HTML bundles out of the shelf and drop them natively into professional desktop software—such as **Adobe Photoshop**, **Microsoft Word**, **Slack**, or **Windows Explorer**—without ever leaving your active application.
+
+---
+
+## Showcase / Interaction Demos
+
+| 1. Welcome to Edge-Drop | 2. Collect Anything | 3. Drag & Drop Anywhere |
+|:---:|:---:|:---:|
+| <video src="public/placeholder_welcome.mp4" width="250" autoplay loop muted playsinline></video> | <video src="public/placeholder_copy.mp4" width="250" autoplay loop muted playsinline></video> | <video src="public/placeholder_drag.mp4" width="250" autoplay loop muted playsinline></video> |
+
+| 4. Explore File Stacks | 5. Ungroup & Split Stacks | 6. Combine & Merge Items |
+|:---:|:---:|:---:|
+| <video src="public/placeholder_stacks.mp4" width="250" autoplay loop muted playsinline></video> | <video src="public/placeholder_ungroup.mp4" width="250" autoplay loop muted playsinline></video> | <video src="public/placeholder_merge.mp4" width="250" autoplay loop muted playsinline></video> |
 
 ---
 
@@ -166,14 +188,15 @@ sequenceDiagram
 
 ### 4. Fluid Collections & Stack Bundling
 * **Automatic Grouping**: Multi-file drag-ins or multi-image copies are automatically grouped into expandable 3D card stacks (`bundle-stack-large`) with cascading rotation and depth offsets.
-* **Sub-Item Drag & Split**: Click any bundle to smoothly expand its internal contents. Drag individual files directly out of an expanded bundle into external software, or click the split icon to detach a sub-item into an independent top-level shelf card.
+* **Ungroup by Dragging to Edge**: Want to separate items inside a stack? Double-click to expand the stack, click and hold any sub-item, and drag it to the left edge of the screen. A glowing coral indicator bar will appear on the edge; dropping the item here detaches/ungroups it from the stack into its own standalone clipboard card.
+* **Granular Sub-Item Manipulation**: Drag individual files directly out of an expanded bundle into external software, or click the split icon to instantly ungroup it.
 * **Interactive Drag Merging**: Drag any item card over another item on the shelf to instantly merge them into a unified collection bundle.
 
 ### 5. High-Legibility Minimalist UI/UX
-* **Deep-Black macOS Aesthetics**: Built with deep black backgrounds (`#000000`), frosted glass blurs (`backdrop-filter: blur(20px)`), and minimalist hairlines (`rgba(255, 255, 255, 0.08)`).
+* **Frosted macOS Aesthetics**: Built with deep black backgrounds (`#000000`), frosted glass blurs (`backdrop-filter: blur(20px)`), and minimalist hairlines (`rgba(255, 255, 255, 0.08)`).
+* **High-Fidelity Animations**: Layout transitions feature spring physics and custom motion blur filters that dynamically blur component contents while expanding or contracting, creating a premium visual flow.
 * **Scroll Gradient Masks**: Fixed top and bottom 18px linear gradient overlays smoothly fade scrolling items into black, eliminating sharp border clipping.
 * **Monochrome Styling**: Pinned items and multipliers feature clean, monochrome badges (`#ffffff` text on dark pill backgrounds) for maximum legibility and visual elegance.
-* **Pill Selector Settings**: Clean, instant-toggle pill buttons replace clumsy sliders for configuring history capacity (100–1000 items), auto-delete timers (1h to 7 days), and hot-zone dimensions.
 
 ---
 
@@ -181,10 +204,10 @@ sequenceDiagram
 
 | Technology | Role & Justification |
 |---|---|
-| **Electron 31+** | Cross-platform desktop runtime providing access to OS OLE drag pipelines and native Win32 clipboard APIs. |
+| **Electron 30+** | Cross-platform desktop runtime providing access to OS OLE drag pipelines and native Win32 clipboard APIs. |
 | **electron-vite** | Ultra-fast build tooling separating Main, Preload, and Renderer processes with Vite HMR. |
 | **React 18 + TypeScript** | Strongly typed component hierarchy and reactive UI rendering. |
-| **Framer Motion** | Physics-based spring animations, layout transitions (`popLayout`), and gesture animations. |
+| **Framer Motion** | Physics-based spring animations, layout transitions, and gesture animations. |
 | **Zustand** | Lightweight, selector-optimized state management with zero cascading re-renders during drag gestures. |
 
 ### Enterprise Hardening Standards
@@ -234,7 +257,6 @@ Edge-Drop/
 │     ├─ tokens.css       # Design system colors, radii, shadows & z-indices
 │     ├─ panel.css        # Blade wrapper, reverse curves & badges
 │     └─ settings.css     # Pill button styling & gradient overlays
-└─ resources/             # Application icons & branding assets
 ```
 
 ---
@@ -263,7 +285,6 @@ Edge-Drop/
 3. **Type-checking & Linting**:
    ```bash
    npm run typecheck
-   npm run lint
    ```
 
 ### Building & Packaging for Production
