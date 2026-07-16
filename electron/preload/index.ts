@@ -105,6 +105,7 @@ const api = {
   removeSubitem: (req: import('../../shared/types').DragRequest) => invoke('item:remove-subitem', req),
   mergeItems: (sourceId: string, targetId: string) => invoke('item:merge', sourceId, targetId),
   splitItem: (req: import('../../shared/types').DragRequest) => invoke('item:split', req),
+  getDisplays: () => invoke('displays:list'),
   updateSettings: (patch: Partial<InvokeResult<'settings:update'>>) =>
     invoke('settings:update', patch),
   setInteractive: (value: boolean) => invoke('window:set-interactive', value),

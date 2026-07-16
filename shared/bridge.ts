@@ -31,6 +31,7 @@ export interface EdgeApi {
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   setInteractive: (value: boolean) => Promise<void>
   minimizeWindow: () => Promise<void>
+  getDisplays: () => Promise<import('./types').DisplayInfo[]>
   setInternalDrag: (active: boolean) => void
   broadcastTutorialStep: (step: number) => void
 

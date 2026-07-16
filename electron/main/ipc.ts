@@ -5,7 +5,7 @@
  * renderer calls them through the typed preload bridge, so a signature mismatch
  * is a compile-time error rather than a runtime one.
  */
-import { app, ipcMain, clipboard, nativeImage } from 'electron'
+import { app, ipcMain, clipboard, nativeImage, screen } from 'electron'
 import { existsSync } from 'node:fs'
 import { execFile } from 'node:child_process'
 import { psHost } from './powershell'
@@ -437,7 +437,7 @@ export function registerIpc(): void {
     if (patch.hotZoneWidth !== undefined) {
       setHotZoneWidth(patch.hotZoneWidth)
     }
-    if (patch.stickPosition !== undefined) {
+    if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined) {
       repositionWindow()
     }
     pushState.settings(next)
@@ -453,6 +453,21 @@ export function registerIpc(): void {
     if (win && !win.isDestroyed()) {
       win.minimize()
     }
+  })
+
+  handle('displays:list', () => {
+    const all = screen.getAllDisplays()
+    const primary = screen.getPrimaryDisplay()
+    return all.map((d) => {
+      const isLeft = d.bounds.x < 0
+      const positionLabel = d.id === primary.id ? 'Primary' : (isLeft ? 'Left' : 'Right')
+      return {
+        id: d.id,
+        bounds: { x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height },
+        isPrimary: d.id === primary.id,
+        label: `Display ${positionLabel} (${d.bounds.width}×${d.bounds.height})`
+      }
+    })
   })
 }
 

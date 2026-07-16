@@ -63,6 +63,13 @@ export type ItemSection = 'pinned' | 'shelf'
 
 export type StickPosition = 'left' | 'right' | 'top'
 
+export interface DisplayInfo {
+  id: number
+  bounds: { x: number; y: number; width: number; height: number }
+  isPrimary: boolean
+  label: string
+}
+
 /**
  * Request to begin a native OS drag-out of one item.
  *

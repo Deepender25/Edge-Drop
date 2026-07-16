@@ -64,6 +64,9 @@ export interface InvokeMap {
 
   /** Check for application updates on GitHub releases. */
   'app:check-update': { args: []; result: { latestVersion: string; downloadUrl: string } | null }
+
+  /** Get the list of connected displays. */
+  'displays:list': { args: []; result: import('./types').DisplayInfo[] }
 }
 
 /* ------------------------------------------------------------------ */
