@@ -68,6 +68,8 @@ export interface DisplayInfo {
   bounds: { x: number; y: number; width: number; height: number }
   isPrimary: boolean
   label: string
+  name: string
+  resolution: string
 }
 
 /**

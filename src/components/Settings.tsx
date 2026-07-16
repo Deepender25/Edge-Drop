@@ -211,10 +211,11 @@ export function Settings() {
           {displays.map((d) => (
             <button
               key={d.id}
-              className={`pill ${settings.stickDisplayId === d.id ? 'active' : ''}`}
+              className={`pill display-pill ${settings.stickDisplayId === d.id ? 'active' : ''}`}
               onClick={() => patch({ stickDisplayId: d.id })}
             >
-              {d.label}
+              <div className="pill-name">{d.name}</div>
+              <div className="pill-res">{d.resolution}</div>
             </button>
           ))}
         </div>

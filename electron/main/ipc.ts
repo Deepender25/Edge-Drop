@@ -459,14 +459,17 @@ export function registerIpc(): void {
     const all = screen.getAllDisplays()
     const primary = screen.getPrimaryDisplay()
     return all.map((d) => {
-      const name = (d as any).label || (d.id === primary.id ? 'Primary' : `Display #${d.id}`)
+      const rawName = (d as any).label || ''
+      const name = rawName || (d.id === primary.id ? 'Primary' : `Display #${d.id}`)
       return {
         id: d.id,
         bounds: { x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height },
         isPrimary: d.id === primary.id,
         label: d.id === primary.id
           ? `${name} (Primary) ${d.bounds.width}×${d.bounds.height}`
-          : `${name} ${d.bounds.width}×${d.bounds.height}`
+          : `${name} ${d.bounds.width}×${d.bounds.height}`,
+        name: d.id === primary.id ? `${name} (Primary)` : name,
+        resolution: `${d.bounds.width}×${d.bounds.height}`
       }
     })
   })
