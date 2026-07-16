@@ -60,18 +60,21 @@ export function createTray(): Tray {
   function buildDisplaySubmenu(currentId: number | undefined): Electron.MenuItemConstructorOptions[] {
     const all = screen.getAllDisplays()
     const primary = screen.getPrimaryDisplay()
-    return all.map((d, i) => ({
-      label: d.id === primary.id
-        ? `Screen ${i + 1} (Primary) ${d.bounds.width}×${d.bounds.height}`
-        : `Screen ${i + 1} ${d.bounds.width}×${d.bounds.height}`,
-      type: 'radio' as const,
-      checked: currentId === d.id,
-      click: () => {
-        const next = saveSettings({ stickDisplayId: d.id })
-        pushState.settings(next)
-        repositionWindow()
+    return all.map((d) => {
+      const name = (d as any).label || (d.id === primary.id ? 'Primary' : `Display #${d.id}`)
+      return {
+        label: d.id === primary.id
+          ? `${name} (Primary) ${d.bounds.width}×${d.bounds.height}`
+          : `${name} ${d.bounds.width}×${d.bounds.height}`,
+        type: 'radio' as const,
+        checked: currentId === d.id,
+        click: () => {
+          const next = saveSettings({ stickDisplayId: d.id })
+          pushState.settings(next)
+          repositionWindow()
+        }
       }
-    }))
+    })
   }
 
   function buildStickSubmenu(current: StickPosition): Electron.MenuItemConstructorOptions[] {
