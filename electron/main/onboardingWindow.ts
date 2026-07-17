@@ -21,6 +21,7 @@ export function createOnboardingWindow(): void {
     show: false,
     frame: false,
     resizable: false,
+    backgroundColor: '#121212',
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       nodeIntegration: false,

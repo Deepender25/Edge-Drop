@@ -6,7 +6,8 @@
  * is a compile-time error rather than a runtime one.
  */
 import { app, ipcMain, clipboard, nativeImage, screen } from 'electron'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { execFile } from 'node:child_process'
 import { psHost } from './powershell'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
@@ -147,6 +148,27 @@ function handle<C extends InvokeChannel>(
   ipcMain.handle(channel, (_e, ...args) => fn(...(args as InvokeMap[C]['args'])))
 }
 
+/** Detects whether the app is packaged and running as a Microsoft Store (MSIX) build. */
+function isStoreBuild(): boolean {
+  if (process.windowsStore || process.env.APP_BUILD_TARGET === 'store') {
+    return true
+  }
+  try {
+    if (app.isPackaged) {
+      const pkgPath = join(app.getAppPath(), 'package.json')
+      if (existsSync(pkgPath)) {
+        const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
+        if (pkg.buildTarget === 'store') {
+          return true
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return false
+}
+
 export function registerIpc(): void {
   handle('state:load', () => {
     return {
@@ -157,6 +179,9 @@ export function registerIpc(): void {
   })
 
   handle('app:check-update', async () => {
+    if (isStoreBuild()) {
+      return null
+    }
     try {
       const response = await fetch('https://api.github.com/repos/Deepender25/Edge-Drop/releases/latest', {
         headers: {

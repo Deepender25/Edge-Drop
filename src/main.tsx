@@ -15,7 +15,7 @@ if (!container) throw new Error('#root element not found')
 
 const root = createRoot(container)
 
-if (window.location.hash === '#onboarding') {
+if (window.location.hash === '#onboarding' || window.location.hash === '#/onboarding' || window.location.hash.includes('onboarding')) {
   // The tutorial is only opened once. Keep its component (and its video UI)
   // out of the always-running panel renderer.
   void import('./Onboarding').then(({ Onboarding }) => {

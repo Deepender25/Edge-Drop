@@ -8,42 +8,42 @@ const slides = [
     id: 'slide-1',
     title: 'Welcome to Edge-Drop',
     description: 'Edge-Drop lives hidden on the left edge of your screen. Simply move your mouse to the left edge to open the panel, and move away to hide it.',
-    videoSrc: 'placeholder_welcome.mp4',
+    videoSrc: 'welcome.webm',
     placeholderColor: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)'
   },
   {
     id: 'slide-2',
     title: 'Collect Anything',
     description: 'Whenever you press Ctrl+C to copy text, images, or files, Edge-Drop automatically catches and saves them in the background.',
-    videoSrc: 'placeholder_copy.mp4',
+    videoSrc: 'copy.webm',
     placeholderColor: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)'
   },
   {
     id: 'slide-3',
     title: 'Drag & Drop Anywhere',
     description: 'Need to use an item? Just open the panel and drag the card directly into any application, folder, or document.',
-    videoSrc: 'placeholder_drag.mp4',
+    videoSrc: 'drag.webm',
     placeholderColor: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)'
   },
   {
     id: 'slide-4',
     title: 'Explore File Stacks',
     description: 'Copying multiple files groups them into a stack. You can drag the entire stack, or click it to view and extract individual files.',
-    videoSrc: 'placeholder_stacks.mp4',
+    videoSrc: 'stack.webm',
     placeholderColor: 'linear-gradient(135deg, #FA709A 0%, #FEE140 100%)'
   },
   {
     id: 'slide-5-ungroup',
     title: 'Ungroup & Split Stacks',
     description: 'Want to separate items in a stack? Click to expand the stack, then drag any subitem to the left edge of the screen. A glowing coral bar will appear—drop the item on it to extract it back into a standalone card.',
-    videoSrc: 'placeholder_ungroup.mp4',
+    videoSrc: 'ungroup.webm',
     placeholderColor: 'linear-gradient(135deg, #FAD961 0%, #F76B1C 100%)'
   },
   {
     id: 'slide-5',
     title: 'Combine & Merge Items',
     description: 'Combine separate file or image cards by dragging them directly onto each other. This organizes your shelf by bundling related assets into a stack.',
-    videoSrc: 'placeholder_merge.mp4',
+    videoSrc: 'merge.webm',
     placeholderColor: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)'
   },
   {

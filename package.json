@@ -10,8 +10,11 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "build:win": "npm run build && electron-builder --win",
-    "package": "npm run build && electron-builder --win",
+    "build:github": "npm run build && electron-builder --win nsis -c.extraMetadata.buildTarget=github",
+    "build:store": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
+    "build:msix": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
+    "build:win": "npm run build:github",
+    "package": "npm run build:github",
     "preview": "electron-vite preview",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
@@ -36,6 +39,12 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "appx",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "resources/icon.ico"
@@ -47,6 +56,12 @@
       "shortcutName": "Edge-Drop",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "appx": {
+      "identityName": "Deepender.EdgeDrop",
+      "publisher": "CN=55FECDC4-7144-4A41-98FC-056C003F76FD",
+      "publisherDisplayName": "Deepender",
+      "applicationId": "EdgeDrop"
     }
   },
   "devDependencies": {
