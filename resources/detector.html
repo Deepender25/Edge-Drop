@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: transparent; pointer-events: none; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <script>
+    document.addEventListener('dragenter', function(e) {
+      if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.indexOf && e.dataTransfer.types.indexOf('Files') >= 0) {
+        e.preventDefault();
+        if (window.edge) window.edge.setInteractive(true);
+      }
+    });
+    document.addEventListener('dragover', function(e) {
+      if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.indexOf && e.dataTransfer.types.indexOf('Files') >= 0) {
+        e.preventDefault();
+      }
+    });
+    document.addEventListener('drop', function(e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>

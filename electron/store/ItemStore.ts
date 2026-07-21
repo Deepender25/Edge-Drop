@@ -11,7 +11,7 @@
  */
 import { existsSync, readFileSync, writeFileSync, rmSync, statSync, readdirSync } from 'node:fs'
 import { join, extname, basename as pathBasename } from 'node:path'
-import { nativeImage } from 'electron'
+import { nativeImage, safeStorage } from 'electron'
 import {
   type ClipboardItem,
   type ClipboardItemDto,
@@ -52,17 +52,68 @@ export class ItemStore {
   /** Load persisted state from disk. Called once at startup. */
   load(): void {
     try {
-      if (existsSync(PATHS.indexFile())) {
-        const raw = JSON.parse(readFileSync(PATHS.indexFile(), 'utf8')) as Index
-        if (Array.isArray(raw?.items)) {
-          this.items = raw.items.filter((it) => it && it.data && typeof it.id === 'string')
-          this.rebuildIndex()
-        }
-      } else {
+      const file = PATHS.indexFile()
+      if (!existsSync(file)) {
         this.items = []
         this.rebuildIndex()
+        return
       }
-    } catch {
+
+      const rawBuffer = readFileSync(file)
+      const rawStr = rawBuffer.toString('utf8').trim()
+      let parsedIndex: Index | null = null
+      let needsMigration = false
+
+      let parsedJson: any = null
+      try {
+        parsedJson = JSON.parse(rawStr)
+      } catch {
+        /* Raw non-JSON payload */
+      }
+
+      if (parsedJson && parsedJson.encrypted === true && typeof parsedJson.payload === 'string') {
+        // Encrypted DPAPI Envelope
+        if (safeStorage.isEncryptionAvailable()) {
+          try {
+            const decryptedStr = safeStorage.decryptString(Buffer.from(parsedJson.payload, 'base64'))
+            parsedIndex = JSON.parse(decryptedStr) as Index
+          } catch (err) {
+            console.error('[ItemStore] DPAPI decryption failed:', err)
+          }
+        } else {
+          console.warn('[ItemStore] safeStorage unavailable to decrypt items.json')
+        }
+      } else if (parsedJson && Array.isArray(parsedJson.items)) {
+        // Plain JSON (Legacy v0.1.1 format from active users)
+        parsedIndex = parsedJson as Index
+        needsMigration = true
+      }
+
+      if (parsedIndex && Array.isArray(parsedIndex.items)) {
+        this.items = parsedIndex.items.filter((it) => it && it.data && typeof it.id === 'string')
+        this.rebuildIndex()
+
+        // Auto-migrate legacy plain JSON: create backup & upgrade to DPAPI encryption
+        if (needsMigration) {
+          console.log('[ItemStore] Migrating legacy plain-text items.json to DPAPI safeStorage encryption...')
+          try {
+            const backupFile = `${file}.v1.bak`
+            if (!existsSync(backupFile)) {
+              writeFileSync(backupFile, rawBuffer)
+            }
+            this.persist()
+            console.log('[ItemStore] Auto-migration to DPAPI encryption completed successfully!')
+          } catch (err) {
+            console.error('[ItemStore] Auto-migration backup/persist failed:', err)
+          }
+        }
+      } else {
+        console.warn('[ItemStore] Index file could not be parsed; preserving data without wiping')
+        const backupFile = `${file}.corrupted.${Date.now()}`
+        try { writeFileSync(backupFile, rawBuffer) } catch { /* ignore */ }
+      }
+    } catch (err) {
+      console.error('[ItemStore] Failed to load index file:', err)
       this.items = []
       this.sigToId.clear()
     }
@@ -76,9 +127,23 @@ export class ItemStore {
   /** Persist the current index to disk. Called after every mutation. */
   private persist(): void {
     try {
-      writeFileSync(PATHS.indexFile(), JSON.stringify({ items: this.items } satisfies Index, null, 2), 'utf8')
-    } catch {
-      /* persistence failures are non-fatal; state stays in memory */
+      const indexObj: Index = { items: this.items }
+      const jsonStr = JSON.stringify(indexObj)
+      const file = PATHS.indexFile()
+
+      if (safeStorage.isEncryptionAvailable()) {
+        const encryptedBuf = safeStorage.encryptString(jsonStr)
+        const envelope = {
+          v: 2,
+          encrypted: true,
+          payload: encryptedBuf.toString('base64')
+        }
+        writeFileSync(file, JSON.stringify(envelope, null, 2), 'utf8')
+      } else {
+        writeFileSync(file, JSON.stringify(indexObj, null, 2), 'utf8')
+      }
+    } catch (err) {
+      console.error('[ItemStore] Persistence failed:', err)
     }
   }
 
@@ -470,12 +535,11 @@ export class ItemStore {
         }
       }
       if (it.data.kind === 'files') {
-        // Build per-file metadata entries. If a file is an image, we generate and attach
-        // its preview data URL inline (capped to first 4 images to prevent bloat).
+        // Build per-file metadata entries. Generate image preview thumbnails for image files.
         let imagePreviewCount = 0
         const entries = it.data.paths.map((p) => {
           const entry = buildFileEntry(p)
-          if (entry.isImage && imagePreviewCount < 4) {
+          if (entry.isImage && imagePreviewCount < 20) {
             imagePreviewCount++
             return {
               ...entry,
@@ -556,7 +620,6 @@ function fileToDataUrl(p: string): string {
         ? img.resize({ width: THUMB_SIZE, quality: 'good' })
         : img
       const url = thumb.toDataURL({ scaleFactor: 1.0 })
-        .replace('image/png', 'image/jpeg') // hint the renderer it's small
       if (fileDataUrlCache.size > 200) fileDataUrlCache.clear()
       fileDataUrlCache.set(p, url)
       return url

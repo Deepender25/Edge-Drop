@@ -30,6 +30,8 @@ export interface EdgeApi {
   splitItem: (req: import('./types').DragRequest) => Promise<boolean>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   setInteractive: (value: boolean) => Promise<void>
+  setPreviewMode: (active: boolean) => Promise<void>
+  revealFile: (path: string) => Promise<boolean>
   minimizeWindow: () => Promise<void>
   getDisplays: () => Promise<import('./types').DisplayInfo[]>
   setInternalDrag: (active: boolean) => void

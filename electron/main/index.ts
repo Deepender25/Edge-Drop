@@ -17,7 +17,7 @@ import { registerIpc, registerSendListeners } from './ipc'
 import { prewarmDragIcons } from './drag'
 import { initState, getWatcher, loadSettings, pushState, stopStateTimers } from './state'
 import { createOnboardingWindow } from './onboardingWindow'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
 
@@ -127,9 +127,8 @@ app.whenReady().then(() => {
   // (Tray menu is rebuilt on each open, so no extra wiring is needed here.)
 })
 
-app.on('window-all-closed', (e: Event) => {
-  // Never quit when the window closes (there is no window chrome anyway).
-  e.preventDefault()
+app.on('window-all-closed', () => {
+  // Never quit automatically when panel hides/closes; lifecycle is managed by tray.
 })
 
 app.on('activate', () => {
@@ -141,19 +140,26 @@ function registerImageProtocol(): void {
   protocol.handle(APP_CONFIG.imageProtocol, async (request) => {
     try {
       const id = request.url.replace(`${APP_CONFIG.imageProtocol}://`, '').replace(/\/$/, '')
-      const file = join(PATHS.imagesDir(), `${sanitizeId(id)}.png`)
-      if (!existsSync(file)) {
+      const cleanId = sanitizeId(id)
+      if (!cleanId) {
+        return new Response('Forbidden', { status: 403 })
+      }
+
+      const targetFile = resolve(join(PATHS.imagesDir(), `${cleanId}.png`))
+      const baseDir = resolve(PATHS.imagesDir())
+
+      // Strict path confinement check: target file MUST reside directly inside imagesDir
+      if (!targetFile.startsWith(baseDir) || !existsSync(targetFile)) {
         return new Response('Not found', { status: 404 })
       }
-      const stream = createReadStream(file)
-      // node 'web stream' readable for the Response body.
+
+      const stream = createReadStream(targetFile)
       const body = new Response(stream as unknown as ReadableStream<Uint8Array>).body
       const headers = new Headers({
         'Content-Type': 'image/png',
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
+        'ETag': `"${createHash('sha256').update(targetFile).digest('hex')}"`
       })
-      // ETag based on file path hash for cheap revalidation.
-      headers.set('ETag', `"${createHash('md5').update(file).digest('hex')}"`)
       return new Response(body, { status: 200, headers })
     } catch {
       return new Response('Error', { status: 500 })

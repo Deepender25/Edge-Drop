@@ -82,9 +82,22 @@ export function Panel() {
       setDragActive(false)
       
       const el = document.elementFromPoint(pos.x, pos.y)
-      if (!el) {
-        if (req.imageId || (req.paths && req.paths.length > 0)) window.edge.splitItem(req)
-        return
+      if (!el) return
+
+      // Check if dropped inside the Preview Flyout
+      const flyoutEl = el.closest('[data-preview-flyout]') || el.closest('.preview-flyout')
+      if (flyoutEl) {
+        const currentPreviewId = useStore.getState().previewItemId
+        if (req.id === currentPreviewId) {
+          // Dropped back onto its own preview flyout — DO NOTHING (keep in collection)
+          console.log('[Panel] Dropped back onto own preview flyout, keeping in collection')
+          return
+        } else if (currentPreviewId) {
+          // Dropped onto a different item's preview flyout — MERGE
+          console.log('[Panel] Dropped onto another preview flyout, merging')
+          window.edge.mergeItems(req.id, currentPreviewId)
+          return
+        }
       }
 
       if (el.closest('.split-dropzone')) {
@@ -105,8 +118,9 @@ export function Panel() {
           // Dropped on the SAME item: do nothing, keep it in the collection
         }
       } else {
-        // Dropped on empty space (e.g. padding): split
-        if (req.imageId || (req.paths && req.paths.length > 0)) {
+        // Dropped on empty space: split only if dropped inside item-list container
+        const itemListEl = el.closest('.item-list')
+        if (itemListEl && (req.imageId || (req.paths && req.paths.length > 0))) {
           window.edge.splitItem(req)
         }
       }

@@ -2,8 +2,13 @@ node_modules
 out
 dist
 *.log
+drag_debug.txt
+clipboard_debug.log
+electron.vite.config.*.mjs
+FIXES_CHECKLIST.md
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
 
 docs/
+

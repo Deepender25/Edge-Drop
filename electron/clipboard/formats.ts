@@ -7,9 +7,10 @@
  * variants out of raw Windows formats (copied files arrive as FileNameW).
  */
 import { clipboard } from 'electron'
-import { execSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { execFile } from 'node:child_process'
 import type { ItemData } from '../../shared/types'
+import { getSystemPowerShellPath } from '../main/powershell'
+import { filterValidPaths } from '../main/pathValidation'
 
 /** Windows clipboard format name for a copied-file list. */
 export const CF_FILE_LIST = 'FileNameW'
@@ -22,25 +23,32 @@ function readFileList(): string[] | null {
 
     if (process.platform === 'win32') {
       try {
-        // Retrieve the full list of files from the system clipboard using PowerShell
-        // to bypass Electron's built-in single file limit.
-        const stdout = execSync(
-          'powershell.exe -NoProfile -NonInteractive -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::GetFileDropList()"',
-          { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 2000 }
+        const psPath = getSystemPowerShellPath()
+        // Non-blocking execFile fallback via powershell with strict absolute path & timeout
+        execFile(
+          psPath,
+          [
+            '-NoProfile',
+            '-NonInteractive',
+            '-Command',
+            'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::GetFileDropList()'
+          ],
+          { encoding: 'utf8', timeout: 1500 },
+          (err, stdout) => {
+            if (!err && stdout) {
+              const paths = filterValidPaths(stdout.split(/\r?\n/).map((l) => l.trim()))
+              if (paths.length > 0) return paths
+            }
+          }
         )
-        const paths = stdout
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0 && existsSync(line))
-        if (paths.length > 0) return paths
       } catch (err) {
         console.error('[formats] Failed to read file drop list via PowerShell:', err)
       }
     }
 
-    // Fallback: parse the FileNameW buffer directly (only gets the first file on Windows)
+    // Fast, non-blocking fallback: parse the FileNameW buffer directly
     const wide = buf.toString('utf16le')
-    const parts = wide.split('\u0000').map((s) => s.trim()).filter(Boolean)
+    const parts = filterValidPaths(wide.split('\u0000').map((s) => s.trim()))
     return parts.length ? parts : null
   } catch {
     return null

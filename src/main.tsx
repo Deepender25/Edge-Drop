@@ -13,6 +13,12 @@ import './styles/settings.css'
 const container = document.getElementById('root')
 if (!container) throw new Error('#root element not found')
 
+// Expose Device Pixel Ratio (DPR) to CSS for display-aware rendering.
+// This allows effects like blur() to scale inversely with physical pixel density,
+// saving massive amounts of GPU fill-rate on 4K/Hi-DPI displays.
+const dpr = window.devicePixelRatio || 1
+document.documentElement.style.setProperty('--dpr', dpr.toString())
+
 const root = createRoot(container)
 
 if (window.location.hash === '#onboarding' || window.location.hash === '#/onboarding' || window.location.hash.includes('onboarding')) {

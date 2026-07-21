@@ -125,6 +125,20 @@ export const ContractIcon = (p: P) => (
   </svg>
 )
 
+/** FolderOpen / Reveal in Explorer icon */
+export const FolderOpenIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path fill="currentColor" d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+  </svg>
+)
+
+/** Check / Success icon */
+export const CheckIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+  </svg>
+)
+
 export const FileIconGlyph = (p: P) => (
   <svg {...base(p)}>
     <g>		<g fill="currentColor" fillRule="evenodd" clipRule="evenodd">			<path d="M15.143 22H8.286A4.286 4.286 0 0 1 4 17.714V6.286A4.286 4.286 0 0 1 8.286 2h4.008a3.5 3.5 0 0 1 2.304.866l3.635 3.18a3.5 3.5 0 0 1 1.196 2.635v9.033A4.286 4.286 0 0 1 15.143 22m0-2H8.286A2.286 2.286 0 0 1 6 17.714V6.286A2.286 2.286 0 0 1 8.286 4h4.008a1.5 1.5 0 0 1 .987.371l3.635 3.18a1.5 1.5 0 0 1 .513 1.13v9.033A2.286 2.286 0 0 1 15.143 20" />			<path d="M13 3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h2.5a1 1 0 1 1 0 2H15a3 3 0 0 1-3-3V4a1 1 0 0 1 1-1" />		</g>	</g>

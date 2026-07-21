@@ -251,7 +251,8 @@
 /* Card is actively being previewed — dim body so flyout takes focus */
 .item-main.previewing .body {
   opacity: 0.45;
-  filter: blur(2px);
+  /* Use calc with --dpr to ensure consistent *visual* blur while saving GPU on 4K */
+  filter: blur(calc(3px / var(--dpr, 1)));
   transition: opacity 0.3s ease, filter 0.3s ease;
 }
 

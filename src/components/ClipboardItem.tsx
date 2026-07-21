@@ -624,16 +624,22 @@ function Preview({ item }: { item: ClipboardItemDto }) {
       const first = item.data.paths[0]
       const entry = item.data.entries?.[0]
       const name = entry?.name ?? basename(first)
+      const isImage = entry?.isImage || getFileKind(first).kind === 'image'
+
       // Single image file — show its thumbnail.
-      if (entry?.isImage && entry.preview) {
+      if (item.data.paths.length === 1 && isImage) {
         return (
           <div className="thumb-wrap">
-            <img
-              className="thumb"
-              src={entry.preview}
-              alt=""
-              draggable={false}
-            />
+            {entry?.preview ? (
+              <img
+                className="thumb"
+                src={entry.preview}
+                alt=""
+                draggable={false}
+              />
+            ) : (
+              <div className="preview">[image: {name}]</div>
+            )}
             <div className="preview single">
               {name}
             </div>
@@ -692,7 +698,14 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
       const firstPath = item.data.paths[0]
       const info = getFileKind(firstPath)
       const count = item.data.paths.length
-      // For a single file, label by its type (e.g. "pdf"); for a bundle, "N files".
+      const isImage = count === 1 && (item.data.entries?.[0]?.isImage || info.kind === 'image')
+      if (isImage) {
+        return (
+          <span className="kind-badge">
+            <ImageIcon width={11} height={11} /> image
+          </span>
+        )
+      }
       const label = count > 1 ? `${count} files` : info.label.toLowerCase()
       return (
         <span className="kind-badge" style={{ color: count > 1 ? undefined : info.color }}>

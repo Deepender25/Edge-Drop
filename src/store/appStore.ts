@@ -71,7 +71,6 @@ interface AppState {
   setOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean) => void
   setDragActive: (active: boolean) => void
-  setDragActive: (active: boolean) => void
   setInternalDragReq: (req: import('../../shared/types').DragRequest | null) => void
   setPreviewItemId: (id: string | null, rect?: { y: number; height: number }) => void
 

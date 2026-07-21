@@ -5,11 +5,12 @@
  * renderer calls them through the typed preload bridge, so a signature mismatch
  * is a compile-time error rather than a runtime one.
  */
-import { app, ipcMain, clipboard, nativeImage, screen } from 'electron'
+import { app, ipcMain, clipboard, nativeImage, screen, shell } from 'electron'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFile } from 'node:child_process'
-import { psHost } from './powershell'
+import { psHost, getSystemPowerShellPath } from './powershell'
+import { filterValidPaths, isValidFilePath, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
 import { getMainWindow } from './window'
@@ -57,8 +58,8 @@ function simulatePaste(): void {
     psHost.run("Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('^v')", 2000)
       .catch((err) => {
         console.error('[Main] simulatePaste psHost failed, using fallback:', err)
-        // Fallback to spawning a new powershell process
-        execFile('powershell.exe', [
+        // Fallback to spawning powershell process via absolute system path
+        execFile(getSystemPowerShellPath(), [
           '-NoProfile',
           '-NonInteractive',
           '-Command',
@@ -81,10 +82,11 @@ function simulatePaste(): void {
  * Shell IDList Array + all other shell formats in a single atomic transaction.
  * Paths are base64-encoded so any character (spaces, quotes, Unicode) is safe.
  */
-async function writeFileListToClipboard(paths: string[]): Promise<void> {
-  if (process.platform === 'win32' && paths.length > 0) {
+async function writeFileListToClipboard(rawPaths: string[]): Promise<void> {
+  const validPaths = filterValidPaths(rawPaths)
+  if (process.platform === 'win32' && validPaths.length > 0) {
     try {
-      const addLines = paths
+      const addLines = validPaths
         .map(p => `$c.Add([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${Buffer.from(p, 'utf8').toString('base64')}')))|Out-Null`)
         .join(';')
       const script = [
@@ -100,12 +102,14 @@ async function writeFileListToClipboard(paths: string[]): Promise<void> {
     }
   }
   // Non-Windows fallback: plain text paths (best-effort)
-  clipboard.clear()
-  clipboard.writeText(paths.join('\r\n'))
+  if (validPaths.length > 0) {
+    clipboard.clear()
+    clipboard.writeText(validPaths.join('\r\n'))
+  }
 }
 
 async function writeImageToClipboard(imagePath: string | null, previewDataUrl: string): Promise<void> {
-  if (process.platform === 'win32' && imagePath && existsSync(imagePath)) {
+  if (process.platform === 'win32' && imagePath && isValidFilePath(imagePath) && existsSync(imagePath)) {
     try {
       const b64Path = Buffer.from(imagePath, 'utf8').toString('base64')
       const script = [
@@ -206,6 +210,18 @@ export function registerIpc(): void {
       console.error('[IPC] app:check-update error:', err)
       return null
     }
+  })
+
+  handle('file:reveal', (filePath) => {
+    if (isExistingFilePath(filePath)) {
+      try {
+        shell.showItemInFolder(filePath)
+        return true
+      } catch (err) {
+        console.error('[IPC] file:reveal failed:', err)
+      }
+    }
+    return false
   })
 
   handle('item:set-pinned', (id, pinned) => {

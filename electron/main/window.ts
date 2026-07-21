@@ -24,6 +24,7 @@
  */
 import { BrowserWindow, screen, shell } from 'electron'
 import { join } from 'node:path'
+import { existsSync } from 'node:fs'
 import { APP_CONFIG } from './config'
 import { runtime } from './config'
 import { PATHS } from '../store/paths'
@@ -354,32 +355,6 @@ function getDetectorBounds(g: { x: number; y: number; width: number; height: num
 }
 
 export function createDetectorWindow(x: number, y: number, _w: number, h: number): void {
-  // Minimal HTML: the detector uses the preload bridge (window.edge) to send IPC.
-  // It listens for dragenter/dragover/drop on the document and sends a signal
-  // when Files are detected.
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><style>
-  *{margin:0;padding:0}
-  html,body{width:100%;height:100%;background:transparent;pointer-events:none;overflow:hidden}
-</style></head><body>
-<script>
-  document.addEventListener('dragenter', function(e) {
-    if (e.dataTransfer && e.dataTransfer.types.indexOf && e.dataTransfer.types.indexOf('Files') >= 0) {
-      e.preventDefault();
-      if (window.edge) window.edge.setInteractive(true);
-    }
-  });
-  document.addEventListener('dragover', function(e) {
-    if (e.dataTransfer && e.dataTransfer.types.indexOf && e.dataTransfer.types.indexOf('Files') >= 0) {
-      e.preventDefault();
-    }
-  });
-  document.addEventListener('drop', function(e) {
-    e.preventDefault();
-  });
-</script>
-</body></html>`
-
   const detBounds = getDetectorBounds({ x, y, width: _w, height: h }, loadSettings().stickPosition)
 
   detectorWindow = new BrowserWindow({
@@ -425,7 +400,11 @@ export function createDetectorWindow(x: number, y: number, _w: number, h: number
   // Layer behind the main panel (lower always-on-top level).
   detectorWindow.setAlwaysOnTop(true, 'normal')
 
-  detectorWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+  const devDetectorFile = join(__dirname, '../../resources/detector.html')
+  const detectorFile = existsSync(devDetectorFile) ? devDetectorFile : join(process.resourcesPath, 'detector.html')
+  if (existsSync(detectorFile)) {
+    detectorWindow.loadFile(detectorFile)
+  }
 
   detectorWindow.once('ready-to-show', () => {
     detectorWindow?.showInactive()
@@ -435,5 +414,9 @@ export function createDetectorWindow(x: number, y: number, _w: number, h: number
     if (!runtime.quitting) {
       e.preventDefault()
     }
+  })
+
+  detectorWindow.on('closed', () => {
+    detectorWindow = null
   })
 }
