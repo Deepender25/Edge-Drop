@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/Logo%20(4).png" alt="Edge-Drop Logo" width="140" height="140" />
+  <img src="public/Logo.gif" alt="Edge-Drop Logo" width="140" height="140" />
 </p>
 
 <h1 align="center">Edge-Drop</h1>
@@ -275,13 +275,16 @@ sequenceDiagram
 
 **Fluid collections & stacks**
 - Auto-group multi-file drag-ins and multi-image copies into 3D card stacks (max 10)
-- Drag a card over another card to merge them into a bundle
+- **Preview Flyout Drag-to-Stack**: Drag any shelf item directly onto an open Preview Flyout to stack and merge them seamlessly
 - Double-click to expand, drag a sub-item to the left edge to split it back out
 - Type-safe merge rules: images only merge with images, files with files (text never groups)
 
 **UI / UX**
+- **Dynamic Preview Flyout**: Responsive 100% full-width (`1fr`) layout for single files, 2-column grid for multi-file collections
+- **Unified Image Rendering**: Copied image files (`.png`, `.jpeg`, `.gif`, `.webp`) render as visual image cards with thumbnails on the shelf and display full visual image previews in flyouts
+- **High-Contrast Overlays**: Solid dark `rgba(0, 0, 0, 0.85)` copy button overlays with glassmorphic backdrop blur over images
 - Frosted-glass macOS aesthetic — deep black, `backdrop-filter: blur(20px)`, hairline borders
-- Framer Motion spring physics with synchronized elastic overshoot on open
+- Framer Motion adaptive spring physics (`useAdaptiveSpring`) synchronized with screen refresh rates
 - Custom SVG connection flares that scale with the blade
 - Scroll gradient masks top & bottom to fade items into black
 - Monochrome pin / multiplier badges for maximum legibility
@@ -295,12 +298,17 @@ Edge-Drop touches the OS clipboard, the filesystem, and the Win32 OLE drag pipel
 
 | Control | Implementation |
 |---|---|
-| Process isolation | `contextIsolation: true` · `nodeIntegration: false` · `sandbox: true` on both windows |
+| Modern Runtime | **Electron 34.2.0+** — Patches EOL Chromium memory corruption and RCE vectors |
+| Encrypted Storage | **Windows DPAPI `safeStorage`** — Plaintext history (`items.json`) encrypted at rest with user-session DPAPI keys & zero-data-loss auto-migration (`.bak` backups) |
+| Process Isolation | `contextIsolation: true` · `nodeIntegration: false` · `sandbox: true` on all browser windows |
+| PowerShell Hardening | Absolute executable path `${SystemRoot}\System32\WindowsPowerShell\v1.0\powershell.exe`, non-blocking `execFile`, strict path validation (`pathValidation.ts`), and queue deadlock protection |
+| Protocol Confinement | `edgelocal://` canonical path resolution (`path.resolve()`) strictly confined within `%APPDATA%/Edge-Drop/images/` and SHA-256 ETag revalidation |
+| CSP & Teardown | Detector window loads static `resources/detector.html` (zero `data:` URL inline scripts) with explicit `closed` lifecycle memory dereferencing |
 | Typed IPC | `shared/ipc.ts` defines `InvokeMap`, `EventMap`, `SendMap` — channel names and payload types are statically checked on both sides |
-| Privacy-aware clipboard | Honors `ExcludeClipboardContentFromMonitorProcessing`, `ClipboardViewerIgnore`, `CanIncludeInClipboardHistory`, `CanUploadToCloudClipboard`, plus 1Password / Bitwarden / KeePass concealed formats |
-| Atomic persistence | JSON index written via temp-file + rename; image bytes stored as per-id PNG files |
-| Dev-safe startup | `app.setLoginItemSettings` is gated by `app.isPackaged` — dev builds never touch the Windows Registry |
-| External links | `setWindowOpenHandler` forces all window-open requests to `shell.openExternal` — no in-app navigation |
+| Privacy-Aware Clipboard | Honors `ExcludeClipboardContentFromMonitorProcessing`, `ClipboardViewerIgnore`, `CanIncludeInClipboardHistory`, `CanUploadToCloudClipboard`, plus 1Password / Bitwarden / KeePass concealed formats |
+| Atomic Persistence | JSON index written via temp-file + rename; image bytes stored as per-id PNG files |
+| Dev-Safe Startup | `app.setLoginItemSettings` is gated by `app.isPackaged` — dev builds never touch the Windows Registry |
+| External Links | `setWindowOpenHandler` forces all window-open requests to `shell.openExternal` — no in-app navigation |
 
 ---
 
@@ -308,10 +316,10 @@ Edge-Drop touches the OS clipboard, the filesystem, and the Win32 OLE drag pipel
 
 | Layer | Choice | Why |
 |---|---|---|
-| Desktop runtime | **Electron 30+** | Only way to access Win32 OLE drag pipelines and native clipboard formats from JS |
+| Desktop runtime | **Electron 34+** | Only way to access Win32 OLE drag pipelines and native clipboard formats from JS |
 | Build tooling | **electron-vite** | Separate Main / Preload / Renderer builds with Vite HMR |
 | UI | **React 18 + TypeScript** | Strongly typed component hierarchy |
-| Animation | **Framer Motion** | Spring physics, layout transitions, gesture animations |
+| Animation | **Framer Motion** | Adaptive spring physics (`useAdaptiveSpring`), layout transitions, gesture animations |
 | State | **Zustand** | Selector-optimized, zero cascading re-renders during drags |
 | Drag icons | **@resvg/resvg-js** | Server-side SVG → PNG rendering for custom drag ghosts |
 
