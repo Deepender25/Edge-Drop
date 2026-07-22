@@ -26,6 +26,8 @@ export function Panel() {
   const settingsOpen = useStore((s) => s.settingsOpen)
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const setQuery = useStore((s) => s.setQuery)
+  const bounceAnimation = settings.bounceAnimation
+  const blurAnimation = settings.blurAnimation
 
   useEffect(() => {
     if (!open) {
@@ -226,18 +228,14 @@ export function Panel() {
         onDrop={onDrop}
         style={containerStyle}
         animate={{
-          scale: open ? [0.92, 1.05, 0.98, 1] : 1,
-          filter: open ? 'blur(0px)' : 'blur(16px)'
+          scale: bounceAnimation && open ? [0.92, 1.05, 0.98, 1] : 1,
+          filter: blurAnimation ? (open ? 'blur(0px)' : 'blur(16px)') : 'blur(0px)',
+          opacity: open ? 1 : 0.98
         }}
         transition={{
-          scale: {
-            duration: 0.55,
-            ease: [0.22, 1, 0.36, 1]
-          },
-          filter: {
-            duration: open ? 0.8 : 0.45,
-            ease: open ? [0.16, 1, 0.3, 1] : [0.4, 0, 0.2, 1]
-          }
+          scale: bounceAnimation && open ? { duration: 0.55, ease: [0.22, 1, 0.36, 1] } : { duration: 0.15 },
+          filter: blurAnimation ? { duration: open ? 0.8 : 0.45, ease: open ? [0.16, 1, 0.3, 1] : [0.4, 0, 0.2, 1] } : { duration: 0.1 },
+          opacity: { duration: open ? 0.12 : 0.08, ease: 'easeOut' }
         }}
       >
         {isRight ? (
@@ -279,10 +277,10 @@ export function Panel() {
             {settingsOpen ? (
               <motion.div
                 key="settings"
-                initial={{ opacity: 0, x: isRight ? -10 : 10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                exit={{ opacity: 0, x: isRight ? 10 : -10 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, x: isRight ? -8 : 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: isRight ? 8 : -8 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 36, mass: 0.6 }}
                 style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
               >
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to bottom, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
@@ -292,10 +290,10 @@ export function Panel() {
             ) : (
               <motion.div
                 key="list"
-                initial={{ opacity: 0, x: isRight ? 10 : -10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                exit={{ opacity: 0, x: isRight ? -10 : 10 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, x: isRight ? 8 : -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: isRight ? -8 : 8 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 36, mass: 0.6 }}
                 style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
               >
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to bottom, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />

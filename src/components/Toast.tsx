@@ -23,7 +23,7 @@ export function ToastStack() {
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 40, mass: 0.5, restDelta: 0.001, restSpeed: 0.001 }}
             onClick={() => dismiss(t.id)}
             title="Dismiss"
           >

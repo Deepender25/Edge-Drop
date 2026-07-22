@@ -83,9 +83,13 @@
   display: block;
 }
 
-/* CSS transition for clip-path (Framer Motion can't interpolate calc() properly) */
+/* CSS transition for clip-path (Framer Motion can't interpolate calc() properly).
+   cubic-bezier(0.22, 1, 0.36, 1) is an exponential ease-out — fast initial
+   velocity that decelerates to zero, giving the panel a crisp "snapping open"
+   feel without overshoot or bounce. 0.46s is just long enough to be readable
+   at 60Hz without feeling sluggish on fast hardware. */
 .blade-container {
-  transition: clip-path 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: clip-path 0.46s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Parent container solid block extension to prevent screen edge blur transparency */

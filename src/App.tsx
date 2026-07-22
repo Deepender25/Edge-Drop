@@ -33,8 +33,16 @@ export default function App() {
     const offToast = edge.onToast((t) => pushToast(t))
     const offToggle = edge.onToggle((forceOpen) => {
       const next = forceOpen !== undefined ? forceOpen : !useStore.getState().open
-      useStore.getState().setOpen(next)
-      edge.setInteractive(next)
+      if (!next && useStore.getState().previewItemId) {
+        useStore.getState().setPreviewItemId(null)
+        edge.setInteractive(false)
+        window.setTimeout(() => {
+          useStore.getState().setOpen(false)
+        }, 240)
+      } else {
+        useStore.getState().setOpen(next)
+        edge.setInteractive(next)
+      }
     })
     const offOpenSettings = edge.onOpenSettings(() => {
       useStore.getState().setOpen(true)

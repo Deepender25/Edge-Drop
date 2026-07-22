@@ -26,22 +26,7 @@ import { getFileKind } from '../lib/fileType'
 import { CopyIcon, FileKindIcon, ImageIcon, LinkIcon, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ExpandIcon, ContractIcon } from './icons'
 import '../styles/item.css'
 
-/**
- * Module-level paste guard — shared across ALL item instances.
- * Tracks the timestamp of the last paste so that any subsequent click
- * (including the second click of a double-click) within PASTE_COOLDOWN ms
- * is silently dropped. This is the only reliable way to prevent double-paste:
- * it is synchronous, stateless across renders, and immune to async IPC races.
- */
-let _lastPasteAt = 0
-const PASTE_COOLDOWN = 600 // ms
-
-function tryPaste(fn: () => void): void {
-  const now = Date.now()
-  if (now - _lastPasteAt < PASTE_COOLDOWN) return
-  _lastPasteAt = now
-  fn()
-}
+import { tryPaste } from '../lib/tryPaste'
 
 interface Props {
   item: ClipboardItemDto
@@ -122,16 +107,23 @@ function ClipboardItemBase({ item }: Props) {
   return (
     <motion.div
       layout
-      initial={open ? { opacity: 0, y: 8, scale: 0.98 } : false}
+      initial={open ? { opacity: 0, y: 6, scale: 0.97 } : false}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.14 } }}
-      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.1, ease: 'easeIn' } }}
+      transition={{
+        type: 'spring',
+        stiffness: 500,
+        damping: 38,
+        mass: 0.6,
+        restDelta: 0.001,
+        restSpeed: 0.001
+      }}
       className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}`}
     >
       <div
         className={`item-main${isPreviewing ? ' force-actions previewing' : ''}`}
         data-id={item.id}
-        draggable={item.data.kind !== 'text' && (!isBundle || !expanded)}
+        draggable={!isPreviewing && item.data.kind !== 'text' && (!isBundle || !expanded)}
         onDragStart={(e) => handleDragStart(e, { id: item.id })}
         onDragEnd={() => setInternalDragReq(null)}
         onDragOver={(e) => {
@@ -159,7 +151,7 @@ function ClipboardItemBase({ item }: Props) {
             setInternalDragReq(null)
           }
         }}
-        onClick={isBundle && !expanded ? onExpand : (!isBundle ? onPaste : undefined)}
+        onClick={isPreviewing ? undefined : (isBundle && !expanded ? onExpand : (!isBundle ? onPaste : undefined))}
       >
         <div className="body">
           {isBundle ? (
@@ -238,78 +230,67 @@ function ClipboardItemBase({ item }: Props) {
   )
 }
 
+// Bundle expand/collapse — all blur removed; opacity+y+scale composite trivially.
 const containerVariants = {
-  hidden: { opacity: 0, filter: 'blur(6px)' },
-  visible: { 
-    opacity: 1, 
-    filter: 'blur(0px)',
-    transition: { 
-      opacity: { duration: 0.22, ease: 'easeOut' },
-      filter: { duration: 0.22, ease: 'easeOut' },
-      staggerChildren: 0.05,
-      delayChildren: 0.02
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      opacity: { duration: 0.18, ease: 'easeOut' },
+      staggerChildren: 0.04,
+      delayChildren: 0.01
     }
   },
-  exit: { 
-    opacity: 0, 
-    filter: 'blur(6px)',
-    transition: { 
-      opacity: { duration: 0.16, ease: 'easeIn' },
-      filter: { duration: 0.16, ease: 'easeIn' },
-      staggerChildren: 0.03,
+  exit: {
+    opacity: 0,
+    transition: {
+      opacity: { duration: 0.12, ease: 'easeIn' },
+      staggerChildren: 0.025,
       staggerDirection: -1
     }
   }
 };
 
 const rowVariants = {
-  hidden: { opacity: 0, y: 12, scale: 0.97, filter: 'blur(4px)' },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  hidden: { opacity: 0, y: 8, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    filter: 'blur(0px)',
-    transition: { 
-      y: { type: 'spring', stiffness: 420, damping: 28 },
-      scale: { type: 'spring', stiffness: 420, damping: 28 },
-      opacity: { duration: 0.2, ease: 'easeOut' },
-      filter: { duration: 0.2, ease: 'easeOut' }
+    transition: {
+      y: { type: 'spring', stiffness: 500, damping: 38, mass: 0.6, restDelta: 0.001 },
+      scale: { type: 'spring', stiffness: 500, damping: 38, mass: 0.6, restDelta: 0.001 },
+      opacity: { duration: 0.16, ease: 'easeOut' }
     }
   },
-  exit: { 
-    opacity: 0, 
-    y: -8, 
+  exit: {
+    opacity: 0,
+    y: -6,
     scale: 0.97,
-    filter: 'blur(4px)',
-    transition: { 
-      y: { duration: 0.14, ease: 'easeIn' },
-      scale: { duration: 0.14, ease: 'easeIn' },
-      opacity: { duration: 0.14, ease: 'easeIn' },
-      filter: { duration: 0.14, ease: 'easeIn' }
+    transition: {
+      y: { duration: 0.1, ease: 'easeIn' },
+      scale: { duration: 0.1, ease: 'easeIn' },
+      opacity: { duration: 0.1, ease: 'easeIn' }
     }
   }
 };
 
 const stackVariants = {
-  hidden: { opacity: 0, filter: 'blur(5px)', scale: 0.96 },
-  visible: { 
-    opacity: 1, 
-    filter: 'blur(0px)', 
+  hidden: { opacity: 0, scale: 0.96 },
+  visible: {
+    opacity: 1,
     scale: 1,
-    transition: { 
-      scale: { type: 'spring', stiffness: 420, damping: 28 },
-      opacity: { duration: 0.2, ease: 'easeOut' },
-      filter: { duration: 0.2, ease: 'easeOut' }
+    transition: {
+      scale: { type: 'spring', stiffness: 480, damping: 38, mass: 0.6, restDelta: 0.001 },
+      opacity: { duration: 0.18, ease: 'easeOut' }
     }
   },
-  exit: { 
-    opacity: 0, 
-    filter: 'blur(5px)', 
+  exit: {
+    opacity: 0,
     scale: 0.96,
-    transition: { 
-      scale: { duration: 0.16, ease: 'easeIn' },
-      opacity: { duration: 0.16, ease: 'easeIn' },
-      filter: { duration: 0.16, ease: 'easeIn' }
+    transition: {
+      scale: { duration: 0.12, ease: 'easeIn' },
+      opacity: { duration: 0.12, ease: 'easeIn' }
     }
   }
 };

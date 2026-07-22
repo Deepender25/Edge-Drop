@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
 import { formatBytes } from '../lib/format'
@@ -7,6 +7,7 @@ import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon } from './icons'
 import { createPortal } from 'react-dom'
 import { useAdaptiveSpring } from '../hooks/useAdaptiveSpring'
 import { useDragOut } from '../hooks/useDragOut'
+import { tryPaste } from '../lib/tryPaste'
 
 export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const previewItemId = useStore((s) => s.previewItemId)
@@ -33,6 +34,32 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const maxFlyoutHeight = `calc(${(settings.panelHeight || 0.6) * 100}vh - 24px)`
 
   const [dragOver, setDragOver] = useState(false)
+  const flyoutRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!item || !flyoutRef.current) {
+      useStore.getState().setPreviewFlyoutRect(null)
+      return
+    }
+
+    const updateRect = () => {
+      if (flyoutRef.current) {
+        const r = flyoutRef.current.getBoundingClientRect()
+        useStore.getState().setPreviewFlyoutRect({ top: r.top, bottom: r.bottom })
+      }
+    }
+
+    updateRect()
+    const ro = new ResizeObserver(updateRect)
+    ro.observe(flyoutRef.current)
+    window.addEventListener('resize', updateRect)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', updateRect)
+      useStore.getState().setPreviewFlyoutRect(null)
+    }
+  }, [item?.id])
 
   const handleDragOver = (e: React.DragEvent) => {
     const activeDrag = useStore.getState().internalDragReq
@@ -81,15 +108,17 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
           zIndex: 5,
         }}>
           <motion.div
+            ref={flyoutRef}
             key={item.id}
             className="preview-flyout"
             data-preview-flyout="true"
-            initial={{ opacity: 0, scaleX: 0.3, scaleY: 0.15 }}
-            animate={{ opacity: 1, scaleX: 1, scaleY: 1 }}
-            exit={{ opacity: 0, scaleX: 0.3, scaleY: 0.15 }}
-            transition={{ 
+            initial={{ opacity: 0, scale: 0.88, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 8 }}
+            transition={{
               ...adaptiveSpring,
-              opacity: { type: 'tween', duration: 0.18, ease: 'easeOut' }
+              opacity: { type: 'tween', duration: 0.16, ease: 'easeOut' },
+              y: { type: 'spring', stiffness: 420, damping: 36, mass: 0.65, restDelta: 0.001 }
             }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -237,7 +266,16 @@ function PreviewContent({ item }: { item: any }) {
       : item.data.text
     const isCode = looksLikeCode(text)
     return (
-      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div
+        onClick={(e) => {
+          const sel = window.getSelection()?.toString()
+          if (sel && sel.trim().length > 0) return
+          e.stopPropagation()
+          tryPaste(() => useStore.getState().paste(item.id))
+        }}
+        title="Click to paste"
+        style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer' }}
+      >
         <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'sticky', top: 0, zIndex: 2 }}>
           <QuickActionButton
             title="Copy Text"
@@ -272,6 +310,11 @@ function PreviewContent({ item }: { item: any }) {
           startDrag(req)
         }}
         onDragEnd={() => useStore.getState().setInternalDragReq(null)}
+        onClick={(e) => {
+          e.stopPropagation()
+          tryPaste(() => useStore.getState().paste(item.id))
+        }}
+        title="Click to paste · Drag to move"
         style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', cursor: 'grab' }}
       >
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
@@ -306,6 +349,11 @@ function PreviewContent({ item }: { item: any }) {
               startDrag(req)
             }}
             onDragEnd={() => useStore.getState().setInternalDragReq(null)}
+            onClick={(e) => {
+              e.stopPropagation()
+              tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId }))
+            }}
+            title="Click to paste image · Drag to move"
             style={{ display: 'flex', flexDirection: 'column', gap: 8, position: 'relative', cursor: 'grab' }}
           >
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
@@ -343,6 +391,11 @@ function PreviewContent({ item }: { item: any }) {
             startDrag(req)
           }}
           onDragEnd={() => useStore.getState().setInternalDragReq(null)}
+          onClick={(e) => {
+            e.stopPropagation()
+            tryPaste(() => useStore.getState().paste(item.id))
+          }}
+          title={`Click to paste "${fileName}" · Drag to move`}
           style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', cursor: 'grab' }}
         >
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
@@ -412,6 +465,11 @@ function PreviewContent({ item }: { item: any }) {
                 startDrag(req)
               }}
               onDragEnd={() => useStore.getState().setInternalDragReq(null)}
+              onClick={(e) => {
+                e.stopPropagation()
+                tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [p] }))
+              }}
+              title={`Click to paste "${fileName}" · Drag to move`}
               style={{
                 display: 'flex',
                 flexDirection: 'column',

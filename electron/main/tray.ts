@@ -10,7 +10,7 @@ import { Menu, Tray, app, nativeImage, Notification, screen } from 'electron'
 import { existsSync } from 'node:fs'
 import { PATHS } from '../store/paths'
 import { loadSettings, saveSettings } from '../store/settings'
-import { getMainWindow, setVisible, repositionWindow } from './window'
+import { getMainWindow, setVisible, repositionWindow, getDisplayListOptions, registerWindowRepositionListener, popUpAndRetract } from './window'
 import type { StickPosition } from '../../shared/types'
 import { pushState } from './state'
 
@@ -57,24 +57,20 @@ export function createTray(): Tray {
     } catch { /* ignore */ }
   }
 
-  function buildDisplaySubmenu(currentId: number | undefined): Electron.MenuItemConstructorOptions[] {
-    const all = screen.getAllDisplays()
-    const primary = screen.getPrimaryDisplay()
-    return all.map((d) => {
-      const name = (d as any).label || (d.id === primary.id ? 'Primary' : `Display #${d.id}`)
-      return {
-        label: d.id === primary.id
-          ? `${name} (Primary) ${d.bounds.width}×${d.bounds.height}`
-          : `${name} ${d.bounds.width}×${d.bounds.height}`,
-        type: 'radio' as const,
-        checked: currentId === d.id,
-        click: () => {
-          const next = saveSettings({ stickDisplayId: d.id })
-          pushState.settings(next)
-          repositionWindow()
-        }
+  function buildDisplaySubmenu(): Electron.MenuItemConstructorOptions[] {
+    const options = getDisplayListOptions()
+    return options.map((d) => ({
+      label: d.label,
+      type: 'radio' as const,
+      checked: d.isCurrent,
+      click: () => {
+        const next = saveSettings({ stickDisplayId: d.id })
+        pushState.settings(next)
+        repositionWindow()
+        popUpAndRetract(1500)
+        rebuild()
       }
-    })
+    }))
   }
 
   function buildStickSubmenu(current: StickPosition): Electron.MenuItemConstructorOptions[] {
@@ -86,6 +82,8 @@ export function createTray(): Tray {
         const next = saveSettings({ stickPosition: pos })
         pushState.settings(next)
         repositionWindow()
+        popUpAndRetract(1500)
+        rebuild()
       }
     }))
   }
@@ -120,6 +118,7 @@ export function createTray(): Tray {
           const next = saveSettings({ incognito: item.checked })
           pushState.settings(next)
           applyIncognito(next.incognito)
+          rebuild()
         }
       },
       { type: 'separator' },
@@ -129,7 +128,7 @@ export function createTray(): Tray {
       },
       {
         label: 'Display',
-        submenu: buildDisplaySubmenu(settings.stickDisplayId)
+        submenu: buildDisplaySubmenu()
       },
       { type: 'separator' },
       {
@@ -150,10 +149,26 @@ export function createTray(): Tray {
     pushState.togglePanel()
   })
 
-  // Refresh checkmarks each time the menu is shown.
-  tray.on('right-click', () => tray?.popUpContextMenu())
+  // Rebuild menu dynamically right before showing to ensure displays & checkmarks are 100% current.
+  tray.on('right-click', () => {
+    rebuild()
+    tray?.popUpContextMenu()
+  })
+
+  // Listen for display changes to keep tray context menu updated in real-time.
+  screen.on('display-added', rebuild)
+  screen.on('display-removed', rebuild)
+  screen.on('display-metrics-changed', rebuild)
+
+  registerWindowRepositionListener(rebuild)
+  trayMenuRebuilder = rebuild
   rebuild()
   return tray
+}
+
+let trayMenuRebuilder: (() => void) | null = null
+export function rebuildTrayMenu(): void {
+  trayMenuRebuilder?.()
 }
 
 /** Reflect incognito toggle into the watcher without the renderer round-trip. */

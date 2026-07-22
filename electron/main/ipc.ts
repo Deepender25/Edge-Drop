@@ -14,8 +14,9 @@ import { filterValidPaths, isValidFilePath, isExistingFilePath } from './pathVal
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
 import { getMainWindow } from './window'
-import { setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow } from './window'
+import { setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, currentStickDisplayId, getDisplayListOptions, popUpAndRetract } from './window'
 import { getOnboardingWindow } from './onboardingWindow'
+import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData } from './drag'
 import { clipboardSignature } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
@@ -190,10 +191,11 @@ export function registerIpc(): void {
       const response = await fetch('https://api.github.com/repos/Deepender25/Edge-Drop/releases/latest', {
         headers: {
           'User-Agent': 'Edge-Drop-App'
-        }
+        },
+        signal: AbortSignal.timeout(5000)
       })
       if (!response.ok) {
-        console.error('[IPC] app:check-update fetch failed with status:', response.status)
+        console.warn('[IPC] app:check-update GitHub API status:', response.status)
         return null
       }
       const data = await response.json() as any
@@ -207,7 +209,8 @@ export function registerIpc(): void {
         downloadUrl
       }
     } catch (err) {
-      console.error('[IPC] app:check-update error:', err)
+      const msg = err instanceof Error ? err.message : String(err)
+      console.log(`[IPC] app:check-update skipped (${msg})`)
       return null
     }
   })
@@ -480,8 +483,10 @@ export function registerIpc(): void {
     }
     if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined) {
       repositionWindow()
+      popUpAndRetract(1500)
     }
     pushState.settings(next)
+    rebuildTrayMenu()
     return next
   })
 
@@ -501,22 +506,7 @@ export function registerIpc(): void {
   })
 
   handle('displays:list', () => {
-    const all = screen.getAllDisplays()
-    const primary = screen.getPrimaryDisplay()
-    return all.map((d) => {
-      const rawName = (d as any).label || ''
-      const name = rawName || (d.id === primary.id ? 'Primary' : `Display #${d.id}`)
-      return {
-        id: d.id,
-        bounds: { x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height },
-        isPrimary: d.id === primary.id,
-        label: d.id === primary.id
-          ? `${name} (Primary) ${d.bounds.width}×${d.bounds.height}`
-          : `${name} ${d.bounds.width}×${d.bounds.height}`,
-        name: d.id === primary.id ? `${name} (Primary)` : name,
-        resolution: `${d.bounds.width}×${d.bounds.height}`
-      }
-    })
+    return getDisplayListOptions()
   })
 }
 

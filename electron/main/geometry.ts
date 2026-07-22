@@ -31,13 +31,13 @@ export function computeStickBounds(params: StickBoundsParams): StickBoundsResult
     display = displays.find(d => d.id === displayId)
   }
 
-  if (!display && currentBounds) {
+  if (!display && displayId === undefined && currentBounds) {
     const nearest = findNearestDisplay(displays, currentBounds)
     if (nearest) display = nearest
   }
 
   if (!display) {
-    display = displays[0]
+    display = displays.find(d => (d as any).isPrimary) || displays[0]
   }
 
   const wa = display.workArea

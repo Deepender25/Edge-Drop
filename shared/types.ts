@@ -67,6 +67,7 @@ export interface DisplayInfo {
   id: number
   bounds: { x: number; y: number; width: number; height: number }
   isPrimary: boolean
+  isCurrent?: boolean
   label: string
   name: string
   resolution: string
@@ -112,6 +113,7 @@ export interface Settings {
   /** Reduce motion for the panel animations. */
   reduceMotion: boolean
   /** When true, automatically clears unpinned items on device/app restart. */
+  /** When true, automatically clears unpinned items on device/app restart. */
   clearUnpinnedOnRestart: boolean
   /** Hours after which unpinned items are automatically purged (0 = Never). */
   autoDeleteHours: number
@@ -121,6 +123,16 @@ export interface Settings {
   tutorialCompleted: boolean
   stickPosition: StickPosition
   stickDisplayId?: number
+  /**
+   * When true, restores the bouncy overshoot panel-open animation.
+   * Off by default because it requires extra GPU compositing work.
+   */
+  bounceAnimation: boolean
+  /**
+   * When true, blurs the panel during open/close.
+   * Off by default because filter: blur is resource-heavy.
+   */
+  blurAnimation: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -136,7 +148,9 @@ export const DEFAULT_SETTINGS: Settings = {
   uiStyle: 'modern',
   tutorialCompleted: false,
   stickPosition: 'left',
-  stickDisplayId: undefined
+  stickDisplayId: undefined,
+  bounceAnimation: false,
+  blurAnimation: false
 }
 
 

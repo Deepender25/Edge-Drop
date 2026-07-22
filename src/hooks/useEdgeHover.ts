@@ -67,34 +67,6 @@ export function notifyPreviewClosedByUser(): void {
 }
 
 export function useEdgeHover(): void {
-  const open = useStore((s) => s.open)
-  const setOpen = useStore((s) => s.setOpen)
-  const settings = useStore((s) => s.settings)
-  const dragActive = useStore((s) => s.dragActive)
-  const setDragActive = useStore((s) => s.setDragActive)
-  const internalDragReq = useStore((s) => s.internalDragReq)
-  const previewItemId = useStore((s) => s.previewItemId)
-
-  // All reactive values accessed inside events kept in refs so the
-  // event-listener effect never needs to restart (restarting cancels timers).
-  const openRef = useRef(open)
-  openRef.current = open
-
-  const dragActiveRef = useRef(dragActive)
-  dragActiveRef.current = dragActive
-
-  const internalDragRef = useRef(!!internalDragReq)
-  internalDragRef.current = !!internalDragReq
-
-  const settingsRef = useRef(settings)
-  settingsRef.current = settings
-
-  const previewRef = useRef(previewItemId)
-  previewRef.current = previewItemId
-
-  // Access setPreviewItemId without subscribing (avoids restarting the stable effect).
-  const setPreviewItemId = useStore.getState().setPreviewItemId
-
   // Throttle the self-healing setInteractive(true) call.
   // Without this, it fires at 60Hz (every 16ms) via the cursor-edge poll,
   // flooding the IPC queue and starving the messages that open the panel.
@@ -111,7 +83,7 @@ export function useEdgeHover(): void {
   useEffect(() => {
     const recompute = () => {
       const h = window.innerHeight
-      const s = settingsRef.current
+      const s = useStore.getState().settings
       const half = h * s.hotZoneHeight / 2
       const panelHalfH = h * (s.panelHeight || 0.5) / 2
       zone.current = { 
@@ -124,7 +96,7 @@ export function useEdgeHover(): void {
     recompute()
     window.addEventListener('resize', recompute)
     return () => window.removeEventListener('resize', recompute)
-  }, [settings.hotZoneHeight, settings.panelHeight])
+  }, [])
 
   // Single stable effect — deps never change after mount.
   useEffect(() => {
@@ -133,37 +105,39 @@ export function useEdgeHover(): void {
     let interactiveTimer: number | undefined
 
     const closePanel = () => {
-      if (!openRef.current) return
-      if (dragActiveRef.current && !internalDragRef.current) return
+      const state = useStore.getState()
+      if (!state.open) return
+      if (state.dragActive && !state.internalDragReq) return
 
       // If preview is open, dismiss it first and wait for its exit
       // animation to finish (~350ms) before collapsing the panel.
       // This prevents both animations from fighting each other.
-      if (previewRef.current) {
-        setPreviewItemId(null)
+      if (state.previewItemId) {
+        state.setPreviewItemId(null)
         window.setTimeout(() => {
-          setOpen(false)
+          useStore.getState().setOpen(false)
           if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
           interactiveTimer = window.setTimeout(() => {
             interactiveTimer = undefined
-            if (!openRef.current) edge.setInteractive(false)
+            if (!useStore.getState().open) edge.setInteractive(false)
           }, 180)
-        }, 350)
+        }, 240)
         return
       }
 
-      setOpen(false)
+      state.setOpen(false)
       if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
       interactiveTimer = window.setTimeout(() => {
         interactiveTimer = undefined
-        if (!openRef.current) {
+        if (!useStore.getState().open) {
           edge.setInteractive(false)
         }
       }, 180)
     }
 
     const scheduleClose = (delay = GRACE_MS) => {
-      if (dragActiveRef.current && !internalDragRef.current) return
+      const state = useStore.getState()
+      if (state.dragActive && !state.internalDragReq) return
       if (graceTimer !== undefined) return // already closing
       // If the user just closed the preview via X, give them extra time before
       // the clipboard collapses so they can keep using it.
@@ -203,8 +177,8 @@ export function useEdgeHover(): void {
         interactiveTimer = undefined
       }
       edge.setInteractive(true)
-      if (openRef.current) return
-      setOpen(true)
+      if (useStore.getState().open) return
+      useStore.getState().setOpen(true)
     }
 
     // ── panel:leave / panel:enter (from Panel.tsx blade div) ──────────────
@@ -215,14 +189,29 @@ export function useEdgeHover(): void {
     const isInsideBlade = () => {
       const { x, y } = lastClient.current
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
-      const s = settingsRef.current
-      const currentPanelWide = previewRef.current ? PREVIEW_WIDE : PANEL_WIDE
+      const state = useStore.getState()
+      const s = state.settings
+      const currentPanelWide = state.previewItemId ? PREVIEW_WIDE : PANEL_WIDE
 
+      let insideX = false
       if (s.stickPosition === 'right') {
-        return x >= window.innerWidth - currentPanelWide - BUFFER_PX && x <= window.innerWidth + BUFFER_PX
+        insideX = x >= window.innerWidth - currentPanelWide - BUFFER_PX && x <= window.innerWidth + BUFFER_PX
+      } else {
+        insideX = x >= -BUFFER_PX && x <= currentPanelWide + BUFFER_PX
       }
-      // left
-      return x >= -BUFFER_PX && x <= currentPanelWide + BUFFER_PX
+      if (!insideX) return false
+
+      const inPreviewCol = s.stickPosition === 'right'
+        ? x < window.innerWidth - KEEP_OPEN_PX
+        : x > KEEP_OPEN_PX
+
+      if (inPreviewCol && state.previewItemId && state.previewFlyoutRect) {
+        const FLYOUT_BUFFER = 24
+        return y >= state.previewFlyoutRect.top - FLYOUT_BUFFER && y <= state.previewFlyoutRect.bottom + FLYOUT_BUFFER
+      }
+
+      const { midY, panelHalfH } = zone.current
+      return y >= midY - panelHalfH && y <= midY + panelHalfH
     }
 
     const onPanelLeave = () => {
@@ -245,9 +234,10 @@ export function useEdgeHover(): void {
       lastClient.current = { x: data.x, y: data.y }
       const { stickPosition, displayWidth } = data
       const { top, bottom, midY, panelHalfH } = zone.current
+      const state = useStore.getState()
 
-      const currentKeepOpenPx = previewRef.current ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
-      const currentStartClosePx = previewRef.current ? PREVIEW_WIDE + 20 : START_CLOSE_PX
+      const currentKeepOpenPx = state.previewItemId ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
+      const currentStartClosePx = state.previewItemId ? PREVIEW_WIDE + 20 : START_CLOSE_PX
 
       switch (stickPosition) {
         case 'right': {
@@ -255,7 +245,7 @@ export function useEdgeHover(): void {
           const inEdge = distFromRight >= -BUFFER_PX && distFromRight <= TRIGGER_PX
           const inZone = data.y >= top && data.y <= bottom
 
-          if (inEdge && inZone && !openRef.current) {
+          if (inEdge && inZone && !state.open) {
             cancelClose()
             if (dwellTimer === undefined) {
               dwellTimer = window.setTimeout(() => {
@@ -271,7 +261,7 @@ export function useEdgeHover(): void {
             dwellTimer = undefined
           }
 
-          if (!openRef.current) return
+          if (!state.open) return
 
           const now = Date.now()
           if (now - lastSetInteractiveRef.current > 2000) {
@@ -279,7 +269,14 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const insideY = data.y >= midY - panelHalfH && data.y <= midY + panelHalfH
+          const inPreviewColumn = distFromRight > KEEP_OPEN_PX
+          let insideY = false
+          if (inPreviewColumn && state.previewItemId && state.previewFlyoutRect) {
+            const FLYOUT_BUFFER = 24
+            insideY = data.y >= state.previewFlyoutRect.top - FLYOUT_BUFFER && data.y <= state.previewFlyoutRect.bottom + FLYOUT_BUFFER
+          } else {
+            insideY = data.y >= midY - panelHalfH && data.y <= midY + panelHalfH
+          }
 
           if (distFromRight >= -BUFFER_PX && distFromRight <= currentKeepOpenPx && insideY) {
             cancelClose()
@@ -292,14 +289,12 @@ export function useEdgeHover(): void {
           break
         }
 
-
-
         // left
         default: {
           const inEdge = data.x >= -BUFFER_PX && data.x <= TRIGGER_PX
           const inZone = data.y >= top && data.y <= bottom
 
-          if (inEdge && inZone && !openRef.current) {
+          if (inEdge && inZone && !state.open) {
             cancelClose()
             if (dwellTimer === undefined) {
               dwellTimer = window.setTimeout(() => {
@@ -315,7 +310,7 @@ export function useEdgeHover(): void {
             dwellTimer = undefined
           }
 
-          if (!openRef.current) return
+          if (!state.open) return
 
           const now = Date.now()
           if (now - lastSetInteractiveRef.current > 2000) {
@@ -323,7 +318,14 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const insideY = data.y >= midY - panelHalfH && data.y <= midY + panelHalfH
+          const inPreviewColumn = data.x > KEEP_OPEN_PX
+          let insideY = false
+          if (inPreviewColumn && state.previewItemId && state.previewFlyoutRect) {
+            const FLYOUT_BUFFER = 24
+            insideY = data.y >= state.previewFlyoutRect.top - FLYOUT_BUFFER && data.y <= state.previewFlyoutRect.bottom + FLYOUT_BUFFER
+          } else {
+            insideY = data.y >= midY - panelHalfH && data.y <= midY + panelHalfH
+          }
 
           if (data.x >= -BUFFER_PX && data.x <= currentKeepOpenPx && insideY) {
             cancelClose()
@@ -333,21 +335,20 @@ export function useEdgeHover(): void {
           if (data.x > currentStartClosePx || data.x < -BUFFER_PX || !insideY) {
             scheduleClose()
           }
-          break
         }
       }
     })
 
     // ── keyboard ───────────────────────────────────────────────────────────
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && openRef.current) scheduleClose(0)
+      if (e.key === 'Escape' && useStore.getState().open) scheduleClose(0)
     }
 
     // ── OS file drag awareness ─────────────────────────────────────────────
     const onDocDragEnter = (e: DragEvent) => {
       if (e.dataTransfer?.types.includes('Files')) {
         e.preventDefault()
-        setDragActive(true)
+        useStore.getState().setDragActive(true)
         openPanel()
       }
     }
@@ -359,17 +360,17 @@ export function useEdgeHover(): void {
     }
     const onDocDragLeave = (e: DragEvent) => {
       if (!e.relatedTarget) {
-        setDragActive(false)
-        if (internalDragRef.current) scheduleClose(0)
+        useStore.getState().setDragActive(false)
+        if (useStore.getState().internalDragReq) scheduleClose(0)
       }
     }
     const onDocDrop = (e: DragEvent) => {
       e.preventDefault()
-      setDragActive(false)
+      useStore.getState().setDragActive(false)
     }
     const onDocDragEnd = (e: DragEvent) => {
       e.preventDefault()
-      setDragActive(false)
+      useStore.getState().setDragActive(false)
     }
 
     // ── register ───────────────────────────────────────────────────────────
@@ -396,6 +397,5 @@ export function useEdgeHover(): void {
       window.clearTimeout(graceTimer)
       window.clearTimeout(interactiveTimer)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setOpen, setDragActive])
+  }, [])
 }

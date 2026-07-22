@@ -29,7 +29,7 @@ import { APP_CONFIG } from './config'
 import { runtime } from './config'
 import { PATHS } from '../store/paths'
 import { computeStickBounds } from './geometry'
-import { loadSettings } from '../store/settings'
+import { loadSettings, saveSettings } from '../store/settings'
 
 export const PANEL_WIDTH = 384
 /** Visual width of the blade when collapsed (only used by the renderer). */
@@ -197,13 +197,26 @@ export function stopCursorPoll(): void {
 }
 
 function getStickGeometry(): { x: number; y: number; width: number; height: number } {
-  const settings = loadSettings()
+  let settings = loadSettings()
+  const primaryDisplay = screen.getPrimaryDisplay()
   const allDisplays = screen.getAllDisplays().map(d => ({
     id: d.id,
-    workArea: { ...d.workArea }
+    workArea: { ...d.workArea },
+    isPrimary: d.id === primaryDisplay.id
   }))
 
-  const primaryHeight = screen.getPrimaryDisplay().workArea.height
+  // Auto-heal: If configured stickDisplayId is disconnected, immediately reset to undefined
+  // so the panel instantly falls back to the Primary Display and stays fully usable.
+  if (settings.stickDisplayId !== undefined && !allDisplays.some(d => d.id === settings.stickDisplayId)) {
+    console.log(`[Main] Configured stickDisplayId (${settings.stickDisplayId}) disconnected. Falling back immediately to Primary Display (${primaryDisplay.id}).`)
+    settings = saveSettings({ stickDisplayId: undefined })
+    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+      mainWindow.webContents.send('state:settings', settings)
+    }
+    popUpAndRetract(1500)
+  }
+
+  const primaryHeight = primaryDisplay.workArea.height
   const windowHeight = primaryHeight
   const currentWindowWidth = previewActive ? 820 : PANEL_WIDTH
 
@@ -256,10 +269,24 @@ export function createWindow(): BrowserWindow {
   // Start click-through with no forwarding — edge detection is done via cursor poll.
   mainWindow.setIgnoreMouseEvents(true, { forward: false })
 
+  const handleDisplayChange = (triggerPopUp = false) => {
+    console.log('[Main] Display metrics/topology changed — validating bounds and repositioning window')
+    repositionWindow()
+    if (triggerPopUp) {
+      popUpAndRetract(1500)
+    }
+  }
+
   // Keep the panel glued to the primary display if the work area changes.
-  screen.on('display-metrics-changed', repositionWindow)
-  screen.on('display-added', () => setTimeout(repositionWindow, 500))
-  screen.on('display-removed', () => setTimeout(repositionWindow, 500))
+  screen.on('display-metrics-changed', () => handleDisplayChange(false))
+  screen.on('display-added', () => {
+    handleDisplayChange(true)
+    setTimeout(() => handleDisplayChange(false), 300)
+  })
+  screen.on('display-removed', () => {
+    handleDisplayChange(true)
+    setTimeout(() => handleDisplayChange(false), 300)
+  })
 
   // Respect OS-level always-on-top reordering.
   mainWindow.on('focus', () => {
@@ -317,10 +344,87 @@ export function stopHeartbeat(): void {
   }
 }
 
+let onWindowRepositioned: (() => void) | null = null
+export function registerWindowRepositionListener(fn: () => void): void {
+  onWindowRepositioned = fn
+}
+
+export function getActiveDisplayId(allDisplays?: Electron.Display[]): number {
+  const displays = allDisplays ?? screen.getAllDisplays()
+  const settings = loadSettings()
+  if (settings.stickDisplayId !== undefined && displays.some(d => d.id === settings.stickDisplayId)) {
+    return settings.stickDisplayId
+  }
+  if (currentStickDisplayId !== undefined && displays.some(d => d.id === currentStickDisplayId)) {
+    return currentStickDisplayId
+  }
+  return screen.getPrimaryDisplay().id
+}
+
+export function getDisplayListOptions(): Array<{
+  id: number
+  bounds: { x: number; y: number; width: number; height: number }
+  isPrimary: boolean
+  isCurrent: boolean
+  label: string
+  name: string
+  resolution: string
+}> {
+  const all = screen.getAllDisplays()
+  const primary = screen.getPrimaryDisplay()
+  const activeId = getActiveDisplayId(all)
+
+  return all.map((d, index) => {
+    const isPrimary = d.id === primary.id
+    const rawName = (d as any).label || (d as any).name || ''
+    const fallbackName = isPrimary ? 'Primary Monitor' : `Display ${index + 1}`
+    const baseName = rawName.trim() ? rawName.trim() : fallbackName
+    const name = isPrimary 
+      ? (baseName.toLowerCase().includes('primary') ? baseName : `${baseName} (Primary)`)
+      : baseName
+    return {
+      id: d.id,
+      bounds: { x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height },
+      isPrimary,
+      isCurrent: d.id === activeId,
+      label: `${name} ${d.bounds.width}×${d.bounds.height}`,
+      name,
+      resolution: `${d.bounds.width}×${d.bounds.height}`
+    }
+  })
+}
+
+let popUpTimer: ReturnType<typeof setTimeout> | null = null
+export function popUpAndRetract(durationMs = 1500): void {
+  if (!mainWindow || mainWindow.isDestroyed() || !mainWindow.webContents || mainWindow.webContents.isDestroyed()) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.showInactive()
+  mainWindow.setAlwaysOnTop(true, 'screen-saver')
+
+  const wasAlreadyOpen = interactive
+  console.log(`[Main] Popping up panel briefly to confirm new screen/edge location (wasAlreadyOpen=${wasAlreadyOpen})`)
+  mainWindow.webContents.send('window:toggle', true)
+
+  if (popUpTimer !== null) clearTimeout(popUpTimer)
+  if (!wasAlreadyOpen) {
+    popUpTimer = setTimeout(() => {
+      popUpTimer = null
+      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+        console.log('[Main] Retracting panel after brief confirmation pop-up')
+        mainWindow.webContents.send('window:toggle', false)
+      }
+    }, durationMs)
+  }
+}
+
 export function repositionWindow(): void {
   if (!mainWindow || mainWindow.isDestroyed()) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.showInactive()
+  mainWindow.setAlwaysOnTop(true, 'screen-saver')
   const g = getStickGeometry()
   mainWindow.setBounds({ ...g })
+  onWindowRepositioned?.()
 }
 
 /** Toggle the panel between shown (always on top) and fully hidden. */

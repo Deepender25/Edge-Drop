@@ -16,6 +16,8 @@ export function Settings() {
 
   return (
     <div className="settings-list">
+
+      {/* ── Update banner ───────────────────────────────────────────── */}
       {updateInfo?.hasUpdate && (
         <>
           <div className="update-prompt">
@@ -33,11 +35,39 @@ export function Settings() {
         </>
       )}
 
-      {/* Clear unpinned on restart */}
+      {/* ══ GROUP: Behaviour ════════════════════════════════════════════ */}
+      <div className="setting-group-label">Behaviour</div>
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-title">Launch at login</div>
+          <div className="setting-desc">Start silently in background when computer boots</div>
+        </div>
+        <Toggle
+          checked={settings.launchAtLogin}
+          onChange={(v) => patch({ launchAtLogin: v })}
+        />
+      </div>
+
+      <div className="setting-divider" />
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-title">Incognito mode</div>
+          <div className="setting-desc">Temporarily pause recording new clipboard items</div>
+        </div>
+        <Toggle
+          checked={settings.incognito}
+          onChange={(v) => patch({ incognito: v })}
+        />
+      </div>
+
+      <div className="setting-divider" />
+
       <div className="setting-row">
         <div className="setting-info">
           <div className="setting-title">Clear unpinned on restart</div>
-          <div className="setting-desc">Wipe unpinned items whenever device restarts</div>
+          <div className="setting-desc">Wipe unpinned items whenever the app restarts</div>
         </div>
         <Toggle
           checked={settings.clearUnpinnedOnRestart}
@@ -47,7 +77,6 @@ export function Settings() {
 
       <div className="setting-divider" />
 
-      {/* Auto-delete timer */}
       <div className="setting-row vertical">
         <div className="setting-info">
           <div className="setting-title">Auto-delete timer</div>
@@ -74,7 +103,6 @@ export function Settings() {
 
       <div className="setting-divider" />
 
-      {/* History capacity */}
       <div className="setting-row vertical">
         <div className="setting-info">
           <div className="setting-title">History capacity</div>
@@ -98,13 +126,66 @@ export function Settings() {
         </div>
       </div>
 
+      {/* ══ GROUP: Position ═════════════════════════════════════════════ */}
+      <div className="setting-group-label" style={{ marginTop: 20 }}>Position</div>
+
+      <div className="setting-row vertical">
+        <div className="setting-info">
+          <div className="setting-title">Stick position</div>
+          <div className="setting-desc">Screen edge to attach the panel to</div>
+        </div>
+        <div className="setting-pills">
+          {[
+            { label: 'Left', val: 'left' as const },
+            { label: 'Right', val: 'right' as const }
+          ].map((opt) => (
+            <button
+              key={opt.label}
+              className={`pill ${settings.stickPosition === opt.val ? 'active' : ''}`}
+              onClick={() => patch({ stickPosition: opt.val })}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="setting-divider" />
 
-      {/* Edge trigger height */}
+      <div className="setting-row vertical">
+        <div className="setting-info">
+          <div className="setting-title">Display</div>
+          <div className="setting-desc">Monitor to stick the panel to</div>
+        </div>
+        <div className="setting-pills">
+          {displays.length === 0 && <div className="pill disabled">Loading...</div>}
+          {displays.map((d) => {
+            const currentDisplay = displays.find((disp) => disp.isCurrent)
+            const activeDisplayId = currentDisplay
+              ? currentDisplay.id
+              : (settings.stickDisplayId ?? displays.find((disp) => disp.isPrimary)?.id ?? displays[0]?.id)
+            const isActive = activeDisplayId === d.id
+            return (
+              <button
+                key={d.id}
+                className={`pill display-pill ${isActive ? 'active' : ''}`}
+                onClick={() => patch({ stickDisplayId: d.id })}
+              >
+                <div className="pill-name">{d.name}</div>
+                <div className="pill-res">{d.resolution}</div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ══ GROUP: Trigger zone ═════════════════════════════════════════ */}
+      <div className="setting-group-label" style={{ marginTop: 20 }}>Trigger Zone</div>
+
       <div className="setting-row vertical">
         <div className="setting-info">
           <div className="setting-title">Edge trigger height</div>
-          <div className="setting-desc">Hover area size on screen edge</div>
+          <div className="setting-desc">Hover area size on the screen edge</div>
         </div>
         <div className="setting-pills">
           {[
@@ -125,11 +206,10 @@ export function Settings() {
 
       <div className="setting-divider" />
 
-      {/* Edge trigger width */}
       <div className="setting-row vertical">
         <div className="setting-info">
           <div className="setting-title">Edge trigger thickness</div>
-          <div className="setting-desc">Physical thickness of the trigger area</div>
+          <div className="setting-desc">Physical thickness of the invisible trigger strip</div>
         </div>
         <div className="setting-pills">
           {[
@@ -150,11 +230,10 @@ export function Settings() {
 
       <div className="setting-divider" />
 
-      {/* Panel height */}
       <div className="setting-row vertical">
         <div className="setting-info">
           <div className="setting-title">Panel height</div>
-          <div className="setting-desc">Vertical size of the clipboard panel</div>
+          <div className="setting-desc">Vertical size of the clipboard shelf</div>
         </div>
         <div className="setting-pills">
           {[
@@ -173,90 +252,45 @@ export function Settings() {
         </div>
       </div>
 
-      <div className="setting-divider" />
+      {/* ══ GROUP: Animations ═══════════════════════════════════════════ */}
+      <div className="setting-group-label" style={{ marginTop: 20 }}>Animations</div>
 
-      {/* Stick position */}
-      <div className="setting-row vertical">
-        <div className="setting-info">
-          <div className="setting-title">Stick position</div>
-          <div className="setting-desc">Screen edge to attach the panel</div>
-        </div>
-        <div className="setting-pills">
-          {[
-            { label: 'Left', val: 'left' as const },
-            { label: 'Right', val: 'right' as const }
-          ].map((opt) => (
-            <button
-              key={opt.label}
-              className={`pill ${settings.stickPosition === opt.val ? 'active' : ''}`}
-              onClick={() => patch({ stickPosition: opt.val })}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="setting-divider" />
-
-      {/* Display picker */}
-      <div className="setting-row vertical">
-        <div className="setting-info">
-          <div className="setting-title">Display</div>
-          <div className="setting-desc">Monitor to stick the panel to</div>
-        </div>
-        <div className="setting-pills">
-          {displays.length === 0 && <div className="pill disabled">Loading...</div>}
-          {displays.map((d) => {
-            const activeDisplayId = settings.stickDisplayId ?? displays.find(d => d.isPrimary)?.id;
-            return (
-              <button
-                key={d.id}
-                className={`pill display-pill ${activeDisplayId === d.id ? 'active' : ''}`}
-                onClick={() => patch({ stickDisplayId: d.id })}
-              >
-                <div className="pill-name">{d.name}</div>
-                <div className="pill-res">{d.resolution}</div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="setting-divider" />
-
-      {/* Incognito mode */}
       <div className="setting-row">
         <div className="setting-info">
-          <div className="setting-title">Incognito mode</div>
-          <div className="setting-desc">Temporarily pause recording new clipboard items</div>
+          <div className="setting-title">Bounce animation</div>
+          <div className="setting-desc">
+            Adds a springy overshoot pop when the panel opens.
+            <span className="setting-badge-subtle">May slightly affect performance</span>
+          </div>
         </div>
         <Toggle
-          checked={settings.incognito}
-          onChange={(v) => patch({ incognito: v })}
+          checked={settings.bounceAnimation ?? false}
+          onChange={(v) => patch({ bounceAnimation: v })}
         />
       </div>
 
       <div className="setting-divider" />
 
-      {/* Launch at login */}
       <div className="setting-row">
         <div className="setting-info">
-          <div className="setting-title">Launch at login</div>
-          <div className="setting-desc">Start silently in background when computer boots</div>
+          <div className="setting-title">Blur animation</div>
+          <div className="setting-desc">
+            Blurs the panel as it opens and closes.
+            <span className="setting-badge-subtle">May slightly affect performance</span>
+          </div>
         </div>
         <Toggle
-          checked={settings.launchAtLogin}
-          onChange={(v) => patch({ launchAtLogin: v })}
+          checked={settings.blurAnimation ?? false}
+          onChange={(v) => patch({ blurAnimation: v })}
         />
       </div>
 
-      <div className="setting-divider" />
+      {/* ══ Footer ══════════════════════════════════════════════════════ */}
+      <div className="setting-divider" style={{ marginTop: 16 }} />
 
-      {/* GitHub Star Promo */}
       <div className="github-promo">
         <div className="github-promo-text">
-          If you like the application, please give a star to the GitHub repository - it means a lot!
+          If you like the application, please give a star to the GitHub repository — it means a lot!
         </div>
         <button
           className="github-promo-btn"

@@ -73,6 +73,8 @@ interface AppState {
   setDragActive: (active: boolean) => void
   setInternalDragReq: (req: import('../../shared/types').DragRequest | null) => void
   setPreviewItemId: (id: string | null, rect?: { y: number; height: number }) => void
+  previewFlyoutRect: { top: number; bottom: number } | null
+  setPreviewFlyoutRect: (rect: { top: number; bottom: number } | null) => void
 
   /* toasts */
   pushToast: (toast: ToastMsg) => void
@@ -157,8 +159,10 @@ export const useStore = create<AppState>((set, get) => ({
     }
     edge.setInternalDrag(!!internalDragReq)
   },
+  previewFlyoutRect: null,
+  setPreviewFlyoutRect: (rect) => set({ previewFlyoutRect: rect }),
   setPreviewItemId: (id, rect) => {
-    set({ previewItemId: id, previewItemRect: rect || null })
+    set({ previewItemId: id, previewItemRect: rect || null, ...(id ? {} : { previewFlyoutRect: null }) })
     if (id) {
       edge.setPreviewMode(true)
     }

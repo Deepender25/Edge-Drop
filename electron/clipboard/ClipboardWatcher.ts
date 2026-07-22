@@ -42,7 +42,7 @@ export class ClipboardWatcher {
 
       // We detected a change. Wait a short moment to ensure it's not a transient 
       // injection by a dictation app or macro that quickly restores the clipboard.
-      setTimeout(() => {
+      setTimeout(async () => {
         if (this.paused) return
         const stableSig = clipboardSignature()
         
@@ -54,7 +54,9 @@ export class ClipboardWatcher {
 
         this.lastSig = sig
 
-        const data = readClipboard()
+        // readClipboard is async: on Windows it awaits a PowerShell
+        // GetFileDropList() call to retrieve ALL selected files.
+        const data = await readClipboard()
         if (!data) {
           return
         }

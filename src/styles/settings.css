@@ -56,6 +56,33 @@
   flex-shrink: 0;
 }
 
+.setting-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a1a1aa;
+  margin: 12px 4px 4px;
+  user-select: none;
+}
+
+.setting-group-label:first-of-type {
+  margin-top: 4px;
+}
+
+.setting-badge-subtle {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
 /* Minimalist Pill Selector (Replaces Sliders!) */
 .setting-pills {
   display: flex;

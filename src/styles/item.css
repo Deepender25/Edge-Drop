@@ -13,7 +13,8 @@
   border-radius: 16px;
   user-select: none;
   -webkit-user-select: none;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  /* Specific properties only — avoids interpolating every inherited prop. */
+  transition: background 0.18s ease, border-color 0.18s ease;
   overflow: hidden;
 }
 
@@ -59,6 +60,7 @@
 
 .item-main:active {
   transform: scale(0.98);
+  transition: transform 0.08s ease;
 }
 
 .body {
@@ -208,7 +210,11 @@
   backdrop-filter: blur(12px);
   opacity: 0;
   pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Specific properties — prevents `all` from catching unrelated inherited changes.
+     will-change promotes the layer ahead of hover so the slide-in is smooth. */
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
   z-index: 20;
 }
@@ -229,7 +235,7 @@
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.6);
   background: transparent;
-  transition: all 0.2s ease;
+  transition: background 0.14s ease, color 0.14s ease;
 }
 .act:hover {
   background: rgba(255, 255, 255, 0.15);
@@ -249,8 +255,14 @@
 /* ------------------------------------------------------------------ */
 
 /* Card is actively being previewed — dim body so flyout takes focus */
+.item-main.previewing {
+  cursor: default;
+}
+
 .item-main.previewing .body {
   opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
   /* Use calc with --dpr to ensure consistent *visual* blur while saving GPU on 4K */
   filter: blur(calc(3px / var(--dpr, 1)));
   transition: opacity 0.3s ease, filter 0.3s ease;

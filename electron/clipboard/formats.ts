@@ -8,24 +8,39 @@
  */
 import { clipboard } from 'electron'
 import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import type { ItemData } from '../../shared/types'
 import { getSystemPowerShellPath } from '../main/powershell'
 import { filterValidPaths } from '../main/pathValidation'
 
+const execFileAsync = promisify(execFile)
+
 /** Windows clipboard format name for a copied-file list. */
 export const CF_FILE_LIST = 'FileNameW'
 
-/** Read the list of copied file paths (Windows), or null if none. */
-function readFileList(): string[] | null {
+/**
+ * Async version: reads the full list of copied file paths via PowerShell
+ * GetFileDropList(), which is the only reliable way to retrieve ALL selected
+ * files from a multi-file Explorer copy (CF_HDROP / FileNameW only carries
+ * the first file as a legacy single-path fallback).
+ *
+ * Falls back to parsing the FileNameW UTF-16LE buffer directly if PowerShell
+ * is unavailable or times out.
+ */
+async function readFileListAsync(): Promise<string[] | null> {
   try {
+    // First, confirm there is actually a file list on the clipboard before
+    // spawning a process.  FileNameW being present is sufficient signal.
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     if (!buf || buf.length < 4) return null
 
     if (process.platform === 'win32') {
       try {
         const psPath = getSystemPowerShellPath()
-        // Non-blocking execFile fallback via powershell with strict absolute path & timeout
-        execFile(
+        // Await the result so we actually get all paths — the previous
+        // implementation fired execFile with a callback that returned from
+        // the closure, not from readFileList(), so the result was dropped.
+        const { stdout } = await execFileAsync(
           psPath,
           [
             '-NoProfile',
@@ -33,20 +48,20 @@ function readFileList(): string[] | null {
             '-Command',
             'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::GetFileDropList()'
           ],
-          { encoding: 'utf8', timeout: 1500 },
-          (err, stdout) => {
-            if (!err && stdout) {
-              const paths = filterValidPaths(stdout.split(/\r?\n/).map((l) => l.trim()))
-              if (paths.length > 0) return paths
-            }
-          }
+          { encoding: 'utf8', timeout: 2000 }
         )
+        if (stdout) {
+          const paths = filterValidPaths(stdout.split(/\r?\n/).map((l) => l.trim()))
+          if (paths.length > 0) return paths
+        }
       } catch (err) {
         console.error('[formats] Failed to read file drop list via PowerShell:', err)
       }
     }
 
-    // Fast, non-blocking fallback: parse the FileNameW buffer directly
+    // Non-Windows or PowerShell fallback: parse the FileNameW buffer directly.
+    // On Windows this will typically only return the first file, but it is
+    // better than nothing when PowerShell is unavailable.
     const wide = buf.toString('utf16le')
     const parts = filterValidPaths(wide.split('\u0000').map((s) => s.trim()))
     return parts.length ? parts : null
@@ -176,11 +191,15 @@ export function isClipboardExcluded(): boolean {
 }
 
 /**
- * Snapshot the current clipboard into a single ItemData, or null if it's empty.
+ * Async snapshot of the current clipboard into a single ItemData, or null.
+ *
  * Order matters: a file copy should win over its text fallback, an image wins
  * over nothing, otherwise we keep text (preferring HTML if it carries rich text).
+ *
+ * This is async because reading the full multi-file list from a Windows
+ * Explorer copy requires a PowerShell round-trip (GetFileDropList).
  */
-export function readClipboard(): ItemData | null {
+export async function readClipboard(): Promise<ItemData | null> {
   if (isClipboardExcluded()) {
     return null
   }
@@ -188,7 +207,7 @@ export function readClipboard(): ItemData | null {
   const formats = clipboard.availableFormats()
 
   // Files first — a file copy also places text on the clipboard, which we ignore.
-  const files = readFileList()
+  const files = await readFileListAsync()
   if (files && files.length) return { kind: 'files', paths: files }
 
   // Text vs Image priority heuristic based on available formats.
