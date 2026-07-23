@@ -1,0 +1,50 @@
+name: 🐛 Bug Report
+description: Create a report to help us reproduce and fix a bug in Edge-Drop.
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! Please fill out the sections below so we can reproduce and fix it quickly.
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this behavior?
+      placeholder: |
+        1. Open Edge-Drop
+        2. Copy text / image / file
+        3. Do X
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe expected outcome...
+    validations:
+      required: true
+  - type: input
+    id: system_info
+    attributes:
+      label: System Information
+      description: OS version and Edge-Drop app version (e.g. Windows 11 23H2 / Edge-Drop v0.1.3).
+      placeholder: Windows 11 / Edge-Drop v0.1.3
+    validations:
+      required: true
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context or Screenshots
+      description: Add any error tracebacks, logs, screenshots, or screen recordings here.

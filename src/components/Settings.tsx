@@ -298,6 +298,23 @@ export function Settings() {
         />
       </div>
 
+      {/* ══ GROUP: Community & Support ════════════════════════════════════ */}
+      <div className="setting-group-label" style={{ marginTop: 20 }}>COMMUNITY & SUPPORT</div>
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-title">Feedback & Issues</div>
+          <div className="setting-desc">Report bugs or suggest features on GitHub</div>
+        </div>
+        <button
+          className="pill display-pill"
+          style={{ width: 'auto', padding: '6px 14px', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}
+          onClick={() => window.open('https://github.com/Deepender25/Edge-Drop/issues/new/choose', '_blank')}
+        >
+          Submit ↗
+        </button>
+      </div>
+
       {/* ══ Footer ══════════════════════════════════════════════════════ */}
       <div className="setting-divider" style={{ marginTop: 16 }} />
 
