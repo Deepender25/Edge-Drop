@@ -17,6 +17,7 @@ import { registerIpc, registerSendListeners } from './ipc'
 import { prewarmDragIcons } from './drag'
 import { initState, getWatcher, loadSettings, pushState, stopStateTimers } from './state'
 import { createOnboardingWindow } from './onboardingWindow'
+import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
 import { join, resolve } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
@@ -40,6 +41,9 @@ if (!gotLock) {
     setVisible(true)
     getMainWindow()?.focus()
   })
+  app.on('browser-window-blur', () => {
+    triggerFullscreenCheck()
+  })
 }
 
 // ---- before ready: register privileged protocol ----------------------------
@@ -58,6 +62,7 @@ app.on('before-quit', () => {
   stopCursorPoll()
   stopHeartbeat()
   stopStateTimers()
+  stopFullscreenMonitor()
   getWatcher().stop()
   try {
     const { globalShortcut } = require('electron')
@@ -81,6 +86,7 @@ app.whenReady().then(() => {
 
   createWindow()
   startCursorPoll()
+  startFullscreenMonitor()
   createTray()
 
   // Register Alt+C global shortcut to toggle panel

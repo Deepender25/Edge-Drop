@@ -66,6 +66,19 @@ export function Settings() {
 
       <div className="setting-row">
         <div className="setting-info">
+          <div className="setting-title">Fullscreen Protection</div>
+          <div className="setting-desc">Automatically pause edge hover while playing games or watching fullscreen videos</div>
+        </div>
+        <Toggle
+          checked={settings.suppressInFullscreen}
+          onChange={(v) => patch({ suppressInFullscreen: v })}
+        />
+      </div>
+
+      <div className="setting-divider" />
+
+      <div className="setting-row">
+        <div className="setting-info">
           <div className="setting-title">Clear unpinned on restart</div>
           <div className="setting-desc">Wipe unpinned items whenever the app restarts</div>
         </div>

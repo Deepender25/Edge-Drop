@@ -30,6 +30,7 @@ import { runtime } from './config'
 import { PATHS } from '../store/paths'
 import { computeStickBounds } from './geometry'
 import { loadSettings, saveSettings } from '../store/settings'
+import { isFullscreenAppActive, registerFullscreenActiveListener } from './fullscreen'
 
 export const PANEL_WIDTH = 384
 /** Visual width of the blade when collapsed (only used by the renderer). */
@@ -136,6 +137,8 @@ export function startCursorPoll(): void {
     if (runtime.quitting || !mainWindow || mainWindow.isDestroyed() || !mainWindow.isVisible()) return
 
     const settings = loadSettings()
+    if (settings.suppressInFullscreen && isFullscreenAppActive()) return
+
     const pt = screen.getCursorScreenPoint()
 
     // Find the stick display (or fallback to primary)
@@ -268,6 +271,16 @@ export function createWindow(): BrowserWindow {
 
   // Start click-through with no forwarding — edge detection is done via cursor poll.
   mainWindow.setIgnoreMouseEvents(true, { forward: false })
+
+  registerFullscreenActiveListener(() => {
+    const settings = loadSettings()
+    if (settings.suppressInFullscreen) {
+      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+        mainWindow.webContents.send('window:toggle', false)
+      }
+      setInteractive(false)
+    }
+  })
 
   const handleDisplayChange = (triggerPopUp = false) => {
     console.log('[Main] Display metrics/topology changed — validating bounds and repositioning window')

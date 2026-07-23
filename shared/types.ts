@@ -133,6 +133,11 @@ export interface Settings {
    * Off by default because filter: blur is resource-heavy.
    */
   blurAnimation: boolean
+  /**
+   * When true, automatically suppresses edge hover when a fullscreen game or app is active.
+   * On by default to prevent accidental opening during PC gameplay.
+   */
+  suppressInFullscreen: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -150,7 +155,8 @@ export const DEFAULT_SETTINGS: Settings = {
   stickPosition: 'left',
   stickDisplayId: undefined,
   bounceAnimation: false,
-  blurAnimation: false
+  blurAnimation: false,
+  suppressInFullscreen: true
 }
 
 
