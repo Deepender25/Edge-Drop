@@ -1,0 +1,173 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  quality:
+    name: Typecheck & test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+  build:
+    name: Build Windows (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      # Keep going so an ARM64 regression still yields x64 artifacts, and vice versa.
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-latest
+            unpacked: dist/win-unpacked
+            pe_machine: '0x8664'
+          - arch: arm64
+            runner: windows-11-arm
+            unpacked: dist/win-arm64-unpacked
+            pe_machine: '0xAA64'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Cache Electron downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/AppData/Local/electron/Cache
+            ~/AppData/Local/electron-builder/Cache
+          # runner.os is "Windows" for both legs, so the arch must be explicit or
+          # the two jobs would trade each other's per-arch Electron/7za downloads.
+          key: ${{ runner.os }}-${{ matrix.arch }}-electron-${{ hashFiles('package-lock.json') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.arch }}-electron-
+
+      # Both legs build natively: npm resolves the matching @resvg prebuilt for the
+      # host, and electron-builder fetches the arch's Electron dist plus its own
+      # NSIS/7za toolchain. No cross-compilation and no extra host tooling needed.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Read package version
+        id: pkg
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Build and package
+        run: npm run build:dist -- --${{ matrix.arch }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List artifacts
+        shell: pwsh
+        run: Get-ChildItem dist -File | Select-Object Name, Length
+
+      # @resvg/resvg-js ships per-arch prebuilt binaries via optionalDependencies and
+      # electron-builder copies whatever npm installed for the host, so a mismatched
+      # build packages cleanly and only crashes at runtime (drag previews). Verify the
+      # native module and the app executable really are ${{ matrix.arch }}.
+      - name: Verify packaged binaries are ${{ matrix.arch }}
+        shell: pwsh
+        run: |
+          $binaries = Get-ChildItem '${{ matrix.unpacked }}/resources/app.asar.unpacked' -Recurse -Filter *.node
+          if (-not $binaries) { throw "No native .node binary was packaged" }
+          $binaries | ForEach-Object { Write-Host "packaged native module: $($_.Name)" }
+          $wrong = $binaries | Where-Object { $_.Name -notlike '*win32-${{ matrix.arch }}*' }
+          if ($wrong) { throw "Wrong-arch native binary packaged: $($wrong.Name -join ', ')" }
+
+          # PE header: machine type lives 4 bytes past the offset stored at 0x3C.
+          $stream = [System.IO.File]::OpenRead((Resolve-Path '${{ matrix.unpacked }}/Edge-Drop.exe'))
+          try {
+            $reader = New-Object System.IO.BinaryReader($stream)
+            $stream.Position = 0x3C
+            $stream.Position = $reader.ReadInt32() + 4
+            $machine = '0x{0:X4}' -f $reader.ReadUInt16()
+          } finally { $stream.Dispose() }
+          Write-Host "Edge-Drop.exe PE machine: $machine"
+          if ($machine -ne '${{ matrix.pe_machine }}') {
+            throw "Expected ${{ matrix.pe_machine }} (${{ matrix.arch }}), got $machine"
+          }
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Edge-Drop-${{ steps.pkg.outputs.version }}-${{ matrix.arch }}-Setup
+          path: |
+            dist/Edge-Drop-*-${{ matrix.arch }}-Setup.exe
+            dist/Edge-Drop-*-${{ matrix.arch }}-Setup.exe.blockmap
+            dist/latest.yml
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload portable executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Edge-Drop-${{ steps.pkg.outputs.version }}-${{ matrix.arch }}-Portable
+          path: dist/Edge-Drop-*-${{ matrix.arch }}-Portable.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload portable zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: Edge-Drop-${{ steps.pkg.outputs.version }}-${{ matrix.arch }}-zip
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Downloaded into per-artifact subdirectories on purpose: both arches emit a
+      # latest.yml, and merging them into one directory would silently drop one.
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mapfile -t files < <(find artifacts -type f \( -name '*.exe' -o -name '*.zip' \) | sort)
+          if [ ${#files[@]} -eq 0 ]; then echo "No release assets found" >&2; exit 1; fi
+          printf 'uploading: %s\n' "${files[@]}"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes
+          gh release upload "$TAG" "${files[@]}" --repo "$GITHUB_REPOSITORY" --clobber

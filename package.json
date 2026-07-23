@@ -11,11 +11,14 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "build:github": "npm run build && electron-builder --win nsis -c.extraMetadata.buildTarget=github",
+    "build:portable": "npm run build && electron-builder --win portable zip -c.extraMetadata.buildTarget=github",
+    "build:dist": "npm run build && electron-builder --win nsis portable zip -c.extraMetadata.buildTarget=github --publish never",
     "build:store": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:msix": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:win": "npm run build:github",
     "package": "npm run build:github",
     "preview": "electron-vite preview",
+    "test": "vitest run",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web"
@@ -55,7 +58,12 @@
       "allowToChangeInstallationDirectory": true,
       "shortcutName": "Edge-Drop",
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "artifactName": "${productName}-${version}-${arch}-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-${arch}-Portable.${ext}",
+      "unicode": true
     },
     "appx": {
       "identityName": "Deepender.EdgeDrop",
