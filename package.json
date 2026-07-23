@@ -10,9 +10,8 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "build:github": "npm run build && electron-builder --win nsis -c.extraMetadata.buildTarget=github",
-    "build:portable": "npm run build && electron-builder --win portable zip -c.extraMetadata.buildTarget=github",
-    "build:dist": "npm run build && electron-builder --win nsis portable zip -c.extraMetadata.buildTarget=github --publish never",
+    "build:github": "set ELECTRON_BUILDER_7Z_FILTER=BCJ2&& npm run build && electron-builder --win nsis -c.extraMetadata.buildTarget=github",
+    "build:dist": "set ELECTRON_BUILDER_7Z_FILTER=BCJ2&& npm run build && electron-builder --win nsis zip -c.extraMetadata.buildTarget=github --publish never",
     "build:store": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:msix": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:win": "npm run build:github",
@@ -60,10 +59,6 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "artifactName": "${productName}-${version}-${arch}-Setup.${ext}"
-    },
-    "portable": {
-      "artifactName": "${productName}-${version}-${arch}-Portable.${ext}",
-      "unicode": true
     },
     "appx": {
       "identityName": "Deepender.EdgeDrop",

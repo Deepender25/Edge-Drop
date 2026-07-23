@@ -83,10 +83,17 @@ jobs:
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
           "version=$version" >> $env:GITHUB_OUTPUT
 
+      # ELECTRON_BUILDER_7Z_FILTER pins the 7z branch filter to BCJ2. Left to itself,
+      # 7za 24.09 auto-applies its ARM64 filter to arm64 executables, but the Nsis7z
+      # extractor embedded in the installer is a 2019 build predating that filter
+      # (7-Zip 21.07). It then skips every PE file silently and exits 0, producing an
+      # install directory with the .pak/.dat files but no Edge-Drop.exe or DLLs.
+      # x64 already resolves to BCJ2, so setting it for both legs changes nothing there.
       - name: Build and package
         run: npm run build:dist -- --${{ matrix.arch }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ELECTRON_BUILDER_7Z_FILTER: BCJ2
 
       - name: List artifacts
         shell: pwsh
@@ -126,14 +133,6 @@ jobs:
             dist/Edge-Drop-*-${{ matrix.arch }}-Setup.exe
             dist/Edge-Drop-*-${{ matrix.arch }}-Setup.exe.blockmap
             dist/latest.yml
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload portable executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: Edge-Drop-${{ steps.pkg.outputs.version }}-${{ matrix.arch }}-Portable
-          path: dist/Edge-Drop-*-${{ matrix.arch }}-Portable.exe
           if-no-files-found: error
           retention-days: 30
 
