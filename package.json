@@ -1,6 +1,6 @@
 {
   "name": "edge-drop",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Edge-Drop — a clipboard manager that lives on the left edge of your screen and expands on hover.",
   "author": "Edge-Drop",
   "license": "Apache-2.0",
