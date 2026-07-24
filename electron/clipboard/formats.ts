@@ -9,7 +9,29 @@
 import { clipboard } from 'electron'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import koffi from 'koffi'
 import type { ItemData } from '../../shared/types'
+
+let getSeqNum: (() => number) | null = null
+if (process.platform === 'win32') {
+  try {
+    const user32 = koffi.load('user32.dll')
+    getSeqNum = user32.func('uint32 GetClipboardSequenceNumber()')
+  } catch (err) {
+    console.error('[formats] Failed to load GetClipboardSequenceNumber from user32.dll:', err)
+  }
+}
+
+export function getClipboardSequenceNumber(): number {
+  if (getSeqNum) {
+    try {
+      return getSeqNum()
+    } catch {
+      return 0
+    }
+  }
+  return 0
+}
 import { getSystemPowerShellPath } from '../main/powershell'
 import { filterValidPaths } from '../main/pathValidation'
 
@@ -296,21 +318,24 @@ export async function readClipboard(): Promise<ItemData | null> {
  * second to be silently ignored as "no change".
  */
 export function clipboardSignature(): string {
+  const seq = getClipboardSequenceNumber()
+  const seqPrefix = seq > 0 ? `seq:${seq}:` : ''
+
   if (isClipboardExcluded()) {
-    return 'excluded'
+    return `${seqPrefix}excluded`
   }
 
   // If files are on the clipboard, their paths are the most stable fingerprint.
   // Use fast, non-blocking read to avoid spawning a child process during polling.
   const files = readFileListFast()
   if (files && files.length) {
-    return `files:${files.join('\n')}`
+    return `${seqPrefix}files:${files.join('\n')}`
   }
 
   // Text — the content itself is the fingerprint.
   const text = clipboard.readText().trim()
   if (text) {
-    return `text:${text}`
+    return `${seqPrefix}text:${text}`
   }
 
   // Images: sample raw pixel bytes through FNV-1a for a fast, stable fingerprint.
@@ -328,10 +353,10 @@ export function clipboardSignature(): string {
       hash = Math.imul(hash, 0x01000193) >>> 0 // FNV prime, keep as uint32
     }
 
-    return `image:${size.width}x${size.height}:${hash.toString(36)}`
+    return `${seqPrefix}image:${size.width}x${size.height}:${hash.toString(36)}`
   }
 
-  return 'empty'
+  return `${seqPrefix}empty`
 }
 
 /** True if the text payload looks like a single URL. */

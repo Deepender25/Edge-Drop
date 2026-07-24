@@ -29,6 +29,8 @@ function isVersionLower(current: string, latest: string): boolean {
   return false
 }
 
+let flareTimer: ReturnType<typeof setTimeout> | null = null
+
 /** A transient user-facing notice shown as a toast. */
 export interface ToastMsg {
   id: string
@@ -75,6 +77,9 @@ interface AppState {
   setPreviewItemId: (id: string | null, rect?: { y: number; height: number }) => void
   previewFlyoutRect: { top: number; bottom: number } | null
   setPreviewFlyoutRect: (rect: { top: number; bottom: number } | null) => void
+  copyFlareActive: boolean
+  flareKey: number
+  triggerCopyFlare: () => void
 
   /* toasts */
   pushToast: (toast: ToastMsg) => void
@@ -106,6 +111,8 @@ export const useStore = create<AppState>((set, get) => ({
   updateInfo: null,
   previewItemId: null,
   previewItemRect: null,
+  copyFlareActive: false,
+  flareKey: 0,
 
   async hydrate() {
     const { items, settings, version } = await edge.loadState()
@@ -138,7 +145,23 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  setItems: (items) => set({ items }),
+  setItems: (items) => {
+    const prevItems = get().items
+    const prevTop = prevItems.length > 0 ? prevItems[0] : null
+    const newTop = items.length > 0 ? items[0] : null
+
+    if (get().hydrated && prevTop && newTop) {
+      if (
+        newTop.id !== prevTop.id ||
+        newTop.capturedAt !== prevTop.capturedAt ||
+        newTop.hitCount !== prevTop.hitCount
+      ) {
+        console.log('[appStore] Top item copied or re-copied! Triggering sine-curve copy flare for:', newTop.id)
+        get().triggerCopyFlare()
+      }
+    }
+    set({ items })
+  },
   setSettings: (next) => set({ settings: next }),
 
   setQuery: (query) => set({ query }),
@@ -166,6 +189,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (id) {
       edge.setPreviewMode(true)
     }
+  },
+  triggerCopyFlare: () => {
+    if (flareTimer) clearTimeout(flareTimer)
+    set({ copyFlareActive: true, flareKey: Date.now() })
+    flareTimer = setTimeout(() => {
+      set({ copyFlareActive: false })
+      flareTimer = null
+    }, 1400)
   },
 
   pushToast: (toast) => {

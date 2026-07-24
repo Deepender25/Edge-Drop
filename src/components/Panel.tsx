@@ -17,6 +17,7 @@ import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { TrashIcon } from './icons'
 import { PreviewFlyout } from './PreviewFlyout'
+import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 
 export function Panel() {
   const open = useStore((s) => s.open)
@@ -26,6 +27,7 @@ export function Panel() {
   const settingsOpen = useStore((s) => s.settingsOpen)
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const setQuery = useStore((s) => s.setQuery)
+  const copyFlareActive = useStore((s) => s.copyFlareActive)
   const bounceAnimation = settings.bounceAnimation
   const blurAnimation = settings.blurAnimation
 
@@ -183,7 +185,8 @@ export function Panel() {
   const containerStyle: Record<string, unknown> = {
     position: 'absolute',
     zIndex: 10,
-    pointerEvents: open ? 'auto' : 'none'
+    pointerEvents: open ? 'auto' : 'none',
+    transition: 'clip-path 0.38s cubic-bezier(0.16, 1, 0.3, 1)'
   }
 
   let originX = 0
@@ -206,19 +209,21 @@ export function Panel() {
   // Set clipPath via style (not animate) to avoid Framer Motion's broken
   // calc() interpolation — CSS transitions handle it correctly.
   let clipPath: string
+  const hotWidth = settings.hotZoneWidth || 3
   if (isRight) {
     clipPath = open
       ? 'inset(calc(0% - 100px) 0px calc(0% - 100px) calc(0% - 800px) round 24px 0px 0px 24px)'
-      : `inset(calc(50% - ${halfTrigger}px) 0px calc(50% - ${halfTrigger}px) calc(100% - ${settings.hotZoneWidth || 3}px) round 24px 0px 0px 24px)`
+      : `inset(calc(50% - ${halfTrigger}px) 0px calc(50% - ${halfTrigger}px) calc(100% - ${hotWidth}px) round 24px 0px 0px 24px)`
   } else {
     clipPath = open
       ? 'inset(calc(0% - 100px) calc(0% - 800px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
-      : `inset(calc(50% - ${halfTrigger}px) calc(100% - ${settings.hotZoneWidth || 3}px) calc(50% - ${halfTrigger}px) 0px round 0px 24px 24px 0px)`
+      : `inset(calc(50% - ${halfTrigger}px) calc(100% - ${hotWidth}px) calc(50% - ${halfTrigger}px) 0px round 0px 24px 24px 0px)`
   }
   containerStyle.clipPath = clipPath
 
   return (
     <div className="root">
+      <CopyIndicatorCurve />
       <motion.div
         className={containerClass}
         initial={false}

@@ -408,3 +408,17 @@
 .toast:hover {
   filter: brightness(1.1);
 }
+
+/* Copy Indicator Sine Curve Morph Styles */
+.copy-curve-container {
+  pointer-events: none;
+  z-index: 100;
+}
+
+.copy-indicator-badge {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.25);
+  user-select: none;
+  font-family: inherit;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
