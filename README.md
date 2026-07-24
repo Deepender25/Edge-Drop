@@ -286,6 +286,7 @@ sequenceDiagram
 
 **UI / UX**
 - **Dynamic Preview Flyout**: Responsive 100% full-width (`1fr`) layout for single files, 2-column grid for multi-file collections, with calibrated `ResizeObserver` hover boundary tracking (`insideY`)
+- **Customizable Copy Indicator Styles**: Select from 4 vector copy indicators (**Edge-Drop Logo**, **Tick**, **Copy**, and **Sparkle**) in a clean 2x2 grid flyout selector. All styles feature smooth organic floating, pendulum sway motion, and glowing backdrops.
 - **Universal Click-to-Paste**: Click any text snippet, image thumbnail, or file tile inside Preview Flyout to instantly paste into active desktop applications with shared double-click debounce protection (`tryPaste.ts`)
 - **Community & Feedback Integration**: Integrated **Feedback & Issues** button under **COMMUNITY & SUPPORT** in Settings, linking directly to zero-friction Markdown GitHub Issue templates (`issues/new/choose`)
 - **Animation Performance Controls**: Fine-grained settings under **Animations** for springy overshoot scale pop (`bounceAnimation`) and background filter blurring (`blurAnimation`)
