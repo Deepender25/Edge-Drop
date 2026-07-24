@@ -84,8 +84,8 @@ export function useEdgeHover(): void {
     const recompute = () => {
       const h = window.innerHeight
       const s = useStore.getState().settings
-      const half = h * s.hotZoneHeight / 2
-      const panelHalfH = h * (s.panelHeight || 0.5) / 2
+      const half = (h * (s.hotZoneHeight || 0.25)) / 2
+      const panelHalfH = (h * (s.panelHeight || 0.6)) / 2 + 24
       zone.current = { 
         top: h / 2 - half, 
         bottom: h / 2 + half,
@@ -95,7 +95,18 @@ export function useEdgeHover(): void {
     }
     recompute()
     window.addEventListener('resize', recompute)
-    return () => window.removeEventListener('resize', recompute)
+    const unsubStore = useStore.subscribe((state, prevState) => {
+      if (
+        state.settings.panelHeight !== prevState.settings.panelHeight ||
+        state.settings.hotZoneHeight !== prevState.settings.hotZoneHeight
+      ) {
+        recompute()
+      }
+    })
+    return () => {
+      window.removeEventListener('resize', recompute)
+      unsubStore()
+    }
   }, [])
 
   // Single stable effect — deps never change after mount.
