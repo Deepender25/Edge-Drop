@@ -17,6 +17,7 @@ import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { TrashIcon } from './icons'
 import { PreviewFlyout } from './PreviewFlyout'
+import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 
 export function Panel() {
@@ -328,6 +329,7 @@ export function Panel() {
           <SplitDropZone isRight={isRight} />
         </div>
         <PreviewFlyout isRight={isRight} />
+        <IndicatorStyleFlyout isRight={isRight} />
       </motion.div>
     </div>
   )

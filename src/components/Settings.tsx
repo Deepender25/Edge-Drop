@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
 import type { DisplayInfo } from '../../shared/types'
+import { LiquidOctopusLoader } from './LiquidOctopusLoader'
+import { TickIndicatorIcon, CopyIndicatorIcon } from './CopyIndicatorCurve'
+import { ChevronRightIcon, CloseIcon } from './icons'
 import '../styles/settings.css'
 
 export function Settings() {
@@ -8,6 +12,8 @@ export function Settings() {
   const patch = useStore((s) => s.patchSettings)
   const updateInfo = useStore((s) => s.updateInfo)
   const currentVersion = useStore((s) => s.currentVersion)
+  const styleFlyoutOpen = useStore((s) => s.styleFlyoutOpen)
+  const setStyleFlyoutOpen = useStore((s) => s.setStyleFlyoutOpen)
 
   const [displays, setDisplays] = useState<DisplayInfo[]>([])
   useEffect(() => {
@@ -264,6 +270,50 @@ export function Settings() {
           ))}
         </div>
       </div>
+
+      {/* ══ GROUP: Copy Indicator ═══════════════════════════════════════ */}
+      <div className="setting-group-label" style={{ marginTop: 20 }}>Copy Indicator</div>
+
+      <div className="setting-row">
+        <div className="setting-info">
+          <div className="setting-title">Copy indication</div>
+          <div className="setting-desc">Show visual morph animation when content is copied</div>
+        </div>
+        <Toggle
+          checked={settings.showCopyIndicator ?? true}
+          onChange={(v) => patch({ showCopyIndicator: v })}
+        />
+      </div>
+
+      {(settings.showCopyIndicator ?? true) && (
+        <>
+          <div className="setting-divider" />
+
+          <div className="setting-row">
+            <div className="setting-info">
+              <div className="setting-title">Indicator style</div>
+              <div className="setting-desc">
+                {settings.copyIndicatorStyle === 'check'
+                  ? 'Active: Tick Icon'
+                  : settings.copyIndicatorStyle === 'copy'
+                  ? 'Active: Copy Icon'
+                  : settings.copyIndicatorStyle === 'sparkle'
+                  ? 'Active: Sparkle'
+                  : 'Active: Liquid Octopus'}
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              className={`icon-btn style-preview-toggle-btn ${styleFlyoutOpen ? 'active' : ''}`}
+              title={styleFlyoutOpen ? 'Close Style Preview Panel' : 'Open Indicator Style Preview Panel'}
+              onClick={() => setStyleFlyoutOpen(!styleFlyoutOpen)}
+            >
+              {styleFlyoutOpen ? <CloseIcon /> : <ChevronRightIcon />}
+            </button>
+          </div>
+        </>
+      )}
 
       {/* ══ GROUP: Animations ═══════════════════════════════════════════ */}
       <div className="setting-group-label" style={{ marginTop: 20 }}>Animations</div>

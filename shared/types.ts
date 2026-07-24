@@ -138,6 +138,10 @@ export interface Settings {
    * On by default to prevent accidental opening during PC gameplay.
    */
   suppressInFullscreen: boolean
+  /** When true, shows the visual edge morph indicator on copy actions. Default: true. */
+  showCopyIndicator: boolean
+  /** Style variant of the copy indicator icon ('logo' | 'check' | 'copy' | 'sparkle'). Default: 'logo'. */
+  copyIndicatorStyle: 'logo' | 'check' | 'copy' | 'sparkle'
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -156,7 +160,9 @@ export const DEFAULT_SETTINGS: Settings = {
   stickDisplayId: undefined,
   bounceAnimation: false,
   blurAnimation: false,
-  suppressInFullscreen: true
+  suppressInFullscreen: true,
+  showCopyIndicator: true,
+  copyIndicatorStyle: 'logo'
 }
 
 

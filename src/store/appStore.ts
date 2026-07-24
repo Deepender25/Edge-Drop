@@ -75,6 +75,8 @@ interface AppState {
   setDragActive: (active: boolean) => void
   setInternalDragReq: (req: import('../../shared/types').DragRequest | null) => void
   setPreviewItemId: (id: string | null, rect?: { y: number; height: number }) => void
+  styleFlyoutOpen: boolean
+  setStyleFlyoutOpen: (open: boolean) => void
   previewFlyoutRect: { top: number; bottom: number } | null
   setPreviewFlyoutRect: (rect: { top: number; bottom: number } | null) => void
   copyFlareActive: boolean
@@ -111,6 +113,18 @@ export const useStore = create<AppState>((set, get) => ({
   updateInfo: null,
   previewItemId: null,
   previewItemRect: null,
+  styleFlyoutOpen: false,
+  setStyleFlyoutOpen: (open) => {
+    set({ styleFlyoutOpen: open, ...(open ? {} : { previewFlyoutRect: null }) })
+    if (open) {
+      edge.setPreviewMode(true)
+    }
+    // NOTE: Do NOT call edge.setPreviewMode(false) here when closing.
+    // If we do, Electron immediately shrinks the window, cutting the flyout exit
+    // spring in half (the 25%/75% split the user sees). Instead, IndicatorStyleFlyout's
+    // AnimatePresence.onExitComplete callback is the one that calls setPreviewMode(false)
+    // after the exit animation has fully settled.
+  },
   copyFlareActive: false,
   flareKey: 0,
 
@@ -168,6 +182,9 @@ export const useStore = create<AppState>((set, get) => ({
   setOpen: (open) => {
     set({ open })
     if (!open) {
+      // NOTE: Do NOT reset styleFlyoutOpen here — closePanel() handles the
+      // sequencing so the flyout exit animation completes before the panel closes.
+      // Only reset previewItemId so the normal preview flyout clears correctly.
       set({ previewItemId: null, previewItemRect: null })
       edge.setPreviewMode(false)
     }
@@ -191,6 +208,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   triggerCopyFlare: () => {
+    if (get().settings.showCopyIndicator === false) return
     if (flareTimer) clearTimeout(flareTimer)
     set({ copyFlareActive: true, flareKey: Date.now() })
     flareTimer = setTimeout(() => {

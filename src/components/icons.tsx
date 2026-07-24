@@ -76,8 +76,20 @@ export const LinkIcon = (p: P) => (
 )
 
 export const CloseIcon = (p: P) => (
-  <svg {...base(p)}>
-    <g>		<g fill="currentColor" fillRule="evenodd" clipRule="evenodd">			<path d="M5.293 5.293a1 1 0 0 1 1.414 0L19.435 18.02a1 1 0 0 1-1.414 1.414L5.293 6.707a1 1 0 0 1 0-1.414" />			<path d="M19.707 5.293a1 1 0 0 1 0 1.414L6.979 19.435a1 1 0 1 1-1.414-1.414L18.293 5.293a1 1 0 0 1 1.414 0" />		</g>	</g>
+  <svg
+    {...base(p)}
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    shapeRendering="geometricPrecision"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 )
 
@@ -229,3 +241,20 @@ export function FileKindIcon({ ext, path, ...rest }: P & { ext?: string; path?: 
   const Glyph = GLYPHS[kind] ?? FileIconGlyph
   return <Glyph {...rest} style={{ color: info?.color ?? 'currentColor', ...(rest.style ?? {}) }} />
 }
+
+export const ChevronRightIcon = (p: P) => (
+  <svg
+    {...base(p)}
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    shapeRendering="geometricPrecision"
+  >
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+)

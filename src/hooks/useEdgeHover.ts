@@ -115,35 +115,35 @@ export function useEdgeHover(): void {
     let graceTimer: number | undefined
     let interactiveTimer: number | undefined
 
+    const closePanelNow = () => {
+      const s = useStore.getState()
+      if (s.styleFlyoutOpen) s.setStyleFlyoutOpen(false)
+      s.setOpen(false)
+      if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
+      interactiveTimer = window.setTimeout(() => {
+        interactiveTimer = undefined
+        if (!useStore.getState().open) edge.setInteractive(false)
+      }, 180)
+    }
+
     const closePanel = () => {
       const state = useStore.getState()
       if (!state.open) return
       if (state.dragActive && !state.internalDragReq) return
 
-      // If preview is open, dismiss it first and wait for its exit
-      // animation to finish (~350ms) before collapsing the panel.
-      // This prevents both animations from fighting each other.
-      if (state.previewItemId) {
-        state.setPreviewItemId(null)
+      // If the indicator style flyout is open, let it play its exit spring first.
+      // The Electron window resize (inside setOpen) would cut the flyout animation
+      // in half if we close both simultaneously — so we sequence it properly.
+      if (state.styleFlyoutOpen) {
+        state.setStyleFlyoutOpen(false)
         window.setTimeout(() => {
-          useStore.getState().setOpen(false)
-          if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
-          interactiveTimer = window.setTimeout(() => {
-            interactiveTimer = undefined
-            if (!useStore.getState().open) edge.setInteractive(false)
-          }, 180)
-        }, 240)
+          if (!useStore.getState().open) return // already closed by another path
+          closePanelNow()
+        }, 300)
         return
       }
 
-      state.setOpen(false)
-      if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
-      interactiveTimer = window.setTimeout(() => {
-        interactiveTimer = undefined
-        if (!useStore.getState().open) {
-          edge.setInteractive(false)
-        }
-      }, 180)
+      closePanelNow()
     }
 
     const scheduleClose = (delay = GRACE_MS) => {
@@ -202,7 +202,8 @@ export function useEdgeHover(): void {
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
       const state = useStore.getState()
       const s = state.settings
-      const currentPanelWide = state.previewItemId ? PREVIEW_WIDE : PANEL_WIDE
+      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen)
+      const currentPanelWide = hasFlyout ? PREVIEW_WIDE : PANEL_WIDE
 
       let insideX = false
       if (s.stickPosition === 'right') {
@@ -216,7 +217,7 @@ export function useEdgeHover(): void {
         ? x < window.innerWidth - KEEP_OPEN_PX
         : x > KEEP_OPEN_PX
 
-      if (inPreviewCol && state.previewItemId && state.previewFlyoutRect) {
+      if (inPreviewCol && hasFlyout && state.previewFlyoutRect) {
         const FLYOUT_BUFFER = 24
         return y >= state.previewFlyoutRect.top - FLYOUT_BUFFER && y <= state.previewFlyoutRect.bottom + FLYOUT_BUFFER
       }
@@ -243,12 +244,12 @@ export function useEdgeHover(): void {
     // here with the renderer's own settings so everything stays in sync.
     const unsubCursorEdge = window.edge.onCursorEdge((data) => {
       lastClient.current = { x: data.x, y: data.y }
+      const state = useStore.getState()
       const { stickPosition, displayWidth } = data
       const { top, bottom, midY, panelHalfH } = zone.current
-      const state = useStore.getState()
-
-      const currentKeepOpenPx = state.previewItemId ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
-      const currentStartClosePx = state.previewItemId ? PREVIEW_WIDE + 20 : START_CLOSE_PX
+      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen)
+      const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
+      const currentStartClosePx = hasFlyout ? PREVIEW_WIDE + 20 : START_CLOSE_PX
 
       switch (stickPosition) {
         case 'right': {
@@ -282,7 +283,7 @@ export function useEdgeHover(): void {
 
           const inPreviewColumn = distFromRight > KEEP_OPEN_PX
           let insideY = false
-          if (inPreviewColumn && state.previewItemId && state.previewFlyoutRect) {
+          if (inPreviewColumn && hasFlyout && state.previewFlyoutRect) {
             const FLYOUT_BUFFER = 24
             insideY = data.y >= state.previewFlyoutRect.top - FLYOUT_BUFFER && data.y <= state.previewFlyoutRect.bottom + FLYOUT_BUFFER
           } else {
@@ -331,7 +332,7 @@ export function useEdgeHover(): void {
 
           const inPreviewColumn = data.x > KEEP_OPEN_PX
           let insideY = false
-          if (inPreviewColumn && state.previewItemId && state.previewFlyoutRect) {
+          if (inPreviewColumn && hasFlyout && state.previewFlyoutRect) {
             const FLYOUT_BUFFER = 24
             insideY = data.y >= state.previewFlyoutRect.top - FLYOUT_BUFFER && data.y <= state.previewFlyoutRect.bottom + FLYOUT_BUFFER
           } else {
@@ -353,6 +354,27 @@ export function useEdgeHover(): void {
     // ── keyboard ───────────────────────────────────────────────────────────
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && useStore.getState().open) scheduleClose(0)
+    }
+
+    // ── window blur (Alt+Tab / OS focus stolen) ────────────────────────────
+    // When the user presses Alt+Tab or any other mechanism gives focus to
+    // another OS window, the Electron renderer fires a native `blur` event on
+    // the global `window` object. Because the Edge-Drop window is `focusable:
+    // false`, the cursor-poll path never learns that the app lost OS focus —
+    // the cursor position it last saw was still "inside the blade", so
+    // isInsideBlade() keeps returning true and the panel is stuck open.
+    //
+    // Listening for `window.blur` here catches the exact moment the OS
+    // switches focus away and immediately force-closes the panel with a tiny
+    // grace period so the animation is not jarring (e.g. user Alt+Tabs to
+    // quickly read something and comes back — 400 ms gives them a moment).
+    const onWindowBlur = () => {
+      const state = useStore.getState()
+      if (!state.open) return
+      // Don't close during an external OS file drag — the drag surface may
+      // temporarily shift focus to the OS drag-ghost or file manager.
+      if (state.dragActive && !state.internalDragReq) return
+      scheduleClose(400)
     }
 
     // ── OS file drag awareness ─────────────────────────────────────────────
@@ -386,6 +408,7 @@ export function useEdgeHover(): void {
 
     // ── register ───────────────────────────────────────────────────────────
     window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('blur', onWindowBlur)
     window.addEventListener(PANEL_LEAVE_EVENT, onPanelLeave)
     window.addEventListener(PANEL_ENTER_EVENT, onPanelEnter)
     document.addEventListener('dragenter', onDocDragEnter)
@@ -397,6 +420,7 @@ export function useEdgeHover(): void {
     return () => {
       unsubCursorEdge()
       window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('blur', onWindowBlur)
       window.removeEventListener(PANEL_LEAVE_EVENT, onPanelLeave)
       window.removeEventListener(PANEL_ENTER_EVENT, onPanelEnter)
       document.removeEventListener('dragenter', onDocDragEnter)
