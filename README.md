@@ -78,24 +78,35 @@ It is built for the developer and creative workflow where you constantly juggle 
 
 <p align="center">
   <strong>Edge-Drop is 100% free and open-source forever.</strong><br/>
-  If Edge-Drop speeds up your daily workflow, consider supporting development or starring the project on GitHub!
+  If Edge-Drop speeds up your daily workflow, consider supporting ongoing development!
 </p>
 
-<p align="center">
-  <a href="https://ko-fi.com/deepender" target="_blank">
-    <img src="public/kofi-qr.png" alt="Scan or Click to Support on Ko-fi" width="180" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://ko-fi.com/deepender" target="_blank">
-    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee on Ko-fi" height="36" />
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://github.com/Deepender25/Edge-Drop" target="_blank">
-    <img src="https://img.shields.io/github/stars/Deepender25/Edge-Drop?style=for-the-badge&logo=github&color=24292e" alt="Star on GitHub" height="36" />
-  </a>
-</p>
+<table align="center" border="0" style="border-collapse: collapse; border: none;">
+  <tr>
+    <td align="center" width="50%" style="border: none; padding: 15px; vertical-align: top;">
+      <h3>🌍 International (Ko-fi)</h3>
+      <a href="https://ko-fi.com/deepender" target="_blank">
+        <img src="public/kofi-qr.png" alt="Scan or Click for Ko-fi Support" width="170" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+      </a>
+      <br/><br/>
+      <a href="https://ko-fi.com/deepender" target="_blank">
+        <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee on Ko-fi" height="36" />
+      </a>
+    </td>
+    <td align="center" width="50%" style="border: none; padding: 15px; vertical-align: top;">
+      <h3>🇮🇳 India (UPI)</h3>
+      <a href="https://edgedrop.vercel.app/supportedgedrop/upi" target="_blank">
+        <img src="public/upi-sponsor-qr.png" alt="Scan or Click for UPI Donation Page" width="170" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+      </a>
+      <br/><br/>
+      <a href="https://edgedrop.vercel.app/supportedgedrop/upi" target="_blank">
+        <img src="https://img.shields.io/badge/Donate%20via-UPI-128856?style=for-the-badge&logo=googlepay&logoColor=white" alt="Donate via UPI" height="36" />
+      </a>
+      <br/><br/>
+      <sub><i>* Note: Scanning or clicking opens the <a href="https://edgedrop.vercel.app/supportedgedrop/upi" target="_blank">UPI Donation Page</a> where you can donate via GPay, PhonePe, Paytm, or any UPI app.</i></sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
