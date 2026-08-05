@@ -268,7 +268,6 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  backdropFilter: 'blur(20px)',
                   zIndex: 20
                 }}
               >
@@ -463,8 +462,7 @@ function QuickActionButton({
         justifyContent: 'center',
         transition: 'all 0.15s ease',
         flexShrink: 0,
-        boxShadow: solidDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : undefined,
-        backdropFilter: solidDark ? 'blur(8px)' : undefined
+        boxShadow: solidDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : undefined
       }}
       onMouseEnter={(e) => {
         if (!copied) {
@@ -772,7 +770,6 @@ function PreviewContent({
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-                backdropFilter: 'blur(8px)',
                 transition: 'all 0.15s ease',
                 flexShrink: 0
               }}
@@ -884,8 +881,7 @@ function PreviewContent({
                       alignItems: 'center',
                       justifyContent: 'center',
                       transition: 'all 0.15s ease',
-                      flexShrink: 0,
-                      backdropFilter: 'blur(8px)'
+                      flexShrink: 0
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = 'rgba(0, 0, 0, 0.95)'

@@ -432,8 +432,7 @@
 
 /* Quick Type Segmented Control */
 .filter-segmented-track {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.05);
 }
 .filter-chip {
   outline: none;

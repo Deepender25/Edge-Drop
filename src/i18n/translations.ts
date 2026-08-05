@@ -660,7 +660,7 @@ export const en: TranslationKeys = {
     "quitTitle": "Quit Edge-Drop",
     "quitDesc": "Close application and stop background process",
     "supportPromo": "Edge-Drop is 100% free & open-source. If it helps your daily workflow, consider supporting development to make it even better!",
-    "supportOnKofi": "Support on Ko-fi",
+    "supportOnKofi": "Support via Ko-fi / UPI",
     "starOnGithub": "Star on GitHub",
     "githubPromo": "If you like Edge-Drop, please consider starring the project on GitHub!",
     "version": "Version"

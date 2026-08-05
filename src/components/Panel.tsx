@@ -447,9 +447,7 @@ function DropOverlay() {
             justifyContent: 'center',
             gap: '14px',
             pointerEvents: 'none',
-            background: 'rgba(6, 6, 8, 0.82)',
-            backdropFilter: 'blur(28px)',
-            WebkitBackdropFilter: 'blur(28px)',
+            background: 'rgba(6, 6, 8, 0.95)',
             textAlign: 'center',
             padding: '24px'
           }}

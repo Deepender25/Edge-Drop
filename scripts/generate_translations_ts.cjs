@@ -236,7 +236,7 @@ const masterEn = {
     quitTitle: 'Quit Edge-Drop',
     quitDesc: 'Exit application and stop background process',
     supportPromo: 'Edge-Drop is 100% free & open-source. If it helps your daily workflow, consider supporting development to make it even better!',
-    supportOnKofi: 'Support Edge-Drop on Ko-fi',
+    supportOnKofi: 'Support via Ko-fi / UPI',
     starOnGithub: 'Star on GitHub',
     githubPromo: 'Enjoying Edge-Drop? Show your support by starring the project on GitHub!',
     version: 'Version'

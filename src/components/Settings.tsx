@@ -4,7 +4,7 @@ import { useStore } from '../store/appStore'
 import type { DisplayInfo } from '../../shared/types'
 import { LiquidOctopusLoader } from './LiquidOctopusLoader'
 import { TickIndicatorIcon, CopyIndicatorIcon, SparkleIndicatorIcon } from './CopyIndicatorCurve'
-import { ChevronRightIcon, CloseIcon, LogOutIcon, StarIcon, KofiLogo, GithubOctocatLogo } from './icons'
+import { ChevronRightIcon, CloseIcon, LogOutIcon, StarIcon, GithubOctocatLogo } from './icons'
 import { ChangelogView } from './ChangelogView'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
@@ -168,43 +168,27 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
         </button>
       </div>
 
-      {/* Application */}
-      <div className="setting-group-label" style={{ marginTop: 20 }}>{t('footer.applicationGroup')}</div>
-
-      <div className="setting-row vertical" style={{ gap: 10 }}>
-        <div className="setting-info">
-          <div className="setting-title">{t('footer.quitTitle')}</div>
-          <div className="setting-desc">{t('footer.quitDesc')}</div>
-        </div>
-        <button
-          className="quit-app-btn"
-          onClick={() => {
-            playButtonClickSound()
-            void window.edge.quitApp()
-          }}
-        >
-          <LogOutIcon width={14} height={14} />
-          {t('tray.quit')}
-        </button>
-      </div>
-
       {/* Support & GitHub Promo Footer */}
-      <div className="setting-divider" style={{ marginTop: 16 }} />
+      <div className="setting-divider" style={{ marginTop: 20 }} />
 
       <div className="support-promo">
         <div className="support-promo-title">
           {t('footer.supportPromo')}
         </div>
         <div className="support-buttons-group">
-          {/* Primary Feature Action: Ko-fi */}
+          {/* Primary Action: Support via Ko-fi / UPI */}
           <button
             className="kofi-support-btn"
             onClick={() => {
               playButtonClickSound()
-              window.open('https://ko-fi.com/deepender', '_blank')
+              window.open('https://edgedrop.vercel.app/supportedgedrop', '_blank')
             }}
           >
-            <KofiLogo width={18} height={18} className="kofi-logo-icon" />
+            <div className="support-btn-heart-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="#ff5252" stroke="none">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
             <span>{t('footer.supportOnKofi')}</span>
           </button>
 
@@ -224,6 +208,20 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
         <div className="app-version-footer">
           {t('footer.version')} {currentVersion || '0.2.5'}
         </div>
+      </div>
+
+      {/* Subtle Bottom Quit Button */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14, marginBottom: 6 }}>
+        <button
+          className="subtle-quit-btn"
+          onClick={() => {
+            playButtonClickSound()
+            void window.edge.quitApp()
+          }}
+        >
+          <LogOutIcon width={13} height={13} />
+          <span>{t('tray.quit')}</span>
+        </button>
       </div>
     </>
   )
@@ -1219,9 +1217,7 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                   margin: '0 auto',
                   width: 'fit-content',
                   maxWidth: 'calc(100% - 24px)',
-                  background: 'rgba(76, 175, 80, 0.95)',
-                  color: '#ffffff',
-                  backdropFilter: 'blur(12px)',
+                  background: '#388e3c',
                   border: '1px solid rgba(255, 255, 255, 0.25)',
                   borderRadius: 20,
                   padding: '6px 14px',
