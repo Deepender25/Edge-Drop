@@ -228,6 +228,10 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
     </>
   )
 
+  const maxTabLen = Math.max(...TABS.map((tab) => tab.label.length))
+  const tabFontSize = maxTabLen > 15 ? '9px' : maxTabLen > 13 ? '9.5px' : maxTabLen > 11 ? '10px' : maxTabLen > 9 ? '10.8px' : '11.5px'
+  const tabLetterSpacing = maxTabLen > 13 ? '-0.03em' : maxTabLen > 10 ? '-0.015em' : '0'
+
   return (
     <AnimatePresence mode="wait">
       {settingsSubView === 'changelog' ? (
@@ -261,6 +265,10 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                     type="button"
                     className={`settings-tab-btn${active ? ' active' : ''}`}
                     onClick={() => handleTabSwitch(tab.id)}
+                    style={{
+                      fontSize: `calc(${tabFontSize} * var(--font-scale, 1))`,
+                      letterSpacing: tabLetterSpacing
+                    }}
                   >
                     <span className="settings-tab-text">{tab.label}</span>
                   </button>

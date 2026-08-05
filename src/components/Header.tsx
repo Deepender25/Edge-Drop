@@ -45,12 +45,16 @@ export function Header() {
   ]
 
   const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.id === typeFilter))
+  const maxFilterLen = Math.max(...FILTERS.map((f) => f.label.length))
+  const filterChipWidth = 37
+  const filterFontSize = maxFilterLen >= 8 ? 7.8 : maxFilterLen >= 6 ? 8.5 : maxFilterLen >= 5 ? 9.2 : 10.2
+  const filterLetterSpacing = maxFilterLen >= 7 ? '-0.025em' : maxFilterLen >= 5 ? '-0.015em' : '0'
 
   return (
-    <div className="header" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', height: 40, padding: '0 14px 0 4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 2 }}>
+    <div className="header" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', height: 40, padding: '0 10px 0 4px', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 2, minWidth: 0, flex: 1, overflow: 'hidden' }}>
         {settingsOpen ? (
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#8e8e93', letterSpacing: '0.01em', paddingLeft: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#8e8e93', letterSpacing: '0.01em', paddingLeft: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
             {settingsSubView === 'changelog' ? t('header.whatsNew') : t('header.settings')}
           </span>
         ) : (
@@ -66,19 +70,21 @@ export function Header() {
               padding: '2px 3px', 
               gap: 2, 
               marginLeft: 2,
-              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+              maxWidth: '100%',
+              overflow: 'hidden'
             }}
           >
             {/* Single Persistent Sliding Pill Indicator */}
             <motion.div
               initial={false}
-              animate={{ x: activeIndex * 41 }}
+              animate={{ x: activeIndex * (filterChipWidth + 2) }}
               transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               style={{
                 position: 'absolute',
                 left: 3,
                 top: 2,
-                width: 39,
+                width: filterChipWidth,
                 height: 22,
                 borderRadius: 999,
                 background: 'rgba(255, 255, 255, 0.16)',
@@ -105,10 +111,11 @@ export function Header() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 39,
+                    width: filterChipWidth,
                     height: 22,
-                    padding: 0,
-                    fontSize: 10.5,
+                    padding: '0 1px',
+                    fontSize: filterFontSize,
+                    letterSpacing: filterLetterSpacing,
                     fontWeight: active ? 600 : 500,
                     color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
                     background: 'transparent',
@@ -117,7 +124,9 @@ export function Header() {
                     cursor: 'pointer',
                     userSelect: 'none',
                     transition: 'color 0.18s ease',
-                    zIndex: 1
+                    zIndex: 1,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden'
                   }}
                 >
                   <span>{f.label}</span>
@@ -128,7 +137,7 @@ export function Header() {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, paddingRight: 2 }}>
         {settingsOpen && (
           <button
             type="button"
