@@ -167,7 +167,9 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Pure CSS Selection Synchronization:** Native CSS active tab styling (`.settings-tab-btn.active`) eliminating layout projection glitches during panel position adjustments.
 - **5% Magnetic Tick Slider:** Smooth `0.002` real-time 1-to-1 continuous tracking during drag with 60fps/120fps precision, featuring 21 visual tick dashes, live percentage badge (`50%`), percentage quick-jump buttons (`0%`, `50%`, `100%`), and magnetic 5% snapping on pointer release.
 - **Position & Display Switch Preview:** 1.75s temporary interactive preview window when changing `Stick position` (`Left` / `Right`) or `Display` monitor in settings.
-- **Quit Edge-Drop Application Action:** Integrated `Quit Edge-Drop` button under Application settings with IPC integration (`window.edge.quitApp()`) to cleanly terminate electron main and background processes.
+- **CPU Performance Optimization & Zero Blur Jank:** Replaced heavy `backdrop-filter: blur()` calls across UI components with high-performance solid/semi-transparent dark fills, eliminating CPU rasterization overhead for 60fps/120fps butter-smooth panel opening and scrolling.
+- **Prominent Support Section & Matching Pill Buttons:** Re-ordered settings footer placing the Support & Sponsor card prominently above the Quit button. Features matching 40px height pill buttons (`border-radius: 999px`) for Support (soft solid pastel red `#ff7675` with heart badge) and GitHub Star.
+- **Low-Profile Bottom Quit Pill:** Compact, subtle Quit pill button (`.subtle-quit-btn`) centered at the very bottom of the settings view without noisy header text.
 
 **Silent Background Auto-Updates**
 - **Zero-Friction Updates (`electron-updater`):** GitHub releases feature background downloading and a single-click "Restart to Update" button.

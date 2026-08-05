@@ -734,9 +734,33 @@ function parseReleaseBodyToCleanText(body: string): { summary: string; highlight
 
 const STATIC_CHANGELOG_FALLBACK = [
   {
+    version: 'v0.2.6',
+    date: 'Aug 05, 2026',
+    isLatest: true,
+    summary: 'Performance optimizations, redesigned settings footer, custom support portal integration, and enhanced 30-language typography.',
+    highlights: [
+      {
+        title: 'Performance Improvements',
+        description: 'Removed CPU blur effects across UI components for smoother panel opening and scrolling.'
+      },
+      {
+        title: 'Settings UI & Navigation Redesign',
+        description: 'Reordered settings footer to place the Support section above the Quit button, redesigned buttons into matching pill shapes with a soft pastel red support button, and simplified Quit into a low-profile bottom button.'
+      },
+      {
+        title: 'Official Support Portal Integration',
+        description: 'Updated support link to open official Edge-Drop support page supporting both International Ko-fi and Indian UPI options.'
+      },
+      {
+        title: 'Localization & Typography Enhancements',
+        description: 'Updated filter category labels across 30 languages with shorter native terms and added dynamic font scaling so filter text fits cleanly without overlapping.'
+      }
+    ]
+  },
+  {
     version: 'v0.2.5',
     date: 'Aug 03, 2026',
-    isLatest: true,
+    isLatest: false,
     summary: 'Full 30-language localization with auto-scroll selector, powerMonitor sleep/wake protection, text size typography settings, and multi-file action bar.',
     highlights: [
       {
