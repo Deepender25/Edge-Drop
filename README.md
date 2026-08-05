@@ -5,7 +5,7 @@
 <h1 align="center">Edge-Drop</h1>
 
 <p align="center">
-  <strong>A zero-click, hover-activated clipboard shelf and native OS file-transfer hub for the desktop.</strong><br/>
+  <strong>A zero-click, hover-activated clipboard shelf and desktop file-transfer hub with native OS integration.</strong><br/>
   Lives invisibly on the screen edge. Approach it, and it opens. Drag anything out — into Photoshop, Word, Slack, Explorer, anywhere.
 </p>
 
