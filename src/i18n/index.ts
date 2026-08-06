@@ -25,6 +25,7 @@ export function getResolvedLanguage(settingLang?: string): string {
   if (navLang.startsWith('pt')) return 'pt'
   if (navLang.startsWith('ko')) return 'ko'
   if (navLang.startsWith('ar')) return 'ar'
+  if (navLang.startsWith('fa')) return 'fa'
   if (navLang.startsWith('bn')) return 'bn'
   if (navLang.startsWith('tr')) return 'tr'
   if (navLang.startsWith('vi')) return 'vi'
@@ -90,10 +91,10 @@ export function useTranslation() {
   const language = useStore((s) => s.settings.language)
   const resolvedLang = getResolvedLanguage(language)
 
-  // Update text direction for RTL languages like Arabic & Hebrew
+  // Update text direction for RTL languages like Arabic, Persian & Hebrew
   const g = globalThis as any
   if (g.document && g.document.documentElement) {
-    const isRtl = resolvedLang === 'ar' || resolvedLang === 'he'
+    const isRtl = resolvedLang === 'ar' || resolvedLang === 'fa' || resolvedLang === 'he'
     g.document.documentElement.dir = isRtl ? 'rtl' : 'ltr'
   }
 
