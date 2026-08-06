@@ -28,7 +28,7 @@ export function TickIndicatorIcon({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        filter: `drop-shadow(0 0 10px ${glowColor})`
+        filter: `drop-shadow(0 0 12px ${glowColor}) drop-shadow(0 0 4px ${glowColor})`
       }}
     >
       {/* Floating & Breathing Motion Wrapper */}
@@ -55,24 +55,14 @@ export function TickIndicatorIcon({
           style={{ display: 'block', overflow: 'visible' }}
         >
           <motion.path
-            d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
+            d="M 5.0 12.5 L 9.5 17.0 L 22.8 2.8"
             stroke={fillColor}
-            strokeWidth="2.5"
+            strokeWidth="3.2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.25 }}
-          />
-          <motion.path
-            d="M7.0 12.0L10.5 15.5L17.8 8.0"
-            stroke={fillColor}
-            strokeWidth="3.15"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.25, delay: 0.05 }}
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           />
         </svg>
       </motion.div>

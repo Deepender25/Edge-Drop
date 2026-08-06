@@ -68,24 +68,71 @@ win.addEventListener('drop', (e: any) => {
     return
   }
 
-  const files = e.dataTransfer?.files
-  if (!files || !files.length) return
+  const dt = e.dataTransfer
+  if (!dt) return
 
-  const paths: string[] = []
-  for (let i = 0; i < files.length; i++) {
-    try {
-      const p = webUtils.getPathForFile(files[i])
-      if (p) paths.push(p)
-    } catch {
-      /* ignore unreadable entries */
+  // 1. Local Files
+  const files = dt.files
+  if (files && files.length > 0) {
+    const paths: string[] = []
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const p = webUtils.getPathForFile(files[i])
+        if (p) paths.push(p)
+      } catch {
+        /* ignore unreadable entries */
+      }
+    }
+    if (paths.length > 0) {
+      e.preventDefault()
+      invoke('item:add-files', paths).catch(console.error)
+      return
     }
   }
 
-  if (paths.length > 0) {
-    // Fire and forget to the main process.
-    // The main process will broadcast the new state back to React.
+  // 2. URLs / Web Links / Web Images
+  const uriList = dt.getData('text/uri-list') || dt.getData('URL')
+  const plainText = dt.getData('text/plain')?.trim()
+  const htmlText = dt.getData('text/html')?.trim()
+
+  if (uriList) {
+    const urls = uriList.split(/\r?\n/).map((u: string) => u.trim()).filter((u: string) => u && !u.startsWith('#'))
+    if (urls.length > 0) {
+      const url = urls[0]
+      const isImg = /\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(url) || /^data:image\//i.test(url)
+      e.preventDefault()
+      if (isImg) {
+        invoke('item:add-data', {
+          kind: 'image',
+          imageId: '',
+          width: 0,
+          height: 0,
+          bytes: 0,
+          imageUrl: url
+        } as any).catch(console.error)
+      } else {
+        invoke('item:add-data', {
+          kind: 'text',
+          text: url,
+          isUrl: true
+        }).catch(console.error)
+      }
+      return
+    }
+  }
+
+  // 3. Plain Text / HTML
+  if (plainText) {
     e.preventDefault()
-    invoke('item:add-files', paths).catch(console.error)
+    const isUrl = /^(https?:\/\/|www\.)[^\s]+$/i.test(plainText)
+    const isColor = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(plainText)
+    invoke('item:add-data', {
+      kind: 'text',
+      text: plainText,
+      html: htmlText && htmlText !== plainText ? htmlText : undefined,
+      isUrl,
+      isColor
+    }).catch(console.error)
   }
 }, true)
 
@@ -105,6 +152,7 @@ const api = {
   quitApp: () => invoke('app:quit'),
   startDrag: (req: DragRequest) => send('item:start-drag', req),
   addFiles: (paths: string[]) => invoke('item:add-files', paths),
+  addItemData: (data: import('../../shared/types').ItemData) => invoke('item:add-data', data),
   removeSubitem: (req: import('../../shared/types').DragRequest) => invoke('item:remove-subitem', req),
   mergeItems: (sourceId: string, targetId: string) => invoke('item:merge', sourceId, targetId),
   splitItem: (req: import('../../shared/types').DragRequest) => invoke('item:split', req),

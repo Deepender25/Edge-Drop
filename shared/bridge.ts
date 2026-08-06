@@ -29,6 +29,7 @@ export interface EdgeApi {
    */
   startDrag: (req: DragRequest) => void
   addFiles: (paths: string[]) => Promise<import('./types').ClipboardItemDto[]>
+  addItemData: (data: import('./types').ItemData) => Promise<import('./types').ClipboardItemDto[]>
   mergeItems: (sourceId: string, targetId: string) => Promise<import('./types').MergeResult>
   splitItem: (req: import('./types').DragRequest) => Promise<boolean>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>

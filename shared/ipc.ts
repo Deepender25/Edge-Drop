@@ -47,6 +47,9 @@ export interface InvokeMap {
   /** Add local file paths dragged into the shelf. */
   'item:add-files': { args: [paths: string[]]; result: ClipboardItemDto[] }
 
+  /** Add arbitrary dropped item data (text, URL, web image, files) into the shelf. */
+  'item:add-data': { args: [data: import('./types').ItemData]; result: ClipboardItemDto[] }
+
   /** Merge an item into another. Returns why it failed (full / incompatible). */
   'item:merge': { args: [sourceId: string, targetId: string]; result: MergeResult }
 

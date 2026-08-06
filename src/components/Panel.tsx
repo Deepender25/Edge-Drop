@@ -162,17 +162,28 @@ export function Panel() {
     }
   }, [internalDragReq, setInternalDragReq, setDragActive])
 
-  const hasFiles = (e: React.DragEvent) => e.dataTransfer.types.includes('Files')
+  const hasDragContent = (e: React.DragEvent) => {
+    const types = Array.from(e.dataTransfer?.types || [])
+    return (
+      types.includes('Files') ||
+      types.includes('text/uri-list') ||
+      types.includes('text/plain') ||
+      types.includes('text/html') ||
+      types.includes('URL')
+    )
+  }
 
   const onDragEnter = (e: React.DragEvent) => {
-    if (hasFiles(e)) {
+    if (hasDragContent(e)) {
       e.preventDefault()
       setDragActive(true)
     }
   }
 
   const onDragOver = (e: React.DragEvent) => {
-    if (hasFiles(e)) e.preventDefault()
+    if (hasDragContent(e)) {
+      e.preventDefault()
+    }
   }
 
   const onDragLeave = (e: React.DragEvent) => {
@@ -186,19 +197,11 @@ export function Panel() {
     e.stopPropagation()
     console.log('[Panel] onDrop internalDragReq=', internalDragReq)
     if (internalDragReq) {
-      e.preventDefault()
-      // If it reaches here, it means it was dropped on the general panel background
-      // (not on another item, which would have called stopPropagation).
-      // Check if it's a subitem that should be split out:
       if (internalDragReq.imageId || (internalDragReq.paths && internalDragReq.paths.length > 0)) {
         console.log('[Panel] calling splitItem')
         window.edge.splitItem(internalDragReq)
-      } else {
-        console.log('[Panel] internalDragReq has no subitem, not splitting')
       }
       setInternalDragReq(null)
-    } else if (hasFiles(e)) {
-      e.preventDefault()
     }
     setDragActive(false)
   }

@@ -5,7 +5,7 @@
  * renderer calls them through the typed preload bridge, so a signature mismatch
  * is a compile-time error rather than a runtime one.
  */
-import { app, ipcMain, clipboard, nativeImage, shell } from 'electron'
+import { app, ipcMain, clipboard, nativeImage, shell, net } from 'electron'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFile } from 'node:child_process'
@@ -21,6 +21,7 @@ import { startDragOut, resolveDragData } from './drag'
 import { clipboardSignature } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
+import { createId } from '../store/ids'
 
 /**
  * Returns true if the current system clipboard content matches the given item data.
@@ -438,6 +439,48 @@ export function registerIpc(): void {
     if (result.stacksCreated > 1) {
       toast(`Split into ${result.stacksCreated} stacks (max 10 each)`, 'info')
     }
+    return getStore().toDto()
+  })
+
+  handle('item:add-data', async (data) => {
+    if (!data) return getStore().toDto()
+
+    if (data.kind === 'files' && data.paths && data.paths.length > 0) {
+      const result = addFiles(data.paths)
+      if (result.stacksCreated > 1) {
+        toast(`Split into ${result.stacksCreated} stacks (max 10 each)`, 'info')
+      }
+      return getStore().toDto()
+    }
+
+    if (data.kind === 'image' && (data as any).imageUrl) {
+      const imageUrl = (data as any).imageUrl
+      try {
+        let img = nativeImage.createFromDataURL(imageUrl)
+        if (img.isEmpty() && /^https?:\/\//i.test(imageUrl)) {
+          const res = await net.fetch(imageUrl)
+          if (res.ok) {
+            const arrayBuf = await res.arrayBuffer()
+            img = nativeImage.createFromBuffer(Buffer.from(arrayBuf))
+          }
+        }
+        if (!img.isEmpty()) {
+          const png = img.toPNG()
+          const size = img.getSize()
+          data.imageId = createId()
+          data.bytes = png.length
+          data.width = size.width
+          data.height = size.height
+          data.ext = 'png'
+          getStore().stageImageBytes(data.imageId, png)
+        }
+      } catch (err) {
+        console.error('[IPC] Failed to process dropped web image URL:', err)
+      }
+    }
+
+    getStore().add(data, loadSettings().historyLimit)
+    pushState.items()
     return getStore().toDto()
   })
 
