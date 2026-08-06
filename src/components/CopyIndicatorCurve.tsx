@@ -34,9 +34,8 @@ export function TickIndicatorIcon({
       {/* Floating & Breathing Motion Wrapper */}
       <motion.div
         animate={{
-          y: [-2.5, 2.5, -2.5],
-          rotate: [-4, 4, -4],
-          scale: [0.98, 1.04, 0.98]
+          y: [-2, 2, -2],
+          scale: [0.98, 1.03, 0.98]
         }}
         transition={{
           duration: 2.4,
@@ -56,14 +55,24 @@ export function TickIndicatorIcon({
           style={{ display: 'block', overflow: 'visible' }}
         >
           <motion.path
-            d="M 4 12.5 L 9.5 17.5 L 20 6.5"
+            d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
             stroke={fillColor}
-            strokeWidth="4.2"
+            strokeWidth="1.6"
             strokeLinecap="round"
             strokeLinejoin="round"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25 }}
+          />
+          <motion.path
+            d="M7.0 12.0L10.5 15.5L17.8 8.0"
+            stroke={fillColor}
+            strokeWidth="2.0"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25, delay: 0.05 }}
           />
         </svg>
       </motion.div>
