@@ -231,8 +231,9 @@ export const useStore = create<AppState>((set, get) => ({
     const prevTop = prevItems.length > 0 ? prevItems[0] : null
     const newTop = items.length > 0 ? items[0] : null
 
-    if (get().hydrated && prevTop && newTop) {
+    if (get().hydrated && newTop) {
       if (
+        !prevTop ||
         newTop.id !== prevTop.id ||
         newTop.capturedAt !== prevTop.capturedAt ||
         newTop.hitCount !== prevTop.hitCount

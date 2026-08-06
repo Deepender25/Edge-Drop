@@ -18,13 +18,17 @@ import type { ItemData } from '../../shared/types'
  */
 export type NewItemHandler = (data: ItemData, imagePng?: Buffer) => void
 
+function getContentSignature(sig: string): string {
+  return sig.replace(/^seq:\d+:/, '')
+}
+
 export class ClipboardWatcher {
   private timer: NodeJS.Timeout | null = null
   private lastSig = 'empty'
   private paused = false
   private readonly intervalMs: number
 
-  constructor(intervalMs = 600) {
+  constructor(intervalMs = 300) {
     this.intervalMs = intervalMs
   }
 
@@ -46,13 +50,12 @@ export class ClipboardWatcher {
         if (this.paused) return
         const stableSig = clipboardSignature()
         
-        // If the signature changed AGAIN during this tiny window, it was a transient
-        // copy-paste-restore operation. Ignore it and let the next tick handle the restored state.
-        if (stableSig !== sig) {
+        // Compare content signatures (ignoring sequence numbers that increment as OS writes multi-format clipboard streams)
+        if (getContentSignature(stableSig) !== getContentSignature(sig)) {
           return
         }
 
-        this.lastSig = sig
+        this.lastSig = stableSig
 
         // readClipboard is async: on Windows it awaits a PowerShell
         // GetFileDropList() call to retrieve ALL selected files.
@@ -72,7 +75,7 @@ export class ClipboardWatcher {
         } else {
           onNew(data)
         }
-      }, 250)
+      }, 150)
     }, this.intervalMs)
   }
 

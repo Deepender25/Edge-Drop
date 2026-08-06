@@ -57,7 +57,7 @@ export function TickIndicatorIcon({
           <motion.path
             d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"
             stroke={fillColor}
-            strokeWidth="1.6"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             initial={{ opacity: 0 }}
@@ -67,7 +67,7 @@ export function TickIndicatorIcon({
           <motion.path
             d="M7.0 12.0L10.5 15.5L17.8 8.0"
             stroke={fillColor}
-            strokeWidth="2.0"
+            strokeWidth="3.15"
             strokeLinecap="round"
             strokeLinejoin="round"
             initial={{ opacity: 0 }}
