@@ -912,28 +912,87 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
 
                   <div className="setting-divider" />
 
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('position.edgeTriggerThicknessTitle')}</div>
-                      <div className="setting-desc">{t('position.edgeTriggerThicknessDesc')}</div>
+                  {/* Edge Trigger Thickness Range Slider */}
+                  <div className="setting-row vertical" style={{ gap: 10 }}>
+                    <div className="setting-slider-header">
+                      <div className="setting-info">
+                        <div className="setting-title">{t('position.edgeTriggerThicknessTitle')}</div>
+                        <div className="setting-desc">{t('position.edgeTriggerThicknessDesc')}</div>
+                      </div>
+                      <div className="setting-slider-val">
+                        {`${settings.hotZoneWidth ?? 3}px`}
+                      </div>
                     </div>
-                    <div className="setting-pills">
-                      {[
-                        { label: t('appearance.small'), val: 3 },
-                        { label: t('position.medium'), val: 6 },
-                        { label: t('appearance.large'), val: 12 }
-                      ].map((opt) => (
-                        <button
-                          key={opt.label}
-                          className={`pill ${settings.hotZoneWidth === opt.val ? 'active' : ''}`}
-                          onClick={() => {
-                            playButtonClickSound()
-                            patch({ hotZoneWidth: opt.val })
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+
+                    <div className="setting-slider-wrap">
+                      {(() => {
+                        const currentPx = settings.hotZoneWidth ?? 3
+                        const pct = Math.max(0, Math.min(100, ((currentPx - 1) / (7 - 1)) * 100))
+                        return (
+                          <input
+                            type="range"
+                            min="1"
+                            max="7"
+                            step="1"
+                            className="setting-range-input"
+                            value={currentPx}
+                            style={{
+                              background: `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(255, 255, 255, 0.12) ${pct}%, rgba(255, 255, 255, 0.12) 100%)`
+                            }}
+                            onPointerDown={() => {
+                              void window.edge.setInteractive(true)
+                            }}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10)
+                              if (val !== settings.hotZoneWidth) {
+                                playDialTickSound()
+                                patch({ hotZoneWidth: val })
+                              }
+                            }}
+                          />
+                        )
+                      })()}
+
+                      <div className="setting-slider-ticks">
+                        {Array.from({ length: 7 }, (_, i) => {
+                          const tickPx = i + 1
+                          const currentPx = settings.hotZoneWidth ?? 3
+                          const isMajor = tickPx === 1 || tickPx === 4 || tickPx === 7
+                          const isActive = currentPx === tickPx
+                          return (
+                            <span
+                              key={tickPx}
+                              className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
+                            />
+                          )
+                        })}
+                      </div>
+
+                      <div className="setting-slider-labels">
+                        {[
+                          { label: 'Min', val: 1 },
+                          { label: 'Mid', val: 4 },
+                          { label: 'Max', val: 7 }
+                        ].map((preset) => {
+                          const currentPx = settings.hotZoneWidth ?? 3
+                          const active = currentPx === preset.val
+                          return (
+                            <button
+                              key={preset.val}
+                              type="button"
+                              className={`slider-label-btn${active ? ' active' : ''}`}
+                              onClick={() => {
+                                if (currentPx !== preset.val) {
+                                  playDialTickSound()
+                                  patch({ hotZoneWidth: preset.val })
+                                }
+                              }}
+                            >
+                              {preset.label}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
 
