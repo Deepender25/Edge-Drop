@@ -112,6 +112,7 @@ function getTrayText(settingsLang: string | undefined, key: keyof typeof en['tra
     else if (first.startsWith('fr')) langCode = 'fr'
     else if (first.startsWith('de')) langCode = 'de'
     else if (first.startsWith('hi')) langCode = 'hi'
+    else if (first.startsWith('fa')) langCode = 'fa'
     else if (first.startsWith('ja')) langCode = 'ja'
     else if (first.startsWith('ru')) langCode = 'ru'
     else langCode = 'en'

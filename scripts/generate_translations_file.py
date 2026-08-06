@@ -255,6 +255,7 @@ code_map = {
     'zh-TW': 'zhTW',
     'hi': 'hi',
     'ar': 'ar',
+    'fa': 'fa',
     'bn': 'bn',
     'tr': 'tr',
     'vi': 'vi',
