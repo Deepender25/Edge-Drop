@@ -258,6 +258,7 @@ const languagesList = [
   { code: 'zh-TW', name: 'Chinese (Traditional)', nativeName: '繁體中文' },
   { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
   { code: 'ar', name: 'Arabic', nativeName: 'العربية', rtl: true },
+  { code: 'fa', name: 'Persian', nativeName: 'فارسی', rtl: true },
   { code: 'bn', name: 'Bengali', nativeName: 'বাংলা' },
   { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
   { code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt' },
@@ -291,6 +292,7 @@ const langCodeToVar = {
   'zh-TW': 'zhTW',
   'hi': 'hi',
   'ar': 'ar',
+  'fa': 'fa',
   'bn': 'bn',
   'tr': 'tr',
   'vi': 'vi',
@@ -310,7 +312,7 @@ const langCodeToVar = {
   'no': 'no'
 };
 
-// Custom translations overrides for all 30 languages
+// Custom translation overrides
 const overrides = {
   pl: {
     filters: { all: 'Wszystko', text: 'Tekst', links: 'Linki', images: 'Obrazy', files: 'Pliki' },
@@ -698,5 +700,5 @@ fileContent += `}\n`;
 
 const targetPath = path.join(__dirname, '../src/i18n/translations.ts');
 fs.writeFileSync(targetPath, fileContent, 'utf8');
-console.log('Successfully wrote src/i18n/translations.ts with 30 fully working languages!');
+console.log('Successfully wrote src/i18n/translations.ts with all configured languages!');
 

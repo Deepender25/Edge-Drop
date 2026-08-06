@@ -242,7 +242,7 @@ master_en = {
   }
 }
 
-# 30 Languages Metadata Mapping
+# 31 Language Metadata Mapping
 languages = [
   {"code": "system", "name": "System Default", "nativeName": "System Default (Auto)"},
   {"code": "en", "name": "English", "nativeName": "English (US)"},
@@ -258,6 +258,7 @@ languages = [
   {"code": "zh-TW", "name": "Chinese (Traditional)", "nativeName": "繁體中文"},
   {"code": "hi", "name": "Hindi", "nativeName": "हिन्दी"},
   {"code": "ar", "name": "Arabic", "nativeName": "العربية", "rtl": True},
+  {"code": "fa", "name": "Persian", "nativeName": "فارسی", "rtl": True},
   {"code": "bn", "name": "Bengali", "nativeName": "বাংলা"},
   {"code": "tr", "name": "Turkish", "nativeName": "Türkçe"},
   {"code": "vi", "name": "Vietnamese", "nativeName": "Tiếng Việt"},
