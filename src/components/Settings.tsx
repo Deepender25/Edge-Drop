@@ -850,7 +850,7 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                       <div className="setting-desc">{t('position.edgeLocationHintDesc')}</div>
                     </div>
                     <Toggle
-                      checked={settings.showEdgeLocationHint ?? true}
+                      checked={settings.showEdgeLocationHint ?? false}
                       onChange={(v) => patch({ showEdgeLocationHint: v })}
                     />
                   </div>

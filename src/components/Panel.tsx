@@ -291,22 +291,22 @@ export function Panel() {
       >
         {/* Edge Location Hint Beacon (Ultra-subtle fast hairline pulse when touching edge at wrong position) */}
         <AnimatePresence>
-          {!open && edgeHintActive && (settings.showEdgeLocationHint ?? true) && (
+          {!open && edgeHintActive && (settings.showEdgeLocationHint ?? false) && (
             <motion.div
               key="edge-location-beacon"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.28 }}
+              animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: 'easeInOut' }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
               style={{
                 position: 'absolute',
                 top: insetTop,
                 bottom: insetBottom,
                 [isRight ? 'right' : 'left']: 0,
-                width: 1.5,
+                width: 2,
                 boxSizing: 'border-box',
-                background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.45) 35%, rgba(255, 255, 255, 0.45) 65%, transparent)',
-                boxShadow: '0 0 4px rgba(255, 255, 255, 0.2)',
+                background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
+                boxShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
                 borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
                 pointerEvents: 'none',
                 zIndex: 99

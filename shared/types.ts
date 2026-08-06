@@ -192,7 +192,7 @@ export const DEFAULT_SETTINGS: Settings = {
   copyIndicatorStyle: 'logo',
   verticalOffset: 0.5,
   triggerAlignment: 'center',
-  showEdgeLocationHint: true,
+  showEdgeLocationHint: false,
   soundEffects: true,
   lastSeenChangelogVersion: undefined,
   hoverActivation: true,
