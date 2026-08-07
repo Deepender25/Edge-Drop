@@ -352,32 +352,32 @@ export function Panel() {
           <Header />
 
           <ToastStack />
-          <AnimatePresence mode="wait">
-            {settingsOpen ? (
-              <motion.div
-                key="settings"
-                initial={{ opacity: 0, x: isRight ? -8 : 8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isRight ? 8 : -8 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 36, mass: 0.6 }}
-                style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
-              >
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to bottom, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
-                <Settings />
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to top, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="list"
-                initial={{ opacity: 0, x: isRight ? 8 : -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isRight ? -8 : 8 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 36, mass: 0.6 }}
-                style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
-              >
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to bottom, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to bottom, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
-                <ItemList />
+          <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
+            <AnimatePresence initial={false}>
+              {settingsOpen ? (
+                <motion.div
+                  key="settings"
+                  initial={{ opacity: 0, x: isRight ? -8 : 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: isRight ? 8 : -8 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 32, mass: 0.5 }}
+                  style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
+                >
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to bottom, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
+                  <Settings />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to top, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0, x: isRight ? 8 : -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: isRight ? -8 : 8 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 32, mass: 0.5 }}
+                  style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
+                >
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: 'linear-gradient(to bottom, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
+                  <ItemList />
                 <div className="footer" style={{ position: 'relative' }}>
                   <div style={{ position: 'absolute', top: -18, left: 0, right: 0, height: 18, background: 'linear-gradient(to top, #000000, transparent)', pointerEvents: 'none', zIndex: 10 }} />
                   <span className="count">
@@ -398,6 +398,7 @@ export function Panel() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
           <DropOverlay />
           <SplitDropZone isRight={isRight} />
         </div>
