@@ -1375,6 +1375,9 @@ function LanguageDropdown() {
   const listRef = useRef<HTMLDivElement | null>(null)
   const lastScrollTick = useRef<number>(0)
 
+  const getLangLabel = (l: { code: string; name: string; nativeName: string }) =>
+    l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
+
   const selectedLang = languages.find((l) => l.code === (language || 'system')) || languages[0]
 
   useEffect(() => {
@@ -1428,7 +1431,7 @@ function LanguageDropdown() {
           transition: 'all 0.15s ease'
         }}
       >
-        <span>{selectedLang.nativeName}</span>
+        <span>{getLangLabel(selectedLang)}</span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
@@ -1507,7 +1510,7 @@ function LanguageDropdown() {
                     if (!active) e.currentTarget.style.background = 'transparent'
                   }}
                 >
-                  <span>{lang.nativeName}</span>
+                  <span>{getLangLabel(lang)}</span>
                   {active && <span style={{ color: '#4caf50', fontSize: 13, fontWeight: 700 }}>✓</span>}
                 </button>
               )
