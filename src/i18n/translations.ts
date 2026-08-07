@@ -1926,8 +1926,8 @@ export const ru: TranslationKeys = {
   "filters": {
     "all": "Все",
     "text": "Текст",
-    "links": "Лінки",
-    "images": "Фото",
+    "links": "Ссылки",
+    "images": "Изобр.",
     "files": "Файлы"
   },
   "tabs": {

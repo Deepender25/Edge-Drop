@@ -1,7 +1,7 @@
 /**
  * Small display helpers for clipboard item previews.
  */
-import { t } from '../i18n'
+import { t, getResolvedLanguage } from '../i18n'
 
 /** Truncate long text for list previews. */
 export function previewText(text: string, max = 160): string {
@@ -17,20 +17,35 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-/** Relative time like "just now", "3m ago", "2h ago", or a date. */
+/** Relative time formatted with native Intl locale rules (e.g. "2 дня назад", "3 hours ago"). */
 export function relativeTime(ts: number): string {
   const diff = Date.now() - ts
-  const s = Math.round(diff / 1000)
-  const agoStr = t('item.ago')
+  const s = Math.max(0, Math.round(diff / 1000))
   if (s < 5) return t('item.justNow')
-  if (s < 60) return `${s}s ${agoStr}`.trim()
-  const m = Math.round(s / 60)
-  if (m < 60) return `${m}m ${agoStr}`.trim()
-  const h = Math.round(m / 60)
-  if (h < 24) return `${h}h ${agoStr}`.trim()
-  const d = Math.round(h / 24)
-  if (d < 7) return `${d}d ${agoStr}`.trim()
-  return new Date(ts).toLocaleDateString()
+
+  const lang = getResolvedLanguage()
+
+  try {
+    const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'always', style: 'long' })
+    if (s < 60) return rtf.format(-s, 'second')
+    const m = Math.round(s / 60)
+    if (m < 60) return rtf.format(-m, 'minute')
+    const h = Math.round(m / 60)
+    if (h < 24) return rtf.format(-h, 'hour')
+    const d = Math.round(h / 24)
+    if (d < 7) return rtf.format(-d, 'day')
+  } catch {
+    const agoStr = t('item.ago')
+    if (s < 60) return `${s}s ${agoStr}`.trim()
+    const m = Math.round(s / 60)
+    if (m < 60) return `${m}m ${agoStr}`.trim()
+    const h = Math.round(m / 60)
+    if (h < 24) return `${h}h ${agoStr}`.trim()
+    const d = Math.round(h / 24)
+    if (d < 7) return `${d}d ${agoStr}`.trim()
+  }
+
+  return new Date(ts).toLocaleDateString(lang)
 }
 
 /** Pull a filename out of a path, cross-platform. */
