@@ -465,7 +465,7 @@ export function registerIpc(): void {
           }
         }
         if (!img.isEmpty()) {
-          const png = img.toPNG()
+          let png: Buffer | null = img.toPNG()
           const size = img.getSize()
           data.imageId = createId()
           data.bytes = png.length
@@ -473,6 +473,8 @@ export function registerIpc(): void {
           data.height = size.height
           data.ext = 'png'
           getStore().stageImageBytes(data.imageId, png)
+          png = null
+          img = null as any
         }
       } catch (err) {
         console.error('[IPC] Failed to process dropped web image URL:', err)

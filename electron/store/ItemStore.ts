@@ -481,13 +481,15 @@ export class ItemStore {
       return cached
     }
     try {
-      const img = nativeImage.createFromPath(this.imagePath(imageId, ext))
+      let img: any = nativeImage.createFromPath(this.imagePath(imageId, ext))
       if (img.isEmpty()) return null
       const size = img.getSize()
-      const thumb = size.width > THUMB_SIZE || size.height > THUMB_SIZE
+      let thumb: any = size.width > THUMB_SIZE || size.height > THUMB_SIZE
         ? img.resize({ width: THUMB_SIZE, quality: 'good' })
         : img
       const url = thumb.toDataURL({ scaleFactor: 1 })
+      img = null
+      thumb = null
       if (this.previewCache.size >= PREVIEW_CACHE_MAX) {
         this.previewCache.delete(this.previewCache.keys().next().value!)
       }

@@ -56,6 +56,7 @@ export function initState(): void {
     store.pruneExpired(loadSettings().autoDeleteHours)
     if (data.kind === 'image' && png && data.imageId) {
       store.stageImageBytes(data.imageId, png)
+      png = undefined as any
     }
     if (data.kind === 'files' && data.paths) {
       prefetchFileIcons(data.paths)
