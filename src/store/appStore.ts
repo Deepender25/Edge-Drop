@@ -261,14 +261,10 @@ export const useStore = create<AppState>((set, get) => ({
     set({
       settingsOpen,
       settingsSubView: 'main',
-      ...(settingsOpen
-        ? {
-            previewItemId: null,
-            previewItemRect: null,
-            previewFlyoutRect: null,
-            styleFlyoutOpen: false
-          }
-        : {})
+      previewItemId: null,
+      previewItemRect: null,
+      previewFlyoutRect: null,
+      styleFlyoutOpen: false
     })
   },
   setDragActive: (dragActive) => set({ dragActive }),

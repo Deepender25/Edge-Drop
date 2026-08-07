@@ -89,6 +89,9 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
 
   const handleTabSwitch = (newTab: SettingsTab) => {
     if (newTab === activeTab) return
+    if (styleFlyoutOpen) {
+      setStyleFlyoutOpen(false)
+    }
     // Save current section's scroll position
     if (scrollListRef.current) {
       tabScrollPositions.current[activeTab] = scrollListRef.current.scrollTop
@@ -96,6 +99,15 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
     playButtonClickSound()
     setActiveTab(newTab)
   }
+
+  // Close flyout if settings closes or unmounts
+  useEffect(() => {
+    return () => {
+      if (useStore.getState().styleFlyoutOpen) {
+        useStore.getState().setStyleFlyoutOpen(false)
+      }
+    }
+  }, [])
 
   // Restore target section's independent scroll position when tab changes
   useEffect(() => {

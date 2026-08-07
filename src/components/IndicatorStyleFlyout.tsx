@@ -21,14 +21,18 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
   const { t } = useTranslation()
   const styleFlyoutOpen = useStore((s) => s.styleFlyoutOpen)
   const setStyleFlyoutOpen = useStore((s) => s.setStyleFlyoutOpen)
+  const settingsOpen = useStore((s) => s.settingsOpen)
+  const open = useStore((s) => s.open)
   const settings = useStore((s) => s.settings)
   const patch = useStore((s) => s.patchSettings)
   const adaptiveSpring = useAdaptiveSpring()
 
+  const isVisible = styleFlyoutOpen && settingsOpen && open
+
   const flyoutRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!styleFlyoutOpen || !flyoutRef.current) {
+    if (!isVisible || !flyoutRef.current) {
       useStore.getState().setPreviewFlyoutRect(null)
       return
     }
@@ -50,7 +54,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
       window.removeEventListener('resize', updateRect)
       useStore.getState().setPreviewFlyoutRect(null)
     }
-  }, [styleFlyoutOpen])
+  }, [isVisible])
 
   const screenH = typeof window !== 'undefined' ? window.innerHeight : 800
   const pFrac = settings.panelHeight || 0.6
@@ -83,7 +87,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
           window.edge.setPreviewMode(false)
         }
       }}>
-        {styleFlyoutOpen && (
+        {isVisible && (
           <motion.div
             ref={flyoutRef}
             key="indicator-style-flyout"
