@@ -34,9 +34,6 @@ app.disableHardwareAcceleration()
 // Restrict the renderer to a single webContents and forbid remote module usage.
 app.enableSandbox()
 
-// Optimize V8 heap allocation and garbage collection for low RAM overhead.
-app.commandLine.appendSwitch('js-flags', '--max-old-space-size=128 --optimize-for-size')
-
 // ---- single instance -------------------------------------------------------
 const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) {
