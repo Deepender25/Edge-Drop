@@ -76,8 +76,8 @@ async function readFileListAsync(): Promise<string[] | null> {
           const paths = filterValidPaths(stdout.split(/\r?\n/).map((l) => l.trim()))
           if (paths.length > 0) return paths
         }
-      } catch (err) {
-        console.error('[formats] Failed to read file drop list via PowerShell:', err)
+      } catch {
+        // PowerShell timeout or locked clipboard fallback — parse buffer directly
       }
     }
 

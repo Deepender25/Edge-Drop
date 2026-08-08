@@ -86,6 +86,7 @@ interface AppState {
   setStyleFlyoutOpen: (open: boolean) => void
   previewFlyoutRect: { top: number; bottom: number } | null
   setPreviewFlyoutRect: (rect: { top: number; bottom: number } | null) => void
+  isInternalCopying: boolean
   copyFlareActive: boolean
   flareKey: number
   triggerCopyFlare: () => void
@@ -147,6 +148,7 @@ export const useStore = create<AppState>((set, get) => ({
     // AnimatePresence.onExitComplete callback is the one that calls setPreviewMode(false)
     // after the exit animation has fully settled.
   },
+  isInternalCopying: false,
   copyFlareActive: false,
   flareKey: 0,
 
@@ -232,14 +234,11 @@ export const useStore = create<AppState>((set, get) => ({
     const newTop = items.length > 0 ? items[0] : null
 
     if (get().hydrated && newTop) {
-      if (
-        !prevTop ||
-        newTop.id !== prevTop.id ||
-        newTop.capturedAt !== prevTop.capturedAt ||
-        newTop.hitCount !== prevTop.hitCount
-      ) {
-        console.log('[appStore] Top item copied or re-copied! Triggering sine-curve copy flare for:', newTop.id)
-        get().triggerCopyFlare()
+      if (!prevTop || newTop.id !== prevTop.id) {
+        if (!get().isInternalCopying) {
+          console.log('[appStore] External top item copied! Triggering sine-curve copy flare for:', newTop.id)
+          get().triggerCopyFlare()
+        }
       }
     }
     set({ items })
@@ -339,7 +338,9 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   async copy(id) {
+    set({ isInternalCopying: true })
     await edge.copyItem(id)
+    setTimeout(() => set({ isInternalCopying: false }), 400)
   },
 
   async paste(id) {
