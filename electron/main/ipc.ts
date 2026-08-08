@@ -230,7 +230,6 @@ export function registerIpc(): void {
 
   handle('item:set-pinned', (id, pinned) => {
     getStore().setPinned(id, pinned)
-    pushState.items()
     return getStore().toDto()
   })
 

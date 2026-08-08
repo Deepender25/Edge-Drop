@@ -15,7 +15,7 @@ import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPol
 import { createTray, registerIncognitoApplier } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
 import { prewarmDragIcons } from './drag'
-import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers } from './state'
+import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
 import { initAutoUpdater } from './updater'
 import { createOnboardingWindow } from './onboardingWindow'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
@@ -67,6 +67,9 @@ app.on('before-quit', () => {
   stopStateTimers()
   stopFullscreenMonitor()
   getWatcher().stop()
+  try {
+    getStore().persistSync()
+  } catch { /* ignore */ }
   try {
     const { globalShortcut } = require('electron')
     globalShortcut.unregisterAll()

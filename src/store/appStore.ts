@@ -311,7 +311,10 @@ export const useStore = create<AppState>((set, get) => ({
       items: get().items.map((it) => (it.id === id ? { ...it, pinned } : it))
     })
     const items = await edge.setPinned(id, pinned)
-    set({ items })
+    const current = get().items
+    if (items.length !== current.length || items.some((it, i) => it.id !== current[i]?.id || it.pinned !== current[i]?.pinned)) {
+      set({ items })
+    }
   },
 
   async remove(id) {

@@ -14,7 +14,7 @@
  * clamped preview; file items list names or bundle badge. Motion is handled by
  * the parent list (layout/AnimatePresence), so this component stays presentational.
  */
-import { memo, useState, useCallback, useEffect } from 'react'
+import { memo, useState, useCallback, useEffect, forwardRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ClipboardItemDto } from '../../shared/types'
 import { MAX_STACK } from '../../shared/types'
@@ -42,7 +42,7 @@ interface Props {
 /* Main item card                                                      */
 /* ------------------------------------------------------------------ */
 
-function ClipboardItemBase({ item }: Props) {
+const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const copy = useStore.getState().copy
   const paste = useStore.getState().paste
   const togglePin = useStore.getState().togglePin
@@ -111,18 +111,17 @@ function ClipboardItemBase({ item }: Props) {
 
   return (
     <motion.div
+      ref={ref}
       layout="position"
       initial={open ? { opacity: 0, scale: 0.96, y: 6 } : false}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -4, transition: { duration: 0.12, ease: [0.32, 0, 0.67, 0] } }}
       transition={{
-        layout: { type: 'spring', stiffness: 280, damping: 28, mass: 0.8 },
+        layout: { duration: 0.22, ease: [0.16, 1, 0.3, 1] },
         type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        mass: 0.8,
-        restDelta: 0.001,
-        restSpeed: 0.001
+        stiffness: 360,
+        damping: 28,
+        mass: 0.6
       }}
       style={{ willChange: 'transform, opacity' }}
       className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}`}
@@ -269,7 +268,7 @@ function ClipboardItemBase({ item }: Props) {
       </div>
     </motion.div>
   )
-}
+})
 
 // Bundle expand/collapse — all blur removed; opacity+y+scale composite trivially.
 const containerVariants = {

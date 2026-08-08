@@ -124,8 +124,25 @@ export class ItemStore {
     for (const it of this.items) this.sigToId.set(signature(it.data), it.id)
   }
 
-  /** Persist the current index to disk. Called after every mutation. */
+  private persistTimer: ReturnType<typeof setTimeout> | null = null
+
+  /** Persist the current index to disk. Debounced to prevent main thread blocking during UI transitions. */
   private persist(): void {
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer)
+    }
+    this.persistTimer = setTimeout(() => {
+      this.persistTimer = null
+      this.persistSync()
+    }, 150)
+  }
+
+  /** Synchronous disk write (called by debounced timer or on app shutdown). */
+  public persistSync(): void {
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer)
+      this.persistTimer = null
+    }
     try {
       const indexObj: Index = { items: this.items }
       const jsonStr = JSON.stringify(indexObj)
