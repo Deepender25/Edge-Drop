@@ -198,6 +198,8 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 6px, #000 calc(100% - 6px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0px, #000 6px, #000 calc(100% - 6px), transparent 100%);
 }
 .list::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
@@ -330,7 +332,7 @@
   padding: 12px var(--pad) 14px;
   position: relative;
   z-index: 1;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.6));
+  background: transparent;
   -webkit-font-smoothing: antialiased;
 }
 .footer .count {
