@@ -117,7 +117,7 @@ export function Header() {
                     fontSize: filterFontSize,
                     letterSpacing: filterLetterSpacing,
                     fontWeight: active ? 600 : 500,
-                    color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
+                    color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.85)',
                     background: 'transparent',
                     border: 'none',
                     borderRadius: 999,
