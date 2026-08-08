@@ -281,14 +281,14 @@ export function Panel() {
         transition={
           open
             ? {
-                scaleX: { type: 'spring', stiffness: 380, damping: 24, mass: 0.75 },
-                scaleY: { type: 'spring', stiffness: 340, damping: 26, mass: 0.8 },
-                opacity: { duration: 0.12, ease: 'easeOut' }
+                scaleX: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
+                scaleY: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: 0.16, ease: 'easeOut' }
               }
             : {
-                scaleX: { duration: 0.15, ease: [0.22, 1, 0.36, 1] },
-                scaleY: { duration: 0.15, ease: [0.22, 1, 0.36, 1] },
-                opacity: { duration: 0.08, ease: 'easeOut' }
+                scaleX: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+                scaleY: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.24, ease: [0.22, 1, 0.36, 1] }
               }
         }
       >
@@ -357,7 +357,7 @@ export function Panel() {
               {settingsOpen ? (
                 <motion.div
                   key="settings"
-                  initial={{ opacity: 0, x: isRight ? -8 : 8 }}
+                  initial={{ opacity: 1, x: isRight ? -8 : 8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: isRight ? 8 : -8 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 32, mass: 0.5 }}
@@ -370,7 +370,7 @@ export function Panel() {
               ) : (
                 <motion.div
                   key="list"
-                  initial={{ opacity: 0, x: isRight ? 8 : -8 }}
+                  initial={{ opacity: 1, x: isRight ? 8 : -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: isRight ? -8 : 8 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 32, mass: 0.5 }}

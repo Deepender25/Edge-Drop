@@ -148,7 +148,7 @@ export function useEdgeHover(): void {
       interactiveTimer = window.setTimeout(() => {
         interactiveTimer = undefined
         if (!useStore.getState().open) edge.setInteractive(false)
-      }, 180)
+      }, 300)
     }
 
     const closePanel = () => {
