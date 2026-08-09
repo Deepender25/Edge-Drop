@@ -195,6 +195,56 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Smart Link Preview Card */
+.link-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.link-preview-header {
+  display: flex;
+  align-items: center;
+}
+.link-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.link-service {
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+.link-dot {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+}
+.link-domain {
+  font-size: calc(11px * var(--font-scale, 1));
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 450;
+}
+.link-title {
+  font-size: calc(13px * var(--font-scale, 1));
+  font-weight: 550;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.link-url {
+  font-size: calc(11.5px * var(--font-scale, 1));
+  color: rgba(255, 255, 255, 0.70);
+  word-break: break-all;
+}
+
 /* Image thumbnails */
 .thumb {
   width: 100%;

@@ -38,7 +38,8 @@ import {
   LogOut,
   Coffee,
   Heart,
-  Star
+  Star,
+  Globe
 } from 'lucide-react'
 import { getFileKindByExt } from '../lib/fileType'
 
@@ -47,6 +48,7 @@ type P = SVGProps<SVGSVGElement>
 export const CoffeeIcon = (p: P) => <Coffee size={p.width ?? 16} strokeWidth={2.2} {...(p as any)} />
 export const HeartIcon = (p: P) => <Heart size={p.width ?? 16} strokeWidth={2.2} {...(p as any)} />
 export const StarIcon = (p: P) => <Star size={p.width ?? 16} strokeWidth={2.2} {...(p as any)} />
+export const GlobeIcon = (p: P) => <Globe size={p.width ?? 16} {...(p as any)} />
 
 export const KofiLogo = (p: P) => (
   <svg viewBox="0 0 24 24" width={p.width ?? 18} height={p.height ?? 18} fill="currentColor" {...(p as any)}>

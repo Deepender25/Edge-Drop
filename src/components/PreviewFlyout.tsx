@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
 import { formatBytes, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
-import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon } from './icons'
+import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon } from './icons'
+import { parseUrlPreview } from '../lib/urlPreview'
 import { createPortal } from 'react-dom'
 import { useAdaptiveSpring } from '../hooks/useAdaptiveSpring'
 import { useDragOut } from '../hooks/useDragOut'
@@ -563,6 +564,95 @@ function PreviewContent({
     const isCode = looksLikeCode(text)
     const isUrl = item.data.isUrl
 
+    if (isUrl) {
+      const info = parseUrlPreview(item.data.text)
+      return (
+        <div
+          onClick={(e) => {
+            const sel = window.getSelection()?.toString()
+            if (sel && sel.trim().length > 0) return
+            e.stopPropagation()
+            tryPaste(() => useStore.getState().paste(item.id))
+          }}
+          title={t('flyout.clickToPaste')}
+          style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 14, cursor: 'pointer' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
+              borderRadius: 999,
+              padding: '3px 10px'
+            }}>
+              <GlobeIcon width={13} height={13} style={{ color: 'rgba(255, 255, 255, 0.85)', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', fontFamily: SYS_FONT }}>{info.serviceName}</span>
+              <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.35)' }}>·</span>
+              <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.65)', fontFamily: SYS_FONT }}>{info.domain}</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <QuickActionButton
+                title={t('flyout.openLink')}
+                icon={ExternalLinkIcon}
+                onClick={() => window.open(item.data.text, '_blank')}
+              />
+              <QuickActionButton
+                title={t('flyout.copyText')}
+                icon={CopyIcon}
+                onClick={() => navigator.clipboard.writeText(item.data.text)}
+              />
+            </div>
+          </div>
+
+          {info.title && (
+            <div style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: '#ffffff',
+              lineHeight: 1.35,
+              fontFamily: SYS_FONT,
+              wordBreak: 'break-word'
+            }}>
+              {info.title}
+            </div>
+          )}
+
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              window.open(item.data.text, '_blank')
+            }}
+            style={{
+              padding: '10px 12px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 10,
+              fontSize: 12.5,
+              color: 'rgba(255, 255, 255, 0.80)',
+              fontFamily: SYS_FONT,
+              wordBreak: 'break-all',
+              lineHeight: 1.45,
+              cursor: 'pointer',
+              transition: 'background 0.15s ease, border-color 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'
+            }}
+          >
+            {item.data.text}
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div
         onClick={(e) => {
@@ -575,13 +665,6 @@ function PreviewContent({
         style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer' }}
       >
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'sticky', top: 0, zIndex: 2 }}>
-          {isUrl && (
-            <QuickActionButton
-              title={t('flyout.openLink')}
-              icon={ExternalLinkIcon}
-              onClick={() => window.open(item.data.text, '_blank')}
-            />
-          )}
           <QuickActionButton
             title={t('flyout.copyText')}
             icon={CopyIcon}
@@ -589,29 +672,16 @@ function PreviewContent({
           />
         </div>
         <div style={{
-          color: isUrl ? '#60a5fa' : 'rgba(255,255,255,0.88)',
+          color: 'rgba(255,255,255,0.88)',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           fontSize: isCode ? 12 : 13.5,
           lineHeight: isCode ? 1.65 : 1.7,
           fontFamily: isCode ? CODE_FONT : SYS_FONT,
           fontWeight: 400,
-          letterSpacing: isCode ? 0 : '0.01em',
-          textDecoration: isUrl ? 'underline' : 'none'
+          letterSpacing: isCode ? 0 : '0.01em'
         }}>
-          {isUrl ? (
-            <span
-              onClick={(e) => {
-                e.stopPropagation()
-                window.open(item.data.text, '_blank')
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              {text}
-            </span>
-          ) : (
-            text
-          )}
+          {text}
         </div>
       </div>
     )
