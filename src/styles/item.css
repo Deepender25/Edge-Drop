@@ -92,6 +92,9 @@
   word-break: break-word;
   white-space: pre-wrap;
   transition: color 0.16s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -212,20 +215,17 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  transform: translateY(-2px) scale(0.92);
+  transform: scale(0.96);
   display: flex;
   gap: 3px;
   padding: 3px 5px;
   background: #141416;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   opacity: 0;
   pointer-events: none;
-  /* Specific properties — prevents `all` from catching unrelated inherited changes.
-     will-change promotes the layer ahead of hover so the slide-in is smooth. */
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  will-change: opacity, transform;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75);
   z-index: 20;
 }
@@ -235,22 +235,28 @@
 .item-main.force-actions .actions {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0) scale(1);
+  transform: scale(1);
 }
 
 .act {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.75);
   background: transparent;
-  transition: background 0.14s ease, color 0.14s ease;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.1s ease;
 }
 .act:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
+}
+.act:active {
+  transform: scale(0.90);
 }
 .act.danger:hover {
   background: rgba(239, 68, 68, 0.22);

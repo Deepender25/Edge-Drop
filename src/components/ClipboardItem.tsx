@@ -123,7 +123,6 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
         damping: 28,
         mass: 0.6
       }}
-      style={{ willChange: 'transform, opacity' }}
       className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}`}
     >
       {copied && (
@@ -204,13 +203,15 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
         <div 
           className="actions" 
-          onClick={(e) => e.stopPropagation()} 
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); }} 
           style={{ display: isBundle && expanded ? 'none' : undefined }}
         >
           <button
             className={`act${item.pinned ? ' active' : ''}`}
             title={item.pinned ? t('item.unpin') : t('item.pin')}
             onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
               e.currentTarget.blur()
               playToggleSound(!item.pinned)
               togglePin(item.id, !item.pinned)
@@ -223,6 +224,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
             title={isPreviewing ? t('header.close') : t('item.expand')}
             onClick={(e) => {
               e.stopPropagation()
+              e.preventDefault()
               e.currentTarget.blur()
               playCardExpandSound(!isPreviewing)
               const rect = e.currentTarget.closest('.item-main')?.getBoundingClientRect()
@@ -232,10 +234,16 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
           >
             {isPreviewing ? <ContractIcon /> : <ExpandIcon />}
           </button>
-          <button className="act" title={t('item.copy')} onClick={(e) => {
-            e.currentTarget.blur()
-            onCopy(e)
-          }}>
+          <button 
+            className="act" 
+            title={t('item.copy')} 
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              e.currentTarget.blur()
+              onCopy(e)
+            }}
+          >
             <CopyIcon />
           </button>
           {item.data.kind === 'text' && item.data.isUrl && (
@@ -244,6 +252,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
               title={t('flyout.openLink')}
               onClick={(e) => {
                 e.stopPropagation()
+                e.preventDefault()
                 e.currentTarget.blur()
                 playButtonClickSound()
                 window.open((item.data as any).text, '_blank')
@@ -257,6 +266,8 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
             className="act danger"
             title={t('item.delete')}
             onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
               e.currentTarget.blur()
               playDeleteSound()
               remove(item.id)
