@@ -239,31 +239,55 @@
 }
 
 .act {
+  position: relative;
   width: 30px;
   height: 30px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 6px; /* Square hit box for 100% full-area click detection */
   color: rgba(255, 255, 255, 0.75);
   background: transparent;
   cursor: pointer;
   outline: none;
   border: none;
-  transition: background 0.12s ease, color 0.12s ease, transform 0.1s ease;
+  transition: color 0.12s ease, transform 0.1s ease;
 }
+
+.act::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%; /* Keeps visual hover highlight perfectly circular */
+  background: transparent;
+  transition: background 0.12s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.act > svg {
+  position: relative;
+  z-index: 1;
+}
+
 .act:hover {
-  background: rgba(255, 255, 255, 0.18);
   color: #fff;
+}
+.act:hover::before {
+  background: rgba(255, 255, 255, 0.18);
 }
 .act:active {
   transform: scale(0.90);
 }
 .act.danger:hover {
-  background: rgba(239, 68, 68, 0.22);
   color: #f87171;
+}
+.act.danger:hover::before {
+  background: rgba(239, 68, 68, 0.22);
 }
 .act.active {
   color: #fff;
+}
+.act.active::before {
   background: rgba(255, 255, 255, 0.25);
 }
 
