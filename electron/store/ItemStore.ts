@@ -194,6 +194,9 @@ export class ItemStore {
    * Returns true if the list actually changed (so callers can decide to push).
    */
   add(data: ItemData, limit: number): boolean {
+    if (data.kind === 'text' && data.text.length > 500000) {
+      data = { ...data, text: data.text.slice(0, 500000) }
+    }
     const sig = signature(data)
     const existingId = this.sigToId.get(sig)
     const now = Date.now()

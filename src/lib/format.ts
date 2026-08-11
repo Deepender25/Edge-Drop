@@ -5,7 +5,9 @@ import { t, getResolvedLanguage } from '../i18n'
 
 /** Truncate long text for list previews. */
 export function previewText(text: string, max = 160): string {
-  const single = text.replace(/\s+/g, ' ').trim()
+  if (!text) return ''
+  const head = text.length > max * 4 ? text.slice(0, max * 4) : text
+  const single = head.replace(/\s+/g, ' ').trim()
   if (single.length <= max) return single
   return single.slice(0, max - 1) + '…'
 }
