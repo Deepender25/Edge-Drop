@@ -259,7 +259,7 @@ export class ItemStore {
     if (removed.data.kind === 'image-collection') {
       removed.data.images.forEach((img) => this.removeImageFile(img.imageId))
     }
-    this.persist()
+    this.persistSync()
   }
 
   deleteBatch(ids: string[]): void {
@@ -281,7 +281,7 @@ export class ItemStore {
         removed.data.images.forEach((img) => this.removeImageFile(img.imageId))
       }
     }
-    this.persist()
+    this.persistSync()
   }
 
   merge(sourceId: string, targetId: string): MergeResult {
@@ -492,7 +492,7 @@ export class ItemStore {
       }
     }
     this.items = kept
-    this.persist()
+    this.persistSync()
   }
 
   pruneExpired(hours: number): boolean {
@@ -514,7 +514,7 @@ export class ItemStore {
     }
     if (removedAny) {
       this.items = kept
-      this.persist()
+      this.persistSync()
     }
     return removedAny
   }
