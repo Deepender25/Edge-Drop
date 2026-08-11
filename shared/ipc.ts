@@ -25,6 +25,9 @@ export interface InvokeMap {
   /** Delete a single item (and its image file if present). */
   'item:delete': { args: [id: string]; result: ClipboardItemDto[] }
 
+  /** Delete a batch of items in a single atomic operation. */
+  'item:delete-batch': { args: [ids: string[]]; result: ClipboardItemDto[] }
+
   /** Delete every unpinned item. */
   'item:clear': { args: []; result: ClipboardItemDto[] }
 

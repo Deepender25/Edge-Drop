@@ -251,6 +251,18 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
+  handle('item:delete-batch', (ids) => {
+    if (!ids || ids.length === 0) return getStore().toDto()
+    const items = ids.map((id) => getStore().get(id)).filter(Boolean)
+    getStore().deleteBatch(ids)
+    if (items.some((item) => item && clipboardMatchesItem(item.data))) {
+      clipboard.clear()
+    }
+    getWatcher().resyncSignature()
+    pushState.items()
+    return getStore().toDto()
+  })
+
   handle('item:clear', () => {
     getStore().clearUnpinned()
     // Clear the system clipboard unconditionally: the user wiped their history,

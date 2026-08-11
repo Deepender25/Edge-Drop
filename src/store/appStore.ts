@@ -340,10 +340,7 @@ export const useStore = create<AppState>((set, get) => ({
     } else {
       const idSet = new Set(ids)
       set({ items: get().items.filter((it) => !idSet.has(it.id)) })
-      let items = get().items
-      for (const id of ids) {
-        items = await edge.deleteItem(id)
-      }
+      const items = await edge.deleteBatchItems(ids)
       set({ items })
     }
   },

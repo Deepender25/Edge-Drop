@@ -262,6 +262,28 @@ export class ItemStore {
     this.persist()
   }
 
+  deleteBatch(ids: string[]): void {
+    if (!ids || ids.length === 0) return
+    const set = new Set(ids)
+    const toRemove: ClipboardItem[] = []
+    this.items = this.items.filter((it) => {
+      if (set.has(it.id)) {
+        toRemove.push(it)
+        return false
+      }
+      return true
+    })
+
+    for (const removed of toRemove) {
+      this.sigToId.delete(signature(removed.data))
+      if (removed.data.kind === 'image') this.removeImageFile(removed.data.imageId)
+      if (removed.data.kind === 'image-collection') {
+        removed.data.images.forEach((img) => this.removeImageFile(img.imageId))
+      }
+    }
+    this.persist()
+  }
+
   merge(sourceId: string, targetId: string): MergeResult {
     if (sourceId === targetId) return { ok: false }
     const srcIdx = this.items.findIndex(x => x.id === sourceId)
