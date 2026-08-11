@@ -47,14 +47,18 @@ export let previewActive = false
 export let currentHotZoneWidth = 3
 export let currentStickDisplayId: number | undefined
 
-/**
- * Fix 3: Consecutive-stale-reads counter for getStickGeometry self-heal.
- * Tracks how many consecutive repositionWindow() calls have found the saved
- * stickDisplayId absent from the display list. The preference is only wiped
- * from disk after this reaches STALE_THRESHOLD (2), preventing transient TV
- * mirror ID renegotiations from destroying the user's saved monitor choice.
- */
 let staleIdConsecutiveCount = 0
+let cachedWorkArea = { x: 0, y: 0, width: 1920, height: 1080 }
+
+export function updateCachedWorkArea(): void {
+  try {
+    const all = screen.getAllDisplays()
+    const stick = all.find(d => d.id === currentStickDisplayId) || screen.getPrimaryDisplay()
+    if (stick && stick.workArea) {
+      cachedWorkArea = stick.workArea
+    }
+  } catch {}
+}
 
 export function setHotZoneWidth(width: number): void {
   currentHotZoneWidth = width
@@ -62,6 +66,7 @@ export function setHotZoneWidth(width: number): void {
 
 export function setStickDisplayId(id: number | undefined): void {
   currentStickDisplayId = id
+  updateCachedWorkArea()
 }
 
 export function getMainWindow(): BrowserWindow | null {
@@ -96,6 +101,15 @@ export function setInteractive(value: boolean): void {
     // Panel is closed: full click-through, no forwarding needed.
     mainWindow.setIgnoreMouseEvents(true, { forward: false })
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
+
+    // Trigger gentle idle memory cleanup 1.5s after panel closes to reclaim RAM
+    if (global.gc) {
+      setTimeout(() => {
+        if (!interactive && global.gc) {
+          try { global.gc() } catch { /* ignore */ }
+        }
+      }, 1500)
+    }
   }
 }
 
@@ -189,14 +203,10 @@ function _pollTick(): void {
 
   const pt = screen.getCursorScreenPoint()
 
-  // Find the stick display (or fallback to primary)
-  const allDisplays = screen.getAllDisplays()
-  let stickDisplay = allDisplays.find(d => d.id === currentStickDisplayId)
-  if (!stickDisplay) {
-    stickDisplay = screen.getPrimaryDisplay()
+  if (cachedWorkArea.width === 1920 && cachedWorkArea.height === 1080) {
+    updateCachedWorkArea()
   }
-
-  const wa = stickDisplay.workArea
+  const wa = cachedWorkArea
 
   // Translate screen coords → stick display client coords.
   const clientX = pt.x - wa.x
@@ -458,6 +468,7 @@ export function createWindow(): BrowserWindow {
   })
 
   const handleDisplayChange = (triggerPopUp = false) => {
+    updateCachedWorkArea()
     console.log('[Main] Display metrics/topology changed — validating bounds and repositioning window')
     repositionWindow()
     if (triggerPopUp) {
