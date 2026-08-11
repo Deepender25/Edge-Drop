@@ -16,6 +16,7 @@ import { readFileSync } from 'node:fs'
 import { PATHS } from '../store/paths'
 import { prefetchFileIcons } from './drag'
 import { runtime } from './config'
+import { getMainWindow } from './window'
 
 const store = new ItemStore()
 const watcher = new ClipboardWatcher(600)
@@ -63,6 +64,10 @@ export function initState(): void {
     }
     store.add(data, loadSettings().historyLimit)
     pushState.items()
+    const win = getMainWindow()
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('ui:copy-flare')
+    }
   })
   watcher.setPaused(loadSettings().incognito)
 

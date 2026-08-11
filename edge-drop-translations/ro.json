@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Șterge automat elementele copiate (păstrează Pinate)",
     "never": "Niciodată",
     "capacityTitle": "Capacitate istoric",
-    "capacityDesc": "Numărul maxim de elemente nepinate stocate în istoric"
+    "capacityDesc": "Numărul maxim de elemente nepinate stocate în istoric",
+    "movePastedToTopTitle": "Mută elementele lipite în partea de sus",
+    "movePastedToTopDesc": "Reordonează elementele nefixate în partea de sus a secțiunii Recente de fiecare dată când le lipești"
   },
   "position": {
     "edgePlacementTitle": "Plasare margine",

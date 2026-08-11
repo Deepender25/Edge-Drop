@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Eliminar automáticamente elementos copiados (conserva los fijados)",
     "never": "Nunca",
     "capacityTitle": "Capacidad del historial",
-    "capacityDesc": "Máximo de elementos no fijados almacenados en el historial"
+    "capacityDesc": "Máximo de elementos no fijados almacenados en el historial",
+    "movePastedToTopTitle": "Mover los elementos pegados arriba",
+    "movePastedToTopDesc": "Reordena los elementos no fijados al principio de Recientes cada vez que los pegues"
   },
   "position": {
     "edgePlacementTitle": "Borde de la pantalla",

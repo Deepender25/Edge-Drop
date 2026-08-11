@@ -58,7 +58,9 @@
     "autoDeleteDesc": "自动清除已复制的项（保留固定项）",
     "never": "从不",
     "capacityTitle": "历史记录容量",
-    "capacityDesc": "历史记录中存储的最大未固定项数量"
+    "capacityDesc": "历史记录中存储的最大未固定项数量",
+    "movePastedToTopTitle": "将粘贴的项目移至顶部",
+    "movePastedToTopDesc": "每次粘贴时，将未固定的项目重新排列到“最近使用”列表的顶部"
   },
   "position": {
     "edgePlacementTitle": "边缘位置",

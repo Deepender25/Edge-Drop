@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Kopierte Elemente automatisch löschen (angepinnte bleiben erhalten)",
     "never": "Nie",
     "capacityTitle": "Verlaufskapazität",
-    "capacityDesc": "Maximale Anzahl unangepinnter Elemente im Verlauf"
+    "capacityDesc": "Maximale Anzahl unangepinnter Elemente im Verlauf",
+    "movePastedToTopTitle": "Eingefügte Elemente nach oben verschieben",
+    "movePastedToTopDesc": "Ordnet nicht angeheftete Elemente jedes Mal, wenn Sie sie einfügen, oben in „Zuletzt verwendet“ ein"
   },
   "position": {
     "edgePlacementTitle": "Randplatzierung",

@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Poista kopioidut kohteet automaattisesti (säilyttää Kiinnitetyt)",
     "never": "Ei koskaan",
     "capacityTitle": "Historian kapasiteetti",
-    "capacityDesc": "Historiassa säilytettyjen kiinnittämättömien kohteiden enimmäismäärä"
+    "capacityDesc": "Historiassa säilytettyjen kiinnittämättömien kohteiden enimmäismäärä",
+    "movePastedToTopTitle": "Siirrä liitetyt kohteet alkuun",
+    "movePastedToTopDesc": "Järjestää kiinnittämättömät kohteet Uusimmat-luettelon alkuun aina, kun liität ne"
   },
   "position": {
     "edgePlacementTitle": "Reunan sijoitus",

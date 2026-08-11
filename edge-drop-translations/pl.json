@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Automatycznie usuwaj skopiowane elementy (zachowuje przypięte)",
     "never": "Nigdy",
     "capacityTitle": "Pojemność historii",
-    "capacityDesc": "Maksymalna liczba odpiętych elementów przechowywanych w historii"
+    "capacityDesc": "Maksymalna liczba odpiętych elementów przechowywanych w historii",
+    "movePastedToTopTitle": "Przenoś wklejone elementy na górę",
+    "movePastedToTopDesc": "Po każdym wklejeniu przenosi nieprzypięte elementy na początek listy Ostatnie"
   },
   "position": {
     "edgePlacementTitle": "Położenie krawędzi",

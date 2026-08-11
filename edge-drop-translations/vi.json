@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Tự động thanh lọc các mục đã sao chép (giữ mục đã ghim)",
     "never": "Không bao giờ",
     "capacityTitle": "Dung lượng lịch sử",
-    "capacityDesc": "Số mục chưa ghim tối đa được lưu trong lịch sử"
+    "capacityDesc": "Số mục chưa ghim tối đa được lưu trong lịch sử",
+    "movePastedToTopTitle": "Đưa các mục đã dán lên đầu",
+    "movePastedToTopDesc": "Sắp xếp lại các mục chưa ghim lên đầu mục Gần đây mỗi khi bạn dán chúng"
   },
   "position": {
     "edgePlacementTitle": "Vị trí mép",

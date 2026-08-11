@@ -58,7 +58,9 @@
     "autoDeleteDesc": "自動清除已複製的項目（保留固定項）",
     "never": "從不",
     "capacityTitle": "歷史記錄容量",
-    "capacityDesc": "歷史記錄中儲存的最大未固定項目數量"
+    "capacityDesc": "歷史記錄中儲存的最大未固定項目數量",
+    "movePastedToTopTitle": "將貼上的項目移至頂端",
+    "movePastedToTopDesc": "每次貼上時，將未釘選的項目重新排列到「最近使用」的頂端"
   },
   "position": {
     "edgePlacementTitle": "邊緣位置",

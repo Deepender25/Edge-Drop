@@ -221,6 +221,28 @@ export class ItemStore {
     return true
   }
 
+  /**
+   * Touch an item (e.g. on paste) to update its timestamp and hitCount,
+   * moving unpinned items to the front of the Recent list.
+   */
+  touch(id: string): boolean {
+    const idx = this.items.findIndex((it) => it.id === id)
+    if (idx < 0) return false
+    const it = this.items[idx]
+    const now = Date.now()
+    const updated: ClipboardItem = { ...it, hitCount: it.hitCount + 1, capturedAt: now }
+
+    if (!it.pinned) {
+      this.items.splice(idx, 1)
+      this.items.unshift(updated)
+    } else {
+      this.items[idx] = updated
+    }
+
+    this.persist()
+    return true
+  }
+
   setPinned(id: string, pinned: boolean): void {
     const it = this.items.find((x) => x.id === id)
     if (!it) return

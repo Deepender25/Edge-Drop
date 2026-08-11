@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Ryd automatisk kopierede elementer (bevarer Fastgjorte)",
     "never": "Aldrig",
     "capacityTitle": "Historikkapacitet",
-    "capacityDesc": "Maksimalt antal ikke-fastgjorte elementer gemt i historik"
+    "capacityDesc": "Maksimalt antal ikke-fastgjorte elementer gemt i historik",
+    "movePastedToTopTitle": "Flyt indsatte elementer til toppen",
+    "movePastedToTopDesc": "Omarrangerer ikke-fastgjorte elementer til toppen af Seneste, hver gang du indsætter dem"
   },
   "position": {
     "edgePlacementTitle": "Kantplacering",

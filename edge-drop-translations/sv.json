@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Rensa automatiskt kopierade objekt (bevarar fästa)",
     "never": "Aldrig",
     "capacityTitle": "Historikkapacitet",
-    "capacityDesc": "Maximalt antal ofästa objekt i historik"
+    "capacityDesc": "Maximalt antal ofästa objekt i historik",
+    "movePastedToTopTitle": "Flytta inklistrade objekt till toppen",
+    "movePastedToTopDesc": "Flyttar om fästa objekt till toppen av Senaste varje gång du klistrar in dem"
   },
   "position": {
     "edgePlacementTitle": "Kantplacering",

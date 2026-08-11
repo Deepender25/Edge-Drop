@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Excluir automaticamente itens copiados (preserva fixados)",
     "never": "Nunca",
     "capacityTitle": "Capacidade do histórico",
-    "capacityDesc": "Máximo de itens não fixados armazenados no histórico"
+    "capacityDesc": "Máximo de itens não fixados armazenados no histórico",
+    "movePastedToTopTitle": "Mover itens colados para o topo",
+    "movePastedToTopDesc": "Reordena os itens não fixados para o topo de Recentes sempre que você os cola"
   },
   "position": {
     "edgePlacementTitle": "Posicionamento da borda",

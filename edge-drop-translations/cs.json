@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Automaticky odstranit zkopírované položky (zachová připnuté)",
     "never": "Nikdy",
     "capacityTitle": "Kapacita historie",
-    "capacityDesc": "Maximální počet nepřipnutých položek v historii"
+    "capacityDesc": "Maximální počet nepřipnutých položek v historii",
+    "movePastedToTopTitle": "Přesouvat vložené položky nahoru",
+    "movePastedToTopDesc": "Při každém vložení přesune nepřipnuté položky na začátek seznamu Nedávné"
   },
   "position": {
     "edgePlacementTitle": "Umístění na okraji",

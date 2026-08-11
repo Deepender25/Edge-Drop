@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Gekopieerde items automatisch wissen (behoudt vastgezette)",
     "never": "Nooit",
     "capacityTitle": "Geschiedeniscapaciteit",
-    "capacityDesc": "Maximum aantal niet-vastgezette items in geschiedenis"
+    "capacityDesc": "Maximum aantal niet-vastgezette items in geschiedenis",
+    "movePastedToTopTitle": "Geplakte items naar boven verplaatsen",
+    "movePastedToTopDesc": "Zet niet-vastgemaakte items telkens wanneer je ze plakt bovenaan bij Recent"
   },
   "position": {
     "edgePlacementTitle": "Randplaatsing",

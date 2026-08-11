@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Kopyalanan öğeleri otomatik temizle (Sabitlenenleri korur)",
     "never": "Asla",
     "capacityTitle": "Geçmiş kapasitesi",
-    "capacityDesc": "Geçmişte saklanan en fazla sabitlenmemiş öğe sayısı"
+    "capacityDesc": "Geçmişte saklanan en fazla sabitlenmemiş öğe sayısı",
+    "movePastedToTopTitle": "Yapıştırılan öğeleri en üste taşı",
+    "movePastedToTopDesc": "Her yapıştırdığınızda sabitlenmemiş öğeleri Son Kullanılanlar listesinin en üstüne yeniden sıralar"
   },
   "position": {
     "edgePlacementTitle": "Kenar Yerleşimi",

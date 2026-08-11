@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Supprimer automatiquement les éléments copiés (conserve les épinglés)",
     "never": "Jamais",
     "capacityTitle": "Capacité de l'historique",
-    "capacityDesc": "Nombre maximum d'éléments non épinglés stockés dans l'historique"
+    "capacityDesc": "Nombre maximum d'éléments non épinglés stockés dans l'historique",
+    "movePastedToTopTitle": "Déplacer les éléments collés en haut",
+    "movePastedToTopDesc": "Réorganise les éléments non épinglés en haut de Récents chaque fois que vous les collez"
   },
   "position": {
     "edgePlacementTitle": "Bord de l'écran",

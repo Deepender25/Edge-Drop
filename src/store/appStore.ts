@@ -161,6 +161,12 @@ export const useStore = create<AppState>((set, get) => ({
       isStoreBuild: isStoreBuild ?? false,
       hydrated: true
     })
+    edge.onCopyFlare(() => {
+      if (!get().isInternalCopying) {
+        console.log('[appStore] OS copy event detected! Triggering copy flare indicator')
+        get().triggerCopyFlare()
+      }
+    })
   },
 
   manualCheckState: { status: 'idle' },
@@ -234,11 +240,10 @@ export const useStore = create<AppState>((set, get) => ({
     const newTop = items.length > 0 ? items[0] : null
 
     if (get().hydrated && newTop) {
-      if (!prevTop || newTop.id !== prevTop.id) {
-        if (!get().isInternalCopying) {
-          console.log('[appStore] External top item copied! Triggering sine-curve copy flare for:', newTop.id)
-          get().triggerCopyFlare()
-        }
+      const isDifferentId = !prevTop || newTop.id !== prevTop.id
+      const isNewCapturedAt = prevTop && newTop.capturedAt !== prevTop.capturedAt
+      if ((isDifferentId || isNewCapturedAt) && !get().isInternalCopying) {
+        get().triggerCopyFlare()
       }
     }
     set({ items })
@@ -287,8 +292,14 @@ export const useStore = create<AppState>((set, get) => ({
     if (get().settings.showCopyIndicator === false) return
     if (flareTimer) clearTimeout(flareTimer)
     set({ copyFlareActive: true, flareKey: Date.now() })
+    if (!get().open) {
+      edge.setPreviewMode(true)
+    }
     flareTimer = setTimeout(() => {
       set({ copyFlareActive: false })
+      if (!get().open && !get().previewItemId && !get().styleFlyoutOpen) {
+        edge.setPreviewMode(false)
+      }
       flareTimer = null
     }, 1400)
   },
@@ -344,7 +355,9 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   async paste(id) {
+    set({ isInternalCopying: true })
     await edge.pasteItem(id)
+    setTimeout(() => set({ isInternalCopying: false }), 600)
   },
 
   async pasteSubitem(req) {

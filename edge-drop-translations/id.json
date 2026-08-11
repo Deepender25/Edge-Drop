@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Bersihkan item yang disalin secara otomatis (mempertahankan Disematkan)",
     "never": "Tidak pernah",
     "capacityTitle": "Kapasitas riwayat",
-    "capacityDesc": "Jumlah maksimum item tidak disematkan yang disimpan dalam riwayat"
+    "capacityDesc": "Jumlah maksimum item tidak disematkan yang disimpan dalam riwayat",
+    "movePastedToTopTitle": "Pindahkan item yang ditempel ke atas",
+    "movePastedToTopDesc": "Mengurutkan ulang item yang tidak disematkan ke bagian atas Terbaru setiap kali Anda menempelkannya"
   },
   "position": {
     "edgePlacementTitle": "Penempatan Tepi",

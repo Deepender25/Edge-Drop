@@ -58,7 +58,9 @@
     "autoDeleteDesc": "복사한 항목 자동 삭제 (고정 항목은 유지)",
     "never": "사용 안 함",
     "capacityTitle": "기록 용량",
-    "capacityDesc": "기록에 저장되는 고정 안 됨 항목의 최대 수"
+    "capacityDesc": "기록에 저장되는 고정 안 됨 항목의 최대 수",
+    "movePastedToTopTitle": "붙여넣은 항목을 맨 위로 이동",
+    "movePastedToTopDesc": "붙여넣을 때마다 고정되지 않은 항목을 최근 항목의 맨 위로 다시 정렬합니다"
   },
   "position": {
     "edgePlacementTitle": "가장자리 배치",

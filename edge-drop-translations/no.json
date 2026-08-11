@@ -58,7 +58,9 @@
     "autoDeleteDesc": "Fjern kopierte elementer automatisk (beholder Festede)",
     "never": "Aldri",
     "capacityTitle": "Historikk-kapasitet",
-    "capacityDesc": "Maksimalt antall ikke-festede elementer lagret i historikk"
+    "capacityDesc": "Maksimalt antall ikke-festede elementer lagret i historikk",
+    "movePastedToTopTitle": "Flytt innlimte elementer til toppen",
+    "movePastedToTopDesc": "Flytter ikke-festede elementer til toppen av Nylige hver gang du limer dem inn"
   },
   "position": {
     "edgePlacementTitle": "Kant-plassering",

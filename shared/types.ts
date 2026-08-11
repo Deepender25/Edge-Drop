@@ -168,11 +168,14 @@ export interface Settings {
   autoUpdates?: boolean
   /** Active UI language code ('system' | 'en' | 'es' | 'fr' | 'de' | ...). Default: 'system'. */
   language?: string
+  /** When true, pasting an unpinned item updates its timestamp to move it to the top of Recent. Default: true. */
+  movePastedToTop?: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   hotZoneHeight: 0.25,
   hotZoneWidth: 3,
+  movePastedToTop: true,
   historyLimit: 500,
   panelHeight: 0.5,
   incognito: false,

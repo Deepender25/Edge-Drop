@@ -176,6 +176,7 @@ const api = {
   onInternalDrop: (cb: (pos: { x: number; y: number }) => void) => on('item:internal-drop', cb),
   onCursorEdge: (cb: (data: EventArgs<'window:cursor-edge'>[0]) => void) => on('window:cursor-edge', cb),
   onToast: (cb: (toast: { id: string; message: string; tone: 'info' | 'error' }) => void) => on('ui:toast', cb),
+  onCopyFlare: (cb: () => void) => on('ui:copy-flare', cb),
   onTutorialStep: (cb: (step: number) => void) => on('tutorial:step', cb),
   onUpdateAvailable: (cb: (info: { version: string }) => void) => on('app:update-available', cb),
   onUpdateDownloaded: (cb: (info: { version: string }) => void) => on('app:update-downloaded', cb),

@@ -123,6 +123,8 @@ export interface EventMap {
    * shows it as a toast; `id` lets it dedupe/dismiss.
    */
   'ui:toast': [toast: { id: string; message: string; tone: 'info' | 'error' }]
+  /** Fired when an OS copy event (Ctrl+C) is detected by the main process watcher. */
+  'ui:copy-flare': []
   /** Fired by electron-updater when a new update is available for GitHub builds. */
   'app:update-available': [info: { version: string }]
   /** Fired by electron-updater when the update has been fully downloaded and is ready to install. */

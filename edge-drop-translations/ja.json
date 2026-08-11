@@ -58,7 +58,9 @@
     "autoDeleteDesc": "コピーした項目を自動的に消去 (ピン留めは保持)",
     "never": "なし",
     "capacityTitle": "履歴の容量",
-    "capacityDesc": "履歴に保存するピン留め以外の項目の最大数"
+    "capacityDesc": "履歴に保存するピン留め以外の項目の最大数",
+    "movePastedToTopTitle": "貼り付けたアイテムを上に移動",
+    "movePastedToTopDesc": "貼り付けるたびに、ピン留めされていないアイテムを「最近使用した項目」の先頭に並べ替えます"
   },
   "position": {
     "edgePlacementTitle": "エッジ配置",

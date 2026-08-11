@@ -399,6 +399,19 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                     />
                   </div>
 
+                  <div className="setting-divider" />
+
+                  <div className="setting-row">
+                    <div className="setting-info">
+                      <div className="setting-title">{t('behaviour.movePastedToTopTitle')}</div>
+                      <div className="setting-desc">{t('behaviour.movePastedToTopDesc')}</div>
+                    </div>
+                    <Toggle
+                      checked={settings.movePastedToTop ?? true}
+                      onChange={(v) => patch({ movePastedToTop: v })}
+                    />
+                  </div>
+
                   {!isStoreBuild && (
                     <>
                       <div className="setting-divider" />

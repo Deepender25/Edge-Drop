@@ -350,28 +350,35 @@ export function registerIpc(): void {
     watcher.setPaused(true)
 
     try {
+      // 1. Close panel immediately so Edge-Drop slides shut with 0ms UI lag
+      pushState.togglePanel(false)
+
+      // 2. Write item to system clipboard
       await writeItemToClipboard(item.data)
       console.log('[IPC] item:paste wrote to clipboard, kind=', item.data.kind)
 
-      // DO NOT call store.add() here. hitCount must only increment when the user
-      // genuinely copies the content from a source app (detected by the watcher).
-      // Pasting from Edge-Drop is a retrieval action, not a new copy.
+      // 3. Touch item timestamp if enabled
+      const settings = loadSettings()
+      if (settings.movePastedToTop !== false) {
+        getStore().touch(id)
+      }
 
-      // Close panel so focus returns to the user's active input/text box.
-      // Pass false to explicitly close and avoid toggle race conditions.
-      pushState.togglePanel(false)
-
-      // Wait 50ms for layout updates, then simulate Ctrl+V
+      // 4. Simulate Ctrl+V after 50ms
       setTimeout(() => {
         simulatePaste()
       }, 50)
+
+      // 5. Broadcast updated items list after panel has fully closed off-screen (250ms)
+      if (settings.movePastedToTop !== false) {
+        setTimeout(() => {
+          pushState.items()
+        }, 250)
+      }
     } finally {
-      // Invalidate (not resync) the watcher signature after the pause expires.
-      // This ensures that if the user re-copies the SAME content from the source
-      // app right after paste, the watcher detects it as new (clipboard sig never
-      // changed, but our sentinel '__post-paste__' guarantees the next poll sees a diff).
+      // Resync the watcher signature after paste so standard OS Ctrl+V does NOT
+      // increment item hitCounts or re-order items.
       setTimeout(() => {
-        watcher.invalidateSignature()
+        watcher.resyncSignature()
         watcher.setPaused(loadSettings().incognito)
       }, 350)
     }
