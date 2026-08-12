@@ -147,6 +147,34 @@ let _lastProximityExitMs = 0
 let _lastSentX = -9999
 let _lastSentY = -9999
 
+
+/**
+ * Returns the workArea `_pollTick` should treat as "the edge" — widened to
+ * include a vertical taskbar's footprint when ignoreVerticalTaskbar is on,
+ * so cursor-edge detection lines up with where the window is actually drawn
+ * (see the matching bounds-vs-workArea logic in geometry.ts).
+ */
+function getEffectivePollArea(
+  display: Electron.Display,
+  position: 'left' | 'right',
+  ignoreVerticalTaskbar: boolean
+): { x: number; y: number; width: number; height: number } {
+  const wa = display.workArea
+  if (!ignoreVerticalTaskbar) return wa
+  const b = display.bounds
+
+  if (position === 'left' && b.x < wa.x) {
+    const inset = wa.x - b.x
+    return { x: b.x, y: wa.y, width: wa.width + inset, height: wa.height }
+  }
+  if (position === 'right' && (b.x + b.width) > (wa.x + wa.width)) {
+    const inset = (b.x + b.width) - (wa.x + wa.width)
+    return { x: wa.x, y: wa.y, width: wa.width + inset, height: wa.height }
+  }
+  return wa
+}
+
+
 /**
  * Temporarily suspend the always-on-top heartbeat.
  *
@@ -196,7 +224,7 @@ function _pollTick(): void {
     stickDisplay = screen.getPrimaryDisplay()
   }
 
-  const wa = stickDisplay.workArea
+  const wa = getEffectivePollArea(stickDisplay, settings.stickPosition, settings.ignoreVerticalTaskbar ?? false)
 
   // Translate screen coords → stick display client coords.
   const clientX = pt.x - wa.x
@@ -308,6 +336,7 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
   const primaryDisplay = screen.getPrimaryDisplay()
   const allDisplays = screen.getAllDisplays().map(d => ({
     id: d.id,
+    bounds: { ...d.bounds },
     workArea: { ...d.workArea },
     scaleFactor: d.scaleFactor,
     isPrimary: d.id === primaryDisplay.id
@@ -323,7 +352,8 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
     savedScaleFactor: settings.stickDisplayScaleFactor,
     windowWidth: currentWindowWidth,
     windowHeight: primaryDisplay.workArea.height, // initial hint; result uses resolvedDisplay.workArea.height
-    currentBounds: getMainWindow()?.getBounds()
+    currentBounds: getMainWindow()?.getBounds(),
+    ignoreVerticalTaskbar: settings.ignoreVerticalTaskbar ?? false
   })
 
   const resolved = result.resolvedDisplay

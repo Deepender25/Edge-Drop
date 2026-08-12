@@ -718,7 +718,22 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                       ))}
                     </div>
                   </div>
-
+                  <div className="setting-divider" />
+                  
+                  <div className="setting-row">
+                    <div className="setting-info">
+                      <div className="setting-title">{t('position.ignoreVerticalTaskbarTitle')}</div>
+                      <div className="setting-desc">{t('position.ignoreVerticalTaskbarDesc')}</div>
+                    </div>
+                    <Toggle
+                      checked={settings.ignoreVerticalTaskbar ?? false}
+                      onChange={(v) => {
+                        patch({ ignoreVerticalTaskbar: v })
+                        useStore.getState().notifyPositionChanged()
+                      }}
+                    />
+                  </div>
+                  
                   <div className="setting-divider" />
 
                   {/* Vertical Position Range Slider */}

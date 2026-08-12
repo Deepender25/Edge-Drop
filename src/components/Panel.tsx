@@ -16,6 +16,7 @@ import { ItemList } from './ItemList'
 import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { TrashIcon } from './icons'
+import { ClearMenu } from './ClearMenu'
 import { PreviewFlyout } from './PreviewFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
@@ -381,16 +382,26 @@ export function Panel() {
                     {filteredCount} {t('item.items')}
                   </span>
                   <div className="spacer" />
-                  <button 
-                    className="text-btn danger"
-                    onClick={handleClear} 
-                    disabled={filteredCount === 0} 
-                    title={isFiltered ? t('item.clear') : t('item.clear')} 
-                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <TrashIcon width={14} height={14} />
-                    <span>{t('item.clear')}</span>
-                  </button>
+                    {isFiltered ? (
+                      <button
+                        className="text-btn danger"
+                        onClick={handleClear}
+                        disabled={filteredCount === 0}
+                        title={t('item.clear')}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        <TrashIcon width={14} height={14} />
+                        <span>{t('item.clear')}</span>
+                      </button>
+                    ) : (
+                      <ClearMenu
+                        items={filteredItems}
+                        disabled={filteredCount === 0}
+                        panelOpen={open}
+                        onClear={(ids) => clear(ids)}
+                        onClearAll={() => clear()}
+                      />
+                    )}
                 </div>
               </motion.div>
             )}

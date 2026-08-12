@@ -3,6 +3,8 @@ export type StickPosition = 'left' | 'right'
 export interface DisplayInfo {
   id: number
   workArea: { x: number; y: number; width: number; height: number }
+  /** Full display bounds (unlike workArea, not reduced by any taskbar). */
+  bounds?: { x: number; y: number; width: number; height: number }
   scaleFactor?: number
   /** True when this is the OS-designated primary display. */
   isPrimary?: boolean
@@ -22,6 +24,8 @@ export interface StickBoundsParams {
   windowWidth: number
   windowHeight: number
   currentBounds?: { x: number; y: number }
+  /** When true, offset past a detected vertical taskbar to the true screen edge. */
+  ignoreVerticalTaskbar?: boolean
 }
 
 export interface StickBoundsResult {
@@ -58,7 +62,7 @@ function boundsMatch(
 }
 
 export function computeStickBounds(params: StickBoundsParams): StickBoundsResult {
-  const { position, displays, displayId, savedWorkArea, savedScaleFactor, windowWidth, currentBounds } = params
+  const { position, displays, displayId, savedWorkArea, savedScaleFactor, windowWidth, currentBounds, ignoreVerticalTaskbar } = params
 
   let display: DisplayInfo | undefined
 
@@ -101,6 +105,9 @@ export function computeStickBounds(params: StickBoundsParams): StickBoundsResult
   }
 
   const wa = display.workArea
+  // Fall back to workArea if bounds wasn't supplied by the caller, so this
+  // stays backwards-compatible with any other call site.
+  const bounds = display.bounds ?? wa
 
   let x: number
   let y: number
@@ -109,14 +116,23 @@ export function computeStickBounds(params: StickBoundsParams): StickBoundsResult
   const height = wa.height
 
   switch (position) {
-    case 'left':
-      x = wa.x
+    case 'left': {
+      // A vertical taskbar docked left insets workArea.x rightward from
+      // bounds.x. A top/bottom taskbar never touches x, so this check
+      // naturally ignores horizontal taskbars.
+      const hasVerticalTaskbar = bounds.x < wa.x
+      x = (ignoreVerticalTaskbar && hasVerticalTaskbar) ? bounds.x : wa.x
       y = wa.y
       break
-    case 'right':
-      x = wa.x + wa.width - windowWidth
+    }
+    case 'right': {
+      const hasVerticalTaskbar = (bounds.x + bounds.width) > (wa.x + wa.width)
+      x = (ignoreVerticalTaskbar && hasVerticalTaskbar)
+        ? bounds.x + bounds.width - windowWidth
+        : wa.x + wa.width - windowWidth
       y = wa.y
       break
+    }
   }
 
   return { x, y, width, height, displayId: display.id, resolvedDisplay: display }

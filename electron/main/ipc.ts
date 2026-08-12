@@ -500,7 +500,7 @@ export function registerIpc(): void {
     if (patch.hotZoneWidth !== undefined) {
       setHotZoneWidth(patch.hotZoneWidth)
     }
-    if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined || patch.verticalOffset !== undefined) {
+    if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined || patch.verticalOffset !== undefined || patch.ignoreVerticalTaskbar !== undefined) {
       repositionWindow()
       if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined) {
         popUpAndRetract(1500)

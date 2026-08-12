@@ -124,6 +124,12 @@ export interface Settings {
   /** Flag to track if the onboarding tutorial is completed. */
   tutorialCompleted: boolean
   stickPosition: StickPosition
+  /**
+  * When true, and a vertical taskbar (docked left/right) is detected on the
+  * chosen display, the panel offsets past it instead of docking flush
+  * against the taskbar's inner workArea edge. Default: false.
+  */
+  ignoreVerticalTaskbar?: boolean
   stickDisplayId?: number
   /**
    * Persisted workArea geometry of the display chosen by the user.
@@ -183,6 +189,7 @@ export const DEFAULT_SETTINGS: Settings = {
   uiStyle: 'modern',
   tutorialCompleted: false,
   stickPosition: 'left',
+  ignoreVerticalTaskbar: false,
   stickDisplayId: undefined,
   stickDisplayWorkArea: undefined,
   stickDisplayScaleFactor: undefined,
