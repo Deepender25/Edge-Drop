@@ -177,24 +177,20 @@ export function syncLoginItemSettings(launchAtLogin?: boolean): void {
   if (!app.isPackaged) return
   const wantLaunch = launchAtLogin ?? loadSettings().launchAtLogin
   try {
-    const current = app.getLoginItemSettings()
     const exePath = app.getPath('exe')
-
     if (wantLaunch) {
-      if (!current.openAtLogin || current.executableWillLaunchAtLogin === false) {
-        app.setLoginItemSettings({
-          openAtLogin: true,
-          path: exePath,
-          args: ['--hidden']
-        })
-      }
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        path: exePath,
+        args: ['--hidden'],
+        name: 'Edge-Drop'
+      })
     } else {
-      if (current.openAtLogin) {
-        app.setLoginItemSettings({
-          openAtLogin: false,
-          path: exePath
-        })
-      }
+      app.setLoginItemSettings({
+        openAtLogin: false,
+        path: exePath,
+        name: 'Edge-Drop'
+      })
     }
   } catch (err) {
     console.error('[IPC] Failed to sync login item settings:', err)
