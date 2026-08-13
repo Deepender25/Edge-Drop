@@ -136,7 +136,12 @@
     "moreImages": "+{count} fler bilder",
     "moreFiles": "+{count} fler filer",
     "singleFile": "1 fil",
-    "scrollToTop": "Scrolla till toppen"
+    "scrollToTop": "Scrolla till toppen",
+    "clearLast1h": "Rensa senaste timmen",
+    "clearLast6h": "Rensa senaste 6 timmarna",
+    "clearLast24h": "Rensa senaste 24 timmarna",
+    "clearAll": "Rensa all historik",
+    "clearAllConfirm": "Tryck igen för att bekräfta"
   },
   "fileKinds": {
     "pdf": "PDF",

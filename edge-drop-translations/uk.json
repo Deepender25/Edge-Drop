@@ -136,7 +136,12 @@
     "moreImages": "+{count} більше зображень",
     "moreFiles": "+{count} більше файлів",
     "singleFile": "1 файл",
-    "scrollToTop": "Прокрутити вгору"
+    "scrollToTop": "Прокрутити вгору",
+    "clearLast1h": "Очистити за останню годину",
+    "clearLast6h": "Очистити за останні 6 годин",
+    "clearLast24h": "Очистити за останні 24 години",
+    "clearAll": "Очистити всю історію",
+    "clearAllConfirm": "Натисніть ще раз для підтвердження"
   },
   "fileKinds": {
     "pdf": "PDF",

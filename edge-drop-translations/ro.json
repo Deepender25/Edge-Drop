@@ -136,7 +136,12 @@
     "moreImages": "+{count} imagini mai mult",
     "moreFiles": "+{count} fișiere mai mult",
     "singleFile": "1 fișier",
-    "scrollToTop": "Derulează sus"
+    "scrollToTop": "Derulează sus",
+    "clearLast1h": "Șterge ultima oră",
+    "clearLast6h": "Șterge ultimele 6 ore",
+    "clearLast24h": "Șterge ultimele 24 de ore",
+    "clearAll": "Șterge tot istoricul",
+    "clearAllConfirm": "Atinge din nou pentru confirmare"
   },
   "fileKinds": {
     "pdf": "PDF",

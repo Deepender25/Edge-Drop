@@ -117,6 +117,11 @@ export interface TranslationKeys {
     unpin: string
     delete: string
     clear: string
+    clearLast1h?: string
+    clearLast6h?: string
+    clearLast24h?: string
+    clearAll?: string
+    clearAllConfirm?: string
     dropToSave: string
     dropToSaveDesc: string
     justNow: string
@@ -543,6 +548,11 @@ export const en: TranslationKeys = {
     "unpin": "Unpin",
     "delete": "Delete",
     "clear": "Clear",
+    "clearLast1h": "Clear last hour",
+    "clearLast6h": "Clear last 6 hours",
+    "clearLast24h": "Clear last 24 hours",
+    "clearAll": "Clear all history",
+    "clearAllConfirm": "Tap again to confirm",
     "dropToSave": "Drop to save",
     "dropToSaveDesc": "Any file, image, link, or text",
     "justNow": "just now",
@@ -790,6 +800,12 @@ export const es: TranslationKeys = {
     "sparkleStyle": "Destello"
   },
   "item": {
+    "clearLast1h": "Borrar la última hora",
+    "clearLast6h": "Borrar las últimas 6 horas",
+    "clearLast24h": "Borrar las últimas 24 horas",
+    "clearAll": "Borrar todo el historial",
+    "clearAllConfirm": "Toca de nuevo para confirmar",
+
     "copy": "Copiar",
     "pinned": "FIJADO",
     "pin": "Fijar",
@@ -1043,6 +1059,12 @@ export const fr: TranslationKeys = {
     "sparkleStyle": "Étincelle"
   },
   "item": {
+    "clearLast1h": "Effacer la dernière heure",
+    "clearLast6h": "Effacer les 6 dernières heures",
+    "clearLast24h": "Effacer les 24 dernières heures",
+    "clearAll": "Effacer tout l’historique",
+    "clearAllConfirm": "Appuyez à nouveau pour confirmer",
+
     "copy": "Copier",
     "pinned": "ÉPINGLÉ",
     "pin": "Épingler",
@@ -1296,6 +1318,12 @@ export const de: TranslationKeys = {
     "sparkleStyle": "Funke"
   },
   "item": {
+    "clearLast1h": "Letzte Stunde löschen",
+    "clearLast6h": "Letzte 6 Stunden löschen",
+    "clearLast24h": "Letzte 24 Stunden löschen",
+    "clearAll": "Gesamten Verlauf löschen",
+    "clearAllConfirm": "Zum Bestätigen erneut tippen",
+
     "copy": "Kopieren",
     "pinned": "ANGEPINNT",
     "pin": "Anpinnen",
@@ -1549,6 +1577,12 @@ export const it: TranslationKeys = {
     "sparkleStyle": "Scintilla"
   },
   "item": {
+    "clearLast1h": "Cancella ultima ora",
+    "clearLast6h": "Cancella ultime 6 ore",
+    "clearLast24h": "Cancella ultime 24 ore",
+    "clearAll": "Cancella tutta la cronologia",
+    "clearAllConfirm": "Tocca di nuovo per confermare",
+
     "copy": "Copia",
     "pinned": "BLOCCATO",
     "pin": "Blocca",
@@ -1802,6 +1836,12 @@ export const pt: TranslationKeys = {
     "sparkleStyle": "Cintilação"
   },
   "item": {
+    "clearLast1h": "Limpar última hora",
+    "clearLast6h": "Limpar últimas 6 horas",
+    "clearLast24h": "Limpar últimas 24 horas",
+    "clearAll": "Limpar todo o histórico",
+    "clearAllConfirm": "Toque novamente para confirmar",
+
     "copy": "Copiar",
     "pinned": "FIXADO",
     "pin": "Fixar",
@@ -2055,6 +2095,12 @@ export const ru: TranslationKeys = {
     "sparkleStyle": "Искра"
   },
   "item": {
+    "clearLast1h": "Очистить за последний час",
+    "clearLast6h": "Очистить за последние 6 часов",
+    "clearLast24h": "Очистить за последние 24 часа",
+    "clearAll": "Очистить всю историю",
+    "clearAllConfirm": "Нажмите ещё раз для подтверждения",
+
     "copy": "Копировать",
     "pinned": "ЗАКРЕПЛЕНО",
     "pin": "Закрепить",
@@ -2308,6 +2354,12 @@ export const ja: TranslationKeys = {
     "sparkleStyle": "スパークル"
   },
   "item": {
+    "clearLast1h": "過去1時間を消去",
+    "clearLast6h": "過去6時間を消去",
+    "clearLast24h": "過去24時間を消去",
+    "clearAll": "履歴をすべて消去",
+    "clearAllConfirm": "もう一度タップして確認",
+
     "copy": "コピー",
     "pinned": "ピン留め",
     "pin": "ピン留め",
@@ -2561,6 +2613,12 @@ export const ko: TranslationKeys = {
     "sparkleStyle": "반짝임"
   },
   "item": {
+    "clearLast1h": "최근 1시간 지우기",
+    "clearLast6h": "최근 6시간 지우기",
+    "clearLast24h": "최근 24시간 지우기",
+    "clearAll": "전체 기록 지우기",
+    "clearAllConfirm": "확인하려면 다시 탭하세요",
+
     "copy": "복사",
     "pinned": "고정됨",
     "pin": "고정",
@@ -3320,6 +3378,12 @@ export const hi: TranslationKeys = {
     "sparkleStyle": "स्पार्कल"
   },
   "item": {
+    "clearLast1h": "पिछले 1 घंटे को साफ़ करें",
+    "clearLast6h": "पिछले 6 घंटे साफ़ करें",
+    "clearLast24h": "पिछले 24 घंटे साफ़ करें",
+    "clearAll": "पूरा इतिहास साफ़ करें",
+    "clearAllConfirm": "पुष्टि करने के लिए फिर से टैप करें",
+
     "copy": "कॉपी",
     "pinned": "पिन किया गया",
     "pin": "पिन करें",
@@ -3573,6 +3637,12 @@ export const ar: TranslationKeys = {
     "sparkleStyle": "وميض"
   },
   "item": {
+    "clearLast1h": "مسح الساعة الأخيرة",
+    "clearLast6h": "مسح آخر 6 ساعات",
+    "clearLast24h": "مسح آخر 24 ساعة",
+    "clearAll": "مسح كل السجل",
+    "clearAllConfirm": "اضغط مرة أخرى للتأكيد",
+
     "copy": "نسخ",
     "pinned": "مثبّت",
     "pin": "تثبيت",
@@ -3826,6 +3896,12 @@ export const fa: TranslationKeys = {
     "sparkleStyle": "درخشش"
   },
   "item": {
+    "clearLast1h": "پاک کردن یک ساعت گذشته",
+    "clearLast6h": "پاک کردن ۶ ساعت گذشته",
+    "clearLast24h": "پاک کردن ۲۴ ساعت گذشته",
+    "clearAll": "پاک کردن کل تاریخچه",
+    "clearAllConfirm": "برای تأیید دوباره ضربه بزنید",
+
     "copy": "کپی",
     "pinned": "سنجاق‌شده‌ها",
     "pin": "سنجاق کن",
@@ -4079,6 +4155,12 @@ export const bn: TranslationKeys = {
     "sparkleStyle": "স্পার্কল"
   },
   "item": {
+    "clearLast1h": "গত ১ ঘণ্টা মুছুন",
+    "clearLast6h": "গত ৬ ঘণ্টা মুছুন",
+    "clearLast24h": "গত ২৪ ঘণ্টা মুছুন",
+    "clearAll": "সব ইতিহাস মুছুন",
+    "clearAllConfirm": "নিশ্চিত করতে আবার ট্যাপ করুন",
+
     "copy": "কপি",
     "pinned": "পিন করা",
     "pin": "পিন করুন",
@@ -4332,6 +4414,12 @@ export const tr: TranslationKeys = {
     "sparkleStyle": "Kıvılcım"
   },
   "item": {
+    "clearLast1h": "Son 1 saati temizle",
+    "clearLast6h": "Son 6 saati temizle",
+    "clearLast24h": "Son 24 saati temizle",
+    "clearAll": "Tüm geçmişi temizle",
+    "clearAllConfirm": "Onaylamak için tekrar dokunun",
+
     "copy": "Kopyala",
     "pinned": "SABİTLENDİ",
     "pin": "Sabitle",
@@ -4585,6 +4673,12 @@ export const vi: TranslationKeys = {
     "sparkleStyle": "Lấp lánh"
   },
   "item": {
+    "clearLast1h": "Xóa 1 giờ qua",
+    "clearLast6h": "Xóa 6 giờ qua",
+    "clearLast24h": "Xóa 24 giờ qua",
+    "clearAll": "Xóa toàn bộ lịch sử",
+    "clearAllConfirm": "Nhấn lại để xác nhận",
+
     "copy": "Sao chép",
     "pinned": "ĐÃ GHIM",
     "pin": "Ghim",
@@ -4838,6 +4932,12 @@ export const pl: TranslationKeys = {
     "sparkleStyle": "Iskra"
   },
   "item": {
+    "clearLast1h": "Wyczyść ostatnią godzinę",
+    "clearLast6h": "Wyczyść ostatnie 6 godzin",
+    "clearLast24h": "Wyczyść ostatnie 24 godziny",
+    "clearAll": "Wyczyść całą historię",
+    "clearAllConfirm": "Dotknij ponownie, aby potwierdzić",
+
     "copy": "Kopiuj",
     "pinned": "PRZYPINIĘTE",
     "pin": "Przypnij",
@@ -5091,6 +5191,12 @@ export const nl: TranslationKeys = {
     "sparkleStyle": "Sprankel"
   },
   "item": {
+    "clearLast1h": "Laatste uur wissen",
+    "clearLast6h": "Laatste 6 uur wissen",
+    "clearLast24h": "Laatste 24 uur wissen",
+    "clearAll": "Volledige geschiedenis wissen",
+    "clearAllConfirm": "Tik opnieuw om te bevestigen",
+
     "copy": "Kopiëren",
     "pinned": "VASTGEZET",
     "pin": "Vastzetten",
@@ -5344,6 +5450,12 @@ export const sv: TranslationKeys = {
     "sparkleStyle": "Gnista"
   },
   "item": {
+    "clearLast1h": "Rensa senaste timmen",
+    "clearLast6h": "Rensa senaste 6 timmarna",
+    "clearLast24h": "Rensa senaste 24 timmarna",
+    "clearAll": "Rensa all historik",
+    "clearAllConfirm": "Tryck igen för att bekräfta",
+
     "copy": "Kopiera",
     "pinned": "FÄST",
     "pin": "Fäst",
@@ -5597,6 +5709,12 @@ export const id: TranslationKeys = {
     "sparkleStyle": "Kilau"
   },
   "item": {
+    "clearLast1h": "Hapus 1 jam terakhir",
+    "clearLast6h": "Hapus 6 jam terakhir",
+    "clearLast24h": "Hapus 24 jam terakhir",
+    "clearAll": "Hapus semua riwayat",
+    "clearAllConfirm": "Ketuk lagi untuk mengonfirmasi",
+
     "copy": "Salin",
     "pinned": "DISEMATKAN",
     "pin": "Sematkan",
@@ -5850,6 +5968,12 @@ export const uk: TranslationKeys = {
     "sparkleStyle": "Іскра"
   },
   "item": {
+    "clearLast1h": "Очистити за останню годину",
+    "clearLast6h": "Очистити за останні 6 годин",
+    "clearLast24h": "Очистити за останні 24 години",
+    "clearAll": "Очистити всю історію",
+    "clearAllConfirm": "Натисніть ще раз для підтвердження",
+
     "copy": "Копіювати",
     "pinned": "ПРИКРІПЛЕНО",
     "pin": "Прикріпити",
@@ -6103,6 +6227,12 @@ export const el: TranslationKeys = {
     "sparkleStyle": "Σπίθα"
   },
   "item": {
+    "clearLast1h": "Εκκαθάριση τελευταίας ώρας",
+    "clearLast6h": "Εκκαθάριση τελευταίων 6 ωρών",
+    "clearLast24h": "Εκκαθάριση τελευταίων 24 ωρών",
+    "clearAll": "Εκκαθάριση όλου του ιστορικού",
+    "clearAllConfirm": "Πατήστε ξανά για επιβεβαίωση",
+
     "copy": "Αντιγραφή",
     "pinned": "ΚΑΡΦΙΤΣΩΜΕΝΟ",
     "pin": "Καρφίσωσε",
@@ -6356,6 +6486,12 @@ export const cs: TranslationKeys = {
     "sparkleStyle": "Jiskra"
   },
   "item": {
+    "clearLast1h": "Vymazat poslední hodinu",
+    "clearLast6h": "Vymazat posledních 6 hodin",
+    "clearLast24h": "Vymazat posledních 24 hodin",
+    "clearAll": "Vymazat celou historii",
+    "clearAllConfirm": "Potvrďte dalším klepnutím",
+
     "copy": "Kopírovat",
     "pinned": "PŘIPNUTO",
     "pin": "Připnout",
@@ -6609,6 +6745,12 @@ export const ro: TranslationKeys = {
     "sparkleStyle": "Scânteie"
   },
   "item": {
+    "clearLast1h": "Șterge ultima oră",
+    "clearLast6h": "Șterge ultimele 6 ore",
+    "clearLast24h": "Șterge ultimele 24 de ore",
+    "clearAll": "Șterge tot istoricul",
+    "clearAllConfirm": "Atinge din nou pentru confirmare",
+
     "copy": "Copiază",
     "pinned": "PINAT",
     "pin": "Păstrează",
@@ -6862,6 +7004,12 @@ export const hu: TranslationKeys = {
     "sparkleStyle": "Szikra"
   },
   "item": {
+    "clearLast1h": "Elmúlt óra törlése",
+    "clearLast6h": "Elmúlt 6 óra törlése",
+    "clearLast24h": "Elmúlt 24 óra törlése",
+    "clearAll": "Teljes előzmény törlése",
+    "clearAllConfirm": "Koppintson újra a megerősítéshez",
+
     "copy": "Másolás",
     "pinned": "RÖGZÍTETT",
     "pin": "Rögzítés",
@@ -7115,6 +7263,12 @@ export const da: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
+    "clearLast1h": "Ryd sidste time",
+    "clearLast6h": "Ryd sidste 6 timer",
+    "clearLast24h": "Ryd sidste 24 timer",
+    "clearAll": "Ryd hele historikken",
+    "clearAllConfirm": "Tryk igen for at bekræfte",
+
     "copy": "Kopier",
     "pinned": "FASTGJORT",
     "pin": "Fastgør",
@@ -7368,6 +7522,12 @@ export const fi: TranslationKeys = {
     "sparkleStyle": "Kipinä"
   },
   "item": {
+    "clearLast1h": "Tyhjennä viimeinen tunti",
+    "clearLast6h": "Tyhjennä viimeiset 6 tuntia",
+    "clearLast24h": "Tyhjennä viimeiset 24 tuntia",
+    "clearAll": "Tyhjennä koko historia",
+    "clearAllConfirm": "Vahvista napauttamalla uudelleen",
+
     "copy": "Kopioi",
     "pinned": "KIINNITETTY",
     "pin": "Kiinnitä",
@@ -7621,6 +7781,12 @@ export const th: TranslationKeys = {
     "sparkleStyle": "ประกาย"
   },
   "item": {
+    "clearLast1h": "ล้างข้อมูล 1 ชั่วโมงล่าสุด",
+    "clearLast6h": "ล้างข้อมูล 6 ชั่วโมงล่าสุด",
+    "clearLast24h": "ล้างข้อมูล 24 ชั่วโมงล่าสุด",
+    "clearAll": "ล้างประวัติทั้งหมด",
+    "clearAllConfirm": "แตะอีกครั้งเพื่อยืนยัน",
+
     "copy": "คัดลอก",
     "pinned": "ปักหมุดแล้ว",
     "pin": "ปักหมุด",
@@ -7874,6 +8040,12 @@ export const he: TranslationKeys = {
     "sparkleStyle": "ניצוץ"
   },
   "item": {
+    "clearLast1h": "נקה את השעה האחרונה",
+    "clearLast6h": "נקה את 6 השעות האחרונות",
+    "clearLast24h": "נקה את 24 השעות האחרונות",
+    "clearAll": "נקה את כל ההיסטוריה",
+    "clearAllConfirm": "הקש שוב כדי לאשר",
+
     "copy": "העתק",
     "pinned": "מוצמד",
     "pin": "הצמד",
@@ -8127,6 +8299,12 @@ export const no: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
+    "clearLast1h": "Tøm siste time",
+    "clearLast6h": "Tøm siste 6 timer",
+    "clearLast24h": "Tøm siste 24 timer",
+    "clearAll": "Tøm all historikk",
+    "clearAllConfirm": "Trykk igjen for å bekrefte",
+
     "copy": "Kopier",
     "pinned": "FESTET",
     "pin": "Fest",

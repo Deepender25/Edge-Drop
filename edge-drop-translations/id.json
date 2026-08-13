@@ -136,7 +136,12 @@
     "moreImages": "+{count} gambar lagi",
     "moreFiles": "+{count} berkas lagi",
     "singleFile": "1 berkas",
-    "scrollToTop": "Gulir ke atas"
+    "scrollToTop": "Gulir ke atas",
+    "clearLast1h": "Hapus 1 jam terakhir",
+    "clearLast6h": "Hapus 6 jam terakhir",
+    "clearLast24h": "Hapus 24 jam terakhir",
+    "clearAll": "Hapus semua riwayat",
+    "clearAllConfirm": "Ketuk lagi untuk mengonfirmasi"
   },
   "fileKinds": {
     "pdf": "PDF",

@@ -136,7 +136,12 @@
     "moreImages": "+{count} imagens a mais",
     "moreFiles": "+{count} arquivos a mais",
     "singleFile": "1 arquivo",
-    "scrollToTop": "Voltar ao topo"
+    "scrollToTop": "Voltar ao topo",
+    "clearLast1h": "Limpar última hora",
+    "clearLast6h": "Limpar últimas 6 horas",
+    "clearLast24h": "Limpar últimas 24 horas",
+    "clearAll": "Limpar todo o histórico",
+    "clearAllConfirm": "Toque novamente para confirmar"
   },
   "fileKinds": {
     "pdf": "PDF",

@@ -136,7 +136,12 @@
     "moreImages": "+{count} รูปภาพเพิ่มเติม",
     "moreFiles": "+{count} ไฟล์เพิ่มเติม",
     "singleFile": "1 ไฟล์",
-    "scrollToTop": "เลื่อนไปที่ด้านบน"
+    "scrollToTop": "เลื่อนไปที่ด้านบน",
+    "clearLast1h": "ล้างข้อมูล 1 ชั่วโมงล่าสุด",
+    "clearLast6h": "ล้างข้อมูล 6 ชั่วโมงล่าสุด",
+    "clearLast24h": "ล้างข้อมูล 24 ชั่วโมงล่าสุด",
+    "clearAll": "ล้างประวัติทั้งหมด",
+    "clearAllConfirm": "แตะอีกครั้งเพื่อยืนยัน"
   },
   "fileKinds": {
     "pdf": "PDF",

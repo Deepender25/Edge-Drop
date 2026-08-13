@@ -136,7 +136,12 @@
     "moreImages": "+{count} और छवियाँ",
     "moreFiles": "+{count} और फ़ाइलें",
     "singleFile": "1 फ़ाइल",
-    "scrollToTop": "शीर्ष पर स्क्रॉल करें"
+    "scrollToTop": "शीर्ष पर स्क्रॉल करें",
+    "clearLast1h": "पिछले 1 घंटे को साफ़ करें",
+    "clearLast6h": "पिछले 6 घंटे साफ़ करें",
+    "clearLast24h": "पिछले 24 घंटे साफ़ करें",
+    "clearAll": "पूरा इतिहास साफ़ करें",
+    "clearAllConfirm": "पुष्टि करने के लिए फिर से टैप करें"
   },
   "fileKinds": {
     "pdf": "PDF",

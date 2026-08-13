@@ -136,7 +136,12 @@
     "moreImages": "+{count} afbeeldingen meer",
     "moreFiles": "+{count} bestanden meer",
     "singleFile": "1 bestand",
-    "scrollToTop": "Naar boven scrollen"
+    "scrollToTop": "Naar boven scrollen",
+    "clearLast1h": "Laatste uur wissen",
+    "clearLast6h": "Laatste 6 uur wissen",
+    "clearLast24h": "Laatste 24 uur wissen",
+    "clearAll": "Volledige geschiedenis wissen",
+    "clearAllConfirm": "Tik opnieuw om te bevestigen"
   },
   "fileKinds": {
     "pdf": "PDF",

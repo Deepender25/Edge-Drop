@@ -136,7 +136,12 @@
     "moreImages": "+{count} صور أخرى",
     "moreFiles": "+{count} ملفات أخرى",
     "singleFile": "ملف واحد",
-    "scrollToTop": "التمرير للأعلى"
+    "scrollToTop": "التمرير للأعلى",
+    "clearLast1h": "مسح الساعة الأخيرة",
+    "clearLast6h": "مسح آخر 6 ساعات",
+    "clearLast24h": "مسح آخر 24 ساعة",
+    "clearAll": "مسح كل السجل",
+    "clearAllConfirm": "اضغط مرة أخرى للتأكيد"
   },
   "fileKinds": {
     "pdf": "PDF",

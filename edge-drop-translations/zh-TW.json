@@ -136,7 +136,12 @@
     "moreImages": "+{count} 張更多圖片",
     "moreFiles": "+{count} 個更多檔案",
     "singleFile": "1 個檔案",
-    "scrollToTop": "捲動到頂部"
+    "scrollToTop": "捲動到頂部",
+    "clearLast1h": "清除最近 1 小時",
+    "clearLast6h": "清除最近 6 小時",
+    "clearLast24h": "清除最近 24 小時",
+    "clearAll": "清除所有歷史記錄",
+    "clearAllConfirm": "再次點擊以確認"
   },
   "fileKinds": {
     "pdf": "PDF",

@@ -136,7 +136,12 @@
     "moreImages": "+{count} flere billeder",
     "moreFiles": "+{count} flere filer",
     "singleFile": "1 fil",
-    "scrollToTop": "Rul til toppen"
+    "scrollToTop": "Rul til toppen",
+    "clearLast1h": "Ryd sidste time",
+    "clearLast6h": "Ryd sidste 6 timer",
+    "clearLast24h": "Ryd sidste 24 timer",
+    "clearAll": "Ryd hele historikken",
+    "clearAllConfirm": "Tryk igen for at bekræfte"
   },
   "fileKinds": {
     "pdf": "PDF",

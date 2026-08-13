@@ -136,7 +136,12 @@
     "moreImages": "+{count} תמונות נוספות",
     "moreFiles": "+{count} קבצים נוספים",
     "singleFile": "קובץ 1",
-    "scrollToTop": "גלול לראש"
+    "scrollToTop": "גלול לראש",
+    "clearLast1h": "נקה את השעה האחרונה",
+    "clearLast6h": "נקה את 6 השעות האחרונות",
+    "clearLast24h": "נקה את 24 השעות האחרונות",
+    "clearAll": "נקה את כל ההיסטוריה",
+    "clearAllConfirm": "הקש שוב כדי לאשר"
   },
   "fileKinds": {
     "pdf": "PDF",

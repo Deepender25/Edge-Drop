@@ -136,7 +136,12 @@
     "moreImages": "+{count} টি অতিরিক্ত ছবি",
     "moreFiles": "+{count} টি অতিরিক্ত ফাইল",
     "singleFile": "১টি ফাইল",
-    "scrollToTop": "শীর্ষে স্ক্রোল করুন"
+    "scrollToTop": "শীর্ষে স্ক্রোল করুন",
+    "clearLast1h": "গত ১ ঘণ্টা মুছুন",
+    "clearLast6h": "গত ৬ ঘণ্টা মুছুন",
+    "clearLast24h": "গত ২৪ ঘণ্টা মুছুন",
+    "clearAll": "সব ইতিহাস মুছুন",
+    "clearAllConfirm": "নিশ্চিত করতে আবার ট্যাপ করুন"
   },
   "fileKinds": {
     "pdf": "PDF",

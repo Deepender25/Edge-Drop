@@ -136,7 +136,12 @@
     "moreImages": "+{count} więcej obrazów",
     "moreFiles": "+{count} więcej plików",
     "singleFile": "1 plik",
-    "scrollToTop": "Przewiń na górę"
+    "scrollToTop": "Przewiń na górę",
+    "clearLast1h": "Wyczyść ostatnią godzinę",
+    "clearLast6h": "Wyczyść ostatnie 6 godzin",
+    "clearLast24h": "Wyczyść ostatnie 24 godziny",
+    "clearAll": "Wyczyść całą historię",
+    "clearAllConfirm": "Dotknij ponownie, aby potwierdzić"
   },
   "fileKinds": {
     "pdf": "PDF",

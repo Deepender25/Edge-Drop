@@ -136,7 +136,12 @@
     "moreImages": "+{count} görsel daha",
     "moreFiles": "+{count} dosya daha",
     "singleFile": "1 dosya",
-    "scrollToTop": "Başa kaydır"
+    "scrollToTop": "Başa kaydır",
+    "clearLast1h": "Son 1 saati temizle",
+    "clearLast6h": "Son 6 saati temizle",
+    "clearLast24h": "Son 24 saati temizle",
+    "clearAll": "Tüm geçmişi temizle",
+    "clearAllConfirm": "Onaylamak için tekrar dokunun"
   },
   "fileKinds": {
     "pdf": "PDF",

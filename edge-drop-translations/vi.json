@@ -136,7 +136,12 @@
     "moreImages": "+{count} hình ảnh nữa",
     "moreFiles": "+{count} tệp nữa",
     "singleFile": "1 tệp",
-    "scrollToTop": "Cuộn lên đầu"
+    "scrollToTop": "Cuộn lên đầu",
+    "clearLast1h": "Xóa 1 giờ qua",
+    "clearLast6h": "Xóa 6 giờ qua",
+    "clearLast24h": "Xóa 24 giờ qua",
+    "clearAll": "Xóa toàn bộ lịch sử",
+    "clearAllConfirm": "Nhấn lại để xác nhận"
   },
   "fileKinds": {
     "pdf": "PDF",

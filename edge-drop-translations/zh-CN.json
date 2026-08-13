@@ -136,7 +136,12 @@
     "moreImages": "+{count} 张更多图片",
     "moreFiles": "+{count} 个更多文件",
     "singleFile": "1 个文件",
-    "scrollToTop": "滚动到顶部"
+    "scrollToTop": "滚动到顶部",
+    "clearLast1h": "清除最近 1 小时",
+    "clearLast6h": "清除最近 6 小时",
+    "clearLast24h": "清除最近 24 小时",
+    "clearAll": "清除所有历史记录",
+    "clearAllConfirm": "再次点击以确认"
   },
   "fileKinds": {
     "pdf": "PDF",

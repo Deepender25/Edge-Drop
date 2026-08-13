@@ -136,7 +136,12 @@
     "moreImages": "+{count} dalších obrázků",
     "moreFiles": "+{count} dalších souborů",
     "singleFile": "1 soubor",
-    "scrollToTop": "Přejít nahoru"
+    "scrollToTop": "Přejít nahoru",
+    "clearLast1h": "Vymazat poslední hodinu",
+    "clearLast6h": "Vymazat posledních 6 hodin",
+    "clearLast24h": "Vymazat posledních 24 hodin",
+    "clearAll": "Vymazat celou historii",
+    "clearAllConfirm": "Potvrďte dalším klepnutím"
   },
   "fileKinds": {
     "pdf": "PDF",

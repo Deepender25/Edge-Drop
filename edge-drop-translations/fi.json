@@ -136,7 +136,12 @@
     "moreImages": "+{count} kuvaa lisää",
     "moreFiles": "+{count} tiedostoa lisää",
     "singleFile": "1 tiedosto",
-    "scrollToTop": "Vieritä ylös"
+    "scrollToTop": "Vieritä ylös",
+    "clearLast1h": "Tyhjennä viimeinen tunti",
+    "clearLast6h": "Tyhjennä viimeiset 6 tuntia",
+    "clearLast24h": "Tyhjennä viimeiset 24 tuntia",
+    "clearAll": "Tyhjennä koko historia",
+    "clearAllConfirm": "Vahvista napauttamalla uudelleen"
   },
   "fileKinds": {
     "pdf": "PDF",

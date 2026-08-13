@@ -136,7 +136,12 @@
     "moreImages": "+{count} flere bilder",
     "moreFiles": "+{count} flere filer",
     "singleFile": "1 fil",
-    "scrollToTop": "Rull til toppen"
+    "scrollToTop": "Rull til toppen",
+    "clearLast1h": "Tøm siste time",
+    "clearLast6h": "Tøm siste 6 timer",
+    "clearLast24h": "Tøm siste 24 timer",
+    "clearAll": "Tøm all historikk",
+    "clearAllConfirm": "Trykk igjen for å bekrefte"
   },
   "fileKinds": {
     "pdf": "PDF",

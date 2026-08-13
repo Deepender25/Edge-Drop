@@ -136,7 +136,12 @@
     "moreImages": "+{count} 枚の画像",
     "moreFiles": "+{count} 個のファイル",
     "singleFile": "1 個のファイル",
-    "scrollToTop": "先頭へスクロール"
+    "scrollToTop": "先頭へスクロール",
+    "clearLast1h": "過去1時間を消去",
+    "clearLast6h": "過去6時間を消去",
+    "clearLast24h": "過去24時間を消去",
+    "clearAll": "履歴をすべて消去",
+    "clearAllConfirm": "もう一度タップして確認"
   },
   "fileKinds": {
     "pdf": "PDF",

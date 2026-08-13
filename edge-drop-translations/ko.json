@@ -136,7 +136,12 @@
     "moreImages": "+{count}개 이미지 더",
     "moreFiles": "+{count}개 파일 더",
     "singleFile": "1개 파일",
-    "scrollToTop": "맨 위로 스크롤"
+    "scrollToTop": "맨 위로 스크롤",
+    "clearLast1h": "최근 1시간 지우기",
+    "clearLast6h": "최근 6시간 지우기",
+    "clearLast24h": "최근 24시간 지우기",
+    "clearAll": "전체 기록 지우기",
+    "clearAllConfirm": "확인하려면 다시 탭하세요"
   },
   "fileKinds": {
     "pdf": "PDF",

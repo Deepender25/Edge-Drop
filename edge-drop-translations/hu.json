@@ -136,7 +136,12 @@
     "moreImages": "+{count} további kép",
     "moreFiles": "+{count} további fájl",
     "singleFile": "1 fájl",
-    "scrollToTop": "Görgetés a tetejére"
+    "scrollToTop": "Görgetés a tetejére",
+    "clearLast1h": "Elmúlt óra törlése",
+    "clearLast6h": "Elmúlt 6 óra törlése",
+    "clearLast24h": "Elmúlt 24 óra törlése",
+    "clearAll": "Teljes előzmény törlése",
+    "clearAllConfirm": "Koppintson újra a megerősítéshez"
   },
   "fileKinds": {
     "pdf": "PDF",

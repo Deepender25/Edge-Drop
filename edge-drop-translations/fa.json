@@ -136,7 +136,12 @@
     "moreImages": "+{count} عکس دیگه",
     "moreFiles": "+{count} فایل دیگه",
     "singleFile": "۱ فایل",
-    "scrollToTop": "برو بالا"
+    "scrollToTop": "برو بالا",
+    "clearLast1h": "پاک کردن یک ساعت گذشته",
+    "clearLast6h": "پاک کردن ۶ ساعت گذشته",
+    "clearLast24h": "پاک کردن ۲۴ ساعت گذشته",
+    "clearAll": "پاک کردن کل تاریخچه",
+    "clearAllConfirm": "برای تأیید دوباره ضربه بزنید"
   },
   "fileKinds": {
     "pdf": "PDF",
