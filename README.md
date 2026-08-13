@@ -146,12 +146,15 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - Frameless, transparent, always-on-top `BrowserWindow` anchored at `x=0` or right screen edge
 - 100% click-through when collapsed — desktop stays fully usable
 - Configurable hot-zone height (25% / 40% / 60% of screen) and blade height (50% – 80%)
+- **Edge Trigger Proximity Slider:** Range slider (1px – 7px) allowing precise pixel calibration of the edge sensor region.
 - **Independent Edge Trigger Placement:** Choose exact trigger strip alignment (**Top**, **Center**, or **Bottom**) relative to the shelf, with dynamic CSS `clipPath` calculation matching the exact sensor region.
-- **Edge Location Hint (Proximity Beacon):** Subtle 1.5px hairline gradient pulse (300ms duration, 0.28 opacity) that flashes once on the screen edge when cursor touches the edge at a misaligned vertical position, guiding users to the shelf.
+- **Edge Location Hint (Proximity Beacon):** Subtle 1.5px hairline gradient pulse that flashes once on the screen edge when cursor touches the edge at a misaligned vertical position, guiding users to the shelf.
 - **Multi-monitor support:** Pick exactly which display the panel sticks to, with options for Left or Right screen edges. Features a single source of truth multi-display engine (`getDisplayListOptions()`) with real-time physical resolution calculation (3840×2160, 2560×1440, 1920×1080) across all High-DPI Windows display scaling factors.
-- **Cross-Reboot Display Persistence:** Edge-Drop remembers your chosen monitor across device restarts. A 4-tier resolution pipeline (exact session ID → fuzzy workArea geometry match within 8px tolerance → nearest by position → primary fallback) silently re-identifies the correct physical monitor after Windows re-assigns numeric display IDs on reboot. If the monitor is genuinely unplugged, the panel seamlessly falls back to the Primary Display without any user action.
-- **Fullscreen Protection (Game Mode):** Native Windows `SHQueryUserNotificationState` OS detection (`fullscreen.ts`) automatically suppresses edge hover when Direct3D games, fullscreen videos, or presentations are active.
-- **Ultra-lightweight:** Optimized memory footprint (~60% reduced RAM) using custom `edgelocal://` streaming protocols and compressed WebM assets.
+- **Cross-Reboot Display Persistence:** Edge-Drop remembers your chosen monitor across device restarts. A 4-tier resolution pipeline silently re-identifies the correct physical monitor after Windows re-assigns numeric display IDs on reboot.
+- **Smart Windows Fullscreen Game Detection:** Native Win32 `SHQueryUserNotificationState` OS detection (`fullscreen.ts`) combined with `GetForegroundWindow` + `GetClassNameA` filtering (`Progman`, `WorkerW`, `Shell_TrayWnd`) automatically suppresses edge hover during Direct3D games (*VALORANT*, *Cyberpunk*, *PowerPoint*) while allowing Edge-Drop to open smoothly on the Windows Home Screen / Desktop.
+- **Self-Healing Launch at Login:** Automatic Windows Registry synchronization (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`) ensures autostart entries update cleanly with live binary paths and `--hidden` launch flags after every app update.
+- **RAM Footprint Stabilization (~130 MB):** Large text entries (>300 chars) are stored as disk payload files (`payloads/<id>.txt`), holding only 300-char preview snippets in memory. Locks operational RAM to ~130 MB–160 MB with a V8 ceiling cap of 512 MB.
+- **High-Performance Image Thumbnailing Protocol (`edgelocal://thumb/`):** Custom Electron protocol streams 240px thumbnails for history cards instead of loading multi-megapixel raw image files into memory, preventing GPU memory bloat.
 
 **Synthesized Web Audio Haptic Suite**
 - **Zero-Asset Audio Engine (`soundEffects.ts`):** Real-time synthesized Web Audio API sound suite providing tactile audio feedback for UI micro-interactions without audio file assets.
@@ -168,7 +171,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **5% Magnetic Tick Slider:** Smooth `0.002` real-time 1-to-1 continuous tracking during drag with 60fps/120fps precision, featuring 21 visual tick dashes, live percentage badge (`50%`), percentage quick-jump buttons (`0%`, `50%`, `100%`), and magnetic 5% snapping on pointer release.
 - **Position & Display Switch Preview:** 1.75s temporary interactive preview window when changing `Stick position` (`Left` / `Right`) or `Display` monitor in settings.
 - **CPU Performance Optimization & Zero Blur Jank:** Replaced heavy `backdrop-filter: blur()` calls across UI components with high-performance solid/semi-transparent dark fills, eliminating CPU rasterization overhead for 60fps/120fps butter-smooth panel opening and scrolling.
-- **Prominent Support Section & Matching Pill Buttons:** Re-ordered settings footer placing the Support & Sponsor card prominently above the Quit button. Features matching 40px height pill buttons (`border-radius: 999px`) for Support (soft solid pastel red `#ff7675` with heart badge) and GitHub Star.
+- **Prominent Support Section & Matching Pill Buttons:** Re-ordered settings footer placing the Support & Sponsor card prominently above the Quit button, linking to official domain `www.edgedrop.app`. Features matching 40px height pill buttons for Support and GitHub Star.
 - **Low-Profile Bottom Quit Pill:** Compact, subtle Quit pill button (`.subtle-quit-btn`) centered at the very bottom of the settings view without noisy header text.
 
 **Silent Background Auto-Updates**
@@ -181,26 +184,26 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - Win32 `FileNameW` / HDROP parsing via PowerShell to bypass Electron's single-file limit
 - Respects password-manager and dictation-tool privacy flags (case-insensitive matching)
 - Smart deduplication — re-copies bump `hitCount` and move the item to the top
+- **Move Pasted Items to Top Toggle:** Optional setting to move unpinned items to the top of Recent upon pasting.
 - Incognito mode — one click suspends polling for sensitive data
 - Auto-delete timer options (Never / 1h / 6h / 24h / 7d) and clear unpinned on restart
 
-**Direct URL Detection & One-Click Launch**
-- **Quick Action Links:** Dedicated external link launcher (`ExternalLinkIcon`) on URL item cards and inside Preview Flyouts.
-- **Browser Launch:** Clicking the link button opens URLs directly in your default web browser without requiring manual copy/pasting.
+**Offline Rich URL Previews & One-Click Launch**
+- **Zero-Cost Offline URL Previews:** Automatically parses website domain names, titles, and site favicons for copied URLs without external API overhead.
+- **Quick Action Links & Browser Launch:** Clicking the external link launcher button on URL cards or flyouts opens links directly in your default web browser.
 
-**Native OS drag & drop**
-- `webContents.startDrag()` hands real file handles to external apps
-- Custom drag icons: stacked card PNGs with count badges, styled text cards, real image thumbnails
-- Drag-in: drop files onto the shelf to add them; drag-out: drop anywhere — Photoshop, Word, Explorer, Slack
+**Universal Native OS Drag & Drop Vault**
+- **Universal Drag-in Vault:** Drag text, web images, links, and local files directly into the Edge-Drop shelf.
+- **Native Drag-out:** Drag items out of the shelf into Photoshop, Word, Explorer, Slack, or any desktop application using real OS file handles and vector drag ghosts.
 
 **Fluid collections & stacks**
 - Auto-group multi-file drag-ins and multi-image copies into 3D card stacks (max 10)
 - **Preview Flyout Drag-to-Stack**: Drag any shelf item directly onto an open Preview Flyout to stack and merge them seamlessly
 - Expand stacks with a single click on the Expand action button or Preview Flyout; drag a sub-item to the screen edge to split it back out
 
-**Complete 30-Language Internationalization & Smart Selector**
-- **100% Native Localization**: Fully translated dictionaries for 30 global languages with 100% section & key coverage (`en`, `es`, `fr`, `de`, `it`, `pt`, `ru`, `ja`, `ko`, `zh-CN`, `zh-TW`, `hi`, `ar`, `bn`, `tr`, `vi`, `pl`, `nl`, `sv`, `id`, `uk`, `el`, `cs`, `ro`, `hu`, `da`, `fi`, `th`, `he`, `no`).
-- **Native Right-to-Left (RTL) Support**: Automatic text direction and layout mirror switching for Arabic (`ar`) and Hebrew (`he`).
+**Complete 30+ Language Internationalization & Smart Selector**
+- **100% Native Localization**: Fully translated dictionaries for 31 global languages with 100% section & key coverage (`en`, `es`, `fr`, `de`, `it`, `pt`, `ru`, `ja`, `ko`, `zh-CN`, `zh-TW`, `hi`, `ar`, `bn`, `tr`, `vi`, `pl`, `nl`, `sv`, `id`, `uk`, `el`, `cs`, `ro`, `hu`, `da`, `fi`, `th`, `he`, `no`, `fa`).
+- **Native Right-to-Left (RTL) Support**: Automatic text direction and layout mirror switching for Arabic (`ar`), Hebrew (`he`), and Persian (`fa`).
 - **Auto-Scroll Language Viewport**: Language selector anchors `System Default (Auto)` at index 0 while auto-scrolling to bring the active selected language directly into view on open.
 - **Haptic Sound Feedback**: Integrated audio dial ticks (`playDialTickSound()`) during dropdown item hover and scroll.
 

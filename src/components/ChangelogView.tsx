@@ -17,9 +17,37 @@ interface ChangelogRelease {
 
 const CHANGELOG_DATA: ChangelogRelease[] = [
   {
+    version: 'v0.2.7',
+    date: 'Aug 13, 2026',
+    isLatest: true,
+    summary: 'Disk-backed on-demand text payloads, image thumbnailing, RAM footprint stabilization (~130 MB), universal drag-and-drop vault, zero-cost URL previews, and Windows OS integration fixes.',
+    highlights: [
+      {
+        title: 'Disk-Backed Payloads & RAM Footprint Stabilization',
+        description: 'Large text entries (>300 chars) are stored as disk payload files, locking operational RAM down to ~130 MB–160 MB with zero copy/paste latency.'
+      },
+      {
+        title: 'Image Thumbnailing Protocol (edgelocal://thumb/)',
+        description: 'History cards now render 240px custom thumbnails instead of multi-megapixel raw images, preventing Chromium GPU memory bloat.'
+      },
+      {
+        title: 'Windows Home Screen & Fullscreen Detection Fix',
+        description: 'Differentiates Windows Desktop/Home Screen shell focus from full-screen games via Win32 API window class filtering, enabling smooth edge opening on the Home Screen.'
+      },
+      {
+        title: 'Self-Healing Launch at Login Sync',
+        description: 'Unconditionally synchronizes Windows Registry startup entries with live binary paths and --hidden flags after every app update.'
+      },
+      {
+        title: 'Universal Drag-and-Drop & Zero-Cost URL Previews',
+        description: 'Drag text, links, web images, and files directly into Edge-Drop, with offline rich URL link preview cards and favicons.'
+      }
+    ]
+  },
+  {
     version: 'v0.2.6',
     date: 'Aug 05, 2026',
-    isLatest: true,
+    isLatest: false,
     summary: 'Performance optimizations, redesigned settings footer, custom support portal integration, and enhanced 30-language typography.',
     highlights: [
       {
