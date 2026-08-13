@@ -193,7 +193,7 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
             className="kofi-support-btn"
             onClick={() => {
               playButtonClickSound()
-              window.open('https://edgedrop.vercel.app/supportedgedrop', '_blank')
+              window.open('https://www.edgedrop.app/supportedgedrop', '_blank')
             }}
           >
             <div className="support-btn-heart-badge">

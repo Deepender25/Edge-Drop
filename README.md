@@ -95,15 +95,15 @@ It is built for the developer and creative workflow where you constantly juggle 
     </td>
     <td align="center" width="50%" style="border: none; padding: 15px; vertical-align: top;">
       <h3>🇮🇳 India (UPI)</h3>
-      <a href="https://edgedrop.vercel.app/supportedgedrop/upi" target="_blank">
+      <a href="https://www.edgedrop.app/supportedgedrop/upi" target="_blank">
         <img src="public/upi-sponsor-qr.png" alt="Scan or Click for UPI Donation Page" width="170" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
       </a>
       <br/><br/>
-      <a href="https://edgedrop.vercel.app/supportedgedrop/upi" target="_blank">
+      <a href="https://www.edgedrop.app/supportedgedrop/upi" target="_blank">
         <img src="https://img.shields.io/badge/Donate%20via-UPI-128856?style=for-the-badge&logo=googlepay&logoColor=white" alt="Donate via UPI" height="36" />
       </a>
       <br/><br/>
-      <sub><i>* Note: Scanning or clicking opens the <a href="https://edgedrop.vercel.app/supportedgedrop/upi" target="_blank">UPI Donation Page</a> where you can donate via GPay, PhonePe, Paytm, or any UPI app.</i></sub>
+      <sub><i>* Note: Scanning or clicking opens the <a href="https://www.edgedrop.app/supportedgedrop/upi" target="_blank">UPI Donation Page</a> where you can donate via GPay, PhonePe, Paytm, or any UPI app.</i></sub>
     </td>
   </tr>
 </table>
