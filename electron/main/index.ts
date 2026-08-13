@@ -13,7 +13,7 @@ import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, cleanTemp, PATHS } from '../store/paths'
 import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth } from './window'
 import { createTray, registerIncognitoApplier } from './tray'
-import { registerIpc, registerSendListeners } from './ipc'
+import { registerIpc, registerSendListeners, syncLoginItemSettings } from './ipc'
 import { prewarmDragIcons } from './drag'
 import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
 import { initAutoUpdater } from './updater'
@@ -134,14 +134,7 @@ app.whenReady().then(() => {
   }
   setHotZoneWidth(settings.hotZoneWidth || 3)
   
-  if (app.isPackaged) {
-    try {
-      app.setLoginItemSettings({
-        openAtLogin: settings.launchAtLogin,
-        path: app.getPath('exe')
-      })
-    } catch { /* ignore in non-packaged / sandbox */ }
-  }
+  syncLoginItemSettings(settings.launchAtLogin)
   registerIncognitoApplier((v) => getWatcher().setPaused(v))
   getWatcher().setPaused(settings.incognito)
   pushState.settings(settings)

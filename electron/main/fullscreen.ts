@@ -17,7 +17,7 @@ import koffi from 'koffi'
 
 // Windows QUERY_USER_NOTIFICATION_STATE enum values:
 // 1 = QUNS_NOT_PRESENT        (screen saver / locked)
-// 2 = QUNS_BUSY               (fullscreen app / presentation mode)
+// 2 = QUNS_BUSY               (fullscreen app / presentation mode / desktop shell focus)
 // 3 = QUNS_RUNNING_D3D_FULL_SCREEN (D3D fullscreen game)
 // 4 = QUNS_PRESENTATION_MODE  (PowerPoint / Keynote presentation)
 // 5 = QUNS_ACCEPTS_NOTIFICATIONS (normal desktop)
@@ -25,23 +25,45 @@ import koffi from 'koffi'
 // 7 = QUNS_APP                (Windows Store app)
 const FULLSCREEN_STATES = new Set([2, 3, 4])
 
+// Windows Desktop & Shell window classes that report QUNS_BUSY (2) when focused
+const DESKTOP_SHELL_CLASSES = new Set([
+  'Progman',
+  'WorkerW',
+  'Shell_TrayWnd',
+  'Shell_SecondaryTrayWnd',
+  'ImmersiveLauncher',
+  'MultitaskingViewFrame'
+])
+
 /**
- * Load SHQueryUserNotificationState from shell32.dll via koffi.
- * Done once at module load — the DLL stays resident in-process so every
+ * Load SHQueryUserNotificationState from shell32.dll and GetForegroundWindow/GetClassNameA from user32.dll via koffi.
+ * Done once at module load — the DLLs stay resident in-process so every
  * subsequent call is just a direct function pointer invocation (~1 µs), with
  * no process spawning, CLR load, or disk I/O.
  */
 type ShQueryFn = (pquns: [number]) => number
+type GetForegroundWindowFn = () => number
+type GetClassNameFn = (hwnd: number, buf: Buffer, maxCount: number) => number
+
 let shQueryFn: ShQueryFn | null = null
+let getForegroundWindowFn: GetForegroundWindowFn | null = null
+let getClassNameFn: GetClassNameFn | null = null
+
 if (process.platform === 'win32') {
   try {
     const shell32 = koffi.load('shell32.dll')
-    // The signature: HRESULT SHQueryUserNotificationState(QUERY_USER_NOTIFICATION_STATE *pquns)
-    // koffi _Out_ tells koffi to copy the pointed-to value back to JS after the call.
     shQueryFn = shell32.func('int SHQueryUserNotificationState(_Out_ int *pquns)') as ShQueryFn
-    console.log('[Fullscreen] Loaded SHQueryUserNotificationState via koffi (no PowerShell needed)')
+    console.log('[Fullscreen] Loaded SHQueryUserNotificationState via koffi')
   } catch (err) {
     console.error('[Fullscreen] koffi shell32 load failed — fullscreen detection disabled:', err)
+  }
+
+  try {
+    const user32 = koffi.load('user32.dll')
+    getForegroundWindowFn = user32.func('uintptr_t GetForegroundWindow()') as GetForegroundWindowFn
+    getClassNameFn = user32.func('int GetClassNameA(uintptr_t hWnd, _Out_ char *lpClassName, int nMaxCount)') as GetClassNameFn
+  } catch (err) {
+    console.error('[Fullscreen] koffi user32 load failed:', err)
   }
 }
 
@@ -51,6 +73,22 @@ let onFullscreenDetectedFn: (() => void) | null = null
 
 export function registerFullscreenActiveListener(fn: () => void): void {
   onFullscreenDetectedFn = fn
+}
+
+/** Check if the current foreground window belongs to the Windows Desktop or Shell. */
+function isDesktopForeground(): boolean {
+  if (!getForegroundWindowFn || !getClassNameFn) return false
+  try {
+    const hwnd = getForegroundWindowFn()
+    if (!hwnd) return false
+    const buf = Buffer.alloc(256)
+    const len = getClassNameFn(hwnd, buf, 256)
+    if (len <= 0) return false
+    const className = buf.toString('utf8', 0, len).trim()
+    return DESKTOP_SHELL_CLASSES.has(className)
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -78,7 +116,13 @@ export function triggerFullscreenCheck(): void {
   const state = queryNotificationState()
   if (state < 0) return   // koffi unavailable or call failed
 
-  const isNowFullscreen = FULLSCREEN_STATES.has(state)
+  let isNowFullscreen = FULLSCREEN_STATES.has(state)
+  // Windows Shell/Desktop focus reports QUNS_BUSY (2) when no app window is focused.
+  // Exclude Windows Home Screen / Desktop from game fullscreen suppression.
+  if (isNowFullscreen && state === 2 && isDesktopForeground()) {
+    isNowFullscreen = false
+  }
+
   isFullscreenActiveCache = isNowFullscreen
   if (isNowFullscreen) {
     onFullscreenDetectedFn?.()

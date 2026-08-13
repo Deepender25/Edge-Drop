@@ -172,6 +172,35 @@ export function isStoreBuild(): boolean {
   return false
 }
 
+/** Synchronizes launch at login settings with Windows Registry, resolving path drift after updates. */
+export function syncLoginItemSettings(launchAtLogin?: boolean): void {
+  if (!app.isPackaged) return
+  const wantLaunch = launchAtLogin ?? loadSettings().launchAtLogin
+  try {
+    const current = app.getLoginItemSettings()
+    const exePath = app.getPath('exe')
+
+    if (wantLaunch) {
+      if (!current.openAtLogin || current.executableWillLaunchAtLogin === false) {
+        app.setLoginItemSettings({
+          openAtLogin: true,
+          path: exePath,
+          args: ['--hidden']
+        })
+      }
+    } else {
+      if (current.openAtLogin) {
+        app.setLoginItemSettings({
+          openAtLogin: false,
+          path: exePath
+        })
+      }
+    }
+  } catch (err) {
+    console.error('[IPC] Failed to sync login item settings:', err)
+  }
+}
+
 export function registerIpc(): void {
   handle('state:load', () => {
     return {
@@ -556,13 +585,8 @@ export function registerIpc(): void {
       }
     }
     const next = saveSettings(enrichedPatch)
-    if (patch.launchAtLogin !== undefined && app.isPackaged) {
-      try {
-        app.setLoginItemSettings({
-          openAtLogin: next.launchAtLogin,
-          path: app.getPath('exe')
-        })
-      } catch { /* ignore */ }
+    if (patch.launchAtLogin !== undefined) {
+      syncLoginItemSettings(next.launchAtLogin)
     }
     if (patch.hotZoneWidth !== undefined) {
       setHotZoneWidth(patch.hotZoneWidth)
