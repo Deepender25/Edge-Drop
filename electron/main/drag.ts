@@ -47,37 +47,15 @@ export function resolveDragData(req: DragRequest): ItemData | null {
   return item.data
 }
 
-function logDrag(msg: string): void {
-  try {
-    const logPath = join(process.cwd(), 'drag_debug.txt')
-    require('node:fs').appendFileSync(logPath, `[${new Date().toISOString()}] ${msg}\n`, 'utf8')
-  } catch {}
-  console.log(`[DragDebug] ${msg}`)
-}
-
-/**
- * Begin a native OS drag from a specific webContents (the `event.sender` from
- * the `ipcMain.on` handler). This is the **only** reliable way to start a drag
- * on Windows — `BrowserWindow.getFocusedWindow()` often returns null for this
- * edge panel (it is showInactive / skipTaskbar / alwaysOnTop).
- */
 export function startDragOut(sender: WebContents, data: ItemData): void {
-  logDrag(`startDragOut called for kind=${data.kind}`)
   const staged = stageDragFile(data)
-  if (!staged) {
-    logDrag(`stageDragFile returned null for kind=${data.kind}`)
-    return
-  }
-  logDrag(`staged: file=${staged.file}, files=${JSON.stringify(staged.files)}`)
+  if (!staged) return
 
   const icon = dragIcon(data)
-  logDrag(`dragIcon result: isEmpty=${icon.isEmpty()}, size=${JSON.stringify(icon.getSize())}`)
-
   const item: Electron.Item = { file: staged.file, icon }
   if (staged.files) {
     item.files = staged.files
   }
-  logDrag(`calling sender.startDrag with item.file=${item.file}, item.files=${JSON.stringify(item.files)}`)
   sender.startDrag(item)
 }
 
@@ -188,19 +166,16 @@ function getFileDragIcon(): Electron.NativeImage {
  * We use real image thumbnails or custom SVG card stacks rendered via Resvg.
  */
 function dragIcon(data: ItemData): Electron.NativeImage {
-  logDrag(`dragIcon called for kind=${data.kind}`)
   try {
     if (data.kind === 'image' || data.kind === 'image-collection') {
       const isCollection = data.kind === 'image-collection'
       const count = isCollection ? data.images.length : 1
-      logDrag(`image drag requested: count=${count}. Returning custom image card stack icon!`)
       if (count === 0) return getFileDragIcon()
       return createFileStackDragIcon(Array(count).fill('image.png'))
     }
 
     if (data.kind === 'files') {
       const count = data.paths.length
-      logDrag(`files check: count=${count}, paths=${JSON.stringify(data.paths)}`)
       if (count === 0) return getFileDragIcon()
       return createFileStackDragIcon(data.paths)
     }
@@ -208,9 +183,7 @@ function dragIcon(data: ItemData): Electron.NativeImage {
     if (data.kind === 'text') {
       return createTextDragIcon(data.text)
     }
-  } catch (err: any) {
-    logDrag(`dragIcon exception: ${err?.stack || err}`)
-  }
+  } catch {}
   return getFileDragIcon()
 }
 
@@ -250,7 +223,6 @@ function createFileStackDragIcon(paths: string[]): Electron.NativeImage {
   const cacheKey = `stack|solid-black|${kinds.map((k) => k.kind).join('-')}|${count}`
   const cached = iconCache.get(cacheKey)
   if (cached && !cached.isEmpty()) {
-    logDrag(`createFileStackDragIcon returning cached for ${cacheKey}`)
     return cached
   }
 
@@ -285,11 +257,9 @@ function createFileStackDragIcon(paths: string[]): Electron.NativeImage {
   </svg>`
 
   try {
-    logDrag(`createFileStackDragIcon calling Resvg for count=${count}`)
     const resvg = new Resvg(svg, { fitTo: { mode: 'zoom', value: 3 } })
     const pngData = resvg.render().asPng()
     const img = nativeImage.createFromBuffer(pngData, { scaleFactor: 3 })
-    logDrag(`createFileStackDragIcon resvg result: isEmpty=${img.isEmpty()}, size=${JSON.stringify(img.getSize())}`)
     if (!img.isEmpty()) {
       iconCache.set(cacheKey, img)
       if (iconCache.size > ICON_CACHE_MAX) {
@@ -298,9 +268,7 @@ function createFileStackDragIcon(paths: string[]): Electron.NativeImage {
       }
       return img
     }
-  } catch (err: any) {
-    logDrag(`createFileStackDragIcon resvg error: ${err?.stack || err}`)
-  }
+  } catch {}
   return getFileDragIcon()
 }
 
@@ -366,9 +334,7 @@ function createTextDragIcon(text: string): Electron.NativeImage {
     const pngData = resvg.render().asPng()
     const img = nativeImage.createFromBuffer(pngData, { scaleFactor: 2 })
     if (!img.isEmpty()) return img
-  } catch (err: any) {
-    logDrag(`createTextDragIcon exception: ${err?.stack || err}`)
-  }
+  } catch {}
   return getFileDragIcon()
 }
 

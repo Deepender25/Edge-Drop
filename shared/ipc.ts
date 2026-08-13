@@ -31,6 +31,9 @@ export interface InvokeMap {
   /** Delete every unpinned item. */
   'item:clear': { args: []; result: ClipboardItemDto[] }
 
+  /** Fetch the full text payload from disk for a large text item on-demand. */
+  'item:get-full-text': { args: [id: string]; result: string }
+
   /** Remove a specific sub-item from a bundle. */
   'item:remove-subitem': { args: [req: DragRequest]; result: boolean }
 

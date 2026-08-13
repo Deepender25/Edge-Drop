@@ -73,6 +73,21 @@ export function getMainWindow(): BrowserWindow | null {
   return mainWindow
 }
 
+/** Send only while the panel has a live, settled renderer frame. */
+export function sendToMainWindow(channel: string, ...args: unknown[]): boolean {
+  if (!mainWindow || mainWindow.isDestroyed()) return false
+  const contents = mainWindow.webContents
+  if (contents.isDestroyed() || contents.isLoadingMainFrame()) return false
+  try {
+    contents.send(channel, ...args)
+    return true
+  } catch {
+    // A frame can be disposed between the checks above and send(). Renderer
+    // hydration obtains the current state once its replacement frame is ready.
+    return false
+  }
+}
+
 /** True when the window currently accepts mouse clicks (blade is "open"). */
 export function isInteractive(): boolean {
   return interactive
@@ -284,17 +299,15 @@ function _pollTick(): void {
     lastEdgeState = newState
     _lastSentX = clientX
     _lastSentY = clientY
-    if (!mainWindow.webContents.isDestroyed()) {
-      mainWindow.webContents.send('window:cursor-edge', {
-        x: clientX,
-        y: clientY,
-        inEdge,
-        inZone: true,
-        stickPosition: settings.stickPosition,
-        displayWidth: wa.width,
-        displayHeight: wa.height
-      })
-    }
+    sendToMainWindow('window:cursor-edge', {
+      x: clientX,
+      y: clientY,
+      inEdge,
+      inZone: true,
+      stickPosition: settings.stickPosition,
+      displayWidth: wa.width,
+      displayHeight: wa.height
+    })
   }
 }
 
@@ -382,9 +395,7 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
         stickDisplayWorkArea: recoveredViaBounds ? resolved.workArea : undefined,
         stickDisplayScaleFactor: recoveredViaBounds ? resolved.scaleFactor : undefined
       })
-      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-        mainWindow.webContents.send('state:settings', settings)
-      }
+      sendToMainWindow('state:settings', settings)
       if (!recoveredViaBounds) {
         // Genuinely fell back — briefly show panel on new location.
         popUpAndRetract(1500)
@@ -401,9 +412,7 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
         stickDisplayWorkArea: resolved.workArea,
         stickDisplayScaleFactor: resolved.scaleFactor
       })
-      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-        mainWindow.webContents.send('state:settings', settings)
-      }
+      sendToMainWindow('state:settings', settings)
     } else if (settings.stickDisplayId !== undefined && (
       settings.stickDisplayWorkArea === undefined ||
       settings.stickDisplayScaleFactor === undefined
@@ -460,9 +469,7 @@ export function createWindow(): BrowserWindow {
   registerFullscreenActiveListener(() => {
     const settings = loadSettings()
     if (settings.suppressInFullscreen && (settings.hoverActivation ?? true)) {
-      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-        mainWindow.webContents.send('window:toggle', false)
-      }
+      sendToMainWindow('window:toggle', false)
       setInteractive(false)
     }
   })
@@ -680,15 +687,15 @@ export function popUpAndRetract(durationMs = 1500): void {
 
   const wasAlreadyOpen = interactive
   console.log(`[Main] Popping up panel briefly to confirm new screen/edge location (wasAlreadyOpen=${wasAlreadyOpen})`)
-  mainWindow.webContents.send('window:toggle', true)
+  sendToMainWindow('window:toggle', true)
 
   if (popUpTimer !== null) clearTimeout(popUpTimer)
   if (!wasAlreadyOpen) {
     popUpTimer = setTimeout(() => {
       popUpTimer = null
-      if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+      if (mainWindow && !mainWindow.isDestroyed()) {
         console.log('[Main] Retracting panel after brief confirmation pop-up')
-        mainWindow.webContents.send('window:toggle', false)
+        sendToMainWindow('window:toggle', false)
       }
     }, durationMs)
   }

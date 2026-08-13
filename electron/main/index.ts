@@ -8,7 +8,7 @@
  *   3. On 'window-all-closed' we DON'T quit (the panel is hidden, not closed).
  *   4. Quit from the tray menu tears everything down cleanly.
  */
-import { app, BrowserWindow, protocol, session } from 'electron'
+import { app, BrowserWindow, nativeImage, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, cleanTemp, PATHS } from '../store/paths'
 import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth } from './window'
@@ -34,8 +34,12 @@ app.disableHardwareAcceleration()
 // Restrict the renderer to a single webContents and forbid remote module usage.
 app.enableSandbox()
 
-// Expose GC switch for safe idle memory trimming when panel is closed.
-app.commandLine.appendSwitch('js-flags', '--expose-gc')
+// Keep V8's old-space heap bounded without starving a renderer that is loading
+// an existing clipboard history. This deliberately does not restore
+// --optimize-for-size: that flag made collections more aggressive and caused
+// visible animation hitches. Chromium image/compositor memory is handled by
+// the thumbnail path below rather than by this JavaScript heap limit.
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512 --expose-gc')
 
 // ---- single instance -------------------------------------------------------
 const gotLock = app.requestSingleInstanceLock()
@@ -159,6 +163,18 @@ app.on('activate', () => {
 function registerImageProtocol(): void {
   protocol.handle(APP_CONFIG.imageProtocol, async (request) => {
     try {
+      // List cards request bounded raster thumbnails.  Do not hand an original
+      // multi-megapixel file to Chromium merely to paint a 50–240px card.
+      if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://thumb/`)) {
+        const rawTarget = request.url.slice(`${APP_CONFIG.imageProtocol}://thumb/`.length)
+        const filePath = rawTarget.startsWith('file/')
+          ? normalize(decodeURIComponent(rawTarget.slice('file/'.length)))
+          : resolveStoredImage(PATHS.imagesDir(), rawTarget)?.filePath
+
+        if (!filePath || !existsSync(filePath)) return new Response('Not found', { status: 404 })
+        return createThumbnailResponse(filePath)
+      }
+
       // Support streaming full-resolution local image files: edgelocal://file/<encodedPath>
       if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://file/`)) {
         const rawPath = request.url.slice(`${APP_CONFIG.imageProtocol}://file/`.length)
@@ -207,6 +223,36 @@ function registerImageProtocol(): void {
     } catch {
       return new Response('Error', { status: 500 })
     }
+  })
+}
+
+/**
+ * Encodes a display-sized PNG so renderer image decodes are strictly bounded.
+ * The full-resolution source remains available through edgelocal:// for the
+ * preview flyout and drag/paste flows.
+ */
+function createThumbnailResponse(filePath: string): Response {
+  const MAX_THUMBNAIL_EDGE_PX = 240
+  const image = nativeImage.createFromPath(filePath)
+  if (image.isEmpty()) return new Response('Unsupported image', { status: 415 })
+
+  const { width, height } = image.getSize()
+  const scale = Math.min(1, MAX_THUMBNAIL_EDGE_PX / Math.max(width, height))
+  const thumbnail = scale < 1
+    ? image.resize({
+        width: Math.max(1, Math.round(width * scale)),
+        height: Math.max(1, Math.round(height * scale)),
+        quality: 'good'
+      })
+    : image
+
+  return new Response(thumbnail.toPNG(), {
+    status: 200,
+    headers: new Headers({
+      'Content-Type': 'image/png',
+      // The source file can change or be deleted; do not retain stale thumbs.
+      'Cache-Control': 'no-cache'
+    })
   })
 }
 

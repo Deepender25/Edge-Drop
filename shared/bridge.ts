@@ -15,6 +15,7 @@ export interface EdgeApi {
   deleteItem: (id: string) => Promise<import('./types').ClipboardItemDto[]>
   deleteBatchItems: (ids: string[]) => Promise<import('./types').ClipboardItemDto[]>
   clearItems: () => Promise<import('./types').ClipboardItemDto[]>
+  getFullText: (id: string) => Promise<string>
   removeSubitem: (req: DragRequest) => Promise<boolean>
   copyItem: (id: string) => Promise<boolean>
   copySubitem: (req: DragRequest) => Promise<boolean>

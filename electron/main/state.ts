@@ -42,7 +42,14 @@ function handleSystemWake(): void {
 /** Initialize persistence + start the clipboard watcher. */
 export function initState(): void {
   store.load()
-  if (loadSettings().clearUnpinnedOnRestart) {
+
+  // One-time v0.2.6 upgrade migration: clear unpinned items once & set default historyLimit to 250
+  const currentSettings = loadSettings()
+  if (!currentSettings.v026UpgradeCleaned) {
+    console.log('[State] Executing one-time v0.2.6 upgrade migration: clearing unpinned items & setting historyLimit to 250...')
+    store.clearUnpinned()
+    saveSettings({ v026UpgradeCleaned: true, historyLimit: 250 })
+  } else if (currentSettings.clearUnpinnedOnRestart) {
     store.clearUnpinned()
   }
   store.pruneExpired(loadSettings().autoDeleteHours)

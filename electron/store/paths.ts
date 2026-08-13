@@ -14,6 +14,8 @@ const root = () => app.getPath('userData')
 export const PATHS = {
   /** userData root. */
   root,
+  /** Directory holding text payloads for large text entries. */
+  payloadsDir: () => join(root(), 'payloads'),
   /** Directory holding one PNG per captured image item. */
   imagesDir: () => join(root(), 'images'),
   /** Path to the items index JSON. */
@@ -30,7 +32,7 @@ export const PATHS = {
 
 /** Idempotently create every directory the app needs. Safe to call repeatedly. */
 export function ensureDirs(): void {
-  for (const dir of [PATHS.imagesDir(), PATHS.tempDir()]) {
+  for (const dir of [PATHS.imagesDir(), PATHS.payloadsDir(), PATHS.tempDir()]) {
     mkdirSync(dir, { recursive: true })
   }
 }

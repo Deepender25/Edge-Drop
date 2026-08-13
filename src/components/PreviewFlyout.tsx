@@ -557,15 +557,26 @@ function PreviewContent({
   const { t } = useTranslation()
   const startDrag = useDragOut()
 
+  const [fullText, setFullText] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (item?.data?.kind === 'text' && item.data.hasFullPayload) {
+      window.edge.getFullText(item.id).then((t) => setFullText(t)).catch(() => {})
+    } else {
+      setFullText(null)
+    }
+  }, [item?.id, item?.data?.hasFullPayload])
+
   if (item.data.kind === 'text') {
-    const text: string = item.data.text.length > 20000
-      ? item.data.text.slice(0, 20000) + `\n\n${t('flyout.contentTruncated')}`
-      : item.data.text
+    const activeText = fullText ?? item.data.text
+    const text: string = activeText.length > 20000
+      ? activeText.slice(0, 20000) + `\n\n${t('flyout.contentTruncated')}`
+      : activeText
     const isCode = looksLikeCode(text)
     const isUrl = item.data.isUrl
 
     if (isUrl) {
-      const info = parseUrlPreview(item.data.text)
+      const info = parseUrlPreview(activeText)
       return (
         <div
           onClick={(e) => {
@@ -597,12 +608,12 @@ function PreviewContent({
               <QuickActionButton
                 title={t('flyout.openLink')}
                 icon={ExternalLinkIcon}
-                onClick={() => window.open(item.data.text, '_blank')}
+                onClick={() => window.open(activeText, '_blank')}
               />
               <QuickActionButton
                 title={t('flyout.copyText')}
                 icon={CopyIcon}
-                onClick={() => navigator.clipboard.writeText(item.data.text)}
+                onClick={() => navigator.clipboard.writeText(activeText)}
               />
             </div>
           </div>
@@ -623,7 +634,7 @@ function PreviewContent({
           <div
             onClick={(e) => {
               e.stopPropagation()
-              window.open(item.data.text, '_blank')
+              window.open(activeText, '_blank')
             }}
             style={{
               padding: '10px 12px',
@@ -647,7 +658,7 @@ function PreviewContent({
               e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'
             }}
           >
-            {item.data.text}
+            {activeText}
           </div>
         </div>
       )
@@ -668,7 +679,7 @@ function PreviewContent({
           <QuickActionButton
             title={t('flyout.copyText')}
             icon={CopyIcon}
-            onClick={() => navigator.clipboard.writeText(item.data.text)}
+            onClick={() => navigator.clipboard.writeText(activeText)}
           />
         </div>
         <div style={{

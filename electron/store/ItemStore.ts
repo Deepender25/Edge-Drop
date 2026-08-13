@@ -12,6 +12,7 @@
 import { existsSync, readFileSync, writeFileSync, rmSync, statSync, readdirSync } from 'node:fs'
 import { join, extname, basename as pathBasename } from 'node:path'
 import { nativeImage, safeStorage } from 'electron'
+import { thumbnailUrlForFile, thumbnailUrlForStoredImage } from '../main/imageProtocol'
 import {
   type ClipboardItem,
   type ClipboardItemDto,
@@ -91,18 +92,32 @@ export class ItemStore {
 
       if (parsedIndex && Array.isArray(parsedIndex.items)) {
         this.items = parsedIndex.items.filter((it) => it && it.data && typeof it.id === 'string')
+
+        // Auto-migrate large text items to disk payload files
+        let migratedAnyPayloads = false
+        for (const it of this.items) {
+          if (it.data.kind === 'text') {
+            if (!it.data.hasFullPayload && it.data.text.length > 300) {
+              this.writeTextPayload(it.id, it.data.text)
+              it.data.hasFullPayload = true
+              it.data.previewText = it.data.text.slice(0, 300)
+              it.data.text = it.data.previewText
+              migratedAnyPayloads = true
+            }
+          }
+        }
+
         this.rebuildIndex()
 
         // Auto-migrate legacy plain JSON: create backup & upgrade to DPAPI encryption
-        if (needsMigration) {
-          console.log('[ItemStore] Migrating legacy plain-text items.json to DPAPI safeStorage encryption...')
+        if (needsMigration || migratedAnyPayloads) {
+          console.log('[ItemStore] Migrating items.json to DPAPI safeStorage encryption and disk payloads...')
           try {
             const backupFile = `${file}.v1.bak`
             if (!existsSync(backupFile)) {
               writeFileSync(backupFile, rawBuffer)
             }
             this.persist()
-            console.log('[ItemStore] Auto-migration to DPAPI encryption completed successfully!')
           } catch (err) {
             console.error('[ItemStore] Auto-migration backup/persist failed:', err)
           }
@@ -181,6 +196,7 @@ export class ItemStore {
         if (it.data.kind === 'image-collection') {
           it.data.images.forEach((img) => this.removeImageFile(img.imageId))
         }
+        if (it.data.kind === 'text') this.removeTextPayload(it.id)
         stillNeed--
       } else {
         survivors.unshift(it)
@@ -215,7 +231,18 @@ export class ItemStore {
     }
 
     const id = createId()
-    const item: ClipboardItem = { id, data, capturedAt: now, hitCount: 1, pinned: false }
+    let finalData = data
+    if (data.kind === 'text' && data.text.length > 300) {
+      this.writeTextPayload(id, data.text)
+      finalData = {
+        ...data,
+        hasFullPayload: true,
+        previewText: data.text.slice(0, 300),
+        text: data.text.slice(0, 300)
+      }
+    }
+
+    const item: ClipboardItem = { id, data: finalData, capturedAt: now, hitCount: 1, pinned: false }
     this.items.unshift(item)
     this.sigToId.set(sig, id)
     if (data.kind === 'image') this.writeImageFile(data.imageId)
@@ -262,6 +289,7 @@ export class ItemStore {
     if (removed.data.kind === 'image-collection') {
       removed.data.images.forEach((img) => this.removeImageFile(img.imageId))
     }
+    if (removed.data.kind === 'text') this.removeTextPayload(removed.id)
     this.persistSync()
   }
 
@@ -283,6 +311,7 @@ export class ItemStore {
       if (removed.data.kind === 'image-collection') {
         removed.data.images.forEach((img) => this.removeImageFile(img.imageId))
       }
+      if (removed.data.kind === 'text') this.removeTextPayload(removed.id)
     }
     this.persistSync()
   }
@@ -492,6 +521,7 @@ export class ItemStore {
         if (it.data.kind === 'image-collection') {
           it.data.images.forEach((img) => this.removeImageFile(img.imageId))
         }
+        if (it.data.kind === 'text') this.removeTextPayload(it.id)
       }
     }
     this.items = kept
@@ -617,6 +647,37 @@ export class ItemStore {
     }
   }
 
+  private textPayloadPath(id: string): string {
+    return join(PATHS.payloadsDir(), `${id}.txt`)
+  }
+
+  private writeTextPayload(id: string, text: string): void {
+    try {
+      writeFileSync(this.textPayloadPath(id), text, 'utf8')
+    } catch { /* ignore */ }
+  }
+
+  private removeTextPayload(id: string): void {
+    try {
+      const p = this.textPayloadPath(id)
+      if (existsSync(p)) rmSync(p, { force: true })
+    } catch { /* ignore */ }
+  }
+
+  public getFullText(id: string): string {
+    const item = this.items.find((x) => x.id === id)
+    if (!item || item.data.kind !== 'text') return ''
+    if (item.data.hasFullPayload) {
+      try {
+        const p = this.textPayloadPath(id)
+        if (existsSync(p)) {
+          return readFileSync(p, 'utf8')
+        }
+      } catch { /* ignore */ }
+    }
+    return item.data.text
+  }
+
   /* ------------------------------- DTO ----------------------------------- */
 
   /** Snapshot the whole list as renderer-safe DTOs (images inlined). */
@@ -626,13 +687,13 @@ export class ItemStore {
         const { kind, imageId, width, height, bytes, ext } = it.data
         return {
           ...it,
-          data: { kind, imageId, width, height, bytes, ext, preview: `edgelocal://${imageId}` }
+          data: { kind, imageId, width, height, bytes, ext, preview: thumbnailUrlForStoredImage(imageId) }
         }
       }
       if (it.data.kind === 'image-collection') {
         const imagesWithPreviews = it.data.images.map((img) => ({
           ...img,
-          preview: `edgelocal://${img.imageId}`
+          preview: thumbnailUrlForStoredImage(img.imageId)
         }))
         return {
           ...it,
@@ -646,10 +707,9 @@ export class ItemStore {
           const entry = buildFileEntry(p)
           if (entry.isImage && imagePreviewCount < 20) {
             imagePreviewCount++
-            const norm = p.replace(/\\/g, '/')
             return {
               ...entry,
-              preview: `edgelocal://file/${encodeURIComponent(norm)}`
+              preview: thumbnailUrlForFile(p)
             }
           }
           return entry

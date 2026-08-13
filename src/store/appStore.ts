@@ -328,20 +328,41 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   async remove(id) {
-    set({ items: get().items.filter((it) => it.id !== id) })
-    const items = await edge.deleteItem(id)
-    set({ items })
+    const previousItems = get().items
+    set({ items: previousItems.filter((it) => it.id !== id) })
+    try {
+      const items = await edge.deleteItem(id)
+      set({ items })
+    } catch {
+      // Do not leave the UI claiming an item was deleted when the main-process
+      // persistence request failed (for example during a renderer reload).
+      set({ items: previousItems })
+      get().pushToast({ id: `delete-${Date.now()}`, message: 'Could not delete this item. Please try again.', tone: 'error' })
+    }
   },
 
   async clear(ids?: string[]) {
     if (!ids || ids.length === 0) {
-      const items = await edge.clearItems()
-      set({ items })
+      const previousItems = get().items
+      set({ items: previousItems.filter((it) => it.pinned) })
+      try {
+        const items = await edge.clearItems()
+        set({ items })
+      } catch {
+        set({ items: previousItems })
+        get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
+      }
     } else {
+      const previousItems = get().items
       const idSet = new Set(ids)
-      set({ items: get().items.filter((it) => !idSet.has(it.id)) })
-      const items = await edge.deleteBatchItems(ids)
-      set({ items })
+      set({ items: previousItems.filter((it) => !idSet.has(it.id)) })
+      try {
+        const items = await edge.deleteBatchItems(ids)
+        set({ items })
+      } catch {
+        set({ items: previousItems })
+        get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
+      }
     }
   },
 
