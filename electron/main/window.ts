@@ -451,7 +451,7 @@ export function createWindow(): BrowserWindow {
     hasShadow: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    focusable: false,
+    focusable: true,
     backgroundColor: '#00000000',
     roundedCorners: false,
     webPreferences: {
@@ -719,6 +719,12 @@ export function setVisible(visible: boolean): void {
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
   } else {
     mainWindow.hide()
+  }
+}
+
+export function focusMainWindow(): void {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.focus()
   }
 }
 

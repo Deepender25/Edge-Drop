@@ -164,8 +164,10 @@ const api = {
     invoke('settings:update', patch),
   setInteractive: (value: boolean) => invoke('window:set-interactive', value),
   setPreviewMode: (active: boolean) => invoke('window:set-preview-mode', active),
+  pauseHotkey: (paused: boolean) => invoke('hotkey:pause', paused),
   revealFile: (path: string) => invoke('file:reveal', path),
   minimizeWindow: () => invoke('window:minimize'),
+  focusWindow: () => invoke('window:focus'),
   setInternalDrag: (active: boolean) => { internalDrag = active },
   broadcastTutorialStep: (step: number) => send('tutorial:set-step', step),
 

@@ -102,20 +102,8 @@ app.whenReady().then(() => {
   startFullscreenMonitor()
   createTray()
 
-  // Register Alt+C global shortcut to toggle panel
-  try {
-    const { globalShortcut } = require('electron')
-    let lastToggleTime = 0
-    globalShortcut.register('Alt+C', () => {
-      if (runtime.quitting) return
-      const now = Date.now()
-      if (now - lastToggleTime < 500) return // Throttle to once per 500ms
-      lastToggleTime = now
-      pushState.togglePanel()
-    })
-  } catch (err) {
-    console.error('[Main] Failed to register global shortcut Alt+C:', err)
-  }
+  // Register global shortcut to toggle panel
+  registerGlobalHotkey()
   registerIpc()
   registerSendListeners()
   initState()
@@ -252,3 +240,38 @@ function createThumbnailResponse(filePath: string): Response {
 // Silence unused import in environments where setVisible isn't referenced
 // after the refactor (kept for second-instance wiring above).
 void setInteractive
+
+let _lastHotkeyToggleTime = 0
+
+export function registerGlobalHotkey(targetHotkey?: string): boolean {
+  try {
+    const { globalShortcut } = require('electron')
+    globalShortcut.unregisterAll()
+    const settings = loadSettings()
+    const hotkey = targetHotkey || settings.toggleHotkey || 'Alt+C'
+
+    const success = globalShortcut.register(hotkey, () => {
+      if (runtime.quitting) return
+      const now = Date.now()
+      if (now - _lastHotkeyToggleTime < 500) return
+      _lastHotkeyToggleTime = now
+      pushState.togglePanel()
+    })
+
+    if (!success && hotkey !== 'Alt+C') {
+      console.warn(`[Main] Failed to register global shortcut ${hotkey}, falling back to Alt+C`)
+      globalShortcut.register('Alt+C', () => {
+        if (runtime.quitting) return
+        const now = Date.now()
+        if (now - _lastHotkeyToggleTime < 500) return
+        _lastHotkeyToggleTime = now
+        pushState.togglePanel()
+      })
+      return false
+    }
+    return success
+  } catch (err) {
+    console.error('[Main] Failed to register global shortcut:', err)
+    return false
+  }
+}

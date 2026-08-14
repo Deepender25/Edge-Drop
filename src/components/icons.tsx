@@ -38,11 +38,14 @@ import {
   LogOut,
   Coffee,
   Heart,
-  Star
+  Star,
+  RotateCcw
 } from 'lucide-react'
 import { getFileKindByExt } from '../lib/fileType'
 
 type P = SVGProps<SVGSVGElement>
+
+export const RotateCcwIcon = (p: P) => <RotateCcw size={p.width ?? 16} strokeWidth={2.2} {...(p as any)} />
 
 export const CoffeeIcon = (p: P) => <Coffee size={p.width ?? 16} strokeWidth={2.2} {...(p as any)} />
 export const HeartIcon = (p: P) => <Heart size={p.width ?? 16} strokeWidth={2.2} {...(p as any)} />

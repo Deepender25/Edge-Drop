@@ -65,6 +65,9 @@ export interface InvokeMap {
   /** Update a persisted setting. */
   'settings:update': { args: [patch: Partial<Settings>]; result: Settings }
 
+  /** Pause/resume global shortcut registration temporarily (e.g. while recording a new hotkey). */
+  'hotkey:pause': { args: [paused: boolean]; result: void }
+
   /** Toggle whether the window is interactive (mouse-ignore). */
   'window:set-interactive': { args: [interactive: boolean]; result: void }
 
@@ -73,6 +76,9 @@ export interface InvokeMap {
 
   /** Minimize the window (used by Onboarding). */
   'window:minimize': { args: []; result: void }
+
+  /** Request explicit OS focus for the main window (e.g. for recording hotkeys). */
+  'window:focus': { args: []; result: void }
 
   /** Trigger a download of the already-available update and quit-and-install. */
   'app:install-update': { args: []; result: void }

@@ -761,3 +761,181 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   z-index: 5;
 }
+
+/* Hotkey Recorder UI */
+.hotkey-recorder-wrap {
+  width: 100%;
+}
+
+.hotkey-field {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.hotkey-field:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.hotkey-field.is-recording {
+  background: rgba(255, 107, 107, 0.06);
+  border-color: #ff6b6b;
+  box-shadow: 0 0 12px rgba(255, 107, 107, 0.2);
+  cursor: default;
+}
+
+.hotkey-field-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.hotkey-keycaps-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hotkey-keycap-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hotkey-plus-symbol {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.hotkey-keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 2px 7px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.32);
+  border-radius: 5px;
+  color: #ffffff;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.hotkey-keycap.is-active {
+  background: rgba(255, 107, 107, 0.18);
+  border-color: rgba(255, 107, 107, 0.45);
+  border-bottom: 2px solid #ff6b6b;
+  color: #ff8585;
+}
+
+.hotkey-field-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hotkey-field-edit-badge {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.hotkey-field:hover .hotkey-field-edit-badge {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hotkey-inline-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hotkey-inline-reset-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Recording Mode Elements */
+.hotkey-recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.recording-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff6b6b;
+  box-shadow: 0 0 6px #ff6b6b;
+  animation: blinkDot 0.8s ease-in-out infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes blinkDot {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
+}
+
+.hotkey-recording-hint {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #ff8585;
+  letter-spacing: 0.1px;
+}
+
+.hotkey-cancel-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hotkey-cancel-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.hotkey-esc-text {
+  font-size: 9.5px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1;
+}

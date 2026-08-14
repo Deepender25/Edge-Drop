@@ -13,7 +13,8 @@ import { psHost, getSystemPowerShellPath } from './powershell'
 import { filterValidPaths, isValidFilePath, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
-import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract } from './window'
+import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, focusMainWindow } from './window'
+import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData } from './drag'
@@ -596,9 +597,23 @@ export function registerIpc(): void {
     if (patch.autoUpdates !== undefined) {
       syncAutoUpdaterState()
     }
+    if (patch.toggleHotkey !== undefined) {
+      registerGlobalHotkey(patch.toggleHotkey)
+    }
     pushState.settings(next)
     rebuildTrayMenu()
     return next
+  })
+
+  handle('hotkey:pause', (paused) => {
+    if (paused) {
+      try {
+        const { globalShortcut } = require('electron')
+        globalShortcut.unregisterAll()
+      } catch { /* ignore */ }
+    } else {
+      registerGlobalHotkey()
+    }
   })
 
   handle('window:set-interactive', (value) => {
@@ -614,6 +629,10 @@ export function registerIpc(): void {
     if (win && !win.isDestroyed()) {
       win.minimize()
     }
+  })
+
+  handle('window:focus', () => {
+    focusMainWindow()
   })
 
   handle('displays:list', () => {

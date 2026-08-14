@@ -6,6 +6,7 @@ import { LiquidOctopusLoader } from './LiquidOctopusLoader'
 import { TickIndicatorIcon, CopyIndicatorIcon, SparkleIndicatorIcon } from './CopyIndicatorCurve'
 import { ChevronRightIcon, CloseIcon, LogOutIcon, StarIcon, GithubOctocatLogo } from './icons'
 import { ChangelogView } from './ChangelogView'
+import { HotkeyRecorder } from './HotkeyRecorder'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
 import '../styles/settings.css'
@@ -22,6 +23,7 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
     { id: 'appearance', label: t('tabs.appearance') },
   ]
   const patch = useStore((s) => s.patchSettings)
+  const pushToast = useStore((s) => s.pushToast)
   const updateInfo = useStore((s) => s.updateInfo)
   const isStoreBuild = useStore((s) => s.isStoreBuild)
   const currentVersion = useStore((s) => s.currentVersion)
@@ -352,7 +354,7 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                         {(settings.hoverActivation ?? true) ? (
                           <span>{t('behaviour.hoverActivationDescOn')}</span>
                         ) : (
-                          <span>{t('behaviour.hoverActivationDescOff')}</span>
+                          <span>{t('behaviour.hoverActivationDescOff', { shortcut: settings.toggleHotkey || 'Alt+C' })}</span>
                         )}
                       </div>
                     </div>
@@ -364,6 +366,32 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                         } else {
                           patch({ hoverActivation: true, suppressInFullscreen: true })
                         }
+                      }}
+                    />
+                  </div>
+
+                  <div className="setting-divider" />
+
+                  {/* ── Global Toggle Shortcut (Vertical Layout) ── */}
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                    padding: '2px 0'
+                  }}>
+                    <div>
+                      <div className="setting-title">{t('behaviour.toggleHotkeyTitle')}</div>
+                      <div className="setting-desc" style={{ marginTop: 2 }}>{t('behaviour.toggleHotkeyDesc')}</div>
+                    </div>
+                    <HotkeyRecorder
+                      hotkey={settings.toggleHotkey || 'Alt+C'}
+                      onChange={(nextHotkey) => {
+                        patch({ toggleHotkey: nextHotkey })
+                        pushToast({
+                          id: Date.now().toString(),
+                          message: t('toast.shortcutUpdated', { shortcut: nextHotkey }),
+                          tone: 'info'
+                        })
                       }}
                     />
                   </div>
