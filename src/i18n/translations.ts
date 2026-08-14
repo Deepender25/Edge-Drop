@@ -117,11 +117,6 @@ export interface TranslationKeys {
     unpin: string
     delete: string
     clear: string
-    clearLast1h?: string
-    clearLast6h?: string
-    clearLast24h?: string
-    clearAll?: string
-    clearAllConfirm?: string
     dropToSave: string
     dropToSaveDesc: string
     justNow: string
@@ -548,11 +543,6 @@ export const en: TranslationKeys = {
     "unpin": "Unpin",
     "delete": "Delete",
     "clear": "Clear",
-    "clearLast1h": "Clear last hour",
-    "clearLast6h": "Clear last 6 hours",
-    "clearLast24h": "Clear last 24 hours",
-    "clearAll": "Clear all history",
-    "clearAllConfirm": "Tap again to confirm",
     "dropToSave": "Drop to save",
     "dropToSaveDesc": "Any file, image, link, or text",
     "justNow": "just now",
@@ -800,12 +790,6 @@ export const es: TranslationKeys = {
     "sparkleStyle": "Destello"
   },
   "item": {
-    "clearLast1h": "Borrar la última hora",
-    "clearLast6h": "Borrar las últimas 6 horas",
-    "clearLast24h": "Borrar las últimas 24 horas",
-    "clearAll": "Borrar todo el historial",
-    "clearAllConfirm": "Toca de nuevo para confirmar",
-
     "copy": "Copiar",
     "pinned": "FIJADO",
     "pin": "Fijar",
@@ -1059,12 +1043,6 @@ export const fr: TranslationKeys = {
     "sparkleStyle": "Étincelle"
   },
   "item": {
-    "clearLast1h": "Effacer la dernière heure",
-    "clearLast6h": "Effacer les 6 dernières heures",
-    "clearLast24h": "Effacer les 24 dernières heures",
-    "clearAll": "Effacer tout l’historique",
-    "clearAllConfirm": "Appuyez à nouveau pour confirmer",
-
     "copy": "Copier",
     "pinned": "ÉPINGLÉ",
     "pin": "Épingler",
@@ -1318,12 +1296,6 @@ export const de: TranslationKeys = {
     "sparkleStyle": "Funke"
   },
   "item": {
-    "clearLast1h": "Letzte Stunde löschen",
-    "clearLast6h": "Letzte 6 Stunden löschen",
-    "clearLast24h": "Letzte 24 Stunden löschen",
-    "clearAll": "Gesamten Verlauf löschen",
-    "clearAllConfirm": "Zum Bestätigen erneut tippen",
-
     "copy": "Kopieren",
     "pinned": "ANGEPINNT",
     "pin": "Anpinnen",
@@ -1577,12 +1549,6 @@ export const it: TranslationKeys = {
     "sparkleStyle": "Scintilla"
   },
   "item": {
-    "clearLast1h": "Cancella ultima ora",
-    "clearLast6h": "Cancella ultime 6 ore",
-    "clearLast24h": "Cancella ultime 24 ore",
-    "clearAll": "Cancella tutta la cronologia",
-    "clearAllConfirm": "Tocca di nuovo per confermare",
-
     "copy": "Copia",
     "pinned": "BLOCCATO",
     "pin": "Blocca",
@@ -1836,12 +1802,6 @@ export const pt: TranslationKeys = {
     "sparkleStyle": "Cintilação"
   },
   "item": {
-    "clearLast1h": "Limpar última hora",
-    "clearLast6h": "Limpar últimas 6 horas",
-    "clearLast24h": "Limpar últimas 24 horas",
-    "clearAll": "Limpar todo o histórico",
-    "clearAllConfirm": "Toque novamente para confirmar",
-
     "copy": "Copiar",
     "pinned": "FIXADO",
     "pin": "Fixar",
@@ -2095,12 +2055,6 @@ export const ru: TranslationKeys = {
     "sparkleStyle": "Искра"
   },
   "item": {
-    "clearLast1h": "Очистить за последний час",
-    "clearLast6h": "Очистить за последние 6 часов",
-    "clearLast24h": "Очистить за последние 24 часа",
-    "clearAll": "Очистить всю историю",
-    "clearAllConfirm": "Нажмите ещё раз для подтверждения",
-
     "copy": "Копировать",
     "pinned": "ЗАКРЕПЛЕНО",
     "pin": "Закрепить",
@@ -2262,33 +2216,33 @@ export const ja: TranslationKeys = {
   },
   "behaviour": {
     "languageTitle": "言語",
-    "languageDesc": "システムメニューとコントロールの UI 言語を選択",
-    "systemDefault": "システム既定 (自動)",
+    "languageDesc": "システムメニューとコントロールの UI 言語を選択します",
+    "systemDefault": "システムのデフォルト (自動)",
     "launchAtLoginTitle": "ログイン時に起動",
-    "launchAtLoginDesc": "コンピューターの起動時にバックグラウンドでサイレント起動",
+    "launchAtLoginDesc": "コンピューターの起動時にバックグラウンドでサイレント起動します",
     "incognitoTitle": "シークレットモード",
-    "incognitoDesc": "新しいクリップボード項目の記録を一時停止",
-    "hoverActivationTitle": "ホバー有効化",
-    "hoverActivationDescOn": "画面の端にカーソルを近づけるとシェルフをスライドで開く",
-    "hoverActivationDescOff": "ホバートリガーは一時停止中。Alt + C で開く",
-    "disabledHoverOff": "ホバー有効化がオフのため無効です",
-    "fullscreenProtectionTitle": "全画面保護",
-    "fullscreenProtectionDesc": "ゲーム中や全画面動画視聴時にエッジホバーを自動的に一時停止",
-    "clearUnpinnedTitle": "再起動時にピン留め以外を消去",
-    "clearUnpinnedDesc": "アプリ再起動のたびにピン留めされていない項目を削除",
+    "incognitoDesc": "新しいクリップボードアイテムの記録を停止します",
+    "hoverActivationTitle": "ホバー時に表示する",
+    "hoverActivationDescOn": "画面の端にカーソルを近づけてパネルを開きます",
+    "hoverActivationDescOff": "パネルは Alt + C で開きます",
+    "disabledHoverOff": "「ホバー時に表示する」がオフのため無効です",
+    "fullscreenProtectionTitle": "全画面時にホバー表示機能をオフにする",
+    "fullscreenProtectionDesc": "ゲーム中や全画面動画視聴時にホバー表示機能を自動的にオフにします",
+    "clearUnpinnedTitle": "再起動時に未ピン留めのアイテムを削除",
+    "clearUnpinnedDesc": "アプリを再起動するたびに未ピン留めのアイテムを削除します",
     "movePastedToTopTitle": "貼り付けたアイテムを上に移動",
-    "movePastedToTopDesc": "貼り付けるたびに、ピン留めされていないアイテムを「最近使用した項目」の先頭に並べ替えます",
+    "movePastedToTopDesc": "貼り付けるたびに未ピン留めの項目を「最近使用した項目」の先頭に並べ替えます",
     "soundEffectsTitle": "効果音",
-    "soundEffectsDesc": "トグル、スライダー、ボタンクリックに触覚音声フィードバックを再生",
+    "soundEffectsDesc": "トグルスイッチ、スライダー、ボタンクリックに対して効果音を再生します",
     "autoUpdatesTitle": "自動更新",
-    "autoUpdatesDescOn": "バックグラウンドで自動的に更新を確認してダウンロード",
-    "autoUpdatesDescOff": "バックグラウンド更新確認は一時停止中。下から手動で確認",
+    "autoUpdatesDescOn": "バックグラウンドで自動的に更新を確認してダウンロードします",
+    "autoUpdatesDescOff": "自動更新はオフになっています。下のボタンから手動で更新を確認します",
     "checkForUpdates": "更新を確認",
     "checkingForUpdates": "GitHub で更新を確認中...",
     "isUpToDate": "✓ Edge-Drop は最新です",
     "checkAgain": "再確認",
     "tryAgain": "再試行",
-    "updateCheckFailed": "更新確認に失敗しました",
+    "updateCheckFailed": "更新の確認に失敗しました",
     "updateAvailableTitle": "Edge-Drop v{version} が利用可能です！",
     "updateAvailableDesc": "GitHub に新しいバージョンが公開されました。今すぐダウンロードして更新しますか？",
     "downloadAndUpdate": "ダウンロードして更新",
@@ -2297,49 +2251,49 @@ export const ja: TranslationKeys = {
     "updateReadyTitle": "更新 v{version} の準備が完了",
     "updateReadyDesc": "クリックして Edge-Drop を再起動し、更新を適用します。",
     "restartToUpdate": "再起動して更新",
-    "restartToUpdateBelow": "下の再起動で更新",
+    "restartToUpdateBelow": "下のボタン「再起動」で更新",
     "newUpdateAvailableBelow": "下に新しい更新があります",
     "autoDeleteTitle": "自動削除タイマー",
-    "autoDeleteDesc": "コピーした項目を自動的に消去 (ピン留めは保持)",
+    "autoDeleteDesc": "未ピン留めのクリップボードアイテムを指定時間後に自動で削除します",
     "never": "なし",
-    "capacityTitle": "履歴の容量",
-    "capacityDesc": "履歴に保存するピン留め以外の項目の最大数"
+    "capacityTitle": "クリップボード履歴の最大数",
+    "capacityDesc": "履歴に保存する未ピン留めの項目の最大数を指定します"
   },
   "position": {
-    "edgePlacementTitle": "エッジ配置",
-    "edgePlacementDesc": "Edge-Drop を配置する画面の端を選択",
+    "edgePlacementTitle": "表示位置",
+    "edgePlacementDesc": "Edge-Drop を配置する画面の端を選択します",
     "leftEdge": "左端",
     "rightEdge": "右端",
     "displayTitle": "ディスプレイ",
-    "displayDesc": "Edge-Drop を取り付けるモニターを選択",
+    "displayDesc": "Edge-Drop を表示するモニターを選択します",
     "primaryDisplay": "プライマリディスプレイ",
-    "verticalPositionTitle": "垂直位置",
-    "verticalPositionDesc": "画面端に沿った垂直方向の配置を調整",
+    "verticalPositionTitle": "垂直方向の表示位置",
+    "verticalPositionDesc": "画面端に沿った垂直方向の配置を調整します",
     "top": "上",
     "center": "中央",
     "bottom": "下",
     "triggerZone": "トリガーゾーン",
-    "edgeLocationHintTitle": "エッジ位置ヒント",
-    "edgeLocationHintDesc": "誤った位置で端に触れたとき、画面端のビーコンを控えめに点灯",
-    "edgeTriggerPositionTitle": "エッジトリガー位置",
-    "edgeTriggerPositionDesc": "シェルフに対するホバートリガー帯の配置",
-    "hoverAreaSizeTitle": "ホバーエリアのサイズ",
-    "hoverAreaSizeDesc": "画面端のホバーエリアのサイズ",
+    "edgeLocationHintTitle": "トリガー位置のヒント",
+    "edgeLocationHintDesc": "誤った位置で端に触れたとき、トリガー位置を示すヒントを表示します",
+    "edgeTriggerPositionTitle": "画面端のトリガー位置",
+    "edgeTriggerPositionDesc": "パネルを開くためのトリガー位置の配置を設定します",
+    "hoverAreaSizeTitle": "トリガーゾーンの垂直方向のサイズ",
+    "hoverAreaSizeDesc": "画面端のトリガーゾーンの垂直方向のサイズを設定します",
     "medium": "中",
-    "edgeTriggerThicknessTitle": "エッジトリガーの厚み",
-    "edgeTriggerThicknessDesc": "不可視のトリガー帯の物理的な厚み",
+    "edgeTriggerThicknessTitle": "トリガーゾーンの水平方向のサイズ",
+    "edgeTriggerThicknessDesc": "画面端のトリガーゾーンの水平方向のサイズを設定します",
     "panelHeightTitle": "パネルの高さ",
-    "panelHeightDesc": "クリップボードシェルフの縦方向のサイズ"
+    "panelHeightDesc": "パネルの垂直方向のサイズを設定します"
   },
   "appearance": {
-    "copyIndicatorTitle": "コピーインジケーター",
-    "copyIndicatorDesc": "コピー時に画面端に控えめなビーコンを表示",
-    "indicatorStyleTitle": "インジケーターのスタイル",
-    "indicatorStyleDesc": "エッジコピーインジケーターの視覚形状を選択",
-    "typography": "タイポグラフィ",
+    "copyIndicatorTitle": "コピー時のインジケーターの表示",
+    "copyIndicatorDesc": "コピー時に、画面端にインジケーターを表示します",
+    "indicatorStyleTitle": "コピー時のインジケーターのスタイル",
+    "indicatorStyleDesc": "コピー時のインジケーターのスタイルを選択します",
+    "typography": "テキスト",
     "textSizeTitle": "テキストサイズ",
-    "textSizeDesc": "Edge-Drop 全体の UI タイポグラフィスケールを調整",
-    "audioAndFeedback": "オーディオとフィードバック",
+    "textSizeDesc": "Edge-Drop 全体の UI テキストのサイズを調整します",
+    "audioAndFeedback": "サウンドフィードバック",
     "small": "小",
     "normal": "標準",
     "medium": "中",
@@ -2354,20 +2308,14 @@ export const ja: TranslationKeys = {
     "sparkleStyle": "スパークル"
   },
   "item": {
-    "clearLast1h": "過去1時間を消去",
-    "clearLast6h": "過去6時間を消去",
-    "clearLast24h": "過去24時間を消去",
-    "clearAll": "履歴をすべて消去",
-    "clearAllConfirm": "もう一度タップして確認",
-
     "copy": "コピー",
     "pinned": "ピン留め",
     "pin": "ピン留め",
-    "unpin": "ピン解除",
+    "unpin": "ピン留め解除",
     "delete": "削除",
     "clear": "クリア",
-    "dropToSave": "ドロップして保存",
-    "dropToSaveDesc": "任意のファイル、画像、リンク、テキスト",
+    "dropToSave": "ここにドロップして保存",
+    "dropToSaveDesc": "任意のファイル、画像、リンク、テキストを保存できます",
     "justNow": "たった今",
     "ago": "前",
     "expand": "展開",
@@ -2376,7 +2324,7 @@ export const ja: TranslationKeys = {
     "fileItem": "ファイル",
     "linkItem": "リンク",
     "items": "件",
-    "recent": "最近",
+    "recent": "最近の項目",
     "expandPinned": "ピン留め項目を展開",
     "collapsePinned": "ピン留め項目を折りたたむ",
     "screenshot": "スクリーンショット",
@@ -2391,8 +2339,8 @@ export const ja: TranslationKeys = {
     "pdf": "PDF",
     "word": "Word",
     "excel": "Excel",
-    "powerpoint": "スライド",
-    "archive": "アーカイブ",
+    "powerpoint": "PowerPoint",
+    "archive": "圧縮ファイル",
     "text": "テキスト",
     "code": "コード",
     "audio": "オーディオ",
@@ -2401,12 +2349,12 @@ export const ja: TranslationKeys = {
     "file": "ファイル"
   },
   "emptyState": {
-    "shelfEmpty": "シェルフは空です",
+    "shelfEmpty": "クリップボードは空です",
     "noResultsFound": "結果が見つかりません",
-    "shelfEmptyHint": "何かコピーするか、ここにファイルをドロップして開始",
-    "noResultsHint": "別のキーワードを試すか検索をクリア",
+    "shelfEmptyHint": "何かコピーするか、ここにファイルをドロップするとここに表示されます",
+    "noResultsHint": "別のキーワードを試すか、キーワードをクリアします",
     "noClipsFound": "{type} が見つかりません",
-    "copyTypeHint": "{type} をコピーするか「すべて」に戻ってください",
+    "copyTypeHint": "{type} をコピーするか、フィルターを「すべて」に切り替えてください",
     "textClips": "テキストクリップ",
     "links": "リンク",
     "images": "画像",
@@ -2416,17 +2364,17 @@ export const ja: TranslationKeys = {
     "welcomeTitle": "Edge-Drop へようこそ",
     "welcomeDesc": "Edge-Drop は画面の左端に隠れています。マウスを左端に移動するとパネルが開き、離すと隠れます。",
     "collectTitle": "何でも収集",
-    "collectDesc": "Ctrl+C でテキスト、画像、ファイルをコピーするたびに、Edge-Drop が自動的にキャッチしてバックグラウンドで保存します。",
+    "collectDesc": "Ctrl+C でテキスト、画像、ファイルをコピーするたびに、Edge-Drop が自動的に取得してバックグラウンドで保存します。",
     "dragTitle": "どこでもドラッグ＆ドロップ",
-    "dragDesc": "項目を使いたい時はパネルを開き、カードを任意のアプリ、フォルダー、ドキュメントに直接ドラッグするだけです。",
+    "dragDesc": "項目を使いたい時はパネルを開き、項目を任意のアプリ、フォルダー、ドキュメントに直接ドラッグするだけです。",
     "stacksTitle": "ファイルスタックを活用",
     "stacksDesc": "複数のファイルをコピーするとスタックにまとまります。スタック全体をドラッグしたり、クリックして個別のファイルを表示・抽出できます。",
     "ungroupTitle": "スタックの分割・解除",
-    "ungroupDesc": "スタック内の項目を分割したい？クリックでスタックを展開し、サブ項目を画面の左端にドラッグします。光るコーラル色のバーが現れるので、その上に項目をドロップすると単独のカードに戻せます。",
-    "mergeTitle": "項目の結合と統合",
-    "mergeDesc": "別々のファイルや画像カード同士を直接ドラッグして重ねることで結合できます。関連するアセットをスタックにまとめてシェルフを整理します。",
-    "previewTitle": "プレビューフライアウト",
-    "previewDesc": "任意のカードのプレビューボタンをクリックするとサイドフライアウトが開きます。高解像度画像の確認、ファイルコレクションの閲覧、長いテキストの閲読、プレビューからの項目ドラッグが可能です。",
+    "ungroupDesc": "スタック内の項目を個別に取り出したい場合は、クリックでスタックを展開し、項目を画面の左端へドラッグします。光るバーが表示されたら、そこへドロップすることで単独のカードに戻せます。",
+    "mergeTitle": "項目のスタック",
+    "mergeDesc": "別々のファイルや画像カード同士を直接ドラッグして重ねることでスタックできます。関連する項目をスタックにまとめてパネルを整理できます。",
+    "previewTitle": "プレビュー",
+    "previewDesc": "任意のアイテムのプレビューボタンをクリックするとそのプレビューが開きます。高解像度画像の確認、ファイルコレクションの閲覧、長いテキストの確認、プレビューからの項目ドラッグが可能です。",
     "configTitle": "クリップボードを設定",
     "configDesc": "Edge-Drop の動作をカスタマイズしましょう。",
     "skip": "スキップ",
@@ -2434,28 +2382,28 @@ export const ja: TranslationKeys = {
     "next": "次へ",
     "getStarted": "はじめる",
     "extractedCard": "抽出されたカード",
-    "dropToExtract": "ドロップして単独のカードに戻す",
-    "proTips": "プロのヒント",
-    "proTip1": "Alt + C でシェルフを瞬時に切り替え。",
-    "proTip2": "歯車アイコン (右上) からいつでも設定にアクセス。",
-    "proTip3": "左端にファイルをドラッグ＆ドロップして追加。",
-    "proTip4": "テキストボックスをクリックしてからクリップボード項目を押すと自動貼り付け。"
+    "dropToExtract": "ドロップして単独のカードに戻します",
+    "proTips": "使いこなすヒント",
+    "proTip1": "Alt + C でパネルの表示を瞬時に切り替えられます",
+    "proTip2": "右上の歯車アイコンからいつでも設定にアクセスできます",
+    "proTip3": "左端にファイルをドラッグ＆ドロップして追加します",
+    "proTip4": "テキストボックスをクリックしてからクリップボードのアイテムを押すと自動で貼り付けられます"
   },
   "tray": {
-    "showClipboard": "クリップボードを表示",
+    "showClipboard": "パネルを表示",
     "settings": "設定",
-    "incognito": "シークレット (キャプチャーを一時停止)",
-    "hoverTrigger": "ホバートリガー (ホバーで開く)",
-    "stickTo": "固定先",
+    "incognito": "クリップボードの取得を一時的に停止",
+    "hoverTrigger": "ホバーして表示",
+    "stickTo": "パネルの配置位置",
     "left": "左",
     "right": "右",
-    "display": "ディスプレイ",
+    "display": "パネルを表示するディスプレイ",
     "quit": "Edge-Drop を終了",
-    "welcomeTitle": "Edge-Drop クリップボードシェルフ",
-    "welcomeBody": "画面左端中央にホバーするか、Alt+C を押してシェルフを開きます。"
+    "welcomeTitle": "Edge-Drop クリップボードパネル",
+    "welcomeBody": "画面左端中央にホバーするか、Alt + C を押してパネルを開きます。"
   },
   "flyout": {
-    "copyBeaconStyleTitle": "コピーインジケーターのスタイル",
+    "copyBeaconStyleTitle": "コピー時のインジケーターのスタイル",
     "openLink": "リンクを開く",
     "copyContent": "コンテンツをコピー",
     "saveFile": "ファイルを保存",
@@ -2464,24 +2412,24 @@ export const ja: TranslationKeys = {
     "selectedCount": "{count} 件選択",
     "selectAll": "すべて選択",
     "deselectAll": "選択をすべて解除",
-    "copySelected": "選択をコピー",
-    "pasteSelected": "選択を貼り付け",
+    "copySelected": "選択中のアイテムをコピー",
+    "pasteSelected": "選択中のアイテムを貼り付け",
     "paste": "貼り付け",
-    "clearSelection": "選択をクリア",
-    "contentTruncated": "… (コンテンツは省略されています)",
+    "clearSelection": "選択中のアイテムをクリア",
+    "contentTruncated": "… (以下略)",
     "clickToPaste": "クリックして貼り付け",
     "copyText": "テキストをコピー",
     "copyImage": "画像をコピー",
     "copyFile": "ファイルをコピー",
-    "clickToPasteDrag": "クリックで貼り付け · ドラッグで移動",
-    "openInExplorer": "エクスプローラーで場所を開く",
+    "clickToPasteDrag": "クリックで貼り付け、ドラッグで移動",
+    "openInExplorer": "エクスプローラーで開く",
     "current": "現在"
   },
   "toast": {
     "copiedToClipboard": "クリップボードにコピーしました",
     "itemDeleted": "項目を削除しました",
     "itemPinned": "項目をピン留めしました",
-    "itemUnpinned": "項目のピンを解除しました",
+    "itemUnpinned": "項目のピン留めを解除しました",
     "settingsSaved": "設定を保存しました"
   },
   "footer": {
@@ -2613,12 +2561,6 @@ export const ko: TranslationKeys = {
     "sparkleStyle": "반짝임"
   },
   "item": {
-    "clearLast1h": "최근 1시간 지우기",
-    "clearLast6h": "최근 6시간 지우기",
-    "clearLast24h": "최근 24시간 지우기",
-    "clearAll": "전체 기록 지우기",
-    "clearAllConfirm": "확인하려면 다시 탭하세요",
-
     "copy": "복사",
     "pinned": "고정됨",
     "pin": "고정",
@@ -3378,12 +3320,6 @@ export const hi: TranslationKeys = {
     "sparkleStyle": "स्पार्कल"
   },
   "item": {
-    "clearLast1h": "पिछले 1 घंटे को साफ़ करें",
-    "clearLast6h": "पिछले 6 घंटे साफ़ करें",
-    "clearLast24h": "पिछले 24 घंटे साफ़ करें",
-    "clearAll": "पूरा इतिहास साफ़ करें",
-    "clearAllConfirm": "पुष्टि करने के लिए फिर से टैप करें",
-
     "copy": "कॉपी",
     "pinned": "पिन किया गया",
     "pin": "पिन करें",
@@ -3637,12 +3573,6 @@ export const ar: TranslationKeys = {
     "sparkleStyle": "وميض"
   },
   "item": {
-    "clearLast1h": "مسح الساعة الأخيرة",
-    "clearLast6h": "مسح آخر 6 ساعات",
-    "clearLast24h": "مسح آخر 24 ساعة",
-    "clearAll": "مسح كل السجل",
-    "clearAllConfirm": "اضغط مرة أخرى للتأكيد",
-
     "copy": "نسخ",
     "pinned": "مثبّت",
     "pin": "تثبيت",
@@ -3896,12 +3826,6 @@ export const fa: TranslationKeys = {
     "sparkleStyle": "درخشش"
   },
   "item": {
-    "clearLast1h": "پاک کردن یک ساعت گذشته",
-    "clearLast6h": "پاک کردن ۶ ساعت گذشته",
-    "clearLast24h": "پاک کردن ۲۴ ساعت گذشته",
-    "clearAll": "پاک کردن کل تاریخچه",
-    "clearAllConfirm": "برای تأیید دوباره ضربه بزنید",
-
     "copy": "کپی",
     "pinned": "سنجاق‌شده‌ها",
     "pin": "سنجاق کن",
@@ -4155,12 +4079,6 @@ export const bn: TranslationKeys = {
     "sparkleStyle": "স্পার্কল"
   },
   "item": {
-    "clearLast1h": "গত ১ ঘণ্টা মুছুন",
-    "clearLast6h": "গত ৬ ঘণ্টা মুছুন",
-    "clearLast24h": "গত ২৪ ঘণ্টা মুছুন",
-    "clearAll": "সব ইতিহাস মুছুন",
-    "clearAllConfirm": "নিশ্চিত করতে আবার ট্যাপ করুন",
-
     "copy": "কপি",
     "pinned": "পিন করা",
     "pin": "পিন করুন",
@@ -4414,12 +4332,6 @@ export const tr: TranslationKeys = {
     "sparkleStyle": "Kıvılcım"
   },
   "item": {
-    "clearLast1h": "Son 1 saati temizle",
-    "clearLast6h": "Son 6 saati temizle",
-    "clearLast24h": "Son 24 saati temizle",
-    "clearAll": "Tüm geçmişi temizle",
-    "clearAllConfirm": "Onaylamak için tekrar dokunun",
-
     "copy": "Kopyala",
     "pinned": "SABİTLENDİ",
     "pin": "Sabitle",
@@ -4673,12 +4585,6 @@ export const vi: TranslationKeys = {
     "sparkleStyle": "Lấp lánh"
   },
   "item": {
-    "clearLast1h": "Xóa 1 giờ qua",
-    "clearLast6h": "Xóa 6 giờ qua",
-    "clearLast24h": "Xóa 24 giờ qua",
-    "clearAll": "Xóa toàn bộ lịch sử",
-    "clearAllConfirm": "Nhấn lại để xác nhận",
-
     "copy": "Sao chép",
     "pinned": "ĐÃ GHIM",
     "pin": "Ghim",
@@ -4932,12 +4838,6 @@ export const pl: TranslationKeys = {
     "sparkleStyle": "Iskra"
   },
   "item": {
-    "clearLast1h": "Wyczyść ostatnią godzinę",
-    "clearLast6h": "Wyczyść ostatnie 6 godzin",
-    "clearLast24h": "Wyczyść ostatnie 24 godziny",
-    "clearAll": "Wyczyść całą historię",
-    "clearAllConfirm": "Dotknij ponownie, aby potwierdzić",
-
     "copy": "Kopiuj",
     "pinned": "PRZYPINIĘTE",
     "pin": "Przypnij",
@@ -5191,12 +5091,6 @@ export const nl: TranslationKeys = {
     "sparkleStyle": "Sprankel"
   },
   "item": {
-    "clearLast1h": "Laatste uur wissen",
-    "clearLast6h": "Laatste 6 uur wissen",
-    "clearLast24h": "Laatste 24 uur wissen",
-    "clearAll": "Volledige geschiedenis wissen",
-    "clearAllConfirm": "Tik opnieuw om te bevestigen",
-
     "copy": "Kopiëren",
     "pinned": "VASTGEZET",
     "pin": "Vastzetten",
@@ -5450,12 +5344,6 @@ export const sv: TranslationKeys = {
     "sparkleStyle": "Gnista"
   },
   "item": {
-    "clearLast1h": "Rensa senaste timmen",
-    "clearLast6h": "Rensa senaste 6 timmarna",
-    "clearLast24h": "Rensa senaste 24 timmarna",
-    "clearAll": "Rensa all historik",
-    "clearAllConfirm": "Tryck igen för att bekräfta",
-
     "copy": "Kopiera",
     "pinned": "FÄST",
     "pin": "Fäst",
@@ -5709,12 +5597,6 @@ export const id: TranslationKeys = {
     "sparkleStyle": "Kilau"
   },
   "item": {
-    "clearLast1h": "Hapus 1 jam terakhir",
-    "clearLast6h": "Hapus 6 jam terakhir",
-    "clearLast24h": "Hapus 24 jam terakhir",
-    "clearAll": "Hapus semua riwayat",
-    "clearAllConfirm": "Ketuk lagi untuk mengonfirmasi",
-
     "copy": "Salin",
     "pinned": "DISEMATKAN",
     "pin": "Sematkan",
@@ -5968,12 +5850,6 @@ export const uk: TranslationKeys = {
     "sparkleStyle": "Іскра"
   },
   "item": {
-    "clearLast1h": "Очистити за останню годину",
-    "clearLast6h": "Очистити за останні 6 годин",
-    "clearLast24h": "Очистити за останні 24 години",
-    "clearAll": "Очистити всю історію",
-    "clearAllConfirm": "Натисніть ще раз для підтвердження",
-
     "copy": "Копіювати",
     "pinned": "ПРИКРІПЛЕНО",
     "pin": "Прикріпити",
@@ -6227,12 +6103,6 @@ export const el: TranslationKeys = {
     "sparkleStyle": "Σπίθα"
   },
   "item": {
-    "clearLast1h": "Εκκαθάριση τελευταίας ώρας",
-    "clearLast6h": "Εκκαθάριση τελευταίων 6 ωρών",
-    "clearLast24h": "Εκκαθάριση τελευταίων 24 ωρών",
-    "clearAll": "Εκκαθάριση όλου του ιστορικού",
-    "clearAllConfirm": "Πατήστε ξανά για επιβεβαίωση",
-
     "copy": "Αντιγραφή",
     "pinned": "ΚΑΡΦΙΤΣΩΜΕΝΟ",
     "pin": "Καρφίσωσε",
@@ -6486,12 +6356,6 @@ export const cs: TranslationKeys = {
     "sparkleStyle": "Jiskra"
   },
   "item": {
-    "clearLast1h": "Vymazat poslední hodinu",
-    "clearLast6h": "Vymazat posledních 6 hodin",
-    "clearLast24h": "Vymazat posledních 24 hodin",
-    "clearAll": "Vymazat celou historii",
-    "clearAllConfirm": "Potvrďte dalším klepnutím",
-
     "copy": "Kopírovat",
     "pinned": "PŘIPNUTO",
     "pin": "Připnout",
@@ -6745,12 +6609,6 @@ export const ro: TranslationKeys = {
     "sparkleStyle": "Scânteie"
   },
   "item": {
-    "clearLast1h": "Șterge ultima oră",
-    "clearLast6h": "Șterge ultimele 6 ore",
-    "clearLast24h": "Șterge ultimele 24 de ore",
-    "clearAll": "Șterge tot istoricul",
-    "clearAllConfirm": "Atinge din nou pentru confirmare",
-
     "copy": "Copiază",
     "pinned": "PINAT",
     "pin": "Păstrează",
@@ -7004,12 +6862,6 @@ export const hu: TranslationKeys = {
     "sparkleStyle": "Szikra"
   },
   "item": {
-    "clearLast1h": "Elmúlt óra törlése",
-    "clearLast6h": "Elmúlt 6 óra törlése",
-    "clearLast24h": "Elmúlt 24 óra törlése",
-    "clearAll": "Teljes előzmény törlése",
-    "clearAllConfirm": "Koppintson újra a megerősítéshez",
-
     "copy": "Másolás",
     "pinned": "RÖGZÍTETT",
     "pin": "Rögzítés",
@@ -7263,12 +7115,6 @@ export const da: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
-    "clearLast1h": "Ryd sidste time",
-    "clearLast6h": "Ryd sidste 6 timer",
-    "clearLast24h": "Ryd sidste 24 timer",
-    "clearAll": "Ryd hele historikken",
-    "clearAllConfirm": "Tryk igen for at bekræfte",
-
     "copy": "Kopier",
     "pinned": "FASTGJORT",
     "pin": "Fastgør",
@@ -7522,12 +7368,6 @@ export const fi: TranslationKeys = {
     "sparkleStyle": "Kipinä"
   },
   "item": {
-    "clearLast1h": "Tyhjennä viimeinen tunti",
-    "clearLast6h": "Tyhjennä viimeiset 6 tuntia",
-    "clearLast24h": "Tyhjennä viimeiset 24 tuntia",
-    "clearAll": "Tyhjennä koko historia",
-    "clearAllConfirm": "Vahvista napauttamalla uudelleen",
-
     "copy": "Kopioi",
     "pinned": "KIINNITETTY",
     "pin": "Kiinnitä",
@@ -7781,12 +7621,6 @@ export const th: TranslationKeys = {
     "sparkleStyle": "ประกาย"
   },
   "item": {
-    "clearLast1h": "ล้างข้อมูล 1 ชั่วโมงล่าสุด",
-    "clearLast6h": "ล้างข้อมูล 6 ชั่วโมงล่าสุด",
-    "clearLast24h": "ล้างข้อมูล 24 ชั่วโมงล่าสุด",
-    "clearAll": "ล้างประวัติทั้งหมด",
-    "clearAllConfirm": "แตะอีกครั้งเพื่อยืนยัน",
-
     "copy": "คัดลอก",
     "pinned": "ปักหมุดแล้ว",
     "pin": "ปักหมุด",
@@ -8040,12 +7874,6 @@ export const he: TranslationKeys = {
     "sparkleStyle": "ניצוץ"
   },
   "item": {
-    "clearLast1h": "נקה את השעה האחרונה",
-    "clearLast6h": "נקה את 6 השעות האחרונות",
-    "clearLast24h": "נקה את 24 השעות האחרונות",
-    "clearAll": "נקה את כל ההיסטוריה",
-    "clearAllConfirm": "הקש שוב כדי לאשר",
-
     "copy": "העתק",
     "pinned": "מוצמד",
     "pin": "הצמד",
@@ -8299,12 +8127,6 @@ export const no: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
-    "clearLast1h": "Tøm siste time",
-    "clearLast6h": "Tøm siste 6 timer",
-    "clearLast24h": "Tøm siste 24 timer",
-    "clearAll": "Tøm all historikk",
-    "clearAllConfirm": "Trykk igjen for å bekrefte",
-
     "copy": "Kopier",
     "pinned": "FESTET",
     "pin": "Fest",
