@@ -60,7 +60,13 @@
     "capacityTitle": "Capacité de l'historique",
     "capacityDesc": "Nombre maximum d'éléments non épinglés stockés dans l'historique",
     "movePastedToTopTitle": "Déplacer les éléments collés en haut",
-    "movePastedToTopDesc": "Réorganise les éléments non épinglés en haut de Récents chaque fois que vous les collez"
+    "movePastedToTopDesc": "Réorganise les éléments non épinglés en haut de Récents chaque fois que vous les collez",
+    "toggleHotkeyTitle": "Raccourci global",
+    "toggleHotkeyDesc": "Définissez une combinaison de touches personnalisée pour ouvrir ou fermer le panneau depuis n’importe où",
+    "hotkeyEdit": "Modifier",
+    "hotkeyRecording": "Appuyez sur la combinaison de touches...",
+    "hotkeyCancel": "Annuler",
+    "hotkeyReset": "Rétablir par défaut ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Bord de l'écran",
@@ -238,7 +244,8 @@
     "itemDeleted": "Élément supprimé",
     "itemPinned": "Élément épinglé",
     "itemUnpinned": "Élément désépinglé",
-    "settingsSaved": "Paramètres enregistrés"
+    "settingsSaved": "Paramètres enregistrés",
+    "shortcutUpdated": "Raccourci global défini sur {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Communauté et assistance",

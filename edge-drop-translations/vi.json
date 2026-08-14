@@ -60,7 +60,13 @@
     "capacityTitle": "Dung lượng lịch sử",
     "capacityDesc": "Số mục chưa ghim tối đa được lưu trong lịch sử",
     "movePastedToTopTitle": "Đưa các mục đã dán lên đầu",
-    "movePastedToTopDesc": "Sắp xếp lại các mục chưa ghim lên đầu mục Gần đây mỗi khi bạn dán chúng"
+    "movePastedToTopDesc": "Sắp xếp lại các mục chưa ghim lên đầu mục Gần đây mỗi khi bạn dán chúng",
+    "toggleHotkeyTitle": "Phím tắt toàn cục",
+    "toggleHotkeyDesc": "Đặt tổ hợp phím tùy chỉnh để mở hoặc đóng kệ từ bất kỳ đâu",
+    "hotkeyEdit": "Chỉnh sửa",
+    "hotkeyRecording": "Nhấn tổ hợp phím...",
+    "hotkeyCancel": "Hủy",
+    "hotkeyReset": "Đặt lại về mặc định ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Vị trí mép",
@@ -238,7 +244,8 @@
     "itemDeleted": "Đã xóa mục",
     "itemPinned": "Đã ghim mục",
     "itemUnpinned": "Đã bỏ ghim mục",
-    "settingsSaved": "Đã lưu cài đặt"
+    "settingsSaved": "Đã lưu cài đặt",
+    "shortcutUpdated": "Phím tắt toàn cục đã được đặt thành {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Cộng đồng & Hỗ trợ",

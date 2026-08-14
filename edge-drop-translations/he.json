@@ -60,7 +60,13 @@
     "capacityTitle": "קיבולת היסטוריה",
     "capacityDesc": "מספר מרבי של פריטים לא מוצמדים בהיסטוריה",
     "movePastedToTopTitle": "העבר פריטים שהודבקו לראש הרשימה",
-    "movePastedToTopDesc": "מסדר מחדש פריטים שאינם מוצמדים בראש הפריטים האחרונים בכל פעם שמדביקים אותם"
+    "movePastedToTopDesc": "מסדר מחדש פריטים שאינם מוצמדים בראש הפריטים האחרונים בכל פעם שמדביקים אותם",
+    "toggleHotkeyTitle": "קיצור מקשים גלובלי",
+    "toggleHotkeyDesc": "הגדר שילוב מקשים מותאם אישית כדי לפתוח או לסגור את המדף מכל מקום",
+    "hotkeyEdit": "עריכה",
+    "hotkeyRecording": "לחץ על שילוב המקשים...",
+    "hotkeyCancel": "ביטול",
+    "hotkeyReset": "איפוס לברירת המחדל ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "מיקום קצה",
@@ -238,7 +244,8 @@
     "itemDeleted": "פריט נמחק",
     "itemPinned": "פריט הוצמד",
     "itemUnpinned": "הצמדת פריט בוטלה",
-    "settingsSaved": "הגדרות נשמרו"
+    "settingsSaved": "הגדרות נשמרו",
+    "shortcutUpdated": "קיצור המקשים הגלובלי הוגדר ל־{shortcut}"
   },
   "footer": {
     "communityAndSupport": "קהילה ותמיכה",

@@ -60,7 +60,13 @@
     "capacityTitle": "ความจุประวัติ",
     "capacityDesc": "จำนวนรายการที่ไม่ได้ปักหมุดสูงสุดที่เก็บในประวัติ",
     "movePastedToTopTitle": "ย้ายรายการที่วางไปไว้ด้านบน",
-    "movePastedToTopDesc": "จัดเรียงรายการที่ไม่ได้ปักหมุดไปไว้ด้านบนของรายการล่าสุดทุกครั้งที่คุณวางรายการนั้น"
+    "movePastedToTopDesc": "จัดเรียงรายการที่ไม่ได้ปักหมุดไปไว้ด้านบนของรายการล่าสุดทุกครั้งที่คุณวางรายการนั้น",
+    "toggleHotkeyTitle": "ปุ่มลัดส่วนกลาง",
+    "toggleHotkeyDesc": "ตั้งค่าชุดปุ่มที่กำหนดเองเพื่อเปิดหรือปิดชั้นวางจากที่ใดก็ได้",
+    "hotkeyEdit": "แก้ไข",
+    "hotkeyRecording": "กดชุดปุ่ม...",
+    "hotkeyCancel": "ยกเลิก",
+    "hotkeyReset": "รีเซ็ตเป็นค่าเริ่มต้น ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "ตำแหน่งขอบ",
@@ -238,7 +244,8 @@
     "itemDeleted": "ลบรายการแล้ว",
     "itemPinned": "ปักหมุดรายการแล้ว",
     "itemUnpinned": "ยกเลิกปักหมุดรายการแล้ว",
-    "settingsSaved": "บันทึกการตั้งค่าแล้ว"
+    "settingsSaved": "บันทึกการตั้งค่าแล้ว",
+    "shortcutUpdated": "ตั้งค่าปุ่มลัดส่วนกลางเป็น {shortcut} แล้ว"
   },
   "footer": {
     "communityAndSupport": "ชุมชนและการสนับสนุน",

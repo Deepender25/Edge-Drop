@@ -60,7 +60,13 @@
     "capacityTitle": "Pojemność historii",
     "capacityDesc": "Maksymalna liczba odpiętych elementów przechowywanych w historii",
     "movePastedToTopTitle": "Przenoś wklejone elementy na górę",
-    "movePastedToTopDesc": "Po każdym wklejeniu przenosi nieprzypięte elementy na początek listy Ostatnie"
+    "movePastedToTopDesc": "Po każdym wklejeniu przenosi nieprzypięte elementy na początek listy Ostatnie",
+    "toggleHotkeyTitle": "Globalny skrót klawiszowy",
+    "toggleHotkeyDesc": "Ustaw własną kombinację klawiszy, aby otwierać lub zamykać półkę z dowolnego miejsca",
+    "hotkeyEdit": "Edytuj",
+    "hotkeyRecording": "Naciśnij kombinację klawiszy...",
+    "hotkeyCancel": "Anuluj",
+    "hotkeyReset": "Przywróć domyślny ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Położenie krawędzi",
@@ -238,7 +244,8 @@
     "itemDeleted": "Element usunięty",
     "itemPinned": "Element przypięty",
     "itemUnpinned": "Element odpięty",
-    "settingsSaved": "Ustawienia zapisane"
+    "settingsSaved": "Ustawienia zapisane",
+    "shortcutUpdated": "Globalny skrót ustawiono na {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Społeczność i wsparcie",

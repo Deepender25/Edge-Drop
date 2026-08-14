@@ -60,7 +60,13 @@
     "capacityTitle": "歷史記錄容量",
     "capacityDesc": "歷史記錄中儲存的最大未固定項目數量",
     "movePastedToTopTitle": "將貼上的項目移至頂端",
-    "movePastedToTopDesc": "每次貼上時，將未釘選的項目重新排列到「最近使用」的頂端"
+    "movePastedToTopDesc": "每次貼上時，將未釘選的項目重新排列到「最近使用」的頂端",
+    "toggleHotkeyTitle": "全域快速鍵",
+    "toggleHotkeyDesc": "設定自訂按鍵組合，從任何位置開啟或關閉側邊欄",
+    "hotkeyEdit": "編輯",
+    "hotkeyRecording": "請按下按鍵組合...",
+    "hotkeyCancel": "取消",
+    "hotkeyReset": "重設為預設值（{shortcut}）"
   },
   "position": {
     "edgePlacementTitle": "邊緣位置",
@@ -238,7 +244,8 @@
     "itemDeleted": "項目已刪除",
     "itemPinned": "項目已固定",
     "itemUnpinned": "項目已取消固定",
-    "settingsSaved": "設定已儲存"
+    "settingsSaved": "設定已儲存",
+    "shortcutUpdated": "全域快速鍵已設為 {shortcut}"
   },
   "footer": {
     "communityAndSupport": "社群和支援",

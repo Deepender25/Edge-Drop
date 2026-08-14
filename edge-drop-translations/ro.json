@@ -60,7 +60,13 @@
     "capacityTitle": "Capacitate istoric",
     "capacityDesc": "Numărul maxim de elemente nepinate stocate în istoric",
     "movePastedToTopTitle": "Mută elementele lipite în partea de sus",
-    "movePastedToTopDesc": "Reordonează elementele nefixate în partea de sus a secțiunii Recente de fiecare dată când le lipești"
+    "movePastedToTopDesc": "Reordonează elementele nefixate în partea de sus a secțiunii Recente de fiecare dată când le lipești",
+    "toggleHotkeyTitle": "Comandă rapidă globală",
+    "toggleHotkeyDesc": "Setează o combinație de taste personalizată pentru a deschide sau închide raftul de oriunde",
+    "hotkeyEdit": "Editează",
+    "hotkeyRecording": "Apasă combinația de taste...",
+    "hotkeyCancel": "Anulează",
+    "hotkeyReset": "Resetează la valoarea implicită ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Plasare margine",
@@ -238,7 +244,8 @@
     "itemDeleted": "Element șters",
     "itemPinned": "Element pinat",
     "itemUnpinned": "Element anulat",
-    "settingsSaved": "Setări salvate"
+    "settingsSaved": "Setări salvate",
+    "shortcutUpdated": "Comanda rapidă globală a fost setată la {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Comunitate și suport",

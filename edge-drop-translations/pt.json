@@ -60,7 +60,13 @@
     "capacityTitle": "Capacidade do histórico",
     "capacityDesc": "Máximo de itens não fixados armazenados no histórico",
     "movePastedToTopTitle": "Mover itens colados para o topo",
-    "movePastedToTopDesc": "Reordena os itens não fixados para o topo de Recentes sempre que você os cola"
+    "movePastedToTopDesc": "Reordena os itens não fixados para o topo de Recentes sempre que você os cola",
+    "toggleHotkeyTitle": "Atalho global",
+    "toggleHotkeyDesc": "Defina uma combinação de teclas personalizada para abrir ou fechar a prateleira de qualquer lugar",
+    "hotkeyEdit": "Editar",
+    "hotkeyRecording": "Pressione a combinação de teclas...",
+    "hotkeyCancel": "Cancelar",
+    "hotkeyReset": "Redefinir para o padrão ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Posicionamento da borda",
@@ -238,7 +244,8 @@
     "itemDeleted": "Item excluído",
     "itemPinned": "Item fixado",
     "itemUnpinned": "Item desafixado",
-    "settingsSaved": "Configurações salvas"
+    "settingsSaved": "Configurações salvas",
+    "shortcutUpdated": "Atalho global definido como {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Comunidade e suporte",

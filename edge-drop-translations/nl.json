@@ -60,7 +60,13 @@
     "capacityTitle": "Geschiedeniscapaciteit",
     "capacityDesc": "Maximum aantal niet-vastgezette items in geschiedenis",
     "movePastedToTopTitle": "Geplakte items naar boven verplaatsen",
-    "movePastedToTopDesc": "Zet niet-vastgemaakte items telkens wanneer je ze plakt bovenaan bij Recent"
+    "movePastedToTopDesc": "Zet niet-vastgemaakte items telkens wanneer je ze plakt bovenaan bij Recent",
+    "toggleHotkeyTitle": "Globale sneltoets",
+    "toggleHotkeyDesc": "Stel een aangepaste toetscombinatie in om de plank overal te openen of te sluiten",
+    "hotkeyEdit": "Bewerken",
+    "hotkeyRecording": "Druk op de toetscombinatie...",
+    "hotkeyCancel": "Annuleren",
+    "hotkeyReset": "Terugzetten naar standaard ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Randplaatsing",
@@ -238,7 +244,8 @@
     "itemDeleted": "Item verwijderd",
     "itemPinned": "Item vastgezet",
     "itemUnpinned": "Item losgemaakt",
-    "settingsSaved": "Instellingen opgeslagen"
+    "settingsSaved": "Instellingen opgeslagen",
+    "shortcutUpdated": "Globale sneltoets ingesteld op {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Community en ondersteuning",

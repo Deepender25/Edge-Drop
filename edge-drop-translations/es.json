@@ -60,7 +60,13 @@
     "capacityTitle": "Capacidad del historial",
     "capacityDesc": "Máximo de elementos no fijados almacenados en el historial",
     "movePastedToTopTitle": "Mover los elementos pegados arriba",
-    "movePastedToTopDesc": "Reordena los elementos no fijados al principio de Recientes cada vez que los pegues"
+    "movePastedToTopDesc": "Reordena los elementos no fijados al principio de Recientes cada vez que los pegues",
+    "toggleHotkeyTitle": "Atajo global",
+    "toggleHotkeyDesc": "Establece una combinación de teclas personalizada para abrir o cerrar la bandeja desde cualquier lugar",
+    "hotkeyEdit": "Editar",
+    "hotkeyRecording": "Pulsa la combinación de teclas...",
+    "hotkeyCancel": "Cancelar",
+    "hotkeyReset": "Restablecer al valor predeterminado ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Borde de la pantalla",
@@ -238,7 +244,8 @@
     "itemDeleted": "Elemento eliminado",
     "itemPinned": "Elemento fijado",
     "itemUnpinned": "Elemento desfijado",
-    "settingsSaved": "Configuración guardada"
+    "settingsSaved": "Configuración guardada",
+    "shortcutUpdated": "Atajo global establecido en {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Comunidad y soporte",

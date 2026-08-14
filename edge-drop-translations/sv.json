@@ -60,7 +60,13 @@
     "capacityTitle": "Historikkapacitet",
     "capacityDesc": "Maximalt antal ofästa objekt i historik",
     "movePastedToTopTitle": "Flytta inklistrade objekt till toppen",
-    "movePastedToTopDesc": "Flyttar om fästa objekt till toppen av Senaste varje gång du klistrar in dem"
+    "movePastedToTopDesc": "Flyttar om fästa objekt till toppen av Senaste varje gång du klistrar in dem",
+    "toggleHotkeyTitle": "Global kortkommando",
+    "toggleHotkeyDesc": "Ange en egen tangentkombination för att öppna eller stänga hyllan var som helst",
+    "hotkeyEdit": "Redigera",
+    "hotkeyRecording": "Tryck på tangentkombinationen...",
+    "hotkeyCancel": "Avbryt",
+    "hotkeyReset": "Återställ till standard ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Kantplacering",
@@ -238,7 +244,8 @@
     "itemDeleted": "Objekt borttaget",
     "itemPinned": "Objekt fäst",
     "itemUnpinned": "Objekt lösgjort",
-    "settingsSaved": "Inställningar sparade"
+    "settingsSaved": "Inställningar sparade",
+    "shortcutUpdated": "Globalt kortkommando inställt på {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Community och support",

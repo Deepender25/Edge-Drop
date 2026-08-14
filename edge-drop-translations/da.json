@@ -60,7 +60,13 @@
     "capacityTitle": "Historikkapacitet",
     "capacityDesc": "Maksimalt antal ikke-fastgjorte elementer gemt i historik",
     "movePastedToTopTitle": "Flyt indsatte elementer til toppen",
-    "movePastedToTopDesc": "Omarrangerer ikke-fastgjorte elementer til toppen af Seneste, hver gang du indsætter dem"
+    "movePastedToTopDesc": "Omarrangerer ikke-fastgjorte elementer til toppen af Seneste, hver gang du indsætter dem",
+    "toggleHotkeyTitle": "Global genvej",
+    "toggleHotkeyDesc": "Indstil en brugerdefineret tastekombination for at åbne eller lukke hylden fra alle steder",
+    "hotkeyEdit": "Rediger",
+    "hotkeyRecording": "Tryk på tastekombinationen...",
+    "hotkeyCancel": "Annuller",
+    "hotkeyReset": "Nulstil til standard ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Kantplacering",
@@ -238,7 +244,8 @@
     "itemDeleted": "Element slettet",
     "itemPinned": "Element fastgjort",
     "itemUnpinned": "Element frigjort",
-    "settingsSaved": "Indstillinger gemt"
+    "settingsSaved": "Indstillinger gemt",
+    "shortcutUpdated": "Global genvej indstillet til {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Fællesskab og support",

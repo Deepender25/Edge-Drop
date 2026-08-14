@@ -60,7 +60,13 @@
     "capacityTitle": "Historian kapasiteetti",
     "capacityDesc": "Historiassa säilytettyjen kiinnittämättömien kohteiden enimmäismäärä",
     "movePastedToTopTitle": "Siirrä liitetyt kohteet alkuun",
-    "movePastedToTopDesc": "Järjestää kiinnittämättömät kohteet Uusimmat-luettelon alkuun aina, kun liität ne"
+    "movePastedToTopDesc": "Järjestää kiinnittämättömät kohteet Uusimmat-luettelon alkuun aina, kun liität ne",
+    "toggleHotkeyTitle": "Yleinen pikanäppäin",
+    "toggleHotkeyDesc": "Määritä mukautettu näppäinyhdistelmä hyllyn avaamiseen tai sulkemiseen mistä tahansa",
+    "hotkeyEdit": "Muokkaa",
+    "hotkeyRecording": "Paina näppäinyhdistelmää...",
+    "hotkeyCancel": "Peruuta",
+    "hotkeyReset": "Palauta oletusasetukseksi ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Reunan sijoitus",
@@ -238,7 +244,8 @@
     "itemDeleted": "Kohde poistettu",
     "itemPinned": "Kohde kiinnitetty",
     "itemUnpinned": "Kohteen kiinnitys poistettu",
-    "settingsSaved": "Asetukset tallennettu"
+    "settingsSaved": "Asetukset tallennettu",
+    "shortcutUpdated": "Yleinen pikanäppäin asetettu: {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Yhteisö ja tuki",

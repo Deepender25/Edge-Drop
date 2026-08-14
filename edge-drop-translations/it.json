@@ -60,7 +60,13 @@
     "capacityTitle": "Capacità cronologia",
     "capacityDesc": "Numero massimo di elementi non bloccati memorizzati nella cronologia",
     "movePastedToTopTitle": "Sposta gli elementi incollati in cima",
-    "movePastedToTopDesc": "Riordina gli elementi non fissati in cima a Recenti ogni volta che li incolli"
+    "movePastedToTopDesc": "Riordina gli elementi non fissati in cima a Recenti ogni volta che li incolli",
+    "toggleHotkeyTitle": "Scorciatoia globale",
+    "toggleHotkeyDesc": "Imposta una combinazione di tasti personalizzata per aprire o chiudere il pannello da qualsiasi punto",
+    "hotkeyEdit": "Modifica",
+    "hotkeyRecording": "Premi la combinazione di tasti...",
+    "hotkeyCancel": "Annulla",
+    "hotkeyReset": "Ripristina predefinita ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Posizionamento bordo",
@@ -238,7 +244,8 @@
     "itemDeleted": "Elemento eliminato",
     "itemPinned": "Elemento bloccato",
     "itemUnpinned": "Elemento sbloccato",
-    "settingsSaved": "Impostazioni salvate"
+    "settingsSaved": "Impostazioni salvate",
+    "shortcutUpdated": "Scorciatoia globale impostata su {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Community e supporto",

@@ -62,7 +62,11 @@
     "autoDeleteDesc": "Automatically purge copied items (preserves Pinned)",
     "never": "Never",
     "capacityTitle": "History capacity",
-    "capacityDesc": "Maximum unpinned items stored in history"
+    "capacityDesc": "Maximum unpinned items stored in history",
+    "hotkeyEdit": "Edit",
+    "hotkeyRecording": "Press key combination...",
+    "hotkeyCancel": "Cancel",
+    "hotkeyReset": "Reset to default ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Edge Placement",

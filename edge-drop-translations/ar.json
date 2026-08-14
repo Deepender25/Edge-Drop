@@ -60,7 +60,13 @@
     "capacityTitle": "سعة السجل",
     "capacityDesc": "الحد الأقصى للعناصر غير المثبّتة المخزّنة في السجل",
     "movePastedToTopTitle": "نقل العناصر الملصقة إلى الأعلى",
-    "movePastedToTopDesc": "إعادة ترتيب العناصر غير المثبتة إلى أعلى العناصر الأخيرة كلما قمت بلصقها"
+    "movePastedToTopDesc": "إعادة ترتيب العناصر غير المثبتة إلى أعلى العناصر الأخيرة كلما قمت بلصقها",
+    "toggleHotkeyTitle": "اختصار عام",
+    "toggleHotkeyDesc": "عيّن مجموعة مفاتيح مخصصة لفتح الرف أو إغلاقه من أي مكان",
+    "hotkeyEdit": "تعديل",
+    "hotkeyRecording": "اضغط مجموعة المفاتيح...",
+    "hotkeyCancel": "إلغاء",
+    "hotkeyReset": "إعادة التعيين إلى الافتراضي ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "موضع الحافة",
@@ -238,7 +244,8 @@
     "itemDeleted": "حُذف العنصر",
     "itemPinned": "ثُبّت العنصر",
     "itemUnpinned": "أُلغي تثبيت العنصر",
-    "settingsSaved": "حُفظت الإعدادات"
+    "settingsSaved": "حُفظت الإعدادات",
+    "shortcutUpdated": "تم تعيين الاختصار العام إلى {shortcut}"
   },
   "footer": {
     "communityAndSupport": "المجتمع والدعم",

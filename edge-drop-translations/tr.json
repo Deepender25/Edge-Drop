@@ -60,7 +60,13 @@
     "capacityTitle": "Geçmiş kapasitesi",
     "capacityDesc": "Geçmişte saklanan en fazla sabitlenmemiş öğe sayısı",
     "movePastedToTopTitle": "Yapıştırılan öğeleri en üste taşı",
-    "movePastedToTopDesc": "Her yapıştırdığınızda sabitlenmemiş öğeleri Son Kullanılanlar listesinin en üstüne yeniden sıralar"
+    "movePastedToTopDesc": "Her yapıştırdığınızda sabitlenmemiş öğeleri Son Kullanılanlar listesinin en üstüne yeniden sıralar",
+    "toggleHotkeyTitle": "Genel Kısayol",
+    "toggleHotkeyDesc": "Rafı her yerden açmak veya kapatmak için özel bir tuş kombinasyonu belirleyin",
+    "hotkeyEdit": "Düzenle",
+    "hotkeyRecording": "Tuş kombinasyonuna basın...",
+    "hotkeyCancel": "İptal",
+    "hotkeyReset": "Varsayılana sıfırla ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Kenar Yerleşimi",
@@ -238,7 +244,8 @@
     "itemDeleted": "Öğe silindi",
     "itemPinned": "Öğe sabitlendi",
     "itemUnpinned": "Öğenin sabitlemesi kaldırıldı",
-    "settingsSaved": "Ayarlar kaydedildi"
+    "settingsSaved": "Ayarlar kaydedildi",
+    "shortcutUpdated": "Genel kısayol {shortcut} olarak ayarlandı"
   },
   "footer": {
     "communityAndSupport": "Topluluk ve Destek",

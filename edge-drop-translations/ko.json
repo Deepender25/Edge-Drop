@@ -60,7 +60,13 @@
     "capacityTitle": "기록 용량",
     "capacityDesc": "기록에 저장되는 고정 안 됨 항목의 최대 수",
     "movePastedToTopTitle": "붙여넣은 항목을 맨 위로 이동",
-    "movePastedToTopDesc": "붙여넣을 때마다 고정되지 않은 항목을 최근 항목의 맨 위로 다시 정렬합니다"
+    "movePastedToTopDesc": "붙여넣을 때마다 고정되지 않은 항목을 최근 항목의 맨 위로 다시 정렬합니다",
+    "toggleHotkeyTitle": "전역 단축키",
+    "toggleHotkeyDesc": "어디서든 셸프를 열거나 닫을 수 있도록 사용자 지정 키 조합을 설정합니다",
+    "hotkeyEdit": "편집",
+    "hotkeyRecording": "키 조합을 누르세요...",
+    "hotkeyCancel": "취소",
+    "hotkeyReset": "기본값으로 재설정 ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "가장자리 배치",
@@ -238,7 +244,8 @@
     "itemDeleted": "항목 삭제됨",
     "itemPinned": "항목 고정됨",
     "itemUnpinned": "항목 고정 해제됨",
-    "settingsSaved": "설정이 저장됨"
+    "settingsSaved": "설정이 저장됨",
+    "shortcutUpdated": "전역 단축키가 {shortcut}으로 설정되었습니다"
   },
   "footer": {
     "communityAndSupport": "커뮤니티 및 지원",

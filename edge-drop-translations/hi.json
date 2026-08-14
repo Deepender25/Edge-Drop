@@ -60,7 +60,13 @@
     "capacityTitle": "इतिहास क्षमता",
     "capacityDesc": "इतिहास में संग्रहीत अधिकतम अनपिन किए गए आइटम",
     "movePastedToTopTitle": "पेस्ट किए गए आइटम को सबसे ऊपर ले जाएँ",
-    "movePastedToTopDesc": "जब भी आप किसी आइटम को पेस्ट करें, तो अनपिन किए गए आइटम को हाल ही में उपयोग किए गए आइटम की सूची में सबसे ऊपर ले जाएँ"
+    "movePastedToTopDesc": "जब भी आप किसी आइटम को पेस्ट करें, तो अनपिन किए गए आइटम को हाल ही में उपयोग किए गए आइटम की सूची में सबसे ऊपर ले जाएँ",
+    "toggleHotkeyTitle": "ग्लोबल शॉर्टकट",
+    "toggleHotkeyDesc": "कहीं से भी शेल्फ़ खोलने या बंद करने के लिए कस्टम कुंजी संयोजन सेट करें",
+    "hotkeyEdit": "संपादित करें",
+    "hotkeyRecording": "कुंजी संयोजन दबाएँ...",
+    "hotkeyCancel": "रद्द करें",
+    "hotkeyReset": "डिफ़ॉल्ट पर रीसेट करें ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "किनारा प्लेसमेंट",
@@ -238,7 +244,8 @@
     "itemDeleted": "आइटम हटाया गया",
     "itemPinned": "आइटम पिन किया गया",
     "itemUnpinned": "आइटम अनपिन किया गया",
-    "settingsSaved": "सेटिंग्स सहेजी गईं"
+    "settingsSaved": "सेटिंग्स सहेजी गईं",
+    "shortcutUpdated": "ग्लोबल शॉर्टकट {shortcut} पर सेट किया गया"
   },
   "footer": {
     "communityAndSupport": "समुदाय और सहायता",

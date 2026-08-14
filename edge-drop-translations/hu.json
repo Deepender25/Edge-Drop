@@ -60,7 +60,13 @@
     "capacityTitle": "Előzmények kapacitása",
     "capacityDesc": "Az előzményekben tárolt nem rögzített elemek maximális száma",
     "movePastedToTopTitle": "Beillesztett elemek áthelyezése felülre",
-    "movePastedToTopDesc": "Beillesztéskor a nem rögzített elemeket a Legutóbbiak lista tetejére rendezi"
+    "movePastedToTopDesc": "Beillesztéskor a nem rögzített elemeket a Legutóbbiak lista tetejére rendezi",
+    "toggleHotkeyTitle": "Globális billentyűparancs",
+    "toggleHotkeyDesc": "Állítson be egyéni billentyűkombinációt a polc bárhonnan történő megnyitásához vagy bezárásához",
+    "hotkeyEdit": "Szerkesztés",
+    "hotkeyRecording": "Nyomja meg a billentyűkombinációt...",
+    "hotkeyCancel": "Mégse",
+    "hotkeyReset": "Visszaállítás alapértelmezettre ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Szél-elhelyezés",
@@ -238,7 +244,8 @@
     "itemDeleted": "Elem törölve",
     "itemPinned": "Elem rögzítve",
     "itemUnpinned": "Elem feloldva",
-    "settingsSaved": "Beállítások elmentve"
+    "settingsSaved": "Beállítások elmentve",
+    "shortcutUpdated": "A globális billentyűparancs beállítva: {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Közösség és támogatás",

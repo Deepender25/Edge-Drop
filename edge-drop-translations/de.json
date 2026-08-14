@@ -60,7 +60,13 @@
     "capacityTitle": "Verlaufskapazität",
     "capacityDesc": "Maximale Anzahl unangepinnter Elemente im Verlauf",
     "movePastedToTopTitle": "Eingefügte Elemente nach oben verschieben",
-    "movePastedToTopDesc": "Ordnet nicht angeheftete Elemente jedes Mal, wenn Sie sie einfügen, oben in „Zuletzt verwendet“ ein"
+    "movePastedToTopDesc": "Ordnet nicht angeheftete Elemente jedes Mal, wenn Sie sie einfügen, oben in „Zuletzt verwendet“ ein",
+    "toggleHotkeyTitle": "Globaler Tastaturkurzbefehl",
+    "toggleHotkeyDesc": "Legen Sie eine eigene Tastenkombination fest, um die Ablage von überall aus zu öffnen oder zu schließen",
+    "hotkeyEdit": "Bearbeiten",
+    "hotkeyRecording": "Tastenkombination drücken...",
+    "hotkeyCancel": "Abbrechen",
+    "hotkeyReset": "Auf Standard zurücksetzen ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Randplatzierung",
@@ -238,7 +244,8 @@
     "itemDeleted": "Element gelöscht",
     "itemPinned": "Element angepinnt",
     "itemUnpinned": "Element gelöst",
-    "settingsSaved": "Einstellungen gespeichert"
+    "settingsSaved": "Einstellungen gespeichert",
+    "shortcutUpdated": "Globaler Tastaturkurzbefehl auf {shortcut} gesetzt"
   },
   "footer": {
     "communityAndSupport": "Community & Support",

@@ -60,7 +60,13 @@
     "capacityTitle": "Kapasitas riwayat",
     "capacityDesc": "Jumlah maksimum item tidak disematkan yang disimpan dalam riwayat",
     "movePastedToTopTitle": "Pindahkan item yang ditempel ke atas",
-    "movePastedToTopDesc": "Mengurutkan ulang item yang tidak disematkan ke bagian atas Terbaru setiap kali Anda menempelkannya"
+    "movePastedToTopDesc": "Mengurutkan ulang item yang tidak disematkan ke bagian atas Terbaru setiap kali Anda menempelkannya",
+    "toggleHotkeyTitle": "Pintasan Global",
+    "toggleHotkeyDesc": "Atur kombinasi tombol khusus untuk membuka atau menutup shelf dari mana saja",
+    "hotkeyEdit": "Edit",
+    "hotkeyRecording": "Tekan kombinasi tombol...",
+    "hotkeyCancel": "Batal",
+    "hotkeyReset": "Atur ulang ke default ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Penempatan Tepi",
@@ -238,7 +244,8 @@
     "itemDeleted": "Item dihapus",
     "itemPinned": "Item disematkan",
     "itemUnpinned": "Sematan item dilepas",
-    "settingsSaved": "Pengaturan disimpan"
+    "settingsSaved": "Pengaturan disimpan",
+    "shortcutUpdated": "Pintasan global diatur ke {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Komunitas & Dukungan",

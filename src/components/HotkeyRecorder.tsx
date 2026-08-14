@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { RotateCcwIcon, CloseIcon } from './icons'
 import { edge } from '../lib/edge'
+import { useTranslation } from '../i18n'
 
 interface HotkeyRecorderProps {
   hotkey: string
@@ -84,6 +85,7 @@ function eventToAccelerator(e: KeyboardEvent): { accelerator: string; isValid: b
 }
 
 export function HotkeyRecorder({ hotkey, onChange }: HotkeyRecorderProps) {
+  const { t } = useTranslation()
   const [isRecording, setIsRecording] = useState(false)
   const [pressedBadges, setPressedBadges] = useState<string[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
@@ -179,6 +181,11 @@ export function HotkeyRecorder({ hotkey, onChange }: HotkeyRecorderProps) {
     onChange('Alt+C')
   }
 
+  const recordingHint = t('behaviour.hotkeyRecording') || 'Press key combination...'
+  const cancelTitle = `${t('behaviour.hotkeyCancel') || 'Cancel'} (Esc)`
+  const resetTitle = t('behaviour.hotkeyReset', { shortcut: 'Alt+C' }) || 'Reset to default (Alt+C)'
+  const editLabel = t('behaviour.hotkeyEdit') || 'Edit'
+
   return (
     <div ref={containerRef} className="hotkey-recorder-wrap">
       <div
@@ -200,7 +207,7 @@ export function HotkeyRecorder({ hotkey, onChange }: HotkeyRecorderProps) {
                   <span className="hotkey-plus-symbol" style={{ opacity: 0.35 }}>+ ...</span>
                 </div>
               ) : (
-                <span className="hotkey-recording-hint">Press key combination...</span>
+                <span className="hotkey-recording-hint">{recordingHint}</span>
               )}
             </div>
 
@@ -211,7 +218,7 @@ export function HotkeyRecorder({ hotkey, onChange }: HotkeyRecorderProps) {
                 e.stopPropagation()
                 stopRecording(true)
               }}
-              title="Cancel recording (Esc)"
+              title={cancelTitle}
             >
               <CloseIcon width={11} height={11} />
               <span className="hotkey-esc-text">Esc</span>
@@ -234,12 +241,12 @@ export function HotkeyRecorder({ hotkey, onChange }: HotkeyRecorderProps) {
                   type="button"
                   className="hotkey-inline-reset-btn"
                   onClick={handleResetDefault}
-                  title="Reset to default (Alt+C)"
+                  title={resetTitle}
                 >
                   <RotateCcwIcon width={12} height={12} />
                 </button>
               )}
-              <span className="hotkey-field-edit-badge">Edit</span>
+              <span className="hotkey-field-edit-badge">{editLabel}</span>
             </div>
           </div>
         )}

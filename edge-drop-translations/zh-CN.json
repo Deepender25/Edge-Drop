@@ -60,7 +60,13 @@
     "capacityTitle": "历史记录容量",
     "capacityDesc": "历史记录中存储的最大未固定项数量",
     "movePastedToTopTitle": "将粘贴的项目移至顶部",
-    "movePastedToTopDesc": "每次粘贴时，将未固定的项目重新排列到“最近使用”列表的顶部"
+    "movePastedToTopDesc": "每次粘贴时，将未固定的项目重新排列到“最近使用”列表的顶部",
+    "toggleHotkeyTitle": "全局快捷键",
+    "toggleHotkeyDesc": "设置自定义按键组合，可从任意位置打开或关闭侧边栏",
+    "hotkeyEdit": "编辑",
+    "hotkeyRecording": "请按下按键组合...",
+    "hotkeyCancel": "取消",
+    "hotkeyReset": "恢复默认值（{shortcut}）"
   },
   "position": {
     "edgePlacementTitle": "边缘位置",
@@ -238,7 +244,8 @@
     "itemDeleted": "项已删除",
     "itemPinned": "项已固定",
     "itemUnpinned": "项已取消固定",
-    "settingsSaved": "设置已保存"
+    "settingsSaved": "设置已保存",
+    "shortcutUpdated": "全局快捷键已设置为 {shortcut}"
   },
   "footer": {
     "communityAndSupport": "社区和支持",

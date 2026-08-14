@@ -30,6 +30,10 @@ export interface TranslationKeys {
     hoverActivationDescOff: string
     toggleHotkeyTitle?: string
     toggleHotkeyDesc?: string
+    hotkeyEdit?: string
+    hotkeyRecording?: string
+    hotkeyCancel?: string
+    hotkeyReset?: string
     disabledHoverOff: string
     fullscreenProtectionTitle: string
     fullscreenProtectionDesc: string
@@ -98,9 +102,10 @@ export interface TranslationKeys {
     typography: string
     textSizeTitle: string
     textSizeDesc: string
-    audioAndFeedback: string
-    small: string
-    normal: string
+    audioAndFeedback?: string
+    small?: string
+    normal?: string
+    default?: string
     medium: string
     large: string
     cardViewTitle: string
@@ -119,11 +124,6 @@ export interface TranslationKeys {
     unpin: string
     delete: string
     clear: string
-    clearLast1h?: string
-    clearLast6h?: string
-    clearLast24h?: string
-    clearAll?: string
-    clearAllConfirm?: string
     dropToSave: string
     dropToSaveDesc: string
     justNow: string
@@ -144,6 +144,11 @@ export interface TranslationKeys {
     moreFiles: string
     singleFile: string
     scrollToTop: string
+    clearLast1h?: string
+    clearLast6h?: string
+    clearLast24h?: string
+    clearAll?: string
+    clearAllConfirm?: string
   }
   fileKinds: {
     pdf: string
@@ -430,7 +435,7 @@ export const LANGUAGES: LanguageMeta[] = [
     "name": "Norwegian",
     "nativeName": "Norsk"
   }
-]
+];
 
 export const en: TranslationKeys = {
   "filters": {
@@ -496,7 +501,11 @@ export const en: TranslationKeys = {
     "autoDeleteDesc": "Automatically purge copied items (preserves Pinned)",
     "never": "Never",
     "capacityTitle": "History capacity",
-    "capacityDesc": "Maximum unpinned items stored in history"
+    "capacityDesc": "Maximum unpinned items stored in history",
+    "hotkeyEdit": "Edit",
+    "hotkeyRecording": "Press key combination...",
+    "hotkeyCancel": "Cancel",
+    "hotkeyReset": "Reset to default ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Edge Placement",
@@ -685,13 +694,13 @@ export const en: TranslationKeys = {
     "applicationGroup": "Application",
     "quitTitle": "Quit Edge-Drop",
     "quitDesc": "Close application and stop background process",
-    "supportPromo": "Edge-Drop is 100% free & open-source. If it helps your daily workflow, consider supporting development to make it even better!",
-    "supportOnKofi": "Support via Ko-fi / UPI",
     "starOnGithub": "Star on GitHub",
     "githubPromo": "If you like Edge-Drop, please consider starring the project on GitHub!",
-    "version": "Version"
+    "version": "Version",
+    "supportPromo": "Edge-Drop is 100% free & open-source. If it helps your daily workflow, consider supporting development to make it even better!",
+    "supportOnKofi": "Support via Ko-fi / UPI"
   }
-}
+};
 
 export const es: TranslationKeys = {
   "filters": {
@@ -728,8 +737,6 @@ export const es: TranslationKeys = {
     "fullscreenProtectionDesc": "Pausar automáticamente el borde al jugar o ver vídeos a pantalla completa",
     "clearUnpinnedTitle": "Borrar no fijados al reiniciar",
     "clearUnpinnedDesc": "Eliminar elementos no fijados cada vez que se reinicia la aplicación",
-    "movePastedToTopTitle": "Mover los elementos pegados arriba",
-    "movePastedToTopDesc": "Reordena los elementos no fijados al principio de Recientes cada vez que los pegues",
     "soundEffectsTitle": "Efectos de sonido",
     "soundEffectsDesc": "Reproducir audio táctil para interruptores, deslizadores y clics de botones",
     "autoUpdatesTitle": "Actualizaciones automáticas",
@@ -755,7 +762,15 @@ export const es: TranslationKeys = {
     "autoDeleteDesc": "Eliminar automáticamente elementos copiados (conserva los fijados)",
     "never": "Nunca",
     "capacityTitle": "Capacidad del historial",
-    "capacityDesc": "Máximo de elementos no fijados almacenados en el historial"
+    "capacityDesc": "Máximo de elementos no fijados almacenados en el historial",
+    "movePastedToTopTitle": "Mover los elementos pegados arriba",
+    "movePastedToTopDesc": "Reordena los elementos no fijados al principio de Recientes cada vez que los pegues",
+    "toggleHotkeyTitle": "Atajo global",
+    "toggleHotkeyDesc": "Establece una combinación de teclas personalizada para abrir o cerrar la bandeja desde cualquier lugar",
+    "hotkeyEdit": "Editar",
+    "hotkeyRecording": "Pulsa la combinación de teclas...",
+    "hotkeyCancel": "Cancelar",
+    "hotkeyReset": "Restablecer al valor predeterminado ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Borde de la pantalla",
@@ -806,12 +821,6 @@ export const es: TranslationKeys = {
     "sparkleStyle": "Destello"
   },
   "item": {
-    "clearLast1h": "Borrar la última hora",
-    "clearLast6h": "Borrar las últimas 6 horas",
-    "clearLast24h": "Borrar las últimas 24 horas",
-    "clearAll": "Borrar todo el historial",
-    "clearAllConfirm": "Toca de nuevo para confirmar",
-
     "copy": "Copiar",
     "pinned": "FIJADO",
     "pin": "Fijar",
@@ -837,7 +846,12 @@ export const es: TranslationKeys = {
     "moreImages": "+{count} imágenes más",
     "moreFiles": "+{count} archivos más",
     "singleFile": "1 archivo",
-    "scrollToTop": "Volver arriba"
+    "scrollToTop": "Volver arriba",
+    "clearLast1h": "Borrar la última hora",
+    "clearLast6h": "Borrar las últimas 6 horas",
+    "clearLast24h": "Borrar las últimas 24 horas",
+    "clearAll": "Borrar todo el historial",
+    "clearAllConfirm": "Toca de nuevo para confirmar"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -934,7 +948,8 @@ export const es: TranslationKeys = {
     "itemDeleted": "Elemento eliminado",
     "itemPinned": "Elemento fijado",
     "itemUnpinned": "Elemento desfijado",
-    "settingsSaved": "Configuración guardada"
+    "settingsSaved": "Configuración guardada",
+    "shortcutUpdated": "Atajo global establecido en {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Comunidad y soporte",
@@ -944,13 +959,13 @@ export const es: TranslationKeys = {
     "applicationGroup": "Aplicación",
     "quitTitle": "Salir de Edge-Drop",
     "quitDesc": "Cerrar la aplicación y detener el proceso en segundo plano",
-    "supportPromo": "Edge-Drop es 100 % gratuito y de código abierto. Si te ayuda en tu trabajo diario, considera apoyar su desarrollo para hacerlo aún mejor.",
-    "supportOnKofi": "Apoyar en Ko-fi",
     "starOnGithub": "Estrella en GitHub",
     "githubPromo": "Si te gusta Edge-Drop, ¡considera darle una estrella en GitHub!",
-    "version": "Versión"
+    "version": "Versión",
+    "supportPromo": "Edge-Drop es 100 % gratuito y de código abierto. Si te ayuda en tu trabajo diario, considera apoyar su desarrollo para hacerlo aún mejor.",
+    "supportOnKofi": "Apoyar en Ko-fi"
   }
-}
+};
 
 export const fr: TranslationKeys = {
   "filters": {
@@ -987,8 +1002,6 @@ export const fr: TranslationKeys = {
     "fullscreenProtectionDesc": "Suspendre automatiquement le survol du bord pendant les jeux ou les vidéos en plein écran",
     "clearUnpinnedTitle": "Effacer les non épinglés au redémarrage",
     "clearUnpinnedDesc": "Supprimer les éléments non épinglés à chaque redémarrage de l'application",
-    "movePastedToTopTitle": "Déplacer les éléments collés en haut",
-    "movePastedToTopDesc": "Réorganise les éléments non épinglés en haut de Récents chaque fois que vous les collez",
     "soundEffectsTitle": "Effets sonores",
     "soundEffectsDesc": "Émettre un retour audio tactile pour les commutateurs, curseurs et clics de boutons",
     "autoUpdatesTitle": "Mises à jour automatiques",
@@ -1014,7 +1027,15 @@ export const fr: TranslationKeys = {
     "autoDeleteDesc": "Supprimer automatiquement les éléments copiés (conserve les épinglés)",
     "never": "Jamais",
     "capacityTitle": "Capacité de l'historique",
-    "capacityDesc": "Nombre maximum d'éléments non épinglés stockés dans l'historique"
+    "capacityDesc": "Nombre maximum d'éléments non épinglés stockés dans l'historique",
+    "movePastedToTopTitle": "Déplacer les éléments collés en haut",
+    "movePastedToTopDesc": "Réorganise les éléments non épinglés en haut de Récents chaque fois que vous les collez",
+    "toggleHotkeyTitle": "Raccourci global",
+    "toggleHotkeyDesc": "Définissez une combinaison de touches personnalisée pour ouvrir ou fermer le panneau depuis n’importe où",
+    "hotkeyEdit": "Modifier",
+    "hotkeyRecording": "Appuyez sur la combinaison de touches...",
+    "hotkeyCancel": "Annuler",
+    "hotkeyReset": "Rétablir par défaut ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Bord de l'écran",
@@ -1065,12 +1086,6 @@ export const fr: TranslationKeys = {
     "sparkleStyle": "Étincelle"
   },
   "item": {
-    "clearLast1h": "Effacer la dernière heure",
-    "clearLast6h": "Effacer les 6 dernières heures",
-    "clearLast24h": "Effacer les 24 dernières heures",
-    "clearAll": "Effacer tout l’historique",
-    "clearAllConfirm": "Appuyez à nouveau pour confirmer",
-
     "copy": "Copier",
     "pinned": "ÉPINGLÉ",
     "pin": "Épingler",
@@ -1096,7 +1111,12 @@ export const fr: TranslationKeys = {
     "moreImages": "+{count} images de plus",
     "moreFiles": "+{count} fichiers de plus",
     "singleFile": "1 fichier",
-    "scrollToTop": "Remonter en haut"
+    "scrollToTop": "Remonter en haut",
+    "clearLast1h": "Effacer la dernière heure",
+    "clearLast6h": "Effacer les 6 dernières heures",
+    "clearLast24h": "Effacer les 24 dernières heures",
+    "clearAll": "Effacer tout l’historique",
+    "clearAllConfirm": "Appuyez à nouveau pour confirmer"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -1193,7 +1213,8 @@ export const fr: TranslationKeys = {
     "itemDeleted": "Élément supprimé",
     "itemPinned": "Élément épinglé",
     "itemUnpinned": "Élément désépinglé",
-    "settingsSaved": "Paramètres enregistrés"
+    "settingsSaved": "Paramètres enregistrés",
+    "shortcutUpdated": "Raccourci global défini sur {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Communauté et assistance",
@@ -1203,13 +1224,13 @@ export const fr: TranslationKeys = {
     "applicationGroup": "Application",
     "quitTitle": "Quitter Edge-Drop",
     "quitDesc": "Fermer l'application et arrêter le processus en arrière-plan",
-    "supportPromo": "Edge-Drop est 100 % gratuit et open source. S'il améliore votre flux de travail quotidien, pensez à soutenir son développement pour le rendre encore meilleur !",
-    "supportOnKofi": "Soutenir sur Ko-fi",
     "starOnGithub": "Étoile sur GitHub",
     "githubPromo": "Si vous aimez Edge-Drop, pensez à mettre une étoile au projet sur GitHub !",
-    "version": "Version"
+    "version": "Version",
+    "supportPromo": "Edge-Drop est 100 % gratuit et open source. S'il améliore votre flux de travail quotidien, pensez à soutenir son développement pour le rendre encore meilleur !",
+    "supportOnKofi": "Soutenir sur Ko-fi"
   }
-}
+};
 
 export const de: TranslationKeys = {
   "filters": {
@@ -1246,8 +1267,6 @@ export const de: TranslationKeys = {
     "fullscreenProtectionDesc": "Rand-Hover bei Spielen oder Vollbildvideos automatisch pausieren",
     "clearUnpinnedTitle": "Unangepinnte beim Neustart löschen",
     "clearUnpinnedDesc": "Unangepinnte Elemente bei jedem App-Neustart entfernen",
-    "movePastedToTopTitle": "Eingefügte Elemente nach oben verschieben",
-    "movePastedToTopDesc": "Ordnet nicht angeheftete Elemente jedes Mal, wenn Sie sie einfügen, oben in „Zuletzt verwendet“ ein",
     "soundEffectsTitle": "Soundeffekte",
     "soundEffectsDesc": "Taktiles Audio-Feedback für Schalter, Schieberegler und Schaltflächen",
     "autoUpdatesTitle": "Automatische Updates",
@@ -1273,7 +1292,15 @@ export const de: TranslationKeys = {
     "autoDeleteDesc": "Kopierte Elemente automatisch löschen (angepinnte bleiben erhalten)",
     "never": "Nie",
     "capacityTitle": "Verlaufskapazität",
-    "capacityDesc": "Maximale Anzahl unangepinnter Elemente im Verlauf"
+    "capacityDesc": "Maximale Anzahl unangepinnter Elemente im Verlauf",
+    "movePastedToTopTitle": "Eingefügte Elemente nach oben verschieben",
+    "movePastedToTopDesc": "Ordnet nicht angeheftete Elemente jedes Mal, wenn Sie sie einfügen, oben in „Zuletzt verwendet“ ein",
+    "toggleHotkeyTitle": "Globaler Tastaturkurzbefehl",
+    "toggleHotkeyDesc": "Legen Sie eine eigene Tastenkombination fest, um die Ablage von überall aus zu öffnen oder zu schließen",
+    "hotkeyEdit": "Bearbeiten",
+    "hotkeyRecording": "Tastenkombination drücken...",
+    "hotkeyCancel": "Abbrechen",
+    "hotkeyReset": "Auf Standard zurücksetzen ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Randplatzierung",
@@ -1324,12 +1351,6 @@ export const de: TranslationKeys = {
     "sparkleStyle": "Funke"
   },
   "item": {
-    "clearLast1h": "Letzte Stunde löschen",
-    "clearLast6h": "Letzte 6 Stunden löschen",
-    "clearLast24h": "Letzte 24 Stunden löschen",
-    "clearAll": "Gesamten Verlauf löschen",
-    "clearAllConfirm": "Zum Bestätigen erneut tippen",
-
     "copy": "Kopieren",
     "pinned": "ANGEPINNT",
     "pin": "Anpinnen",
@@ -1355,7 +1376,12 @@ export const de: TranslationKeys = {
     "moreImages": "+{count} weitere Bilder",
     "moreFiles": "+{count} weitere Dateien",
     "singleFile": "1 Datei",
-    "scrollToTop": "Nach oben scrollen"
+    "scrollToTop": "Nach oben scrollen",
+    "clearLast1h": "Letzte Stunde löschen",
+    "clearLast6h": "Letzte 6 Stunden löschen",
+    "clearLast24h": "Letzte 24 Stunden löschen",
+    "clearAll": "Gesamten Verlauf löschen",
+    "clearAllConfirm": "Zum Bestätigen erneut tippen"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -1452,7 +1478,8 @@ export const de: TranslationKeys = {
     "itemDeleted": "Element gelöscht",
     "itemPinned": "Element angepinnt",
     "itemUnpinned": "Element gelöst",
-    "settingsSaved": "Einstellungen gespeichert"
+    "settingsSaved": "Einstellungen gespeichert",
+    "shortcutUpdated": "Globaler Tastaturkurzbefehl auf {shortcut} gesetzt"
   },
   "footer": {
     "communityAndSupport": "Community & Support",
@@ -1462,13 +1489,13 @@ export const de: TranslationKeys = {
     "applicationGroup": "Anwendung",
     "quitTitle": "Edge-Drop beenden",
     "quitDesc": "Anwendung schließen und Hintergrundprozess stoppen",
-    "supportPromo": "Edge-Drop ist 100 % kostenlos und Open Source. Wenn es deinen Arbeitsalltag erleichtert, unterstütze gerne die Entwicklung, damit es noch besser wird!",
-    "supportOnKofi": "Auf Ko-fi unterstützen",
     "starOnGithub": "Auf GitHub markieren",
     "githubPromo": "Wenn Ihnen Edge-Drop gefällt, geben Sie dem Projekt bitte einen Stern auf GitHub!",
-    "version": "Version"
+    "version": "Version",
+    "supportPromo": "Edge-Drop ist 100 % kostenlos und Open Source. Wenn es deinen Arbeitsalltag erleichtert, unterstütze gerne die Entwicklung, damit es noch besser wird!",
+    "supportOnKofi": "Auf Ko-fi unterstützen"
   }
-}
+};
 
 export const it: TranslationKeys = {
   "filters": {
@@ -1505,8 +1532,6 @@ export const it: TranslationKeys = {
     "fullscreenProtectionDesc": "Sospendi automaticamente l'hover del bordo durante i giochi o i video a schermo intero",
     "clearUnpinnedTitle": "Cancella non bloccati al riavvio",
     "clearUnpinnedDesc": "Elimina gli elementi non bloccati a ogni riavvio dell'app",
-    "movePastedToTopTitle": "Sposta gli elementi incollati in cima",
-    "movePastedToTopDesc": "Riordina gli elementi non fissati in cima a Recenti ogni volta che li incolli",
     "soundEffectsTitle": "Effetti sonori",
     "soundEffectsDesc": "Riproduci feedback audio tattile per interruttori, cursori e clic dei pulsanti",
     "autoUpdatesTitle": "Aggiornamenti automatici",
@@ -1532,7 +1557,15 @@ export const it: TranslationKeys = {
     "autoDeleteDesc": "Elimina automaticamente gli elementi copiati (mantiene i bloccati)",
     "never": "Mai",
     "capacityTitle": "Capacità cronologia",
-    "capacityDesc": "Numero massimo di elementi non bloccati memorizzati nella cronologia"
+    "capacityDesc": "Numero massimo di elementi non bloccati memorizzati nella cronologia",
+    "movePastedToTopTitle": "Sposta gli elementi incollati in cima",
+    "movePastedToTopDesc": "Riordina gli elementi non fissati in cima a Recenti ogni volta che li incolli",
+    "toggleHotkeyTitle": "Scorciatoia globale",
+    "toggleHotkeyDesc": "Imposta una combinazione di tasti personalizzata per aprire o chiudere il pannello da qualsiasi punto",
+    "hotkeyEdit": "Modifica",
+    "hotkeyRecording": "Premi la combinazione di tasti...",
+    "hotkeyCancel": "Annulla",
+    "hotkeyReset": "Ripristina predefinita ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Posizionamento bordo",
@@ -1583,12 +1616,6 @@ export const it: TranslationKeys = {
     "sparkleStyle": "Scintilla"
   },
   "item": {
-    "clearLast1h": "Cancella ultima ora",
-    "clearLast6h": "Cancella ultime 6 ore",
-    "clearLast24h": "Cancella ultime 24 ore",
-    "clearAll": "Cancella tutta la cronologia",
-    "clearAllConfirm": "Tocca di nuovo per confermare",
-
     "copy": "Copia",
     "pinned": "BLOCCATO",
     "pin": "Blocca",
@@ -1614,7 +1641,12 @@ export const it: TranslationKeys = {
     "moreImages": "+{count} altre immagini",
     "moreFiles": "+{count} altri file",
     "singleFile": "1 file",
-    "scrollToTop": "Torna in cima"
+    "scrollToTop": "Torna in cima",
+    "clearLast1h": "Cancella ultima ora",
+    "clearLast6h": "Cancella ultime 6 ore",
+    "clearLast24h": "Cancella ultime 24 ore",
+    "clearAll": "Cancella tutta la cronologia",
+    "clearAllConfirm": "Tocca di nuovo per confermare"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -1711,7 +1743,8 @@ export const it: TranslationKeys = {
     "itemDeleted": "Elemento eliminato",
     "itemPinned": "Elemento bloccato",
     "itemUnpinned": "Elemento sbloccato",
-    "settingsSaved": "Impostazioni salvate"
+    "settingsSaved": "Impostazioni salvate",
+    "shortcutUpdated": "Scorciatoia globale impostata su {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Community e supporto",
@@ -1721,13 +1754,13 @@ export const it: TranslationKeys = {
     "applicationGroup": "Applicazione",
     "quitTitle": "Esci da Edge-Drop",
     "quitDesc": "Chiudi l'applicazione e ferma il processo in background",
-    "supportPromo": "Edge-Drop è completamente gratuito e open source. Se ti aiuta nel tuo lavoro quotidiano, valuta di supportarne lo sviluppo per renderlo ancora migliore!",
-    "supportOnKofi": "Supporta su Ko-fi",
     "starOnGithub": "Metti stella su GitHub",
     "githubPromo": "Se ti piace Edge-Drop, valuta di mettere una stella al progetto su GitHub!",
-    "version": "Versione"
+    "version": "Versione",
+    "supportPromo": "Edge-Drop è completamente gratuito e open source. Se ti aiuta nel tuo lavoro quotidiano, valuta di supportarne lo sviluppo per renderlo ancora migliore!",
+    "supportOnKofi": "Supporta su Ko-fi"
   }
-}
+};
 
 export const pt: TranslationKeys = {
   "filters": {
@@ -1764,8 +1797,6 @@ export const pt: TranslationKeys = {
     "fullscreenProtectionDesc": "Pausar automaticamente o hover da borda ao jogar ou assistir vídeos em tela cheia",
     "clearUnpinnedTitle": "Limpar não fixados ao reiniciar",
     "clearUnpinnedDesc": "Remover itens não fixados sempre que o app reiniciar",
-    "movePastedToTopTitle": "Mover itens colados para o topo",
-    "movePastedToTopDesc": "Reordena os itens não fixados para o topo de Recentes sempre que você os cola",
     "soundEffectsTitle": "Efeitos sonoros",
     "soundEffectsDesc": "Reproduzir feedback audio tátil para interruptores, controles deslizantes e cliques de botão",
     "autoUpdatesTitle": "Atualizações automáticas",
@@ -1791,7 +1822,15 @@ export const pt: TranslationKeys = {
     "autoDeleteDesc": "Excluir automaticamente itens copiados (preserva fixados)",
     "never": "Nunca",
     "capacityTitle": "Capacidade do histórico",
-    "capacityDesc": "Máximo de itens não fixados armazenados no histórico"
+    "capacityDesc": "Máximo de itens não fixados armazenados no histórico",
+    "movePastedToTopTitle": "Mover itens colados para o topo",
+    "movePastedToTopDesc": "Reordena os itens não fixados para o topo de Recentes sempre que você os cola",
+    "toggleHotkeyTitle": "Atalho global",
+    "toggleHotkeyDesc": "Defina uma combinação de teclas personalizada para abrir ou fechar a prateleira de qualquer lugar",
+    "hotkeyEdit": "Editar",
+    "hotkeyRecording": "Pressione a combinação de teclas...",
+    "hotkeyCancel": "Cancelar",
+    "hotkeyReset": "Redefinir para o padrão ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Posicionamento da borda",
@@ -1842,12 +1881,6 @@ export const pt: TranslationKeys = {
     "sparkleStyle": "Cintilação"
   },
   "item": {
-    "clearLast1h": "Limpar última hora",
-    "clearLast6h": "Limpar últimas 6 horas",
-    "clearLast24h": "Limpar últimas 24 horas",
-    "clearAll": "Limpar todo o histórico",
-    "clearAllConfirm": "Toque novamente para confirmar",
-
     "copy": "Copiar",
     "pinned": "FIXADO",
     "pin": "Fixar",
@@ -1873,7 +1906,12 @@ export const pt: TranslationKeys = {
     "moreImages": "+{count} imagens a mais",
     "moreFiles": "+{count} arquivos a mais",
     "singleFile": "1 arquivo",
-    "scrollToTop": "Voltar ao topo"
+    "scrollToTop": "Voltar ao topo",
+    "clearLast1h": "Limpar última hora",
+    "clearLast6h": "Limpar últimas 6 horas",
+    "clearLast24h": "Limpar últimas 24 horas",
+    "clearAll": "Limpar todo o histórico",
+    "clearAllConfirm": "Toque novamente para confirmar"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -1970,7 +2008,8 @@ export const pt: TranslationKeys = {
     "itemDeleted": "Item excluído",
     "itemPinned": "Item fixado",
     "itemUnpinned": "Item desafixado",
-    "settingsSaved": "Configurações salvas"
+    "settingsSaved": "Configurações salvas",
+    "shortcutUpdated": "Atalho global definido como {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Comunidade e suporte",
@@ -1980,13 +2019,13 @@ export const pt: TranslationKeys = {
     "applicationGroup": "Aplicativo",
     "quitTitle": "Sair do Edge-Drop",
     "quitDesc": "Fechar aplicativo e parar processo em segundo plano",
-    "supportPromo": "O Edge-Drop é 100% gratuito e de código aberto. Se ele ajuda no seu fluxo de trabalho diário, considere apoiar o desenvolvimento para torná-lo ainda melhor!",
-    "supportOnKofi": "Apoiar no Ko-fi",
     "starOnGithub": "Dar estrela no GitHub",
     "githubPromo": "Se você gosta do Edge-Drop, considere dar uma estrela no projeto no GitHub!",
-    "version": "Versão"
+    "version": "Versão",
+    "supportPromo": "O Edge-Drop é 100% gratuito e de código aberto. Se ele ajuda no seu fluxo de trabalho diário, considere apoiar o desenvolvimento para torná-lo ainda melhor!",
+    "supportOnKofi": "Apoiar no Ko-fi"
   }
-}
+};
 
 export const ru: TranslationKeys = {
   "filters": {
@@ -2023,8 +2062,6 @@ export const ru: TranslationKeys = {
     "fullscreenProtectionDesc": "Автоматически приостанавливать наведение у края во время игр или полноэкранных видео",
     "clearUnpinnedTitle": "Очищать незакреплённые при перезапуске",
     "clearUnpinnedDesc": "Удалять незакреплённые элементы при каждом перезапуске приложения",
-    "movePastedToTopTitle": "Перемещать вставленные элементы наверх",
-    "movePastedToTopDesc": "Перемещает незакреплённые элементы в начало списка «Недавние» при каждой вставке",
     "soundEffectsTitle": "Звуковые эффекты",
     "soundEffectsDesc": "Воспроизводить тактильный аудиоотклик для переключателей, ползунков и нажатий кнопок",
     "autoUpdatesTitle": "Автоматические обновления",
@@ -2050,7 +2087,15 @@ export const ru: TranslationKeys = {
     "autoDeleteDesc": "Автоматически удалять скопированные элементы (закреплённые сохраняются)",
     "never": "Никогда",
     "capacityTitle": "Объём истории",
-    "capacityDesc": "Максимум незакреплённых элементов в истории"
+    "capacityDesc": "Максимум незакреплённых элементов в истории",
+    "movePastedToTopTitle": "Перемещать вставленные элементы наверх",
+    "movePastedToTopDesc": "Перемещает незакреплённые элементы в начало списка «Недавние» при каждой вставке",
+    "toggleHotkeyTitle": "Глобальная горячая клавиша",
+    "toggleHotkeyDesc": "Задайте собственное сочетание клавиш для открытия или закрытия панели из любого места",
+    "hotkeyEdit": "Изменить",
+    "hotkeyRecording": "Нажмите сочетание клавиш...",
+    "hotkeyCancel": "Отмена",
+    "hotkeyReset": "Сбросить на значение по умолчанию ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Размещение у края",
@@ -2101,12 +2146,6 @@ export const ru: TranslationKeys = {
     "sparkleStyle": "Искра"
   },
   "item": {
-    "clearLast1h": "Очистить за последний час",
-    "clearLast6h": "Очистить за последние 6 часов",
-    "clearLast24h": "Очистить за последние 24 часа",
-    "clearAll": "Очистить всю историю",
-    "clearAllConfirm": "Нажмите ещё раз для подтверждения",
-
     "copy": "Копировать",
     "pinned": "ЗАКРЕПЛЕНО",
     "pin": "Закрепить",
@@ -2132,7 +2171,12 @@ export const ru: TranslationKeys = {
     "moreImages": "+{count} ещё изображений",
     "moreFiles": "+{count} ещё файлов",
     "singleFile": "1 файл",
-    "scrollToTop": "Прокрутить наверх"
+    "scrollToTop": "Прокрутить наверх",
+    "clearLast1h": "Очистить за последний час",
+    "clearLast6h": "Очистить за последние 6 часов",
+    "clearLast24h": "Очистить за последние 24 часа",
+    "clearAll": "Очистить всю историю",
+    "clearAllConfirm": "Нажмите ещё раз для подтверждения"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -2229,7 +2273,8 @@ export const ru: TranslationKeys = {
     "itemDeleted": "Элемент удалён",
     "itemPinned": "Элемент закреплён",
     "itemUnpinned": "Элемент откреплён",
-    "settingsSaved": "Настройки сохранены"
+    "settingsSaved": "Настройки сохранены",
+    "shortcutUpdated": "Глобальная горячая клавиша установлена: {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Сообщество и поддержка",
@@ -2239,13 +2284,13 @@ export const ru: TranslationKeys = {
     "applicationGroup": "Приложение",
     "quitTitle": "Выйти из Edge-Drop",
     "quitDesc": "Закрыть приложение и остановить фоновый процесс",
-    "supportPromo": "Edge-Drop полностью бесплатный и с открытым исходным кодом. Если он помогает вам в повседневной работе, поддержите разработку, чтобы сделать его ещё лучше!",
-    "supportOnKofi": "Поддержать на Ko-fi",
     "starOnGithub": "Поставить звезду на GitHub",
     "githubPromo": "Если вам нравится Edge-Drop, пожалуйста, поставьте звёзду проекту на GitHub!",
-    "version": "Версия"
+    "version": "Версия",
+    "supportPromo": "Edge-Drop полностью бесплатный и с открытым исходным кодом. Если он помогает вам в повседневной работе, поддержите разработку, чтобы сделать его ещё лучше!",
+    "supportOnKofi": "Поддержать на Ko-fi"
   }
-}
+};
 
 export const ja: TranslationKeys = {
   "filters": {
@@ -2257,94 +2302,100 @@ export const ja: TranslationKeys = {
   },
   "tabs": {
     "behaviour": "動作",
-    "position": "位置",
+    "position": "配置",
     "appearance": "外観"
   },
   "header": {
     "searchPlaceholder": "履歴を検索...",
     "settings": "設定",
     "close": "閉じる",
-    "whatsNew": "新着情報"
+    "whatsNew": "新機能"
   },
   "behaviour": {
     "languageTitle": "言語",
-    "languageDesc": "システムメニューとコントロールの UI 言語を選択",
-    "systemDefault": "システム既定 (自動)",
+    "languageDesc": "UI言語を選択",
+    "systemDefault": "システムデフォルト (自動)",
     "launchAtLoginTitle": "ログイン時に起動",
-    "launchAtLoginDesc": "コンピューターの起動時にバックグラウンドでサイレント起動",
+    "launchAtLoginDesc": "PC起動時にバックグラウンドで起動",
     "incognitoTitle": "シークレットモード",
-    "incognitoDesc": "新しいクリップボード項目の記録を一時停止",
-    "hoverActivationTitle": "ホバー有効化",
-    "hoverActivationDescOn": "画面の端にカーソルを近づけるとシェルフをスライドで開く",
-    "hoverActivationDescOff": "ホバートリガーは一時停止中。Alt + C で開く",
-    "disabledHoverOff": "ホバー有効化がオフのため無効です",
-    "fullscreenProtectionTitle": "全画面保護",
-    "fullscreenProtectionDesc": "ゲーム中や全画面動画視聴時にエッジホバーを自動的に一時停止",
-    "clearUnpinnedTitle": "再起動時にピン留め以外を消去",
-    "clearUnpinnedDesc": "アプリ再起動のたびにピン留めされていない項目を削除",
-    "movePastedToTopTitle": "貼り付けたアイテムを上に移動",
-    "movePastedToTopDesc": "貼り付けるたびに、ピン留めされていないアイテムを「最近使用した項目」の先頭に並べ替えます",
+    "incognitoDesc": "一時的にクリップボードの記録を一時停止",
+    "hoverActivationTitle": "ホバーで開く",
+    "hoverActivationDescOn": "画面端にカーソルを合わせるとスライドして開きます",
+    "hoverActivationDescOff": "ホバートリガーは一時停止中です。開くには {shortcut} を使用してください",
+    "toggleHotkeyTitle": "グローバルショートカット",
+    "toggleHotkeyDesc": "どこからでもシェルフを開閉できるカスタムキーの組み合わせを設定します",
+    "disabledHoverOff": "ホバーで開くが無効のため無効",
+    "fullscreenProtectionTitle": "全画面時の保護",
+    "fullscreenProtectionDesc": "ゲームや全画面動画中は自動的にホバーを無効化",
+    "clearUnpinnedTitle": "再起動時に未ピン留めを削除",
+    "clearUnpinnedDesc": "アプリ再起動時にピン留めされていない項目を削除",
+    "movePastedToTopTitle": "貼り付けた項目を先頭に移動",
+    "movePastedToTopDesc": "項目を貼り付けた際、最近の項目の先頭に移動します",
     "soundEffectsTitle": "効果音",
-    "soundEffectsDesc": "トグル、スライダー、ボタンクリックに触覚音声フィードバックを再生",
+    "soundEffectsDesc": "トグルやスライダーなどの操作時に触覚的な効果音を再生",
     "autoUpdatesTitle": "自動更新",
-    "autoUpdatesDescOn": "バックグラウンドで自動的に更新を確認してダウンロード",
-    "autoUpdatesDescOff": "バックグラウンド更新確認は一時停止中。下から手動で確認",
+    "autoUpdatesDescOn": "バックグラウンドで自動的に更新を確認・ダウンロード",
+    "autoUpdatesDescOff": "自動更新はオフです。以下から手動で確認してください",
     "checkForUpdates": "更新を確認",
     "checkingForUpdates": "GitHub で更新を確認中...",
     "isUpToDate": "✓ Edge-Drop は最新です",
     "checkAgain": "再確認",
     "tryAgain": "再試行",
-    "updateCheckFailed": "更新確認に失敗しました",
+    "updateCheckFailed": "更新の確認に失敗しました",
     "updateAvailableTitle": "Edge-Drop v{version} が利用可能です！",
-    "updateAvailableDesc": "GitHub に新しいバージョンが公開されました。今すぐダウンロードして更新しますか？",
+    "updateAvailableDesc": "GitHub に新しいバージョンがあります。今すぐダウンロードして更新しますか？",
     "downloadAndUpdate": "ダウンロードして更新",
     "skip": "スキップ",
-    "downloadingUpdate": "バックグラウンドで更新パッケージをダウンロード中...",
-    "updateReadyTitle": "更新 v{version} の準備が完了",
-    "updateReadyDesc": "クリックして Edge-Drop を再起動し、更新を適用します。",
+    "downloadingUpdate": "更新パッケージをダウンロード中...",
+    "updateReadyTitle": "v{version} の準備完了",
+    "updateReadyDesc": "再起動して更新を適用します。",
     "restartToUpdate": "再起動して更新",
-    "restartToUpdateBelow": "下の再起動で更新",
-    "newUpdateAvailableBelow": "下に新しい更新があります",
+    "restartToUpdateBelow": "下から再起動して更新",
+    "newUpdateAvailableBelow": "新しい更新があります",
     "autoDeleteTitle": "自動削除タイマー",
-    "autoDeleteDesc": "コピーした項目を自動的に消去 (ピン留めは保持)",
+    "autoDeleteDesc": "指定時間後に自動削除 (ピン留めは保持)",
     "never": "なし",
-    "capacityTitle": "履歴の容量",
-    "capacityDesc": "履歴に保存するピン留め以外の項目の最大数"
+    "capacityTitle": "履歴の最大件数",
+    "capacityDesc": "保存する未ピン留め項目の最大数",
+    "hotkeyEdit": "編集",
+    "hotkeyRecording": "キーの組み合わせを押してください...",
+    "hotkeyCancel": "キャンセル",
+    "hotkeyReset": "デフォルトに戻す（{shortcut}）"
   },
   "position": {
-    "edgePlacementTitle": "エッジ配置",
-    "edgePlacementDesc": "Edge-Drop を配置する画面の端を選択",
+    "edgePlacementTitle": "画面端の配置",
+    "edgePlacementDesc": "Edge-Drop を配置する画面端を選択",
     "leftEdge": "左端",
     "rightEdge": "右端",
     "displayTitle": "ディスプレイ",
-    "displayDesc": "Edge-Drop を取り付けるモニターを選択",
-    "primaryDisplay": "プライマリディスプレイ",
+    "displayDesc": "Edge-Drop を表示するモニターを選択",
+    "primaryDisplay": "メインディスプレイ",
     "verticalPositionTitle": "垂直位置",
-    "verticalPositionDesc": "画面端に沿った垂直方向の配置を調整",
+    "verticalPositionDesc": "画面端での垂直方向の配置を調整",
     "top": "上",
     "center": "中央",
     "bottom": "下",
     "triggerZone": "トリガーゾーン",
-    "edgeLocationHintTitle": "エッジ位置ヒント",
-    "edgeLocationHintDesc": "誤った位置で端に触れたとき、画面端のビーコンを控えめに点灯",
-    "edgeTriggerPositionTitle": "エッジトリガー位置",
-    "edgeTriggerPositionDesc": "シェルフに対するホバートリガー帯の配置",
-    "hoverAreaSizeTitle": "ホバーエリアのサイズ",
-    "hoverAreaSizeDesc": "画面端のホバーエリアのサイズ",
+    "edgeLocationHintTitle": "位置ヒント",
+    "edgeLocationHintDesc": "トリガーゾーン外に触れた際に光で位置を案内",
+    "edgeTriggerPositionTitle": "トリガー位置",
+    "edgeTriggerPositionDesc": "パネルに対するトリガーの位置",
+    "hoverAreaSizeTitle": "トリガー領域の高さ",
+    "hoverAreaSizeDesc": "画面端のトリガー領域のサイズ",
     "medium": "中",
-    "edgeTriggerThicknessTitle": "エッジトリガーの厚み",
-    "edgeTriggerThicknessDesc": "不可視のトリガー帯の物理的な厚み",
+    "edgeTriggerThicknessTitle": "トリガー領域の幅",
+    "edgeTriggerThicknessDesc": "透明なトリガー領域の物理的な幅",
     "panelHeightTitle": "パネルの高さ",
-    "panelHeightDesc": "クリップボードシェルフの縦方向のサイズ"
+    "panelHeightDesc": "クリップボードパネルの垂直サイズ"
   },
   "appearance": {
     "copyIndicatorTitle": "コピーインジケーター",
-    "copyIndicatorDesc": "コピー時に画面端に控えめなビーコンを表示",
-    "indicatorStyleTitle": "インジケーターのスタイル",
-    "indicatorStyleDesc": "エッジコピーインジケーターの視覚形状を選択",
+    "copyIndicatorDesc": "コピー時に画面端に視覚的なインジケーターを表示",
+    "indicatorStyleTitle": "インジケータースタイル",
+    "indicatorStyleDesc": "画面端のコピーインジケーターの形状を選択",
     "typography": "タイポグラフィ",
-    "textSizeTitle": "テキストサイズ",
-    "textSizeDesc": "Edge-Drop 全体の UI タイポグラフィスケールを調整",
+    "textSizeTitle": "文字サイズ",
+    "textSizeDesc": "Edge-Drop 全体のUIテキストサイズを調整",
     "audioAndFeedback": "オーディオとフィードバック",
     "small": "小",
     "normal": "標準",
@@ -2360,20 +2411,14 @@ export const ja: TranslationKeys = {
     "sparkleStyle": "スパークル"
   },
   "item": {
-    "clearLast1h": "過去1時間を消去",
-    "clearLast6h": "過去6時間を消去",
-    "clearLast24h": "過去24時間を消去",
-    "clearAll": "履歴をすべて消去",
-    "clearAllConfirm": "もう一度タップして確認",
-
     "copy": "コピー",
     "pinned": "ピン留め",
     "pin": "ピン留め",
-    "unpin": "ピン解除",
+    "unpin": "ピン留め解除",
     "delete": "削除",
     "clear": "クリア",
-    "dropToSave": "ドロップして保存",
-    "dropToSaveDesc": "任意のファイル、画像、リンク、テキスト",
+    "dropToSave": "ここにドロップして保存",
+    "dropToSaveDesc": "任意のファイル、画像、リンク、テキストを保存できます",
     "justNow": "たった今",
     "ago": "前",
     "expand": "展開",
@@ -2382,7 +2427,7 @@ export const ja: TranslationKeys = {
     "fileItem": "ファイル",
     "linkItem": "リンク",
     "items": "件",
-    "recent": "最近",
+    "recent": "最近の項目",
     "expandPinned": "ピン留め項目を展開",
     "collapsePinned": "ピン留め項目を折りたたむ",
     "screenshot": "スクリーンショット",
@@ -2391,14 +2436,19 @@ export const ja: TranslationKeys = {
     "moreImages": "+{count} 枚の画像",
     "moreFiles": "+{count} 個のファイル",
     "singleFile": "1 個のファイル",
-    "scrollToTop": "先頭へスクロール"
+    "scrollToTop": "先頭へスクロール",
+    "clearLast1h": "過去1時間を消去",
+    "clearLast6h": "過去6時間を消去",
+    "clearLast24h": "過去24時間を消去",
+    "clearAll": "履歴をすべて消去",
+    "clearAllConfirm": "もう一度押して確認します"
   },
   "fileKinds": {
     "pdf": "PDF",
     "word": "Word",
     "excel": "Excel",
-    "powerpoint": "スライド",
-    "archive": "アーカイブ",
+    "powerpoint": "PowerPoint",
+    "archive": "圧縮ファイル",
     "text": "テキスト",
     "code": "コード",
     "audio": "オーディオ",
@@ -2407,12 +2457,12 @@ export const ja: TranslationKeys = {
     "file": "ファイル"
   },
   "emptyState": {
-    "shelfEmpty": "シェルフは空です",
+    "shelfEmpty": "クリップボードは空です",
     "noResultsFound": "結果が見つかりません",
-    "shelfEmptyHint": "何かコピーするか、ここにファイルをドロップして開始",
-    "noResultsHint": "別のキーワードを試すか検索をクリア",
+    "shelfEmptyHint": "何かコピーするか、ここにファイルをドロップするとここに表示されます",
+    "noResultsHint": "別のキーワードを試すか、キーワードをクリアします",
     "noClipsFound": "{type} が見つかりません",
-    "copyTypeHint": "{type} をコピーするか「すべて」に戻ってください",
+    "copyTypeHint": "{type} をコピーするか、フィルターを「すべて」に切り替えてください",
     "textClips": "テキストクリップ",
     "links": "リンク",
     "images": "画像",
@@ -2422,17 +2472,17 @@ export const ja: TranslationKeys = {
     "welcomeTitle": "Edge-Drop へようこそ",
     "welcomeDesc": "Edge-Drop は画面の左端に隠れています。マウスを左端に移動するとパネルが開き、離すと隠れます。",
     "collectTitle": "何でも収集",
-    "collectDesc": "Ctrl+C でテキスト、画像、ファイルをコピーするたびに、Edge-Drop が自動的にキャッチしてバックグラウンドで保存します。",
+    "collectDesc": "Ctrl+C でテキスト、画像、ファイルをコピーするたびに、Edge-Drop が自動的に取得してバックグラウンドで保存します。",
     "dragTitle": "どこでもドラッグ＆ドロップ",
-    "dragDesc": "項目を使いたい時はパネルを開き、カードを任意のアプリ、フォルダー、ドキュメントに直接ドラッグするだけです。",
+    "dragDesc": "項目を使いたい時はパネルを開き、項目を任意のアプリ、フォルダー、ドキュメントに直接ドラッグするだけです。",
     "stacksTitle": "ファイルスタックを活用",
     "stacksDesc": "複数のファイルをコピーするとスタックにまとまります。スタック全体をドラッグしたり、クリックして個別のファイルを表示・抽出できます。",
     "ungroupTitle": "スタックの分割・解除",
-    "ungroupDesc": "スタック内の項目を分割したい？クリックでスタックを展開し、サブ項目を画面の左端にドラッグします。光るコーラル色のバーが現れるので、その上に項目をドロップすると単独のカードに戻せます。",
-    "mergeTitle": "項目の結合と統合",
-    "mergeDesc": "別々のファイルや画像カード同士を直接ドラッグして重ねることで結合できます。関連するアセットをスタックにまとめてシェルフを整理します。",
-    "previewTitle": "プレビューフライアウト",
-    "previewDesc": "任意のカードのプレビューボタンをクリックするとサイドフライアウトが開きます。高解像度画像の確認、ファイルコレクションの閲覧、長いテキストの閲読、プレビューからの項目ドラッグが可能です。",
+    "ungroupDesc": "スタック内の項目を個別に取り出したい場合は、クリックでスタックを展開し、項目を画面の左端へドラッグします。光るバーが表示されたら、そこへドロップすることで単独のカードに戻せます。",
+    "mergeTitle": "項目のスタック",
+    "mergeDesc": "別々のファイルや画像カード同士を直接ドラッグして重ねることでスタックできます。関連する項目をスタックにまとめてパネルを整理できます。",
+    "previewTitle": "プレビュー",
+    "previewDesc": "任意のアイテムのプレビューボタンをクリックするとそのプレビューが開きます。高解像度画像の確認、ファイルコレクションの閲覧、長いテキストの確認、プレビューからの項目ドラッグが可能です。",
     "configTitle": "クリップボードを設定",
     "configDesc": "Edge-Drop の動作をカスタマイズしましょう。",
     "skip": "スキップ",
@@ -2440,28 +2490,28 @@ export const ja: TranslationKeys = {
     "next": "次へ",
     "getStarted": "はじめる",
     "extractedCard": "抽出されたカード",
-    "dropToExtract": "ドロップして単独のカードに戻す",
-    "proTips": "プロのヒント",
-    "proTip1": "Alt + C でシェルフを瞬時に切り替え。",
-    "proTip2": "歯車アイコン (右上) からいつでも設定にアクセス。",
-    "proTip3": "左端にファイルをドラッグ＆ドロップして追加。",
-    "proTip4": "テキストボックスをクリックしてからクリップボード項目を押すと自動貼り付け。"
+    "dropToExtract": "ドロップして単独のカードに戻します",
+    "proTips": "使いこなすヒント",
+    "proTip1": "Alt + C でパネルの表示を瞬時に切り替えられます",
+    "proTip2": "右上の歯車アイコンからいつでも設定にアクセスできます",
+    "proTip3": "左端にファイルをドラッグ＆ドロップして追加します",
+    "proTip4": "テキストボックスをクリックしてからクリップボードのアイテムを押すと自動で貼り付けられます"
   },
   "tray": {
-    "showClipboard": "クリップボードを表示",
+    "showClipboard": "パネルを表示",
     "settings": "設定",
-    "incognito": "シークレット (キャプチャーを一時停止)",
-    "hoverTrigger": "ホバートリガー (ホバーで開く)",
-    "stickTo": "固定先",
+    "incognito": "クリップボードの取得を一時的に停止",
+    "hoverTrigger": "ホバーして表示",
+    "stickTo": "パネルの配置位置",
     "left": "左",
     "right": "右",
-    "display": "ディスプレイ",
+    "display": "パネルを表示するディスプレイ",
     "quit": "Edge-Drop を終了",
-    "welcomeTitle": "Edge-Drop クリップボードシェルフ",
-    "welcomeBody": "画面左端中央にホバーするか、Alt+C を押してシェルフを開きます。"
+    "welcomeTitle": "Edge-Drop クリップボードパネル",
+    "welcomeBody": "画面左端中央にホバーするか、Alt + C を押してパネルを開きます。"
   },
   "flyout": {
-    "copyBeaconStyleTitle": "コピーインジケーターのスタイル",
+    "copyBeaconStyleTitle": "コピー時のインジケーターのスタイル",
     "openLink": "リンクを開く",
     "copyContent": "コンテンツをコピー",
     "saveFile": "ファイルを保存",
@@ -2470,25 +2520,26 @@ export const ja: TranslationKeys = {
     "selectedCount": "{count} 件選択",
     "selectAll": "すべて選択",
     "deselectAll": "選択をすべて解除",
-    "copySelected": "選択をコピー",
-    "pasteSelected": "選択を貼り付け",
+    "copySelected": "選択中のアイテムをコピー",
+    "pasteSelected": "選択中のアイテムを貼り付け",
     "paste": "貼り付け",
-    "clearSelection": "選択をクリア",
-    "contentTruncated": "… (コンテンツは省略されています)",
+    "clearSelection": "選択中のアイテムをクリア",
+    "contentTruncated": "… (以下略)",
     "clickToPaste": "クリックして貼り付け",
     "copyText": "テキストをコピー",
     "copyImage": "画像をコピー",
     "copyFile": "ファイルをコピー",
-    "clickToPasteDrag": "クリックで貼り付け · ドラッグで移動",
-    "openInExplorer": "エクスプローラーで場所を開く",
+    "clickToPasteDrag": "クリックで貼り付け、ドラッグで移動",
+    "openInExplorer": "エクスプローラーで開く",
     "current": "現在"
   },
   "toast": {
     "copiedToClipboard": "クリップボードにコピーしました",
     "itemDeleted": "項目を削除しました",
     "itemPinned": "項目をピン留めしました",
-    "itemUnpinned": "項目のピンを解除しました",
-    "settingsSaved": "設定を保存しました"
+    "itemUnpinned": "項目のピン留めを解除しました",
+    "settingsSaved": "設定を保存しました",
+    "shortcutUpdated": "グローバルショートカットを {shortcut} に設定しました"
   },
   "footer": {
     "communityAndSupport": "コミュニティとサポート",
@@ -2498,13 +2549,13 @@ export const ja: TranslationKeys = {
     "applicationGroup": "アプリケーション",
     "quitTitle": "Edge-Drop を終了",
     "quitDesc": "アプリを閉じてバックグラウンドプロセスを停止",
-    "supportPromo": "Edge-Drop は100%無料のオープンソースです。日々の作業に役立っているなら、さらに良くするために開発を応援していただけると嬉しいです！",
-    "supportOnKofi": "Ko-fiで支援する",
     "starOnGithub": "GitHub でスター",
     "githubPromo": "Edge-Drop を気に入っていただけたら、GitHub でスターをよろしくお願いします！",
-    "version": "バージョン"
+    "version": "バージョン",
+    "supportPromo": "Edge-Drop は100%無料のオープンソースです。日々の作業に役立っているなら、さらに良くするために開発を応援していただけると嬉しいです！",
+    "supportOnKofi": "Ko-fiで支援する"
   }
-}
+};
 
 export const ko: TranslationKeys = {
   "filters": {
@@ -2541,8 +2592,6 @@ export const ko: TranslationKeys = {
     "fullscreenProtectionDesc": "게임 중이거나 전체화면 영상 시청 시 가장자리 호버 자동 일시정지",
     "clearUnpinnedTitle": "재시작 시 고정 안 됨 항목 삭제",
     "clearUnpinnedDesc": "앱이 다시 시작될 때마다 고정되지 않은 항목 제거",
-    "movePastedToTopTitle": "붙여넣은 항목을 맨 위로 이동",
-    "movePastedToTopDesc": "붙여넣을 때마다 고정되지 않은 항목을 최근 항목의 맨 위로 다시 정렬합니다",
     "soundEffectsTitle": "효과음",
     "soundEffectsDesc": "토글, 슬라이더, 버튼 클릭에 촉각 오디오 피드백 재생",
     "autoUpdatesTitle": "자동 업데이트",
@@ -2568,7 +2617,15 @@ export const ko: TranslationKeys = {
     "autoDeleteDesc": "복사한 항목 자동 삭제 (고정 항목은 유지)",
     "never": "사용 안 함",
     "capacityTitle": "기록 용량",
-    "capacityDesc": "기록에 저장되는 고정 안 됨 항목의 최대 수"
+    "capacityDesc": "기록에 저장되는 고정 안 됨 항목의 최대 수",
+    "movePastedToTopTitle": "붙여넣은 항목을 맨 위로 이동",
+    "movePastedToTopDesc": "붙여넣을 때마다 고정되지 않은 항목을 최근 항목의 맨 위로 다시 정렬합니다",
+    "toggleHotkeyTitle": "전역 단축키",
+    "toggleHotkeyDesc": "어디서든 셸프를 열거나 닫을 수 있도록 사용자 지정 키 조합을 설정합니다",
+    "hotkeyEdit": "편집",
+    "hotkeyRecording": "키 조합을 누르세요...",
+    "hotkeyCancel": "취소",
+    "hotkeyReset": "기본값으로 재설정 ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "가장자리 배치",
@@ -2619,12 +2676,6 @@ export const ko: TranslationKeys = {
     "sparkleStyle": "반짝임"
   },
   "item": {
-    "clearLast1h": "최근 1시간 지우기",
-    "clearLast6h": "최근 6시간 지우기",
-    "clearLast24h": "최근 24시간 지우기",
-    "clearAll": "전체 기록 지우기",
-    "clearAllConfirm": "확인하려면 다시 탭하세요",
-
     "copy": "복사",
     "pinned": "고정됨",
     "pin": "고정",
@@ -2650,7 +2701,12 @@ export const ko: TranslationKeys = {
     "moreImages": "+{count}개 이미지 더",
     "moreFiles": "+{count}개 파일 더",
     "singleFile": "1개 파일",
-    "scrollToTop": "맨 위로 스크롤"
+    "scrollToTop": "맨 위로 스크롤",
+    "clearLast1h": "최근 1시간 지우기",
+    "clearLast6h": "최근 6시간 지우기",
+    "clearLast24h": "최근 24시간 지우기",
+    "clearAll": "전체 기록 지우기",
+    "clearAllConfirm": "확인하려면 다시 탭하세요"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -2747,7 +2803,8 @@ export const ko: TranslationKeys = {
     "itemDeleted": "항목 삭제됨",
     "itemPinned": "항목 고정됨",
     "itemUnpinned": "항목 고정 해제됨",
-    "settingsSaved": "설정이 저장됨"
+    "settingsSaved": "설정이 저장됨",
+    "shortcutUpdated": "전역 단축키가 {shortcut}으로 설정되었습니다"
   },
   "footer": {
     "communityAndSupport": "커뮤니티 및 지원",
@@ -2757,13 +2814,13 @@ export const ko: TranslationKeys = {
     "applicationGroup": "응용 프로그램",
     "quitTitle": "Edge-Drop 종료",
     "quitDesc": "응용 프로그램을 닫고 백그라운드 프로세스 중지",
-    "supportPromo": "Edge-Drop은 100% 무료 오픈소스입니다. 일상적인 작업에 도움이 된다면, 더 나은 앱을 만들 수 있도록 개발을 후원해 주세요!",
-    "supportOnKofi": "Ko-fi에서 후원하기",
     "starOnGithub": "GitHub에서 별표",
     "githubPromo": "Edge-Drop이 마음에 드시면 GitHub에서 프로젝트에 별표를 고려해 주세요!",
-    "version": "버전"
+    "version": "버전",
+    "supportPromo": "Edge-Drop은 100% 무료 오픈소스입니다. 일상적인 작업에 도움이 된다면, 더 나은 앱을 만들 수 있도록 개발을 후원해 주세요!",
+    "supportOnKofi": "Ko-fi에서 후원하기"
   }
-}
+};
 
 export const zhCN: TranslationKeys = {
   "filters": {
@@ -2800,8 +2857,6 @@ export const zhCN: TranslationKeys = {
     "fullscreenProtectionDesc": "玩游戏或观看全屏视频时自动暂停边缘悬停",
     "clearUnpinnedTitle": "重启时清除未固定项",
     "clearUnpinnedDesc": "应用每次重启时清除未固定的项",
-    "movePastedToTopTitle": "将粘贴的项目移至顶部",
-    "movePastedToTopDesc": "每次粘贴时，将未固定的项目重新排列到“最近使用”列表的顶部",
     "soundEffectsTitle": "音效",
     "soundEffectsDesc": "为开关、滑块和按钮点击播放触感音频反馈",
     "autoUpdatesTitle": "自动更新",
@@ -2827,7 +2882,15 @@ export const zhCN: TranslationKeys = {
     "autoDeleteDesc": "自动清除已复制的项（保留固定项）",
     "never": "从不",
     "capacityTitle": "历史记录容量",
-    "capacityDesc": "历史记录中存储的最大未固定项数量"
+    "capacityDesc": "历史记录中存储的最大未固定项数量",
+    "movePastedToTopTitle": "将粘贴的项目移至顶部",
+    "movePastedToTopDesc": "每次粘贴时，将未固定的项目重新排列到“最近使用”列表的顶部",
+    "toggleHotkeyTitle": "全局快捷键",
+    "toggleHotkeyDesc": "设置自定义按键组合，可从任意位置打开或关闭侧边栏",
+    "hotkeyEdit": "编辑",
+    "hotkeyRecording": "请按下按键组合...",
+    "hotkeyCancel": "取消",
+    "hotkeyReset": "恢复默认值（{shortcut}）"
   },
   "position": {
     "edgePlacementTitle": "边缘位置",
@@ -2903,7 +2966,12 @@ export const zhCN: TranslationKeys = {
     "moreImages": "+{count} 张更多图片",
     "moreFiles": "+{count} 个更多文件",
     "singleFile": "1 个文件",
-    "scrollToTop": "滚动到顶部"
+    "scrollToTop": "滚动到顶部",
+    "clearLast1h": "清除最近 1 小时",
+    "clearLast6h": "清除最近 6 小时",
+    "clearLast24h": "清除最近 24 小时",
+    "clearAll": "清除所有历史记录",
+    "clearAllConfirm": "再次点击以确认"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -3000,7 +3068,8 @@ export const zhCN: TranslationKeys = {
     "itemDeleted": "项已删除",
     "itemPinned": "项已固定",
     "itemUnpinned": "项已取消固定",
-    "settingsSaved": "设置已保存"
+    "settingsSaved": "设置已保存",
+    "shortcutUpdated": "全局快捷键已设置为 {shortcut}"
   },
   "footer": {
     "communityAndSupport": "社区和支持",
@@ -3010,13 +3079,13 @@ export const zhCN: TranslationKeys = {
     "applicationGroup": "应用",
     "quitTitle": "退出 Edge-Drop",
     "quitDesc": "关闭应用并停止后台进程",
-    "supportPromo": "Edge-Drop 完全免费且开源。如果它能帮助提升您的日常工作效率，欢迎支持开发，让它变得更好！",
-    "supportOnKofi": "在 Ko-fi 上支持",
     "starOnGithub": "在 GitHub 上加星",
     "githubPromo": "如果您喜欢 Edge-Drop，请在 GitHub 上为项目加星！",
-    "version": "版本"
+    "version": "版本",
+    "supportPromo": "Edge-Drop 完全免费且开源。如果它能帮助提升您的日常工作效率，欢迎支持开发，让它变得更好！",
+    "supportOnKofi": "在 Ko-fi 上支持"
   }
-}
+};
 
 export const zhTW: TranslationKeys = {
   "filters": {
@@ -3053,8 +3122,6 @@ export const zhTW: TranslationKeys = {
     "fullscreenProtectionDesc": "玩遊戲或觀看全螢幕影片時自動暫停邊緣懸停",
     "clearUnpinnedTitle": "重啟時清除未固定項",
     "clearUnpinnedDesc": "應用程式每次重啟時清除未固定的項目",
-    "movePastedToTopTitle": "將貼上的項目移至頂端",
-    "movePastedToTopDesc": "每次貼上時，將未釘選的項目重新排列到「最近使用」的頂端",
     "soundEffectsTitle": "音效",
     "soundEffectsDesc": "為開關、滑桿和按鈕點擊播放觸感音訊回饋",
     "autoUpdatesTitle": "自動更新",
@@ -3080,7 +3147,15 @@ export const zhTW: TranslationKeys = {
     "autoDeleteDesc": "自動清除已複製的項目（保留固定項）",
     "never": "從不",
     "capacityTitle": "歷史記錄容量",
-    "capacityDesc": "歷史記錄中儲存的最大未固定項目數量"
+    "capacityDesc": "歷史記錄中儲存的最大未固定項目數量",
+    "movePastedToTopTitle": "將貼上的項目移至頂端",
+    "movePastedToTopDesc": "每次貼上時，將未釘選的項目重新排列到「最近使用」的頂端",
+    "toggleHotkeyTitle": "全域快速鍵",
+    "toggleHotkeyDesc": "設定自訂按鍵組合，從任何位置開啟或關閉側邊欄",
+    "hotkeyEdit": "編輯",
+    "hotkeyRecording": "請按下按鍵組合...",
+    "hotkeyCancel": "取消",
+    "hotkeyReset": "重設為預設值（{shortcut}）"
   },
   "position": {
     "edgePlacementTitle": "邊緣位置",
@@ -3156,7 +3231,12 @@ export const zhTW: TranslationKeys = {
     "moreImages": "+{count} 張更多圖片",
     "moreFiles": "+{count} 個更多檔案",
     "singleFile": "1 個檔案",
-    "scrollToTop": "捲動到頂部"
+    "scrollToTop": "捲動到頂部",
+    "clearLast1h": "清除最近 1 小時",
+    "clearLast6h": "清除最近 6 小時",
+    "clearLast24h": "清除最近 24 小時",
+    "clearAll": "清除所有歷史記錄",
+    "clearAllConfirm": "再次點擊以確認"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -3253,7 +3333,8 @@ export const zhTW: TranslationKeys = {
     "itemDeleted": "項目已刪除",
     "itemPinned": "項目已固定",
     "itemUnpinned": "項目已取消固定",
-    "settingsSaved": "設定已儲存"
+    "settingsSaved": "設定已儲存",
+    "shortcutUpdated": "全域快速鍵已設為 {shortcut}"
   },
   "footer": {
     "communityAndSupport": "社群和支援",
@@ -3263,13 +3344,13 @@ export const zhTW: TranslationKeys = {
     "applicationGroup": "應用程式",
     "quitTitle": "結束 Edge-Drop",
     "quitDesc": "關閉應用程式並停止背景處理程序",
-    "supportPromo": "Edge-Drop 完全免費且開源。如果它能幫助提升您的日常工作效率，歡迎支持開發，讓它變得更好！",
-    "supportOnKofi": "在 Ko-fi 上支持",
     "starOnGithub": "在 GitHub 上加星",
     "githubPromo": "如果您喜歡 Edge-Drop，請在 GitHub 上為專案加星！",
-    "version": "版本"
+    "version": "版本",
+    "supportPromo": "Edge-Drop 完全免費且開源。如果它能幫助提升您的日常工作效率，歡迎支持開發，讓它變得更好！",
+    "supportOnKofi": "在 Ko-fi 上支持"
   }
-}
+};
 
 export const hi: TranslationKeys = {
   "filters": {
@@ -3306,8 +3387,6 @@ export const hi: TranslationKeys = {
     "fullscreenProtectionDesc": "गेम खेलते समय या फुलस्क्रीन वीडियो देखते समय स्वचालित रूप से एज होवर रोकें",
     "clearUnpinnedTitle": "रीस्टार्ट पर अनपिन किए गए साफ़ करें",
     "clearUnpinnedDesc": "ऐप रीस्टार्ट होने पर अनपिन किए गए आइटम मिटाएँ",
-    "movePastedToTopTitle": "पेस्ट किए गए आइटम को सबसे ऊपर ले जाएँ",
-    "movePastedToTopDesc": "जब भी आप किसी आइटम को पेस्ट करें, तो अनपिन किए गए आइटम को हाल ही में उपयोग किए गए आइटम की सूची में सबसे ऊपर ले जाएँ",
     "soundEffectsTitle": "ध्वनि प्रभाव",
     "soundEffectsDesc": "टॉगल, स्लाइडर और बटन क्लिक के लिए स्पर्श ऑडियो फ़ीडबैक चलाएँ",
     "autoUpdatesTitle": "स्वचालित अपडेट",
@@ -3333,7 +3412,15 @@ export const hi: TranslationKeys = {
     "autoDeleteDesc": "कॉपी किए गए आइटम स्वचालित रूप से हटाएँ (पिन किए गए सुरक्षित रखें)",
     "never": "कभी नहीं",
     "capacityTitle": "इतिहास क्षमता",
-    "capacityDesc": "इतिहास में संग्रहीत अधिकतम अनपिन किए गए आइटम"
+    "capacityDesc": "इतिहास में संग्रहीत अधिकतम अनपिन किए गए आइटम",
+    "movePastedToTopTitle": "पेस्ट किए गए आइटम को सबसे ऊपर ले जाएँ",
+    "movePastedToTopDesc": "जब भी आप किसी आइटम को पेस्ट करें, तो अनपिन किए गए आइटम को हाल ही में उपयोग किए गए आइटम की सूची में सबसे ऊपर ले जाएँ",
+    "toggleHotkeyTitle": "ग्लोबल शॉर्टकट",
+    "toggleHotkeyDesc": "कहीं से भी शेल्फ़ खोलने या बंद करने के लिए कस्टम कुंजी संयोजन सेट करें",
+    "hotkeyEdit": "संपादित करें",
+    "hotkeyRecording": "कुंजी संयोजन दबाएँ...",
+    "hotkeyCancel": "रद्द करें",
+    "hotkeyReset": "डिफ़ॉल्ट पर रीसेट करें ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "किनारा प्लेसमेंट",
@@ -3384,12 +3471,6 @@ export const hi: TranslationKeys = {
     "sparkleStyle": "स्पार्कल"
   },
   "item": {
-    "clearLast1h": "पिछले 1 घंटे को साफ़ करें",
-    "clearLast6h": "पिछले 6 घंटे साफ़ करें",
-    "clearLast24h": "पिछले 24 घंटे साफ़ करें",
-    "clearAll": "पूरा इतिहास साफ़ करें",
-    "clearAllConfirm": "पुष्टि करने के लिए फिर से टैप करें",
-
     "copy": "कॉपी",
     "pinned": "पिन किया गया",
     "pin": "पिन करें",
@@ -3415,7 +3496,12 @@ export const hi: TranslationKeys = {
     "moreImages": "+{count} और छवियाँ",
     "moreFiles": "+{count} और फ़ाइलें",
     "singleFile": "1 फ़ाइल",
-    "scrollToTop": "शीर्ष पर स्क्रॉल करें"
+    "scrollToTop": "शीर्ष पर स्क्रॉल करें",
+    "clearLast1h": "पिछले 1 घंटे को साफ़ करें",
+    "clearLast6h": "पिछले 6 घंटे साफ़ करें",
+    "clearLast24h": "पिछले 24 घंटे साफ़ करें",
+    "clearAll": "पूरा इतिहास साफ़ करें",
+    "clearAllConfirm": "पुष्टि करने के लिए फिर से टैप करें"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -3512,7 +3598,8 @@ export const hi: TranslationKeys = {
     "itemDeleted": "आइटम हटाया गया",
     "itemPinned": "आइटम पिन किया गया",
     "itemUnpinned": "आइटम अनपिन किया गया",
-    "settingsSaved": "सेटिंग्स सहेजी गईं"
+    "settingsSaved": "सेटिंग्स सहेजी गईं",
+    "shortcutUpdated": "ग्लोबल शॉर्टकट {shortcut} पर सेट किया गया"
   },
   "footer": {
     "communityAndSupport": "समुदाय और सहायता",
@@ -3522,13 +3609,13 @@ export const hi: TranslationKeys = {
     "applicationGroup": "एप्लिकेशन",
     "quitTitle": "Edge-Drop से बाहर",
     "quitDesc": "एप्लिकेशन बंद करें और बैकग्राउंड प्रक्रिया रोकें",
-    "supportPromo": "Edge-Drop 100% मुफ़्त और ओपन-सोर्स है। यदि यह आपके रोज़मर्रा के काम को आसान बनाता है, तो इसे और बेहतर बनाने के लिए विकास का समर्थन करने पर विचार करें!",
-    "supportOnKofi": "Ko-fi पर समर्थन करें",
     "starOnGithub": "GitHub पर स्टार दें",
     "githubPromo": "यदि आपको Edge-Drop पसंद आता है, तो कृपया GitHub पर प्रोजेक्ट को स्टार देने पर विचार करें!",
-    "version": "संस्करण"
+    "version": "संस्करण",
+    "supportPromo": "Edge-Drop 100% मुफ़्त और ओपन-सोर्स है। यदि यह आपके रोज़मर्रा के काम को आसान बनाता है, तो इसे और बेहतर बनाने के लिए विकास का समर्थन करने पर विचार करें!",
+    "supportOnKofi": "Ko-fi पर समर्थन करें"
   }
-}
+};
 
 export const ar: TranslationKeys = {
   "filters": {
@@ -3565,8 +3652,6 @@ export const ar: TranslationKeys = {
     "fullscreenProtectionDesc": "إيقاف تحويم الحافة تلقائياً أثناء الألعاب أو مقاطع الفيديو بملء الشاشة",
     "clearUnpinnedTitle": "مسح غير المثبّت عند إعادة التشغيل",
     "clearUnpinnedDesc": "حذف العناصر غير المثبّتة عند كل إعادة تشغيل للتطبيق",
-    "movePastedToTopTitle": "نقل العناصر الملصقة إلى الأعلى",
-    "movePastedToTopDesc": "إعادة ترتيب العناصر غير المثبتة إلى أعلى العناصر الأخيرة كلما قمت بلصقها",
     "soundEffectsTitle": "المؤثرات الصوتية",
     "soundEffectsDesc": "تشغيل ردود صوتية لمسية للمفاتيح والمنزلقات ونقرات الأزرار",
     "autoUpdatesTitle": "التحديثات التلقائية",
@@ -3592,7 +3677,15 @@ export const ar: TranslationKeys = {
     "autoDeleteDesc": "حذف العناصر المنسوخة تلقائياً (يحافظ على المثبّتة)",
     "never": "أبداً",
     "capacityTitle": "سعة السجل",
-    "capacityDesc": "الحد الأقصى للعناصر غير المثبّتة المخزّنة في السجل"
+    "capacityDesc": "الحد الأقصى للعناصر غير المثبّتة المخزّنة في السجل",
+    "movePastedToTopTitle": "نقل العناصر الملصقة إلى الأعلى",
+    "movePastedToTopDesc": "إعادة ترتيب العناصر غير المثبتة إلى أعلى العناصر الأخيرة كلما قمت بلصقها",
+    "toggleHotkeyTitle": "اختصار عام",
+    "toggleHotkeyDesc": "عيّن مجموعة مفاتيح مخصصة لفتح الرف أو إغلاقه من أي مكان",
+    "hotkeyEdit": "تعديل",
+    "hotkeyRecording": "اضغط مجموعة المفاتيح...",
+    "hotkeyCancel": "إلغاء",
+    "hotkeyReset": "إعادة التعيين إلى الافتراضي ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "موضع الحافة",
@@ -3643,12 +3736,6 @@ export const ar: TranslationKeys = {
     "sparkleStyle": "وميض"
   },
   "item": {
-    "clearLast1h": "مسح الساعة الأخيرة",
-    "clearLast6h": "مسح آخر 6 ساعات",
-    "clearLast24h": "مسح آخر 24 ساعة",
-    "clearAll": "مسح كل السجل",
-    "clearAllConfirm": "اضغط مرة أخرى للتأكيد",
-
     "copy": "نسخ",
     "pinned": "مثبّت",
     "pin": "تثبيت",
@@ -3674,7 +3761,12 @@ export const ar: TranslationKeys = {
     "moreImages": "+{count} صور أخرى",
     "moreFiles": "+{count} ملفات أخرى",
     "singleFile": "ملف واحد",
-    "scrollToTop": "التمرير للأعلى"
+    "scrollToTop": "التمرير للأعلى",
+    "clearLast1h": "مسح الساعة الأخيرة",
+    "clearLast6h": "مسح آخر 6 ساعات",
+    "clearLast24h": "مسح آخر 24 ساعة",
+    "clearAll": "مسح كل السجل",
+    "clearAllConfirm": "اضغط مرة أخرى للتأكيد"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -3771,7 +3863,8 @@ export const ar: TranslationKeys = {
     "itemDeleted": "حُذف العنصر",
     "itemPinned": "ثُبّت العنصر",
     "itemUnpinned": "أُلغي تثبيت العنصر",
-    "settingsSaved": "حُفظت الإعدادات"
+    "settingsSaved": "حُفظت الإعدادات",
+    "shortcutUpdated": "تم تعيين الاختصار العام إلى {shortcut}"
   },
   "footer": {
     "communityAndSupport": "المجتمع والدعم",
@@ -3781,13 +3874,13 @@ export const ar: TranslationKeys = {
     "applicationGroup": "التطبيق",
     "quitTitle": "إنهاء Edge-Drop",
     "quitDesc": "إغلاق التطبيق وإيقاف عملية الخلفية",
-    "supportPromo": "Edge-Drop مجاني ومفتوح المصدر بالكامل. إذا كان يساعدك في سير عملك اليومي، ففكر في دعم تطويره ليصبح أفضل!",
-    "supportOnKofi": "ادعم عبر Ko-fi",
     "starOnGithub": "نجمة على GitHub",
     "githubPromo": "إذا أحببت Edge-Drop، يُرجى النظر في تمييز المشروع بنجمة على GitHub!",
-    "version": "الإصدار"
+    "version": "الإصدار",
+    "supportPromo": "Edge-Drop مجاني ومفتوح المصدر بالكامل. إذا كان يساعدك في سير عملك اليومي، ففكر في دعم تطويره ليصبح أفضل!",
+    "supportOnKofi": "ادعم عبر Ko-fi"
   }
-}
+};
 
 export const fa: TranslationKeys = {
   "filters": {
@@ -3824,8 +3917,6 @@ export const fa: TranslationKeys = {
     "fullscreenProtectionDesc": "موقع بازی یا دیدن ویدیوی تمام‌صفحه، باز شدن از لبه خودکار متوقف بشه",
     "clearUnpinnedTitle": "پاک کردن سنجاق‌نشده‌ها بعد از اجرای دوباره",
     "clearUnpinnedDesc": "هر بار برنامه دوباره اجرا شد، آیتم‌های سنجاق‌نشده پاک بشن",
-    "movePastedToTopTitle": "انتقال موارد جایگذاریشده به بالا",
-    "movePastedToTopDesc": "هر بار که موارد را جایگذاری میکنید، موارد سنجاقنشده را به بالای موارد اخیر منتقل میکند",
     "soundEffectsTitle": "صداهای برنامه",
     "soundEffectsDesc": "برای کلیدها، اسلایدرها و دکمه‌ها صدای بازخورد پخش بشه",
     "autoUpdatesTitle": "آپدیت خودکار",
@@ -3851,7 +3942,15 @@ export const fa: TranslationKeys = {
     "autoDeleteDesc": "آیتم‌های کپی‌شده خودکار پاک بشن (سنجاق‌شده‌ها می‌مونن)",
     "never": "هیچ‌وقت",
     "capacityTitle": "ظرفیت تاریخچه",
-    "capacityDesc": "بیشترین تعداد آیتم سنجاق‌نشده‌ای که توی تاریخچه نگه داشته می‌شه"
+    "capacityDesc": "بیشترین تعداد آیتم سنجاق‌نشده‌ای که توی تاریخچه نگه داشته می‌شه",
+    "movePastedToTopTitle": "انتقال موارد جایگذاریشده به بالا",
+    "movePastedToTopDesc": "هر بار که موارد را جایگذاری میکنید، موارد سنجاقنشده را به بالای موارد اخیر منتقل میکند",
+    "toggleHotkeyTitle": "میانبر سراسری",
+    "toggleHotkeyDesc": "یک ترکیب کلید سفارشی برای باز یا بسته کردن شلف از هرجا تنظیم کنید",
+    "hotkeyEdit": "ویرایش",
+    "hotkeyRecording": "ترکیب کلید را فشار دهید...",
+    "hotkeyCancel": "لغو",
+    "hotkeyReset": "بازنشانی به پیشفرض ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "لبه برنامه",
@@ -3902,12 +4001,6 @@ export const fa: TranslationKeys = {
     "sparkleStyle": "درخشش"
   },
   "item": {
-    "clearLast1h": "پاک کردن یک ساعت گذشته",
-    "clearLast6h": "پاک کردن ۶ ساعت گذشته",
-    "clearLast24h": "پاک کردن ۲۴ ساعت گذشته",
-    "clearAll": "پاک کردن کل تاریخچه",
-    "clearAllConfirm": "برای تأیید دوباره ضربه بزنید",
-
     "copy": "کپی",
     "pinned": "سنجاق‌شده‌ها",
     "pin": "سنجاق کن",
@@ -3933,7 +4026,12 @@ export const fa: TranslationKeys = {
     "moreImages": "+{count} عکس دیگه",
     "moreFiles": "+{count} فایل دیگه",
     "singleFile": "۱ فایل",
-    "scrollToTop": "برو بالا"
+    "scrollToTop": "برو بالا",
+    "clearLast1h": "پاک کردن یک ساعت گذشته",
+    "clearLast6h": "پاک کردن ۶ ساعت گذشته",
+    "clearLast24h": "پاک کردن ۲۴ ساعت گذشته",
+    "clearAll": "پاک کردن کل تاریخچه",
+    "clearAllConfirm": "برای تأیید دوباره ضربه بزنید"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -4030,7 +4128,8 @@ export const fa: TranslationKeys = {
     "itemDeleted": "آیتم پاک شد",
     "itemPinned": "آیتم سنجاق شد",
     "itemUnpinned": "سنجاق آیتم برداشته شد",
-    "settingsSaved": "تنظیمات ذخیره شد"
+    "settingsSaved": "تنظیمات ذخیره شد",
+    "shortcutUpdated": "میانبر سراسری روی {shortcut} تنظیم شد"
   },
   "footer": {
     "communityAndSupport": "ارتباط و پشتیبانی",
@@ -4040,13 +4139,13 @@ export const fa: TranslationKeys = {
     "applicationGroup": "برنامه",
     "quitTitle": "بستن Edge-Drop",
     "quitDesc": "برنامه رو کامل ببند و پردازش پس‌زمینه رو متوقف کن",
-    "supportPromo": "Edge-Drop کاملاً رایگان و متن‌بازه. اگه توی کارهای روزمره به دردت می‌خوره، با حمایت از پروژه کمک کن بهترش کنیم!",
-    "supportOnKofi": "حمایت از طریق Ko-fi / UPI",
     "starOnGithub": "توی GitHub ستاره بده",
     "githubPromo": "Edge-Drop رو دوست داری؟ با یه ستاره توی GitHub حمایتش کن!",
-    "version": "نسخه"
+    "version": "نسخه",
+    "supportPromo": "Edge-Drop کاملاً رایگان و متن‌بازه. اگه توی کارهای روزمره به دردت می‌خوره، با حمایت از پروژه کمک کن بهترش کنیم!",
+    "supportOnKofi": "حمایت از طریق Ko-fi / UPI"
   }
-}
+};
 
 export const bn: TranslationKeys = {
   "filters": {
@@ -4083,8 +4182,6 @@ export const bn: TranslationKeys = {
     "fullscreenProtectionDesc": "গেম খেলা বা ফুলস্ক্রিন ভিডিও দেখার সময় স্বয়ংক্রিয়ভাবে এজ হোভার বিরতি দিন",
     "clearUnpinnedTitle": "পুনরায় চালু হলে আনপিন করা মুছুন",
     "clearUnpinnedDesc": "অ্যাপ পুনরায় চালু হলে আনপিন করা আইটেমগুলি মুছে ফেলুন",
-    "movePastedToTopTitle": "পেস্ট করা আইটেমগুলো উপরে সরান",
-    "movePastedToTopDesc": "আপনি যখনই কোনো আইটেম পেস্ট করবেন, তখন আনপিন করা আইটেমগুলোকে সাম্প্রতিক তালিকার উপরে পুনর্বিন্যাস করুন",
     "soundEffectsTitle": "সাউন্ড ইফেক্ট",
     "soundEffectsDesc": "টগল, স্লাইডার এবং বোতাম ক্লিকের জন্য স্পর্শ অডিও প্রতিক্রিয়া চালান",
     "autoUpdatesTitle": "স্বয়ংক্রিয় আপডেট",
@@ -4110,7 +4207,15 @@ export const bn: TranslationKeys = {
     "autoDeleteDesc": "কপি করা আইটেম স্বয়ংক্রিয়ভাবে মুছে ফেলুন (পিন করা সংরক্ষণ)",
     "never": "কখনও না",
     "capacityTitle": "ইতিহাস ধারণক্ষমতা",
-    "capacityDesc": "ইতিহাসে সংরক্ষিত সর্বোচ্চ আনপিন করা আইটেম"
+    "capacityDesc": "ইতিহাসে সংরক্ষিত সর্বোচ্চ আনপিন করা আইটেম",
+    "movePastedToTopTitle": "পেস্ট করা আইটেমগুলো উপরে সরান",
+    "movePastedToTopDesc": "আপনি যখনই কোনো আইটেম পেস্ট করবেন, তখন আনপিন করা আইটেমগুলোকে সাম্প্রতিক তালিকার উপরে পুনর্বিন্যাস করুন",
+    "toggleHotkeyTitle": "গ্লোবাল শর্টকাট",
+    "toggleHotkeyDesc": "যেকোনো জায়গা থেকে শেলফ খোলা বা বন্ধ করতে একটি কাস্টম কী সমন্বয় সেট করুন",
+    "hotkeyEdit": "সম্পাদনা",
+    "hotkeyRecording": "কী সমন্বয় চাপুন...",
+    "hotkeyCancel": "বাতিল",
+    "hotkeyReset": "ডিফল্টে রিসেট করুন ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "প্রান্ত স্থাপনা",
@@ -4161,12 +4266,6 @@ export const bn: TranslationKeys = {
     "sparkleStyle": "স্পার্কল"
   },
   "item": {
-    "clearLast1h": "গত ১ ঘণ্টা মুছুন",
-    "clearLast6h": "গত ৬ ঘণ্টা মুছুন",
-    "clearLast24h": "গত ২৪ ঘণ্টা মুছুন",
-    "clearAll": "সব ইতিহাস মুছুন",
-    "clearAllConfirm": "নিশ্চিত করতে আবার ট্যাপ করুন",
-
     "copy": "কপি",
     "pinned": "পিন করা",
     "pin": "পিন করুন",
@@ -4192,7 +4291,12 @@ export const bn: TranslationKeys = {
     "moreImages": "+{count} টি অতিরিক্ত ছবি",
     "moreFiles": "+{count} টি অতিরিক্ত ফাইল",
     "singleFile": "১টি ফাইল",
-    "scrollToTop": "শীর্ষে স্ক্রোল করুন"
+    "scrollToTop": "শীর্ষে স্ক্রোল করুন",
+    "clearLast1h": "গত ১ ঘণ্টা মুছুন",
+    "clearLast6h": "গত ৬ ঘণ্টা মুছুন",
+    "clearLast24h": "গত ২৪ ঘণ্টা মুছুন",
+    "clearAll": "সব ইতিহাস মুছুন",
+    "clearAllConfirm": "নিশ্চিত করতে আবার ট্যাপ করুন"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -4289,7 +4393,8 @@ export const bn: TranslationKeys = {
     "itemDeleted": "আইটেম মুছে ফেলা হয়েছে",
     "itemPinned": "আইটেম পিন করা হয়েছে",
     "itemUnpinned": "আইটেম আনপিন করা হয়েছে",
-    "settingsSaved": "সেটিংস সংরক্ষিত হয়েছে"
+    "settingsSaved": "সেটিংস সংরক্ষিত হয়েছে",
+    "shortcutUpdated": "গ্লোবাল শর্টকাট {shortcut}-এ সেট করা হয়েছে"
   },
   "footer": {
     "communityAndSupport": "কমিউনিটি ও সহায়তা",
@@ -4299,13 +4404,13 @@ export const bn: TranslationKeys = {
     "applicationGroup": "অ্যাপ্লিকেশন",
     "quitTitle": "Edge-Drop থেকে প্রস্থান",
     "quitDesc": "অ্যাপ্লিকেশন বন্ধ করুন এবং ব্যাকগ্রাউন্ড প্রক্রিয়া বন্ধ করুন",
-    "supportPromo": "Edge-Drop ১০০% বিনামূল্যে এবং ওপেন-সোর্স। এটি যদি আপনার দৈনন্দিন কাজকে সহজ করে, তাহলে এটিকে আরও উন্নত করতে উন্নয়নে সহায়তা করার কথা বিবেচনা করুন!",
-    "supportOnKofi": "Ko-fi-এ সহায়তা করুন",
     "starOnGithub": "GitHub-এ তারা দিন",
     "githubPromo": "আপনি যদি Edge-Drop পছন্দ করেন, তবে GitHub-এ প্রকল্পে তারা দেওয়ার কথা বিবেচনা করুন!",
-    "version": "সংস্করণ"
+    "version": "সংস্করণ",
+    "supportPromo": "Edge-Drop ১০০% বিনামূল্যে এবং ওপেন-সোর্স। এটি যদি আপনার দৈনন্দিন কাজকে সহজ করে, তাহলে এটিকে আরও উন্নত করতে উন্নয়নে সহায়তা করার কথা বিবেচনা করুন!",
+    "supportOnKofi": "Ko-fi-এ সহায়তা করুন"
   }
-}
+};
 
 export const tr: TranslationKeys = {
   "filters": {
@@ -4342,8 +4447,6 @@ export const tr: TranslationKeys = {
     "fullscreenProtectionDesc": "Oynarken veya tam ekran video izlerken kenar üzerinde gezinmeyi otomatik durdur",
     "clearUnpinnedTitle": "Yeniden başlatmada sabitlenmemişleri temizle",
     "clearUnpinnedDesc": "Uygulama her yeniden başladığında sabitlenmemiş öğeleri sil",
-    "movePastedToTopTitle": "Yapıştırılan öğeleri en üste taşı",
-    "movePastedToTopDesc": "Her yapıştırdığınızda sabitlenmemiş öğeleri Son Kullanılanlar listesinin en üstüne yeniden sıralar",
     "soundEffectsTitle": "Ses Efektleri",
     "soundEffectsDesc": "Anahtarlar, kaydırıcılar ve düğme tıklamaları için dokunsal ses geri bildirimi çal",
     "autoUpdatesTitle": "Otomatik güncellemeler",
@@ -4369,7 +4472,15 @@ export const tr: TranslationKeys = {
     "autoDeleteDesc": "Kopyalanan öğeleri otomatik temizle (Sabitlenenleri korur)",
     "never": "Asla",
     "capacityTitle": "Geçmiş kapasitesi",
-    "capacityDesc": "Geçmişte saklanan en fazla sabitlenmemiş öğe sayısı"
+    "capacityDesc": "Geçmişte saklanan en fazla sabitlenmemiş öğe sayısı",
+    "movePastedToTopTitle": "Yapıştırılan öğeleri en üste taşı",
+    "movePastedToTopDesc": "Her yapıştırdığınızda sabitlenmemiş öğeleri Son Kullanılanlar listesinin en üstüne yeniden sıralar",
+    "toggleHotkeyTitle": "Genel Kısayol",
+    "toggleHotkeyDesc": "Rafı her yerden açmak veya kapatmak için özel bir tuş kombinasyonu belirleyin",
+    "hotkeyEdit": "Düzenle",
+    "hotkeyRecording": "Tuş kombinasyonuna basın...",
+    "hotkeyCancel": "İptal",
+    "hotkeyReset": "Varsayılana sıfırla ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Kenar Yerleşimi",
@@ -4420,12 +4531,6 @@ export const tr: TranslationKeys = {
     "sparkleStyle": "Kıvılcım"
   },
   "item": {
-    "clearLast1h": "Son 1 saati temizle",
-    "clearLast6h": "Son 6 saati temizle",
-    "clearLast24h": "Son 24 saati temizle",
-    "clearAll": "Tüm geçmişi temizle",
-    "clearAllConfirm": "Onaylamak için tekrar dokunun",
-
     "copy": "Kopyala",
     "pinned": "SABİTLENDİ",
     "pin": "Sabitle",
@@ -4451,7 +4556,12 @@ export const tr: TranslationKeys = {
     "moreImages": "+{count} görsel daha",
     "moreFiles": "+{count} dosya daha",
     "singleFile": "1 dosya",
-    "scrollToTop": "Başa kaydır"
+    "scrollToTop": "Başa kaydır",
+    "clearLast1h": "Son 1 saati temizle",
+    "clearLast6h": "Son 6 saati temizle",
+    "clearLast24h": "Son 24 saati temizle",
+    "clearAll": "Tüm geçmişi temizle",
+    "clearAllConfirm": "Onaylamak için tekrar dokunun"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -4548,7 +4658,8 @@ export const tr: TranslationKeys = {
     "itemDeleted": "Öğe silindi",
     "itemPinned": "Öğe sabitlendi",
     "itemUnpinned": "Öğenin sabitlemesi kaldırıldı",
-    "settingsSaved": "Ayarlar kaydedildi"
+    "settingsSaved": "Ayarlar kaydedildi",
+    "shortcutUpdated": "Genel kısayol {shortcut} olarak ayarlandı"
   },
   "footer": {
     "communityAndSupport": "Topluluk ve Destek",
@@ -4558,13 +4669,13 @@ export const tr: TranslationKeys = {
     "applicationGroup": "Uygulama",
     "quitTitle": "Edge-Drop'tan Çık",
     "quitDesc": "Uygulamayı kapat ve arka plan işlemini durdur",
-    "supportPromo": "Edge-Drop %100 ücretsiz ve açık kaynaklıdır. Günlük iş akışınıza yardımcı oluyorsa, daha da geliştirilmesine destek olmayı düşünebilirsiniz!",
-    "supportOnKofi": "Ko-fi üzerinden destek ol",
     "starOnGithub": "GitHub'da Yıldızla",
     "githubPromo": "Edge-Drop'u beğendiyseniz, lütfen GitHub'da projeye yıldız vermeyi düşünün!",
-    "version": "Sürüm"
+    "version": "Sürüm",
+    "supportPromo": "Edge-Drop %100 ücretsiz ve açık kaynaklıdır. Günlük iş akışınıza yardımcı oluyorsa, daha da geliştirilmesine destek olmayı düşünebilirsiniz!",
+    "supportOnKofi": "Ko-fi üzerinden destek ol"
   }
-}
+};
 
 export const vi: TranslationKeys = {
   "filters": {
@@ -4601,8 +4712,6 @@ export const vi: TranslationKeys = {
     "fullscreenProtectionDesc": "Tự động tạm dừng di chuột ở mép khi đang chơi game hoặc xem video toàn màn hình",
     "clearUnpinnedTitle": "Xóa mục chưa ghim khi khởi động lại",
     "clearUnpinnedDesc": "Xóa các mục chưa ghim mỗi khi ứng dụng khởi động lại",
-    "movePastedToTopTitle": "Đưa các mục đã dán lên đầu",
-    "movePastedToTopDesc": "Sắp xếp lại các mục chưa ghim lên đầu mục Gần đây mỗi khi bạn dán chúng",
     "soundEffectsTitle": "Hiệu ứng âm thanh",
     "soundEffectsDesc": "Phát phản hồi âm thanh xúc giác cho công tắc, thanh trượt và nhấp nút",
     "autoUpdatesTitle": "Tự động cập nhật",
@@ -4628,7 +4737,15 @@ export const vi: TranslationKeys = {
     "autoDeleteDesc": "Tự động thanh lọc các mục đã sao chép (giữ mục đã ghim)",
     "never": "Không bao giờ",
     "capacityTitle": "Dung lượng lịch sử",
-    "capacityDesc": "Số mục chưa ghim tối đa được lưu trong lịch sử"
+    "capacityDesc": "Số mục chưa ghim tối đa được lưu trong lịch sử",
+    "movePastedToTopTitle": "Đưa các mục đã dán lên đầu",
+    "movePastedToTopDesc": "Sắp xếp lại các mục chưa ghim lên đầu mục Gần đây mỗi khi bạn dán chúng",
+    "toggleHotkeyTitle": "Phím tắt toàn cục",
+    "toggleHotkeyDesc": "Đặt tổ hợp phím tùy chỉnh để mở hoặc đóng kệ từ bất kỳ đâu",
+    "hotkeyEdit": "Chỉnh sửa",
+    "hotkeyRecording": "Nhấn tổ hợp phím...",
+    "hotkeyCancel": "Hủy",
+    "hotkeyReset": "Đặt lại về mặc định ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Vị trí mép",
@@ -4679,12 +4796,6 @@ export const vi: TranslationKeys = {
     "sparkleStyle": "Lấp lánh"
   },
   "item": {
-    "clearLast1h": "Xóa 1 giờ qua",
-    "clearLast6h": "Xóa 6 giờ qua",
-    "clearLast24h": "Xóa 24 giờ qua",
-    "clearAll": "Xóa toàn bộ lịch sử",
-    "clearAllConfirm": "Nhấn lại để xác nhận",
-
     "copy": "Sao chép",
     "pinned": "ĐÃ GHIM",
     "pin": "Ghim",
@@ -4710,7 +4821,12 @@ export const vi: TranslationKeys = {
     "moreImages": "+{count} hình ảnh nữa",
     "moreFiles": "+{count} tệp nữa",
     "singleFile": "1 tệp",
-    "scrollToTop": "Cuộn lên đầu"
+    "scrollToTop": "Cuộn lên đầu",
+    "clearLast1h": "Xóa 1 giờ qua",
+    "clearLast6h": "Xóa 6 giờ qua",
+    "clearLast24h": "Xóa 24 giờ qua",
+    "clearAll": "Xóa toàn bộ lịch sử",
+    "clearAllConfirm": "Nhấn lại để xác nhận"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -4807,7 +4923,8 @@ export const vi: TranslationKeys = {
     "itemDeleted": "Đã xóa mục",
     "itemPinned": "Đã ghim mục",
     "itemUnpinned": "Đã bỏ ghim mục",
-    "settingsSaved": "Đã lưu cài đặt"
+    "settingsSaved": "Đã lưu cài đặt",
+    "shortcutUpdated": "Phím tắt toàn cục đã được đặt thành {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Cộng đồng & Hỗ trợ",
@@ -4817,13 +4934,13 @@ export const vi: TranslationKeys = {
     "applicationGroup": "Ứng dụng",
     "quitTitle": "Thoát Edge-Drop",
     "quitDesc": "Đóng ứng dụng và dừng quy trình nền",
-    "supportPromo": "Edge-Drop hoàn toàn miễn phí và mã nguồn mở. Nếu ứng dụng giúp ích cho công việc hằng ngày của bạn, hãy cân nhắc ủng hộ quá trình phát triển để ứng dụng ngày càng tốt hơn!",
-    "supportOnKofi": "Ủng hộ trên Ko-fi",
     "starOnGithub": "Đánh sao trên GitHub",
     "githubPromo": "Nếu bạn thích Edge-Drop, hãy cân nhắc đánh sao cho dự án trên GitHub!",
-    "version": "Phiên bản"
+    "version": "Phiên bản",
+    "supportPromo": "Edge-Drop hoàn toàn miễn phí và mã nguồn mở. Nếu ứng dụng giúp ích cho công việc hằng ngày của bạn, hãy cân nhắc ủng hộ quá trình phát triển để ứng dụng ngày càng tốt hơn!",
+    "supportOnKofi": "Ủng hộ trên Ko-fi"
   }
-}
+};
 
 export const pl: TranslationKeys = {
   "filters": {
@@ -4860,8 +4977,6 @@ export const pl: TranslationKeys = {
     "fullscreenProtectionDesc": "Automatycznie wstrzymuj najechanie na krawędź podczas grania lub oglądania filmów na pełnym ekranie",
     "clearUnpinnedTitle": "Wyczyść odpięte przy restarcie",
     "clearUnpinnedDesc": "Usuń odpięte elementy przy każdym restarcie aplikacji",
-    "movePastedToTopTitle": "Przenoś wklejone elementy na górę",
-    "movePastedToTopDesc": "Po każdym wklejeniu przenosi nieprzypięte elementy na początek listy Ostatnie",
     "soundEffectsTitle": "Efekty dźwiękowe",
     "soundEffectsDesc": "Odtwarzaj dotykowy sprzężenie dźwiękowe dla przełączników, suwaków i kliknięć przycisków",
     "autoUpdatesTitle": "Automatyczne aktualizacje",
@@ -4887,7 +5002,15 @@ export const pl: TranslationKeys = {
     "autoDeleteDesc": "Automatycznie usuwaj skopiowane elementy (zachowuje przypięte)",
     "never": "Nigdy",
     "capacityTitle": "Pojemność historii",
-    "capacityDesc": "Maksymalna liczba odpiętych elementów przechowywanych w historii"
+    "capacityDesc": "Maksymalna liczba odpiętych elementów przechowywanych w historii",
+    "movePastedToTopTitle": "Przenoś wklejone elementy na górę",
+    "movePastedToTopDesc": "Po każdym wklejeniu przenosi nieprzypięte elementy na początek listy Ostatnie",
+    "toggleHotkeyTitle": "Globalny skrót klawiszowy",
+    "toggleHotkeyDesc": "Ustaw własną kombinację klawiszy, aby otwierać lub zamykać półkę z dowolnego miejsca",
+    "hotkeyEdit": "Edytuj",
+    "hotkeyRecording": "Naciśnij kombinację klawiszy...",
+    "hotkeyCancel": "Anuluj",
+    "hotkeyReset": "Przywróć domyślny ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Położenie krawędzi",
@@ -4938,12 +5061,6 @@ export const pl: TranslationKeys = {
     "sparkleStyle": "Iskra"
   },
   "item": {
-    "clearLast1h": "Wyczyść ostatnią godzinę",
-    "clearLast6h": "Wyczyść ostatnie 6 godzin",
-    "clearLast24h": "Wyczyść ostatnie 24 godziny",
-    "clearAll": "Wyczyść całą historię",
-    "clearAllConfirm": "Dotknij ponownie, aby potwierdzić",
-
     "copy": "Kopiuj",
     "pinned": "PRZYPINIĘTE",
     "pin": "Przypnij",
@@ -4969,7 +5086,12 @@ export const pl: TranslationKeys = {
     "moreImages": "+{count} więcej obrazów",
     "moreFiles": "+{count} więcej plików",
     "singleFile": "1 plik",
-    "scrollToTop": "Przewiń na górę"
+    "scrollToTop": "Przewiń na górę",
+    "clearLast1h": "Wyczyść ostatnią godzinę",
+    "clearLast6h": "Wyczyść ostatnie 6 godzin",
+    "clearLast24h": "Wyczyść ostatnie 24 godziny",
+    "clearAll": "Wyczyść całą historię",
+    "clearAllConfirm": "Dotknij ponownie, aby potwierdzić"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -5066,7 +5188,8 @@ export const pl: TranslationKeys = {
     "itemDeleted": "Element usunięty",
     "itemPinned": "Element przypięty",
     "itemUnpinned": "Element odpięty",
-    "settingsSaved": "Ustawienia zapisane"
+    "settingsSaved": "Ustawienia zapisane",
+    "shortcutUpdated": "Globalny skrót ustawiono na {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Społeczność i wsparcie",
@@ -5076,13 +5199,13 @@ export const pl: TranslationKeys = {
     "applicationGroup": "Aplikacja",
     "quitTitle": "Zakończ Edge-Drop",
     "quitDesc": "Zamknij aplikację i zatrzymaj proces w tle",
-    "supportPromo": "Edge-Drop jest w 100% darmowy i otwartoźródłowy. Jeśli pomaga Ci w codziennej pracy, rozważ wsparcie jego rozwoju, aby był jeszcze lepszy!",
-    "supportOnKofi": "Wesprzyj na Ko-fi",
     "starOnGithub": "Daj gwiazdkę na GitHub",
     "githubPromo": "Jeśli lubisz Edge-Drop, rozważ dodanie gwiazdki projektowi na GitHub!",
-    "version": "Wersja"
+    "version": "Wersja",
+    "supportPromo": "Edge-Drop jest w 100% darmowy i otwartoźródłowy. Jeśli pomaga Ci w codziennej pracy, rozważ wsparcie jego rozwoju, aby był jeszcze lepszy!",
+    "supportOnKofi": "Wesprzyj na Ko-fi"
   }
-}
+};
 
 export const nl: TranslationKeys = {
   "filters": {
@@ -5119,8 +5242,6 @@ export const nl: TranslationKeys = {
     "fullscreenProtectionDesc": "Rand-hover automatisch pauzeren tijdens games of volledig scherm-video's",
     "clearUnpinnedTitle": "Vastgezette wissen bij herstart",
     "clearUnpinnedDesc": "Niet-vastgezette items wissen telkens wanneer de app herstart",
-    "movePastedToTopTitle": "Geplakte items naar boven verplaatsen",
-    "movePastedToTopDesc": "Zet niet-vastgemaakte items telkens wanneer je ze plakt bovenaan bij Recent",
     "soundEffectsTitle": "Geluidseffecten",
     "soundEffectsDesc": "Tactiele audiofeedback afspelen voor schakelaars, schuifregelaars en knopklikken",
     "autoUpdatesTitle": "Automatische updates",
@@ -5146,7 +5267,15 @@ export const nl: TranslationKeys = {
     "autoDeleteDesc": "Gekopieerde items automatisch wissen (behoudt vastgezette)",
     "never": "Nooit",
     "capacityTitle": "Geschiedeniscapaciteit",
-    "capacityDesc": "Maximum aantal niet-vastgezette items in geschiedenis"
+    "capacityDesc": "Maximum aantal niet-vastgezette items in geschiedenis",
+    "movePastedToTopTitle": "Geplakte items naar boven verplaatsen",
+    "movePastedToTopDesc": "Zet niet-vastgemaakte items telkens wanneer je ze plakt bovenaan bij Recent",
+    "toggleHotkeyTitle": "Globale sneltoets",
+    "toggleHotkeyDesc": "Stel een aangepaste toetscombinatie in om de plank overal te openen of te sluiten",
+    "hotkeyEdit": "Bewerken",
+    "hotkeyRecording": "Druk op de toetscombinatie...",
+    "hotkeyCancel": "Annuleren",
+    "hotkeyReset": "Terugzetten naar standaard ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Randplaatsing",
@@ -5197,12 +5326,6 @@ export const nl: TranslationKeys = {
     "sparkleStyle": "Sprankel"
   },
   "item": {
-    "clearLast1h": "Laatste uur wissen",
-    "clearLast6h": "Laatste 6 uur wissen",
-    "clearLast24h": "Laatste 24 uur wissen",
-    "clearAll": "Volledige geschiedenis wissen",
-    "clearAllConfirm": "Tik opnieuw om te bevestigen",
-
     "copy": "Kopiëren",
     "pinned": "VASTGEZET",
     "pin": "Vastzetten",
@@ -5228,7 +5351,12 @@ export const nl: TranslationKeys = {
     "moreImages": "+{count} afbeeldingen meer",
     "moreFiles": "+{count} bestanden meer",
     "singleFile": "1 bestand",
-    "scrollToTop": "Naar boven scrollen"
+    "scrollToTop": "Naar boven scrollen",
+    "clearLast1h": "Laatste uur wissen",
+    "clearLast6h": "Laatste 6 uur wissen",
+    "clearLast24h": "Laatste 24 uur wissen",
+    "clearAll": "Volledige geschiedenis wissen",
+    "clearAllConfirm": "Tik opnieuw om te bevestigen"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -5325,7 +5453,8 @@ export const nl: TranslationKeys = {
     "itemDeleted": "Item verwijderd",
     "itemPinned": "Item vastgezet",
     "itemUnpinned": "Item losgemaakt",
-    "settingsSaved": "Instellingen opgeslagen"
+    "settingsSaved": "Instellingen opgeslagen",
+    "shortcutUpdated": "Globale sneltoets ingesteld op {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Community en ondersteuning",
@@ -5335,13 +5464,13 @@ export const nl: TranslationKeys = {
     "applicationGroup": "Applicatie",
     "quitTitle": "Edge-Drop afsluiten",
     "quitDesc": "Applicatie sluiten en achtergrondproces stoppen",
-    "supportPromo": "Edge-Drop is 100% gratis en open source. Als het je dagelijkse workflow makkelijker maakt, overweeg dan de ontwikkeling te steunen zodat het nog beter wordt!",
-    "supportOnKofi": "Steun op Ko-fi",
     "starOnGithub": "Ster op GitHub",
     "githubPromo": "Als je Edge-Drop leuk vindt, overweeg dan om het project een ster te geven op GitHub!",
-    "version": "Versie"
+    "version": "Versie",
+    "supportPromo": "Edge-Drop is 100% gratis en open source. Als het je dagelijkse workflow makkelijker maakt, overweeg dan de ontwikkeling te steunen zodat het nog beter wordt!",
+    "supportOnKofi": "Steun op Ko-fi"
   }
-}
+};
 
 export const sv: TranslationKeys = {
   "filters": {
@@ -5378,8 +5507,6 @@ export const sv: TranslationKeys = {
     "fullscreenProtectionDesc": "Pausa automatiskt kantsvävning vid spel eller fullskärmsvideo",
     "clearUnpinnedTitle": "Rensa ofästa vid omstart",
     "clearUnpinnedDesc": "Ta bort ofästa objekt när appen startas om",
-    "movePastedToTopTitle": "Flytta inklistrade objekt till toppen",
-    "movePastedToTopDesc": "Flyttar om fästa objekt till toppen av Senaste varje gång du klistrar in dem",
     "soundEffectsTitle": "Ljudeffekter",
     "soundEffectsDesc": "Spela taktil ljudåterkoppling för växlare, skjutreglage och knapptryckningar",
     "autoUpdatesTitle": "Automatiska uppdateringar",
@@ -5405,7 +5532,15 @@ export const sv: TranslationKeys = {
     "autoDeleteDesc": "Rensa automatiskt kopierade objekt (bevarar fästa)",
     "never": "Aldrig",
     "capacityTitle": "Historikkapacitet",
-    "capacityDesc": "Maximalt antal ofästa objekt i historik"
+    "capacityDesc": "Maximalt antal ofästa objekt i historik",
+    "movePastedToTopTitle": "Flytta inklistrade objekt till toppen",
+    "movePastedToTopDesc": "Flyttar om fästa objekt till toppen av Senaste varje gång du klistrar in dem",
+    "toggleHotkeyTitle": "Global kortkommando",
+    "toggleHotkeyDesc": "Ange en egen tangentkombination för att öppna eller stänga hyllan var som helst",
+    "hotkeyEdit": "Redigera",
+    "hotkeyRecording": "Tryck på tangentkombinationen...",
+    "hotkeyCancel": "Avbryt",
+    "hotkeyReset": "Återställ till standard ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Kantplacering",
@@ -5456,12 +5591,6 @@ export const sv: TranslationKeys = {
     "sparkleStyle": "Gnista"
   },
   "item": {
-    "clearLast1h": "Rensa senaste timmen",
-    "clearLast6h": "Rensa senaste 6 timmarna",
-    "clearLast24h": "Rensa senaste 24 timmarna",
-    "clearAll": "Rensa all historik",
-    "clearAllConfirm": "Tryck igen för att bekräfta",
-
     "copy": "Kopiera",
     "pinned": "FÄST",
     "pin": "Fäst",
@@ -5487,7 +5616,12 @@ export const sv: TranslationKeys = {
     "moreImages": "+{count} fler bilder",
     "moreFiles": "+{count} fler filer",
     "singleFile": "1 fil",
-    "scrollToTop": "Scrolla till toppen"
+    "scrollToTop": "Scrolla till toppen",
+    "clearLast1h": "Rensa senaste timmen",
+    "clearLast6h": "Rensa senaste 6 timmarna",
+    "clearLast24h": "Rensa senaste 24 timmarna",
+    "clearAll": "Rensa all historik",
+    "clearAllConfirm": "Tryck igen för att bekräfta"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -5584,7 +5718,8 @@ export const sv: TranslationKeys = {
     "itemDeleted": "Objekt borttaget",
     "itemPinned": "Objekt fäst",
     "itemUnpinned": "Objekt lösgjort",
-    "settingsSaved": "Inställningar sparade"
+    "settingsSaved": "Inställningar sparade",
+    "shortcutUpdated": "Globalt kortkommando inställt på {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Community och support",
@@ -5594,13 +5729,13 @@ export const sv: TranslationKeys = {
     "applicationGroup": "Program",
     "quitTitle": "Avsluta Edge-Drop",
     "quitDesc": "Stäng program och stoppa bakgrundsprocess",
-    "supportPromo": "Edge-Drop är 100 % gratis och med öppen källkod. Om det hjälper dig i ditt dagliga arbete kan du överväga att stödja utvecklingen så att det blir ännu bättre!",
-    "supportOnKofi": "Stöd på Ko-fi",
     "starOnGithub": "Stjärnmärk på GitHub",
     "githubPromo": "Om du gillar Edge-Drop, överväg att stjärnmärka projektet på GitHub!",
-    "version": "Version"
+    "version": "Version",
+    "supportPromo": "Edge-Drop är 100 % gratis och med öppen källkod. Om det hjälper dig i ditt dagliga arbete kan du överväga att stödja utvecklingen så att det blir ännu bättre!",
+    "supportOnKofi": "Stöd på Ko-fi"
   }
-}
+};
 
 export const id: TranslationKeys = {
   "filters": {
@@ -5637,8 +5772,6 @@ export const id: TranslationKeys = {
     "fullscreenProtectionDesc": "Jeda hover tepi secara otomatis saat bermain game atau menonton video layar penuh",
     "clearUnpinnedTitle": "Bersihkan yang tidak disematkan saat mulai ulang",
     "clearUnpinnedDesc": "Hapus item tidak disematkan setiap kali aplikasi dimulai ulang",
-    "movePastedToTopTitle": "Pindahkan item yang ditempel ke atas",
-    "movePastedToTopDesc": "Mengurutkan ulang item yang tidak disematkan ke bagian atas Terbaru setiap kali Anda menempelkannya",
     "soundEffectsTitle": "Efek Suara",
     "soundEffectsDesc": "Putar umpan balik audio taktil untuk saklar, penggeser, dan klik tombol",
     "autoUpdatesTitle": "Pembaruan otomatis",
@@ -5664,7 +5797,15 @@ export const id: TranslationKeys = {
     "autoDeleteDesc": "Bersihkan item yang disalin secara otomatis (mempertahankan Disematkan)",
     "never": "Tidak pernah",
     "capacityTitle": "Kapasitas riwayat",
-    "capacityDesc": "Jumlah maksimum item tidak disematkan yang disimpan dalam riwayat"
+    "capacityDesc": "Jumlah maksimum item tidak disematkan yang disimpan dalam riwayat",
+    "movePastedToTopTitle": "Pindahkan item yang ditempel ke atas",
+    "movePastedToTopDesc": "Mengurutkan ulang item yang tidak disematkan ke bagian atas Terbaru setiap kali Anda menempelkannya",
+    "toggleHotkeyTitle": "Pintasan Global",
+    "toggleHotkeyDesc": "Atur kombinasi tombol khusus untuk membuka atau menutup shelf dari mana saja",
+    "hotkeyEdit": "Edit",
+    "hotkeyRecording": "Tekan kombinasi tombol...",
+    "hotkeyCancel": "Batal",
+    "hotkeyReset": "Atur ulang ke default ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Penempatan Tepi",
@@ -5715,12 +5856,6 @@ export const id: TranslationKeys = {
     "sparkleStyle": "Kilau"
   },
   "item": {
-    "clearLast1h": "Hapus 1 jam terakhir",
-    "clearLast6h": "Hapus 6 jam terakhir",
-    "clearLast24h": "Hapus 24 jam terakhir",
-    "clearAll": "Hapus semua riwayat",
-    "clearAllConfirm": "Ketuk lagi untuk mengonfirmasi",
-
     "copy": "Salin",
     "pinned": "DISEMATKAN",
     "pin": "Sematkan",
@@ -5746,7 +5881,12 @@ export const id: TranslationKeys = {
     "moreImages": "+{count} gambar lagi",
     "moreFiles": "+{count} berkas lagi",
     "singleFile": "1 berkas",
-    "scrollToTop": "Gulir ke atas"
+    "scrollToTop": "Gulir ke atas",
+    "clearLast1h": "Hapus 1 jam terakhir",
+    "clearLast6h": "Hapus 6 jam terakhir",
+    "clearLast24h": "Hapus 24 jam terakhir",
+    "clearAll": "Hapus semua riwayat",
+    "clearAllConfirm": "Ketuk lagi untuk mengonfirmasi"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -5843,7 +5983,8 @@ export const id: TranslationKeys = {
     "itemDeleted": "Item dihapus",
     "itemPinned": "Item disematkan",
     "itemUnpinned": "Sematan item dilepas",
-    "settingsSaved": "Pengaturan disimpan"
+    "settingsSaved": "Pengaturan disimpan",
+    "shortcutUpdated": "Pintasan global diatur ke {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Komunitas & Dukungan",
@@ -5853,13 +5994,13 @@ export const id: TranslationKeys = {
     "applicationGroup": "Aplikasi",
     "quitTitle": "Keluar dari Edge-Drop",
     "quitDesc": "Tutup aplikasi dan hentikan proses latar belakang",
-    "supportPromo": "Edge-Drop 100% gratis dan bersifat open-source. Jika aplikasi ini membantu alur kerja harian Anda, pertimbangkan untuk mendukung pengembangannya agar menjadi lebih baik lagi!",
-    "supportOnKofi": "Dukung di Ko-fi",
     "starOnGithub": "Beri bintang di GitHub",
     "githubPromo": "Jika Anda menyukai Edge-Drop, harap pertimbangkan untuk memberi bintang pada proyek di GitHub!",
-    "version": "Versi"
+    "version": "Versi",
+    "supportPromo": "Edge-Drop 100% gratis dan bersifat open-source. Jika aplikasi ini membantu alur kerja harian Anda, pertimbangkan untuk mendukung pengembangannya agar menjadi lebih baik lagi!",
+    "supportOnKofi": "Dukung di Ko-fi"
   }
-}
+};
 
 export const uk: TranslationKeys = {
   "filters": {
@@ -5896,8 +6037,6 @@ export const uk: TranslationKeys = {
     "fullscreenProtectionDesc": "Автоматично призупиняти наведення на край під час ігор або перегляду повноекранних відео",
     "clearUnpinnedTitle": "Очищувати неприкріплене при перезапуску",
     "clearUnpinnedDesc": "Видаляти неприкріплені елементи при кожному перезапуску додатку",
-    "movePastedToTopTitle": "Переміщувати вставлені елементи вгору",
-    "movePastedToTopDesc": "Після кожного вставлення переміщує незакріплені елементи на початок списку «Нещодавні»",
     "soundEffectsTitle": "Звукові ефекти",
     "soundEffectsDesc": "Відтворювати тактильний аудіовідгук для перемикачів, повзунків та натискань кнопок",
     "autoUpdatesTitle": "Автоматичні оновлення",
@@ -5923,7 +6062,15 @@ export const uk: TranslationKeys = {
     "autoDeleteDesc": "Автоматично очищати скопійовані елементи (зберігає прикріплені)",
     "never": "Ніколи",
     "capacityTitle": "Об'єм історії",
-    "capacityDesc": "Максимум неприкріплених елементів в історії"
+    "capacityDesc": "Максимум неприкріплених елементів в історії",
+    "movePastedToTopTitle": "Переміщувати вставлені елементи вгору",
+    "movePastedToTopDesc": "Після кожного вставлення переміщує незакріплені елементи на початок списку «Нещодавні»",
+    "toggleHotkeyTitle": "Глобальна комбінація клавіш",
+    "toggleHotkeyDesc": "Налаштуйте власну комбінацію клавіш, щоб відкривати або закривати панель з будь-якого місця",
+    "hotkeyEdit": "Змінити",
+    "hotkeyRecording": "Натисніть комбінацію клавіш...",
+    "hotkeyCancel": "Скасувати",
+    "hotkeyReset": "Скинути до стандартної ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Розміщення краю",
@@ -5974,12 +6121,6 @@ export const uk: TranslationKeys = {
     "sparkleStyle": "Іскра"
   },
   "item": {
-    "clearLast1h": "Очистити за останню годину",
-    "clearLast6h": "Очистити за останні 6 годин",
-    "clearLast24h": "Очистити за останні 24 години",
-    "clearAll": "Очистити всю історію",
-    "clearAllConfirm": "Натисніть ще раз для підтвердження",
-
     "copy": "Копіювати",
     "pinned": "ПРИКРІПЛЕНО",
     "pin": "Прикріпити",
@@ -6005,7 +6146,12 @@ export const uk: TranslationKeys = {
     "moreImages": "+{count} більше зображень",
     "moreFiles": "+{count} більше файлів",
     "singleFile": "1 файл",
-    "scrollToTop": "Прокрутити вгору"
+    "scrollToTop": "Прокрутити вгору",
+    "clearLast1h": "Очистити за останню годину",
+    "clearLast6h": "Очистити за останні 6 годин",
+    "clearLast24h": "Очистити за останні 24 години",
+    "clearAll": "Очистити всю історію",
+    "clearAllConfirm": "Натисніть ще раз для підтвердження"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -6102,7 +6248,8 @@ export const uk: TranslationKeys = {
     "itemDeleted": "Елемент видалено",
     "itemPinned": "Елемент прикріплено",
     "itemUnpinned": "Елемент відкріплено",
-    "settingsSaved": "Налаштування збережено"
+    "settingsSaved": "Налаштування збережено",
+    "shortcutUpdated": "Глобальну комбінацію клавіш встановлено: {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Спільнота та підтримка",
@@ -6112,13 +6259,13 @@ export const uk: TranslationKeys = {
     "applicationGroup": "Додаток",
     "quitTitle": "Вийти з Edge-Drop",
     "quitDesc": "Закрити додаток і зупинити фоновий процес",
-    "supportPromo": "Edge-Drop є повністю безкоштовним і відкритим. Якщо він допомагає вам у щоденній роботі, підтримайте його розвиток, щоб зробити його ще кращим!",
-    "supportOnKofi": "Підтримати на Ko-fi",
     "starOnGithub": "Поставити зірку на GitHub",
     "githubPromo": "Якщо вам подобається Edge-Drop, будь ласка, поставте зірку проєкту на GitHub!",
-    "version": "Версія"
+    "version": "Версія",
+    "supportPromo": "Edge-Drop є повністю безкоштовним і відкритим. Якщо він допомагає вам у щоденній роботі, підтримайте його розвиток, щоб зробити його ще кращим!",
+    "supportOnKofi": "Підтримати на Ko-fi"
   }
-}
+};
 
 export const el: TranslationKeys = {
   "filters": {
@@ -6155,8 +6302,6 @@ export const el: TranslationKeys = {
     "fullscreenProtectionDesc": "Αυτόματη παύση αιώρησης άκρης κατά τη διάρκεια παιχνιδιών ή βίντεο πλήρους οθόνης",
     "clearUnpinnedTitle": "Καθαρισμός μη καρφιτσωμένων κατά την επανεκκίνηση",
     "clearUnpinnedDesc": "Διαγραφή μη καρφιτσωμένων στοιχείων κάθε φορά που η εφαρμογή επανεκκινεί",
-    "movePastedToTopTitle": "Μετακίνηση επικολλημένων στοιχείων στην κορυφή",
-    "movePastedToTopDesc": "Αναδιατάσσει τα μη καρφιτσωμένα στοιχεία στην κορυφή των Πρόσφατων κάθε φορά που τα επικολλάτε",
     "soundEffectsTitle": "Ηχητικά εφέ",
     "soundEffectsDesc": "Αναπαραγωγή απτικής ηχητικής ανάδρασης για διακόπτες, ρυθμιστές και κλικ κουμπιών",
     "autoUpdatesTitle": "Αυτόματες ενημερώσεις",
@@ -6182,7 +6327,15 @@ export const el: TranslationKeys = {
     "autoDeleteDesc": "Αυτόματη εκκαθάριση αντιγραμμένων στοιχείων (διατηρεί τα Καρφιτσωμένα)",
     "never": "Ποτέ",
     "capacityTitle": "Χωρητικότητα ιστορικού",
-    "capacityDesc": "Μέγιστος αριθμός μη καρφιτσωμένων στοιχείων στο ιστορικό"
+    "capacityDesc": "Μέγιστος αριθμός μη καρφιτσωμένων στοιχείων στο ιστορικό",
+    "movePastedToTopTitle": "Μετακίνηση επικολλημένων στοιχείων στην κορυφή",
+    "movePastedToTopDesc": "Αναδιατάσσει τα μη καρφιτσωμένα στοιχεία στην κορυφή των Πρόσφατων κάθε φορά που τα επικολλάτε",
+    "toggleHotkeyTitle": "Καθολική συντόμευση",
+    "toggleHotkeyDesc": "Ορίστε έναν προσαρμοσμένο συνδυασμό πλήκτρων για να ανοίγετε ή να κλείνετε το ράφι από οπουδήποτε",
+    "hotkeyEdit": "Επεξεργασία",
+    "hotkeyRecording": "Πατήστε τον συνδυασμό πλήκτρων...",
+    "hotkeyCancel": "Ακύρωση",
+    "hotkeyReset": "Επαναφορά στην προεπιλογή ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Τοποθέτηση άκρης",
@@ -6233,12 +6386,6 @@ export const el: TranslationKeys = {
     "sparkleStyle": "Σπίθα"
   },
   "item": {
-    "clearLast1h": "Εκκαθάριση τελευταίας ώρας",
-    "clearLast6h": "Εκκαθάριση τελευταίων 6 ωρών",
-    "clearLast24h": "Εκκαθάριση τελευταίων 24 ωρών",
-    "clearAll": "Εκκαθάριση όλου του ιστορικού",
-    "clearAllConfirm": "Πατήστε ξανά για επιβεβαίωση",
-
     "copy": "Αντιγραφή",
     "pinned": "ΚΑΡΦΙΤΣΩΜΕΝΟ",
     "pin": "Καρφίσωσε",
@@ -6264,7 +6411,12 @@ export const el: TranslationKeys = {
     "moreImages": "+{count} περισσότερες εικόνες",
     "moreFiles": "+{count} περισσότερα αρχεία",
     "singleFile": "1 αρχείο",
-    "scrollToTop": "Κύλιση στην κορυφή"
+    "scrollToTop": "Κύλιση στην κορυφή",
+    "clearLast1h": "Εκκαθάριση τελευταίας ώρας",
+    "clearLast6h": "Εκκαθάριση τελευταίων 6 ωρών",
+    "clearLast24h": "Εκκαθάριση τελευταίων 24 ωρών",
+    "clearAll": "Εκκαθάριση όλου του ιστορικού",
+    "clearAllConfirm": "Πατήστε ξανά για επιβεβαίωση"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -6361,7 +6513,8 @@ export const el: TranslationKeys = {
     "itemDeleted": "Το στοιχείο διαγράφηκε",
     "itemPinned": "Το στοιχείο καρφιτσώθηκε",
     "itemUnpinned": "Το στοιχείο ξεκαρφιτσώθηκε",
-    "settingsSaved": "Οι ρυθμίσεις αποθηκεύτηκαν"
+    "settingsSaved": "Οι ρυθμίσεις αποθηκεύτηκαν",
+    "shortcutUpdated": "Η καθολική συντόμευση ορίστηκε σε {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Κοινότητα και Υποστήριξη",
@@ -6371,13 +6524,13 @@ export const el: TranslationKeys = {
     "applicationGroup": "Εφαρμογή",
     "quitTitle": "Έξοδος από το Edge-Drop",
     "quitDesc": "Κλείσιμο εφαρμογής και διακοπή διεργασίας παρασκηνίου",
-    "supportPromo": "Το Edge-Drop είναι 100% δωρεάν και ανοιχτού κώδικα. Αν σας βοηθά στην καθημερινή εργασία σας, σκεφτείτε να υποστηρίξετε την ανάπτυξή του ώστε να γίνει ακόμη καλύτερο!",
-    "supportOnKofi": "Υποστήριξη στο Ko-fi",
     "starOnGithub": "Αστέρι στο GitHub",
     "githubPromo": "Αν σας αρέσει το Edge-Drop, εξετάστε την δυνατότητα να ασφαλίσετε το έργο στο GitHub!",
-    "version": "Έκδοση"
+    "version": "Έκδοση",
+    "supportPromo": "Το Edge-Drop είναι 100% δωρεάν και ανοιχτού κώδικα. Αν σας βοηθά στην καθημερινή εργασία σας, σκεφτείτε να υποστηρίξετε την ανάπτυξή του ώστε να γίνει ακόμη καλύτερο!",
+    "supportOnKofi": "Υποστήριξη στο Ko-fi"
   }
-}
+};
 
 export const cs: TranslationKeys = {
   "filters": {
@@ -6414,8 +6567,6 @@ export const cs: TranslationKeys = {
     "fullscreenProtectionDesc": "Automaticky pozastavit najíždění na okraj při hrách nebo sledování videa na celou obrazovku",
     "clearUnpinnedTitle": "Vymazat nepřipnuté při restartu",
     "clearUnpinnedDesc": "Odstranit nepřipnuté položky při každém restartu aplikace",
-    "movePastedToTopTitle": "Přesouvat vložené položky nahoru",
-    "movePastedToTopDesc": "Při každém vložení přesune nepřipnuté položky na začátek seznamu Nedávné",
     "soundEffectsTitle": "Zvukové efekty",
     "soundEffectsDesc": "Přehrávat hmatovou zvukovou odezvu pro přepínače, posuvníky a kliknutí tlačítek",
     "autoUpdatesTitle": "Automatické aktualizace",
@@ -6441,7 +6592,15 @@ export const cs: TranslationKeys = {
     "autoDeleteDesc": "Automaticky odstranit zkopírované položky (zachová připnuté)",
     "never": "Nikdy",
     "capacityTitle": "Kapacita historie",
-    "capacityDesc": "Maximální počet nepřipnutých položek v historii"
+    "capacityDesc": "Maximální počet nepřipnutých položek v historii",
+    "movePastedToTopTitle": "Přesouvat vložené položky nahoru",
+    "movePastedToTopDesc": "Při každém vložení přesune nepřipnuté položky na začátek seznamu Nedávné",
+    "toggleHotkeyTitle": "Globální klávesová zkratka",
+    "toggleHotkeyDesc": "Nastavte vlastní kombinaci kláves pro otevření nebo zavření police odkudkoli",
+    "hotkeyEdit": "Upravit",
+    "hotkeyRecording": "Stiskněte kombinaci kláves...",
+    "hotkeyCancel": "Zrušit",
+    "hotkeyReset": "Obnovit výchozí ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Umístění na okraji",
@@ -6492,12 +6651,6 @@ export const cs: TranslationKeys = {
     "sparkleStyle": "Jiskra"
   },
   "item": {
-    "clearLast1h": "Vymazat poslední hodinu",
-    "clearLast6h": "Vymazat posledních 6 hodin",
-    "clearLast24h": "Vymazat posledních 24 hodin",
-    "clearAll": "Vymazat celou historii",
-    "clearAllConfirm": "Potvrďte dalším klepnutím",
-
     "copy": "Kopírovat",
     "pinned": "PŘIPNUTO",
     "pin": "Připnout",
@@ -6523,7 +6676,12 @@ export const cs: TranslationKeys = {
     "moreImages": "+{count} dalších obrázků",
     "moreFiles": "+{count} dalších souborů",
     "singleFile": "1 soubor",
-    "scrollToTop": "Přejít nahoru"
+    "scrollToTop": "Přejít nahoru",
+    "clearLast1h": "Vymazat poslední hodinu",
+    "clearLast6h": "Vymazat posledních 6 hodin",
+    "clearLast24h": "Vymazat posledních 24 hodin",
+    "clearAll": "Vymazat celou historii",
+    "clearAllConfirm": "Potvrďte dalším klepnutím"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -6620,7 +6778,8 @@ export const cs: TranslationKeys = {
     "itemDeleted": "Položka smazána",
     "itemPinned": "Položka připnuta",
     "itemUnpinned": "Položka odepnuta",
-    "settingsSaved": "Nastavení uložena"
+    "settingsSaved": "Nastavení uložena",
+    "shortcutUpdated": "Globální klávesová zkratka nastavena na {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Komunita a podpora",
@@ -6630,13 +6789,13 @@ export const cs: TranslationKeys = {
     "applicationGroup": "Aplikace",
     "quitTitle": "Ukončit Edge-Drop",
     "quitDesc": "Zavřít aplikaci a zastavit proces na pozadí",
-    "supportPromo": "Edge-Drop je 100% zdarma a s otevřeným zdrojovým kódem. Pokud vám usnadňuje každodenní práci, zvažte podporu jeho vývoje, aby byl ještě lepší!",
-    "supportOnKofi": "Podpořit na Ko-fi",
     "starOnGithub": "Ohvězdičkovat na GitHub",
     "githubPromo": "Pokud se vám Edge-Drop líbí, zvažte prosím ohvězdičkování projektu na GitHub!",
-    "version": "Verze"
+    "version": "Verze",
+    "supportPromo": "Edge-Drop je 100% zdarma a s otevřeným zdrojovým kódem. Pokud vám usnadňuje každodenní práci, zvažte podporu jeho vývoje, aby byl ještě lepší!",
+    "supportOnKofi": "Podpořit na Ko-fi"
   }
-}
+};
 
 export const ro: TranslationKeys = {
   "filters": {
@@ -6673,8 +6832,6 @@ export const ro: TranslationKeys = {
     "fullscreenProtectionDesc": "Pauzează automat survolul marginii în timpul jocurilor sau al videoclipurilor pe ecran complet",
     "clearUnpinnedTitle": "Șterge nepinate la repornire",
     "clearUnpinnedDesc": "Șterge elementele nepinate ori de câte ori aplicația repornește",
-    "movePastedToTopTitle": "Mută elementele lipite în partea de sus",
-    "movePastedToTopDesc": "Reordonează elementele nefixate în partea de sus a secțiunii Recente de fiecare dată când le lipești",
     "soundEffectsTitle": "Efecte sonore",
     "soundEffectsDesc": "Redă feedback audio tactil pentru comutatoare, glisoare și clicuri de butoane",
     "autoUpdatesTitle": "Actualizări automate",
@@ -6700,7 +6857,15 @@ export const ro: TranslationKeys = {
     "autoDeleteDesc": "Șterge automat elementele copiate (păstrează Pinate)",
     "never": "Niciodată",
     "capacityTitle": "Capacitate istoric",
-    "capacityDesc": "Numărul maxim de elemente nepinate stocate în istoric"
+    "capacityDesc": "Numărul maxim de elemente nepinate stocate în istoric",
+    "movePastedToTopTitle": "Mută elementele lipite în partea de sus",
+    "movePastedToTopDesc": "Reordonează elementele nefixate în partea de sus a secțiunii Recente de fiecare dată când le lipești",
+    "toggleHotkeyTitle": "Comandă rapidă globală",
+    "toggleHotkeyDesc": "Setează o combinație de taste personalizată pentru a deschide sau închide raftul de oriunde",
+    "hotkeyEdit": "Editează",
+    "hotkeyRecording": "Apasă combinația de taste...",
+    "hotkeyCancel": "Anulează",
+    "hotkeyReset": "Resetează la valoarea implicită ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Plasare margine",
@@ -6751,12 +6916,6 @@ export const ro: TranslationKeys = {
     "sparkleStyle": "Scânteie"
   },
   "item": {
-    "clearLast1h": "Șterge ultima oră",
-    "clearLast6h": "Șterge ultimele 6 ore",
-    "clearLast24h": "Șterge ultimele 24 de ore",
-    "clearAll": "Șterge tot istoricul",
-    "clearAllConfirm": "Atinge din nou pentru confirmare",
-
     "copy": "Copiază",
     "pinned": "PINAT",
     "pin": "Păstrează",
@@ -6782,7 +6941,12 @@ export const ro: TranslationKeys = {
     "moreImages": "+{count} imagini mai mult",
     "moreFiles": "+{count} fișiere mai mult",
     "singleFile": "1 fișier",
-    "scrollToTop": "Derulează sus"
+    "scrollToTop": "Derulează sus",
+    "clearLast1h": "Șterge ultima oră",
+    "clearLast6h": "Șterge ultimele 6 ore",
+    "clearLast24h": "Șterge ultimele 24 de ore",
+    "clearAll": "Șterge tot istoricul",
+    "clearAllConfirm": "Atinge din nou pentru confirmare"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -6879,7 +7043,8 @@ export const ro: TranslationKeys = {
     "itemDeleted": "Element șters",
     "itemPinned": "Element pinat",
     "itemUnpinned": "Element anulat",
-    "settingsSaved": "Setări salvate"
+    "settingsSaved": "Setări salvate",
+    "shortcutUpdated": "Comanda rapidă globală a fost setată la {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Comunitate și suport",
@@ -6889,13 +7054,13 @@ export const ro: TranslationKeys = {
     "applicationGroup": "Aplicație",
     "quitTitle": "Ieșire din Edge-Drop",
     "quitDesc": "Închide aplicația și oprește procesul din fundal",
-    "supportPromo": "Edge-Drop este 100% gratuit și open-source. Dacă îți este util în activitatea de zi cu zi, ia în considerare susținerea dezvoltării pentru a-l face și mai bun!",
-    "supportOnKofi": "Susține pe Ko-fi",
     "starOnGithub": "Marchează cu stea pe GitHub",
     "githubPromo": "Dacă îți place Edge-Drop, te rugăm să iei în considerare marcarea cu stea a proiectului pe GitHub!",
-    "version": "Versiune"
+    "version": "Versiune",
+    "supportPromo": "Edge-Drop este 100% gratuit și open-source. Dacă îți este util în activitatea de zi cu zi, ia în considerare susținerea dezvoltării pentru a-l face și mai bun!",
+    "supportOnKofi": "Susține pe Ko-fi"
   }
-}
+};
 
 export const hu: TranslationKeys = {
   "filters": {
@@ -6932,8 +7097,6 @@ export const hu: TranslationKeys = {
     "fullscreenProtectionDesc": "Játékok vagy teljes képernyős videók alatt automatikusan szüneteltesse az él-hoverelést",
     "clearUnpinnedTitle": "Nem rögzítettek törlése újraindításkor",
     "clearUnpinnedDesc": "Nem rögzített elemek törlése az alkalmazás minden újraindításakor",
-    "movePastedToTopTitle": "Beillesztett elemek áthelyezése felülre",
-    "movePastedToTopDesc": "Beillesztéskor a nem rögzített elemeket a Legutóbbiak lista tetejére rendezi",
     "soundEffectsTitle": "Hang effektek",
     "soundEffectsDesc": "Tapintási hang-visszacsatolás lejátszása kapcsolókhoz, csúszkákhoz és gombnyomásokhoz",
     "autoUpdatesTitle": "Automatikus frissítések",
@@ -6959,7 +7122,15 @@ export const hu: TranslationKeys = {
     "autoDeleteDesc": "Másolt elemek automatikus tisztítása (a rögzítetteket megőrzi)",
     "never": "Soha",
     "capacityTitle": "Előzmények kapacitása",
-    "capacityDesc": "Az előzményekben tárolt nem rögzített elemek maximális száma"
+    "capacityDesc": "Az előzményekben tárolt nem rögzített elemek maximális száma",
+    "movePastedToTopTitle": "Beillesztett elemek áthelyezése felülre",
+    "movePastedToTopDesc": "Beillesztéskor a nem rögzített elemeket a Legutóbbiak lista tetejére rendezi",
+    "toggleHotkeyTitle": "Globális billentyűparancs",
+    "toggleHotkeyDesc": "Állítson be egyéni billentyűkombinációt a polc bárhonnan történő megnyitásához vagy bezárásához",
+    "hotkeyEdit": "Szerkesztés",
+    "hotkeyRecording": "Nyomja meg a billentyűkombinációt...",
+    "hotkeyCancel": "Mégse",
+    "hotkeyReset": "Visszaállítás alapértelmezettre ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Szél-elhelyezés",
@@ -7010,12 +7181,6 @@ export const hu: TranslationKeys = {
     "sparkleStyle": "Szikra"
   },
   "item": {
-    "clearLast1h": "Elmúlt óra törlése",
-    "clearLast6h": "Elmúlt 6 óra törlése",
-    "clearLast24h": "Elmúlt 24 óra törlése",
-    "clearAll": "Teljes előzmény törlése",
-    "clearAllConfirm": "Koppintson újra a megerősítéshez",
-
     "copy": "Másolás",
     "pinned": "RÖGZÍTETT",
     "pin": "Rögzítés",
@@ -7041,7 +7206,12 @@ export const hu: TranslationKeys = {
     "moreImages": "+{count} további kép",
     "moreFiles": "+{count} további fájl",
     "singleFile": "1 fájl",
-    "scrollToTop": "Görgetés a tetejére"
+    "scrollToTop": "Görgetés a tetejére",
+    "clearLast1h": "Elmúlt óra törlése",
+    "clearLast6h": "Elmúlt 6 óra törlése",
+    "clearLast24h": "Elmúlt 24 óra törlése",
+    "clearAll": "Teljes előzmény törlése",
+    "clearAllConfirm": "Koppintson újra a megerősítéshez"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -7138,7 +7308,8 @@ export const hu: TranslationKeys = {
     "itemDeleted": "Elem törölve",
     "itemPinned": "Elem rögzítve",
     "itemUnpinned": "Elem feloldva",
-    "settingsSaved": "Beállítások elmentve"
+    "settingsSaved": "Beállítások elmentve",
+    "shortcutUpdated": "A globális billentyűparancs beállítva: {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Közösség és támogatás",
@@ -7148,13 +7319,13 @@ export const hu: TranslationKeys = {
     "applicationGroup": "Alkalmazás",
     "quitTitle": "Kilépés az Edge-Drop-ból",
     "quitDesc": "Alkalmazás bezárása és a háttérfolyamat leállítása",
-    "supportPromo": "Az Edge-Drop 100%-ban ingyenes és nyílt forráskódú. Ha megkönnyíti a mindennapi munkádat, fontold meg a fejlesztés támogatását, hogy még jobb lehessen!",
-    "supportOnKofi": "Támogatás a Ko-fi oldalon",
     "starOnGithub": "Csillagozás a GitHubon",
     "githubPromo": "Ha tetszik az Edge-Drop, fontolja meg a projekt csillagozását a GitHubon!",
-    "version": "Verzió"
+    "version": "Verzió",
+    "supportPromo": "Az Edge-Drop 100%-ban ingyenes és nyílt forráskódú. Ha megkönnyíti a mindennapi munkádat, fontold meg a fejlesztés támogatását, hogy még jobb lehessen!",
+    "supportOnKofi": "Támogatás a Ko-fi oldalon"
   }
-}
+};
 
 export const da: TranslationKeys = {
   "filters": {
@@ -7191,8 +7362,6 @@ export const da: TranslationKeys = {
     "fullscreenProtectionDesc": "Sæt automatisk hover ved kant på pause under spil eller fuldskærmsvideo",
     "clearUnpinnedTitle": "Ryd ikke-fastgjorte ved genstart",
     "clearUnpinnedDesc": "Slet ikke-fastgjorte elementer hver gang appen genstarter",
-    "movePastedToTopTitle": "Flyt indsatte elementer til toppen",
-    "movePastedToTopDesc": "Omarrangerer ikke-fastgjorte elementer til toppen af Seneste, hver gang du indsætter dem",
     "soundEffectsTitle": "Lydeffekter",
     "soundEffectsDesc": "Afspil taktil lydfeedback for kontakter, skydere og knapklik",
     "autoUpdatesTitle": "Automatiske opdateringer",
@@ -7218,7 +7387,15 @@ export const da: TranslationKeys = {
     "autoDeleteDesc": "Ryd automatisk kopierede elementer (bevarer Fastgjorte)",
     "never": "Aldrig",
     "capacityTitle": "Historikkapacitet",
-    "capacityDesc": "Maksimalt antal ikke-fastgjorte elementer gemt i historik"
+    "capacityDesc": "Maksimalt antal ikke-fastgjorte elementer gemt i historik",
+    "movePastedToTopTitle": "Flyt indsatte elementer til toppen",
+    "movePastedToTopDesc": "Omarrangerer ikke-fastgjorte elementer til toppen af Seneste, hver gang du indsætter dem",
+    "toggleHotkeyTitle": "Global genvej",
+    "toggleHotkeyDesc": "Indstil en brugerdefineret tastekombination for at åbne eller lukke hylden fra alle steder",
+    "hotkeyEdit": "Rediger",
+    "hotkeyRecording": "Tryk på tastekombinationen...",
+    "hotkeyCancel": "Annuller",
+    "hotkeyReset": "Nulstil til standard ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Kantplacering",
@@ -7269,12 +7446,6 @@ export const da: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
-    "clearLast1h": "Ryd sidste time",
-    "clearLast6h": "Ryd sidste 6 timer",
-    "clearLast24h": "Ryd sidste 24 timer",
-    "clearAll": "Ryd hele historikken",
-    "clearAllConfirm": "Tryk igen for at bekræfte",
-
     "copy": "Kopier",
     "pinned": "FASTGJORT",
     "pin": "Fastgør",
@@ -7300,7 +7471,12 @@ export const da: TranslationKeys = {
     "moreImages": "+{count} flere billeder",
     "moreFiles": "+{count} flere filer",
     "singleFile": "1 fil",
-    "scrollToTop": "Rul til toppen"
+    "scrollToTop": "Rul til toppen",
+    "clearLast1h": "Ryd sidste time",
+    "clearLast6h": "Ryd sidste 6 timer",
+    "clearLast24h": "Ryd sidste 24 timer",
+    "clearAll": "Ryd hele historikken",
+    "clearAllConfirm": "Tryk igen for at bekræfte"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -7397,7 +7573,8 @@ export const da: TranslationKeys = {
     "itemDeleted": "Element slettet",
     "itemPinned": "Element fastgjort",
     "itemUnpinned": "Element frigjort",
-    "settingsSaved": "Indstillinger gemt"
+    "settingsSaved": "Indstillinger gemt",
+    "shortcutUpdated": "Global genvej indstillet til {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Fællesskab og support",
@@ -7407,13 +7584,13 @@ export const da: TranslationKeys = {
     "applicationGroup": "Applikation",
     "quitTitle": "Afslut Edge-Drop",
     "quitDesc": "Luk applikation og stop baggrundsproces",
-    "supportPromo": "Edge-Drop er 100 % gratis og open source. Hvis det hjælper dig i din daglige arbejdsgang, kan du overveje at støtte udviklingen, så det bliver endnu bedre!",
-    "supportOnKofi": "Støt på Ko-fi",
     "starOnGithub": "Giv stjerne på GitHub",
     "githubPromo": "Hvis du kan lide Edge-Drop, så overvej at give projektet en stjerne på GitHub!",
-    "version": "Version"
+    "version": "Version",
+    "supportPromo": "Edge-Drop er 100 % gratis og open source. Hvis det hjælper dig i din daglige arbejdsgang, kan du overveje at støtte udviklingen, så det bliver endnu bedre!",
+    "supportOnKofi": "Støt på Ko-fi"
   }
-}
+};
 
 export const fi: TranslationKeys = {
   "filters": {
@@ -7450,8 +7627,6 @@ export const fi: TranslationKeys = {
     "fullscreenProtectionDesc": "Keskeytä automaattisesti reunan hover pelien tai koko näytön videoiden aikana",
     "clearUnpinnedTitle": "Tyhjennä kiinnittämättömät uudelleenkäynnistyksessä",
     "clearUnpinnedDesc": "Poista kiinnittämättömät kohteet aina kun sovellus käynnistyy uudelleen",
-    "movePastedToTopTitle": "Siirrä liitetyt kohteet alkuun",
-    "movePastedToTopDesc": "Järjestää kiinnittämättömät kohteet Uusimmat-luettelon alkuun aina, kun liität ne",
     "soundEffectsTitle": "Äänitehosteet",
     "soundEffectsDesc": "Toista taktiilista äänipalautetta vaihtimille, liukusäätimille ja painikkeiden painalluksille",
     "autoUpdatesTitle": "Automaattiset päivitykset",
@@ -7477,7 +7652,15 @@ export const fi: TranslationKeys = {
     "autoDeleteDesc": "Poista kopioidut kohteet automaattisesti (säilyttää Kiinnitetyt)",
     "never": "Ei koskaan",
     "capacityTitle": "Historian kapasiteetti",
-    "capacityDesc": "Historiassa säilytettyjen kiinnittämättömien kohteiden enimmäismäärä"
+    "capacityDesc": "Historiassa säilytettyjen kiinnittämättömien kohteiden enimmäismäärä",
+    "movePastedToTopTitle": "Siirrä liitetyt kohteet alkuun",
+    "movePastedToTopDesc": "Järjestää kiinnittämättömät kohteet Uusimmat-luettelon alkuun aina, kun liität ne",
+    "toggleHotkeyTitle": "Yleinen pikanäppäin",
+    "toggleHotkeyDesc": "Määritä mukautettu näppäinyhdistelmä hyllyn avaamiseen tai sulkemiseen mistä tahansa",
+    "hotkeyEdit": "Muokkaa",
+    "hotkeyRecording": "Paina näppäinyhdistelmää...",
+    "hotkeyCancel": "Peruuta",
+    "hotkeyReset": "Palauta oletusasetukseksi ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Reunan sijoitus",
@@ -7528,12 +7711,6 @@ export const fi: TranslationKeys = {
     "sparkleStyle": "Kipinä"
   },
   "item": {
-    "clearLast1h": "Tyhjennä viimeinen tunti",
-    "clearLast6h": "Tyhjennä viimeiset 6 tuntia",
-    "clearLast24h": "Tyhjennä viimeiset 24 tuntia",
-    "clearAll": "Tyhjennä koko historia",
-    "clearAllConfirm": "Vahvista napauttamalla uudelleen",
-
     "copy": "Kopioi",
     "pinned": "KIINNITETTY",
     "pin": "Kiinnitä",
@@ -7559,7 +7736,12 @@ export const fi: TranslationKeys = {
     "moreImages": "+{count} kuvaa lisää",
     "moreFiles": "+{count} tiedostoa lisää",
     "singleFile": "1 tiedosto",
-    "scrollToTop": "Vieritä ylös"
+    "scrollToTop": "Vieritä ylös",
+    "clearLast1h": "Tyhjennä viimeinen tunti",
+    "clearLast6h": "Tyhjennä viimeiset 6 tuntia",
+    "clearLast24h": "Tyhjennä viimeiset 24 tuntia",
+    "clearAll": "Tyhjennä koko historia",
+    "clearAllConfirm": "Vahvista napauttamalla uudelleen"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -7656,7 +7838,8 @@ export const fi: TranslationKeys = {
     "itemDeleted": "Kohde poistettu",
     "itemPinned": "Kohde kiinnitetty",
     "itemUnpinned": "Kohteen kiinnitys poistettu",
-    "settingsSaved": "Asetukset tallennettu"
+    "settingsSaved": "Asetukset tallennettu",
+    "shortcutUpdated": "Yleinen pikanäppäin asetettu: {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Yhteisö ja tuki",
@@ -7666,13 +7849,13 @@ export const fi: TranslationKeys = {
     "applicationGroup": "Sovellus",
     "quitTitle": "Lopeta Edge-Drop",
     "quitDesc": "Sulje sovellus ja pysäytä taustaprosessi",
-    "supportPromo": "Edge-Drop on 100 % ilmainen ja avoimen lähdekoodin ohjelmisto. Jos se helpottaa päivittäistä työnkulkuasi, harkitse kehityksen tukemista, jotta siitä tulee vielä parempi!",
-    "supportOnKofi": "Tue Ko-fi:ssa",
     "starOnGithub": "Anna tähti GitHubissa",
     "githubPromo": "Jos pidät Edge-Dropista, harkitse projektin tähteyttä GitHubissa!",
-    "version": "Versio"
+    "version": "Versio",
+    "supportPromo": "Edge-Drop on 100 % ilmainen ja avoimen lähdekoodin ohjelmisto. Jos se helpottaa päivittäistä työnkulkuasi, harkitse kehityksen tukemista, jotta siitä tulee vielä parempi!",
+    "supportOnKofi": "Tue Ko-fi:ssa"
   }
-}
+};
 
 export const th: TranslationKeys = {
   "filters": {
@@ -7709,8 +7892,6 @@ export const th: TranslationKeys = {
     "fullscreenProtectionDesc": "หยุดโฮเวอร์ขอบอัตโนมัติขณะเล่นเกมหรือดูวิดีโอเต็มหน้าจอ",
     "clearUnpinnedTitle": "ล้างรายการที่ไม่ได้ปักหมุดเมื่อรีสตาร์ท",
     "clearUnpinnedDesc": "ลบรายการที่ไม่ได้ปักหมุดเมื่อแอปรีสตาร์ท",
-    "movePastedToTopTitle": "ย้ายรายการที่วางไปไว้ด้านบน",
-    "movePastedToTopDesc": "จัดเรียงรายการที่ไม่ได้ปักหมุดไปไว้ด้านบนของรายการล่าสุดทุกครั้งที่คุณวางรายการนั้น",
     "soundEffectsTitle": "เอฟเฟกต์เสียง",
     "soundEffectsDesc": "เล่นเสียงตอบสนองสัมผัสสำหรับสวิตช์ สไลเดอร์ และคลิกปุ่ม",
     "autoUpdatesTitle": "อัปเดตอัตโนมัติ",
@@ -7736,7 +7917,15 @@ export const th: TranslationKeys = {
     "autoDeleteDesc": "ล้างรายการที่คัดลอกอัตโนมัติ (คงรายการที่ปักหมุดไว้)",
     "never": "ไม่เคย",
     "capacityTitle": "ความจุประวัติ",
-    "capacityDesc": "จำนวนรายการที่ไม่ได้ปักหมุดสูงสุดที่เก็บในประวัติ"
+    "capacityDesc": "จำนวนรายการที่ไม่ได้ปักหมุดสูงสุดที่เก็บในประวัติ",
+    "movePastedToTopTitle": "ย้ายรายการที่วางไปไว้ด้านบน",
+    "movePastedToTopDesc": "จัดเรียงรายการที่ไม่ได้ปักหมุดไปไว้ด้านบนของรายการล่าสุดทุกครั้งที่คุณวางรายการนั้น",
+    "toggleHotkeyTitle": "ปุ่มลัดส่วนกลาง",
+    "toggleHotkeyDesc": "ตั้งค่าชุดปุ่มที่กำหนดเองเพื่อเปิดหรือปิดชั้นวางจากที่ใดก็ได้",
+    "hotkeyEdit": "แก้ไข",
+    "hotkeyRecording": "กดชุดปุ่ม...",
+    "hotkeyCancel": "ยกเลิก",
+    "hotkeyReset": "รีเซ็ตเป็นค่าเริ่มต้น ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "ตำแหน่งขอบ",
@@ -7787,12 +7976,6 @@ export const th: TranslationKeys = {
     "sparkleStyle": "ประกาย"
   },
   "item": {
-    "clearLast1h": "ล้างข้อมูล 1 ชั่วโมงล่าสุด",
-    "clearLast6h": "ล้างข้อมูล 6 ชั่วโมงล่าสุด",
-    "clearLast24h": "ล้างข้อมูล 24 ชั่วโมงล่าสุด",
-    "clearAll": "ล้างประวัติทั้งหมด",
-    "clearAllConfirm": "แตะอีกครั้งเพื่อยืนยัน",
-
     "copy": "คัดลอก",
     "pinned": "ปักหมุดแล้ว",
     "pin": "ปักหมุด",
@@ -7818,7 +8001,12 @@ export const th: TranslationKeys = {
     "moreImages": "+{count} รูปภาพเพิ่มเติม",
     "moreFiles": "+{count} ไฟล์เพิ่มเติม",
     "singleFile": "1 ไฟล์",
-    "scrollToTop": "เลื่อนไปที่ด้านบน"
+    "scrollToTop": "เลื่อนไปที่ด้านบน",
+    "clearLast1h": "ล้างข้อมูล 1 ชั่วโมงล่าสุด",
+    "clearLast6h": "ล้างข้อมูล 6 ชั่วโมงล่าสุด",
+    "clearLast24h": "ล้างข้อมูล 24 ชั่วโมงล่าสุด",
+    "clearAll": "ล้างประวัติทั้งหมด",
+    "clearAllConfirm": "แตะอีกครั้งเพื่อยืนยัน"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -7915,7 +8103,8 @@ export const th: TranslationKeys = {
     "itemDeleted": "ลบรายการแล้ว",
     "itemPinned": "ปักหมุดรายการแล้ว",
     "itemUnpinned": "ยกเลิกปักหมุดรายการแล้ว",
-    "settingsSaved": "บันทึกการตั้งค่าแล้ว"
+    "settingsSaved": "บันทึกการตั้งค่าแล้ว",
+    "shortcutUpdated": "ตั้งค่าปุ่มลัดส่วนกลางเป็น {shortcut} แล้ว"
   },
   "footer": {
     "communityAndSupport": "ชุมชนและการสนับสนุน",
@@ -7925,13 +8114,13 @@ export const th: TranslationKeys = {
     "applicationGroup": "แอปพลิเคชัน",
     "quitTitle": "ออกจาก Edge-Drop",
     "quitDesc": "ปิดแอปพลิเคชันและหยุดกระบวนการเบื้องหลัง",
-    "supportPromo": "Edge-Drop ฟรี 100% และเป็นโอเพนซอร์ส หากแอปนี้ช่วยให้การทำงานประจำวันของคุณสะดวกขึ้น โปรดพิจารณาสนับสนุนการพัฒนาเพื่อให้ดียิ่งขึ้น!",
-    "supportOnKofi": "สนับสนุนผ่าน Ko-fi",
     "starOnGithub": "ติดดาวบน GitHub",
     "githubPromo": "หากคุณชอบ Edge-Drop โปรดพิจารณาติดดาวให้โปรเจกต์บน GitHub!",
-    "version": "เวอร์ชัน"
+    "version": "เวอร์ชัน",
+    "supportPromo": "Edge-Drop ฟรี 100% และเป็นโอเพนซอร์ส หากแอปนี้ช่วยให้การทำงานประจำวันของคุณสะดวกขึ้น โปรดพิจารณาสนับสนุนการพัฒนาเพื่อให้ดียิ่งขึ้น!",
+    "supportOnKofi": "สนับสนุนผ่าน Ko-fi"
   }
-}
+};
 
 export const he: TranslationKeys = {
   "filters": {
@@ -7968,8 +8157,6 @@ export const he: TranslationKeys = {
     "fullscreenProtectionDesc": "השהה אוטומטית ריחוף קצה בעת משחק משחקים או צפייה בסרטונים במסך מלא",
     "clearUnpinnedTitle": "נקה פריטים לא מוצמדים באתחול",
     "clearUnpinnedDesc": "מחק פריטים לא מוצמדים בכל הפעלה מחדש של האפליקציה",
-    "movePastedToTopTitle": "העבר פריטים שהודבקו לראש הרשימה",
-    "movePastedToTopDesc": "מסדר מחדש פריטים שאינם מוצמדים בראש הפריטים האחרונים בכל פעם שמדביקים אותם",
     "soundEffectsTitle": "אפקטים קוליים",
     "soundEffectsDesc": "השמע משוב אודיו מישושי עבור מתגים, סליידרים ולחיצות כפתור",
     "autoUpdatesTitle": "עדכונים אוטומטיים",
@@ -7995,7 +8182,15 @@ export const he: TranslationKeys = {
     "autoDeleteDesc": "מחק אוטומטית פריטים שהועתקו (שומר על מוצמדים)",
     "never": "לעולם לא",
     "capacityTitle": "קיבולת היסטוריה",
-    "capacityDesc": "מספר מרבי של פריטים לא מוצמדים בהיסטוריה"
+    "capacityDesc": "מספר מרבי של פריטים לא מוצמדים בהיסטוריה",
+    "movePastedToTopTitle": "העבר פריטים שהודבקו לראש הרשימה",
+    "movePastedToTopDesc": "מסדר מחדש פריטים שאינם מוצמדים בראש הפריטים האחרונים בכל פעם שמדביקים אותם",
+    "toggleHotkeyTitle": "קיצור מקשים גלובלי",
+    "toggleHotkeyDesc": "הגדר שילוב מקשים מותאם אישית כדי לפתוח או לסגור את המדף מכל מקום",
+    "hotkeyEdit": "עריכה",
+    "hotkeyRecording": "לחץ על שילוב המקשים...",
+    "hotkeyCancel": "ביטול",
+    "hotkeyReset": "איפוס לברירת המחדל ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "מיקום קצה",
@@ -8046,12 +8241,6 @@ export const he: TranslationKeys = {
     "sparkleStyle": "ניצוץ"
   },
   "item": {
-    "clearLast1h": "נקה את השעה האחרונה",
-    "clearLast6h": "נקה את 6 השעות האחרונות",
-    "clearLast24h": "נקה את 24 השעות האחרונות",
-    "clearAll": "נקה את כל ההיסטוריה",
-    "clearAllConfirm": "הקש שוב כדי לאשר",
-
     "copy": "העתק",
     "pinned": "מוצמד",
     "pin": "הצמד",
@@ -8077,7 +8266,12 @@ export const he: TranslationKeys = {
     "moreImages": "+{count} תמונות נוספות",
     "moreFiles": "+{count} קבצים נוספים",
     "singleFile": "קובץ 1",
-    "scrollToTop": "גלול לראש"
+    "scrollToTop": "גלול לראש",
+    "clearLast1h": "נקה את השעה האחרונה",
+    "clearLast6h": "נקה את 6 השעות האחרונות",
+    "clearLast24h": "נקה את 24 השעות האחרונות",
+    "clearAll": "נקה את כל ההיסטוריה",
+    "clearAllConfirm": "הקש שוב כדי לאשר"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -8174,7 +8368,8 @@ export const he: TranslationKeys = {
     "itemDeleted": "פריט נמחק",
     "itemPinned": "פריט הוצמד",
     "itemUnpinned": "הצמדת פריט בוטלה",
-    "settingsSaved": "הגדרות נשמרו"
+    "settingsSaved": "הגדרות נשמרו",
+    "shortcutUpdated": "קיצור המקשים הגלובלי הוגדר ל־{shortcut}"
   },
   "footer": {
     "communityAndSupport": "קהילה ותמיכה",
@@ -8184,13 +8379,13 @@ export const he: TranslationKeys = {
     "applicationGroup": "אפליקציה",
     "quitTitle": "צא מ-Edge-Drop",
     "quitDesc": "סגור אפליקציה ועצור תהליך רקע",
-    "supportPromo": "Edge-Drop הוא חינמי לחלוטין ובקוד פתוח. אם הוא עוזר לכם בעבודה היומיומית, שקלו לתמוך בפיתוח כדי להפוך אותו לטוב אפילו יותר!",
-    "supportOnKofi": "תמכו ב-Ko-fi",
     "starOnGithub": "כוכב ב-GitHub",
     "githubPromo": "אם אתה אוהב את Edge-Drop, אנא שקול לתת כוכב לפרויקט ב-GitHub!",
-    "version": "גרסה"
+    "version": "גרסה",
+    "supportPromo": "Edge-Drop הוא חינמי לחלוטין ובקוד פתוח. אם הוא עוזר לכם בעבודה היומיומית, שקלו לתמוך בפיתוח כדי להפוך אותו לטוב אפילו יותר!",
+    "supportOnKofi": "תמכו ב-Ko-fi"
   }
-}
+};
 
 export const no: TranslationKeys = {
   "filters": {
@@ -8227,8 +8422,6 @@ export const no: TranslationKeys = {
     "fullscreenProtectionDesc": "Sett kant-hover automatisk på pause under spill eller fullskjermvideo",
     "clearUnpinnedTitle": "Fjern ikke-festede ved omstart",
     "clearUnpinnedDesc": "Slett ikke-festede elementer hver gang appen starter på nytt",
-    "movePastedToTopTitle": "Flytt innlimte elementer til toppen",
-    "movePastedToTopDesc": "Flytter ikke-festede elementer til toppen av Nylige hver gang du limer dem inn",
     "soundEffectsTitle": "Lydeffekter",
     "soundEffectsDesc": "Spill av taktil lyd-tilbakemelding for brytere, glidebrytere og knappeklikk",
     "autoUpdatesTitle": "Automatiske oppdateringer",
@@ -8254,7 +8447,15 @@ export const no: TranslationKeys = {
     "autoDeleteDesc": "Fjern kopierte elementer automatisk (beholder Festede)",
     "never": "Aldri",
     "capacityTitle": "Historikk-kapasitet",
-    "capacityDesc": "Maksimalt antall ikke-festede elementer lagret i historikk"
+    "capacityDesc": "Maksimalt antall ikke-festede elementer lagret i historikk",
+    "movePastedToTopTitle": "Flytt innlimte elementer til toppen",
+    "movePastedToTopDesc": "Flytter ikke-festede elementer til toppen av Nylige hver gang du limer dem inn",
+    "toggleHotkeyTitle": "Global hurtigtast",
+    "toggleHotkeyDesc": "Angi en egendefinert tastekombination for å åpne eller lukke hyllen fra hvor som helst",
+    "hotkeyEdit": "Rediger",
+    "hotkeyRecording": "Trykk på tastekombinasjonen...",
+    "hotkeyCancel": "Avbryt",
+    "hotkeyReset": "Tilbakestill til standard ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Kant-plassering",
@@ -8305,12 +8506,6 @@ export const no: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
-    "clearLast1h": "Tøm siste time",
-    "clearLast6h": "Tøm siste 6 timer",
-    "clearLast24h": "Tøm siste 24 timer",
-    "clearAll": "Tøm all historikk",
-    "clearAllConfirm": "Trykk igjen for å bekrefte",
-
     "copy": "Kopier",
     "pinned": "FESTET",
     "pin": "Fest",
@@ -8336,7 +8531,12 @@ export const no: TranslationKeys = {
     "moreImages": "+{count} flere bilder",
     "moreFiles": "+{count} flere filer",
     "singleFile": "1 fil",
-    "scrollToTop": "Rull til toppen"
+    "scrollToTop": "Rull til toppen",
+    "clearLast1h": "Tøm siste time",
+    "clearLast6h": "Tøm siste 6 timer",
+    "clearLast24h": "Tøm siste 24 timer",
+    "clearAll": "Tøm all historikk",
+    "clearAllConfirm": "Trykk igjen for å bekrefte"
   },
   "fileKinds": {
     "pdf": "PDF",
@@ -8433,7 +8633,8 @@ export const no: TranslationKeys = {
     "itemDeleted": "Element slettet",
     "itemPinned": "Element festet",
     "itemUnpinned": "Element løsnet",
-    "settingsSaved": "Innstillinger lagret"
+    "settingsSaved": "Innstillinger lagret",
+    "shortcutUpdated": "Global hurtigtast satt til {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Fellesskap og støtte",
@@ -8443,13 +8644,13 @@ export const no: TranslationKeys = {
     "applicationGroup": "Applikasjon",
     "quitTitle": "Avslutt Edge-Drop",
     "quitDesc": "Lukk applikasjon og stopp bakgrunnsprosess",
-    "supportPromo": "Edge-Drop er 100 % gratis og åpen kildekode. Hvis det hjelper deg i den daglige arbeidsflyten, kan du vurdere å støtte utviklingen for å gjøre det enda bedre!",
-    "supportOnKofi": "Støtt på Ko-fi",
     "starOnGithub": "Gi stjerne på GitHub",
     "githubPromo": "Hvis du liker Edge-Drop, vennligst vurder å gi prosjektet en stjerne på GitHub!",
-    "version": "Versjon"
+    "version": "Versjon",
+    "supportPromo": "Edge-Drop er 100 % gratis og åpen kildekode. Hvis det hjelper deg i den daglige arbeidsflyten, kan du vurdere å støtte utviklingen for å gjøre det enda bedre!",
+    "supportOnKofi": "Støtt på Ko-fi"
   }
-}
+};
 
 export const TRANSLATIONS: Record<string, TranslationKeys> = {
   'en': en,
@@ -8483,4 +8684,4 @@ export const TRANSLATIONS: Record<string, TranslationKeys> = {
   'th': th,
   'he': he,
   'no': no,
-}
+};

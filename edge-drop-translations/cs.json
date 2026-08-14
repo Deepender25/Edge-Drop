@@ -60,7 +60,13 @@
     "capacityTitle": "Kapacita historie",
     "capacityDesc": "Maximální počet nepřipnutých položek v historii",
     "movePastedToTopTitle": "Přesouvat vložené položky nahoru",
-    "movePastedToTopDesc": "Při každém vložení přesune nepřipnuté položky na začátek seznamu Nedávné"
+    "movePastedToTopDesc": "Při každém vložení přesune nepřipnuté položky na začátek seznamu Nedávné",
+    "toggleHotkeyTitle": "Globální klávesová zkratka",
+    "toggleHotkeyDesc": "Nastavte vlastní kombinaci kláves pro otevření nebo zavření police odkudkoli",
+    "hotkeyEdit": "Upravit",
+    "hotkeyRecording": "Stiskněte kombinaci kláves...",
+    "hotkeyCancel": "Zrušit",
+    "hotkeyReset": "Obnovit výchozí ({shortcut})"
   },
   "position": {
     "edgePlacementTitle": "Umístění na okraji",
@@ -238,7 +244,8 @@
     "itemDeleted": "Položka smazána",
     "itemPinned": "Položka připnuta",
     "itemUnpinned": "Položka odepnuta",
-    "settingsSaved": "Nastavení uložena"
+    "settingsSaved": "Nastavení uložena",
+    "shortcutUpdated": "Globální klávesová zkratka nastavena na {shortcut}"
   },
   "footer": {
     "communityAndSupport": "Komunita a podpora",
