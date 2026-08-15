@@ -35,14 +35,59 @@ import { loadSettings, saveSettings } from '../store/settings'
 import { isFullscreenAppActive, registerFullscreenActiveListener } from './fullscreen'
 
 type RegisterWindowMessageFn = (lpString: string) => number
+type SetWindowLongPtrFn = (hWnd: number | bigint, nIndex: number, dwNewLong: number | bigint) => number | bigint
+type GetWindowLongPtrFn = (hWnd: number | bigint, nIndex: number) => number | bigint
+
 let registerWindowMessageFn: RegisterWindowMessageFn | null = null
+let setWindowLongPtrFn: SetWindowLongPtrFn | null = null
+let getWindowLongPtrFn: GetWindowLongPtrFn | null = null
 
 if (process.platform === 'win32') {
   try {
     const user32 = koffi.load('user32.dll')
     registerWindowMessageFn = user32.func('uint32 RegisterWindowMessageA(const char *lpString)') as RegisterWindowMessageFn
+    try {
+      setWindowLongPtrFn = user32.func('intptr_t SetWindowLongPtrW(uintptr_t hWnd, int nIndex, intptr_t dwNewLong)') as SetWindowLongPtrFn
+    } catch {
+      setWindowLongPtrFn = user32.func('intptr_t SetWindowLongW(uintptr_t hWnd, int nIndex, intptr_t dwNewLong)') as SetWindowLongPtrFn
+    }
+    try {
+      getWindowLongPtrFn = user32.func('intptr_t GetWindowLongPtrW(uintptr_t hWnd, int nIndex)') as GetWindowLongPtrFn
+    } catch {
+      getWindowLongPtrFn = user32.func('intptr_t GetWindowLongW(uintptr_t hWnd, int nIndex)') as GetWindowLongPtrFn
+    }
   } catch (err) {
-    console.error('[Window] Failed to load RegisterWindowMessageA via koffi:', err)
+    console.error('[Window] Failed to load user32 functions via koffi:', err)
+  }
+}
+
+const GWL_EXSTYLE = -20
+const WS_EX_NOACTIVATE = 0x08000000
+
+function getHwnd(win: BrowserWindow | null): number | bigint {
+  if (!win || win.isDestroyed()) return 0
+  const handleBuf = win.getNativeWindowHandle()
+  return process.arch === 'x64' ? handleBuf.readBigUInt64LE(0) : handleBuf.readUInt32LE(0)
+}
+
+/**
+ * Applies Win32 WS_EX_NOACTIVATE style so clicking anywhere on the panel (buttons, cards, empty space)
+ * never steals OS window/keyboard focus from the currently active application.
+ */
+export function applyNoActivateStyle(win: BrowserWindow | null, enable: boolean): void {
+  if (process.platform !== 'win32' || !win || win.isDestroyed() || !getWindowLongPtrFn || !setWindowLongPtrFn) return
+  try {
+    const hwnd = getHwnd(win)
+    if (!hwnd) return
+    const currentExStyle = Number(getWindowLongPtrFn(hwnd, GWL_EXSTYLE))
+    const newExStyle = enable
+      ? (currentExStyle | WS_EX_NOACTIVATE)
+      : (currentExStyle & ~WS_EX_NOACTIVATE)
+    if (newExStyle !== currentExStyle) {
+      setWindowLongPtrFn(hwnd, GWL_EXSTYLE, newExStyle)
+    }
+  } catch (err) {
+    console.error('[Window] Failed to apply WS_EX_NOACTIVATE:', err)
   }
 }
 
@@ -131,11 +176,13 @@ export function setInteractive(value: boolean): void {
     // 'floating' (HWND_TOPMOST) can be pushed behind by fullscreen D3D/browser windows.
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
     mainWindow.setSkipTaskbar(true)
+    applyNoActivateStyle(mainWindow, true)
   } else {
     // Panel is closed: full click-through, no forwarding needed.
     mainWindow.setIgnoreMouseEvents(true, { forward: false })
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
     mainWindow.setSkipTaskbar(true)
+    applyNoActivateStyle(mainWindow, true)
 
     // Trigger gentle idle memory cleanup 1.5s after panel closes to reclaim RAM
     if (global.gc) {
@@ -486,6 +533,9 @@ export function createWindow(): BrowserWindow {
   // Start click-through with no forwarding — edge detection is done via cursor poll.
   mainWindow.setIgnoreMouseEvents(true, { forward: false })
 
+  // Apply WS_EX_NOACTIVATE so clicking the panel never steals OS focus from the active application.
+  applyNoActivateStyle(mainWindow, true)
+
   // Listen for Windows Explorer restart/crash to purge ghost taskbar icons and restore tray.
   if (process.platform === 'win32' && registerWindowMessageFn) {
     try {
@@ -577,6 +627,7 @@ export function createWindow(): BrowserWindow {
     mainWindow.showInactive()
     // 'screen-saver' level stays above fullscreen browser windows and games.
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    applyNoActivateStyle(mainWindow, true)
   })
 
   mainWindow.webContents.on('console-message', (_event, _level, message, line, sourceId) => {
@@ -769,6 +820,7 @@ export function setVisible(visible: boolean): void {
 export function setWindowFocusable(focusable: boolean): void {
   if (mainWindow && !mainWindow.isDestroyed()) {
     try {
+      applyNoActivateStyle(mainWindow, !focusable)
       mainWindow.setFocusable(focusable)
       if (focusable) {
         mainWindow.focus()
