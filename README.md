@@ -108,6 +108,18 @@ It is built for the developer and creative workflow where you constantly juggle 
   </tr>
 </table>
 
+### Project Sponsors & Featured Products
+
+A huge thank you to the incredible sponsors and products actively sponsoring Edge-Drop!
+
+| Sponsor / Product | Links | Description |
+| :--- | :--- | :--- |
+| <a href="https://elitistreview.com/" target="_blank"><img src="https://unavatar.io/x/Elitistreview" width="32" height="32" style="border-radius: 50%; vertical-align: middle;" alt="Elitistreview" /></a> &nbsp; **[Elitistreview](https://elitistreview.com/)** | [Website](https://elitistreview.com/) &nbsp;·&nbsp; [X](https://x.com/Elitistreview) &nbsp;·&nbsp; [Bluesky](https://bsky.app/profile/elitistreview.com) | *When it comes to wine, there is an objective reality out there, and it is on Elitistreview.com.* |
+
+<p align="center">
+  <sub>💡 <em>Want your product, startup, or website featured here and seen by developers? <a href="https://ko-fi.com/deepender" target="_blank">Sponsor Edge-Drop on Ko-fi</a> or <a href="https://www.edgedrop.app/supportedgedrop/upi" target="_blank">UPI</a> and share your link!</em></sub>
+</p>
+
 ---
 
 ## Quick Start
