@@ -11,8 +11,8 @@
 import { app, BrowserWindow, nativeImage, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, cleanTemp, PATHS } from '../store/paths'
-import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth } from './window'
-import { createTray, registerIncognitoApplier } from './tray'
+import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener } from './window'
+import { createTray, registerIncognitoApplier, refreshTray } from './tray'
 import { registerIpc, registerSendListeners, syncLoginItemSettings } from './ipc'
 import { prewarmDragIcons } from './drag'
 import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
@@ -101,6 +101,7 @@ app.whenReady().then(() => {
   startCursorPoll()
   startFullscreenMonitor()
   createTray()
+  registerTaskbarCreatedListener(refreshTray)
 
   // Register global shortcut to toggle panel
   registerGlobalHotkey()

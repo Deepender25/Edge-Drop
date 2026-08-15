@@ -203,20 +203,41 @@ function getTrayText(settingsLang: string | undefined, key: keyof typeof en['tra
     tray?.popUpContextMenu()
   })
 
-  // Listen for display changes to keep tray context menu updated in real-time.
-  screen.on('display-added', rebuild)
-  screen.on('display-removed', rebuild)
-  screen.on('display-metrics-changed', rebuild)
+  // Listen for display changes to keep tray context menu updated in real-time (register once).
+  if (!screenListenersRegistered) {
+    screenListenersRegistered = true
+    screen.on('display-added', () => trayMenuRebuilder?.())
+    screen.on('display-removed', () => trayMenuRebuilder?.())
+    screen.on('display-metrics-changed', () => trayMenuRebuilder?.())
+    registerWindowRepositionListener(() => trayMenuRebuilder?.())
+  }
 
-  registerWindowRepositionListener(rebuild)
   trayMenuRebuilder = rebuild
   rebuild()
   return tray
 }
 
+let screenListenersRegistered = false
 let trayMenuRebuilder: (() => void) | null = null
+
 export function rebuildTrayMenu(): void {
   trayMenuRebuilder?.()
+}
+
+/**
+ * Destroys and safely recreates the tray icon.
+ * Used when Windows Explorer restarts/crashes (TaskbarCreated event).
+ */
+export function refreshTray(): void {
+  try {
+    if (tray && !tray.isDestroyed()) {
+      tray.destroy()
+      tray = null
+    }
+  } catch (err) {
+    console.error('[Tray] Error destroying old tray on refresh:', err)
+  }
+  createTray()
 }
 
 /** Reflect incognito toggle into the watcher without the renderer round-trip. */

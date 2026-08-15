@@ -25,6 +25,7 @@
 import { BrowserWindow, screen, shell, powerMonitor, app } from 'electron'
 import { join } from 'node:path'
 import { existsSync } from 'node:fs'
+import koffi from 'koffi'
 import { APP_CONFIG } from './config'
 import { runtime } from './config'
 import { PATHS } from '../store/paths'
@@ -32,6 +33,23 @@ import { TRANSLATIONS, en } from '../../src/i18n/translations'
 import { computeStickBounds } from './geometry'
 import { loadSettings, saveSettings } from '../store/settings'
 import { isFullscreenAppActive, registerFullscreenActiveListener } from './fullscreen'
+
+type RegisterWindowMessageFn = (lpString: string) => number
+let registerWindowMessageFn: RegisterWindowMessageFn | null = null
+
+if (process.platform === 'win32') {
+  try {
+    const user32 = koffi.load('user32.dll')
+    registerWindowMessageFn = user32.func('uint32 RegisterWindowMessageA(const char *lpString)') as RegisterWindowMessageFn
+  } catch (err) {
+    console.error('[Window] Failed to load RegisterWindowMessageA via koffi:', err)
+  }
+}
+
+const onTaskbarCreatedListeners: Array<() => void> = []
+export function registerTaskbarCreatedListener(fn: () => void): void {
+  onTaskbarCreatedListeners.push(fn)
+}
 
 export const PANEL_WIDTH = 384
 /** Visual width of the blade when collapsed (only used by the renderer). */
@@ -112,10 +130,12 @@ export function setInteractive(value: boolean): void {
     // Use 'screen-saver' level to stay above fullscreen apps (YouTube fullscreen, games, etc.)
     // 'floating' (HWND_TOPMOST) can be pushed behind by fullscreen D3D/browser windows.
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow.setSkipTaskbar(true)
   } else {
     // Panel is closed: full click-through, no forwarding needed.
     mainWindow.setIgnoreMouseEvents(true, { forward: false })
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow.setSkipTaskbar(true)
 
     // Trigger gentle idle memory cleanup 1.5s after panel closes to reclaim RAM
     if (global.gc) {
@@ -434,6 +454,7 @@ export function createWindow(): BrowserWindow {
   const { x, y, height } = getStickGeometry()
 
   mainWindow = new BrowserWindow({
+    type: 'toolbar',
     icon: PATHS.icon(),
     x,
     y,
@@ -465,6 +486,27 @@ export function createWindow(): BrowserWindow {
 
   // Start click-through with no forwarding — edge detection is done via cursor poll.
   mainWindow.setIgnoreMouseEvents(true, { forward: false })
+
+  // Listen for Windows Explorer restart/crash to purge ghost taskbar icons and restore tray.
+  if (process.platform === 'win32' && registerWindowMessageFn) {
+    try {
+      const taskbarCreatedMsg = registerWindowMessageFn('TaskbarCreated')
+      if (taskbarCreatedMsg > 0) {
+        mainWindow.hookWindowMessage(taskbarCreatedMsg, () => {
+          console.log('[Main] TaskbarCreated message received from Windows Explorer — refreshing taskbar state & tray')
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.setSkipTaskbar(true)
+            mainWindow.setAlwaysOnTop(true, 'screen-saver')
+          }
+          for (const listener of onTaskbarCreatedListeners) {
+            try { listener() } catch (err) { console.error('[Main] Error in onTaskbarCreated listener:', err) }
+          }
+        })
+      }
+    } catch (err) {
+      console.error('[Main] Failed to hook TaskbarCreated window message:', err)
+    }
+  }
 
   registerFullscreenActiveListener(() => {
     const settings = loadSettings()
@@ -684,6 +726,7 @@ export function popUpAndRetract(durationMs = 1500): void {
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.showInactive()
   mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  mainWindow.setSkipTaskbar(true)
 
   const wasAlreadyOpen = interactive
   console.log(`[Main] Popping up panel briefly to confirm new screen/edge location (wasAlreadyOpen=${wasAlreadyOpen})`)
@@ -706,6 +749,7 @@ export function repositionWindow(): void {
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.showInactive()
   mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  mainWindow.setSkipTaskbar(true)
   const g = getStickGeometry()
   mainWindow.setBounds({ ...g })
   onWindowRepositioned?.()
@@ -717,6 +761,7 @@ export function setVisible(visible: boolean): void {
   if (visible) {
     mainWindow.showInactive()
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow.setSkipTaskbar(true)
   } else {
     mainWindow.hide()
   }
