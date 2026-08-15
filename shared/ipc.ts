@@ -78,7 +78,7 @@ export interface InvokeMap {
   'window:minimize': { args: []; result: void }
 
   /** Request explicit OS focus for the main window (e.g. for recording hotkeys). */
-  'window:focus': { args: []; result: void }
+  'window:focus': { args: [focusable?: boolean]; result: void }
 
   /** Trigger a download of the already-available update and quit-and-install. */
   'app:install-update': { args: []; result: void }

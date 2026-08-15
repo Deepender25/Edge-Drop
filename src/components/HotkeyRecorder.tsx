@@ -98,6 +98,11 @@ export function HotkeyRecorder({ hotkey, onChange }: HotkeyRecorderProps) {
     setIsRecording(false)
     setPressedBadges([])
     try {
+      edge.focusWindow(false).catch?.(() => {})
+    } catch {
+      /* ignore */
+    }
+    try {
       edge.pauseHotkey(false).catch?.(() => {})
     } catch {
       /* ignore */
@@ -114,7 +119,7 @@ export function HotkeyRecorder({ hotkey, onChange }: HotkeyRecorderProps) {
 
     try {
       window.focus()
-      edge.focusWindow().catch?.(() => {})
+      edge.focusWindow(true).catch?.(() => {})
     } catch {
       /* ignore */
     }

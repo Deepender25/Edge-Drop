@@ -13,7 +13,7 @@ import { psHost, getSystemPowerShellPath } from './powershell'
 import { filterValidPaths, isValidFilePath, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
-import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, focusMainWindow } from './window'
+import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable } from './window'
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
@@ -631,8 +631,8 @@ export function registerIpc(): void {
     }
   })
 
-  handle('window:focus', () => {
-    focusMainWindow()
+  handle('window:focus', (focusable) => {
+    setWindowFocusable(focusable ?? true)
   })
 
   handle('displays:list', () => {

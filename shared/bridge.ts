@@ -40,7 +40,7 @@ export interface EdgeApi {
   pauseHotkey: (paused: boolean) => Promise<void>
   revealFile: (path: string) => Promise<boolean>
   minimizeWindow: () => Promise<void>
-  focusWindow: () => Promise<void>
+  focusWindow: (focusable?: boolean) => Promise<void>
   getDisplays: () => Promise<import('./types').DisplayInfo[]>
   getReleases: () => Promise<Array<{
     version: string

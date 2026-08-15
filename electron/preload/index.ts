@@ -167,7 +167,7 @@ const api = {
   pauseHotkey: (paused: boolean) => invoke('hotkey:pause', paused),
   revealFile: (path: string) => invoke('file:reveal', path),
   minimizeWindow: () => invoke('window:minimize'),
-  focusWindow: () => invoke('window:focus'),
+  focusWindow: (focusable?: boolean) => invoke('window:focus', focusable),
   setInternalDrag: (active: boolean) => { internalDrag = active },
   broadcastTutorialStep: (step: number) => send('tutorial:set-step', step),
 

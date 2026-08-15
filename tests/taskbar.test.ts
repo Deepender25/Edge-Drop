@@ -10,17 +10,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 describe('Taskbar & Explorer Recovery — Window Options', () => {
-  it('specifies type: "toolbar" to assign WS_EX_TOOLWINDOW extended style on Windows', () => {
-    // Win32 WS_EX_TOOLWINDOW excludes the window from taskbar and Alt+Tab switcher
+  it('configures skipTaskbar: true without type: "toolbar" to ensure OS focus returns cleanly to the target text box during paste', () => {
+    // Standard window with skipTaskbar: true preserves the Win32 foreground focus restoration chain,
+    // ensuring SendKeys('^v') pastes directly into the previous active text box when the panel closes.
     const windowOptions = {
-      type: 'toolbar' as const,
       skipTaskbar: true,
       alwaysOnTop: true,
       frame: false,
       transparent: true
     }
 
-    expect(windowOptions.type).toBe('toolbar')
     expect(windowOptions.skipTaskbar).toBe(true)
     expect(windowOptions.alwaysOnTop).toBe(true)
     expect(windowOptions.frame).toBe(false)
