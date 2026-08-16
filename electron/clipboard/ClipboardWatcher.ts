@@ -42,7 +42,10 @@ export class ClipboardWatcher {
     this.timer = setInterval(() => {
       if (this.paused) return
       const sig = clipboardSignature()
-      if (sig === this.lastSig) return
+      if (getContentSignature(sig) === getContentSignature(this.lastSig)) {
+        this.lastSig = sig
+        return
+      }
 
       // We detected a change. Wait a short moment to ensure it's not a transient 
       // injection by a dictation app or macro that quickly restores the clipboard.

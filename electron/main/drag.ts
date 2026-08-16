@@ -23,32 +23,50 @@ import { getStore } from './state'
 import { getFileKind } from '../../src/lib/fileType'
 
 /**
- * Resolve a DragRequest into concrete ItemData.
+ * Formats a clean, Windows OS-compliant human-readable screenshot filename
+ * based on the capture timestamp (e.g. "Screenshot 2026-08-15 22.30.45.png").
+ */
+export function formatScreenshotFilename(capturedAt?: number, ext = 'png', indexSuffix?: number): string {
+  const d = capturedAt ? new Date(capturedAt) : new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
+
+  const cleanExt = ext.replace(/^\./, '') || 'png'
+  const suffix = typeof indexSuffix === 'number' && indexSuffix > 1 ? ` (${indexSuffix})` : ''
+  return `Screenshot ${year}-${month}-${day} ${hours}.${minutes}.${seconds}${suffix}.${cleanExt}`
+}
+
+/**
+ * Resolve a DragRequest into concrete ItemData along with capture timestamp.
  *
  * If `paths` is provided (dragging one file out of an expanded bundle), synthesize
  * a singleton `files` item. Otherwise look up the full item by id.
  */
-export function resolveDragData(req: DragRequest): ItemData | null {
+export function resolveDragData(req: DragRequest): { data: ItemData; capturedAt?: number } | null {
   if (req.paths && req.paths.length > 0) {
     prefetchFileIcons(req.paths)
-    return { kind: 'files', paths: req.paths }
+    return { data: { kind: 'files', paths: req.paths } }
   }
   const item = getStore().get(req.id)
   if (!item) return null
-  
+
   if (item.data.kind === 'files') {
     prefetchFileIcons(item.data.paths)
   }
-  
+
   if (req.imageId && item.data.kind === 'image-collection') {
     const img = item.data.images.find((i) => i.imageId === req.imageId)
-    if (img) return { kind: 'image', ...img }
+    if (img) return { data: { kind: 'image', ...img }, capturedAt: item.capturedAt }
   }
-  return item.data
+  return { data: item.data, capturedAt: item.capturedAt }
 }
 
-export function startDragOut(sender: WebContents, data: ItemData): void {
-  const staged = stageDragFile(data)
+export function startDragOut(sender: WebContents, data: ItemData, capturedAt?: number): void {
+  const staged = stageDragFile(data, capturedAt)
   if (!staged) return
 
   const icon = dragIcon(data)
@@ -69,7 +87,7 @@ interface Staged {
 }
 
 /** Resolve the item to a concrete file path to hand to the OS. */
-function stageDragFile(data: ItemData): Staged | null {
+export function stageDragFile(data: ItemData, capturedAt?: number): Staged | null {
   const temp = PATHS.tempDir()
   switch (data.kind) {
     case 'files': {
@@ -81,7 +99,8 @@ function stageDragFile(data: ItemData): Staged | null {
       const src = getStore().getImagePath(data.imageId, data.ext)
       if (!existsSync(src)) return null
       const ext = extname(src) || '.png'
-      const dest = join(temp, `${data.imageId}${ext}`)
+      const fileName = formatScreenshotFilename(capturedAt, ext)
+      const dest = join(temp, fileName)
       try {
         if (!existsSync(dest)) {
           copyFileSync(src, dest)
@@ -89,20 +108,23 @@ function stageDragFile(data: ItemData): Staged | null {
       } catch {
         return null
       }
-      return { file: dest }
+      return { file: dest, files: [dest] }
     }
     case 'image-collection': {
       const paths: string[] = []
+      let idx = 1
       for (const img of data.images) {
         const src = getStore().getImagePath(img.imageId, img.ext)
         if (existsSync(src)) {
           const ext = extname(src) || '.png'
-          const dest = join(temp, `${img.imageId}${ext}`)
+          const fileName = formatScreenshotFilename(capturedAt, ext, idx)
+          const dest = join(temp, fileName)
           try {
             if (!existsSync(dest)) {
               copyFileSync(src, dest)
             }
             paths.push(dest)
+            idx++
           } catch {
             // skip failed copies
           }
@@ -113,13 +135,13 @@ function stageDragFile(data: ItemData): Staged | null {
     }
     case 'text': {
       const id = `${Date.now().toString(36)}`
-      const dest = join(temp, `${id}.txt`)
+      const dest = join(temp, `Snippet_${id}.txt`)
       try {
         writeFileSync(dest, data.text, 'utf8')
       } catch {
         return null
       }
-      return { file: dest }
+      return { file: dest, files: [dest] }
     }
   }
 }

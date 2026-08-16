@@ -226,40 +226,38 @@ export async function readClipboard(): Promise<ItemData | null> {
     return null
   }
 
-  const formats = clipboard.availableFormats()
-
   // Files first — a file copy also places text on the clipboard, which we ignore.
   const files = await readFileListAsync()
   if (files && files.length) return { kind: 'files', paths: files }
 
-  // Text vs Image priority heuristic based on available formats.
-  // When copying from Office apps, both rich text and images are placed on the clipboard.
-  // When copying an image from a browser, both image and a small text fallback are placed.
-  const hasImage = formats.includes('image/png') || formats.includes('image/jpeg')
-
+  const img = clipboard.readImage()
+  const hasImage = !img.isEmpty()
   const rawText = clipboard.readText().trim()
+  const rawHtml = clipboard.readHTML().trim()
 
-  // Determine primary intent based on formatting metadata
-  let isTextIntent = false
-  if (rawText) {
-    if (!hasImage) {
-      // If there is no image format at all, any text is definitely text.
-      isTextIntent = true
-    } else {
-      // Both text and image exist on the clipboard (common in Office, Chrome, IDEs).
-      // If the text is just a URL or a bare <img> tag, it's a browser fallback for a copied image.
-      const isUrl = URL_RE.test(rawText) && rawText.length < 500
-      const isImgTag = /^<img\b[^>]*>$/i.test(rawText)
-      if (!isUrl && !isImgTag) {
-        // Any other text (short words, code snippets, paragraphs) is genuinely copied text!
-        isTextIntent = true
+  // If an image is present on the clipboard (e.g. Snipping Tool, Screenshot, browser copy image)
+  if (hasImage) {
+    const hasRichHtmlDoc = rawHtml.includes('<html') || rawHtml.includes('<body') || rawHtml.includes('<table') || (rawHtml.includes('<p>') && rawText.length > 300)
+    const isSingleUrl = URL_RE.test(rawText) && rawText.length < 500
+    const isImgTag = /^<img\b[^>]*>$/i.test(rawText)
+
+    // Snipping Tool (Window mode, Freeform, Rectangular) or browser images:
+    // When text is absent, is a URL, is a single-line window title, or is an image tag without a rich document:
+    if (!rawText || isSingleUrl || isImgTag || !hasRichHtmlDoc) {
+      const size = img.getSize()
+      return {
+        kind: 'image',
+        imageId: '',
+        width: size.width,
+        height: size.height,
+        bytes: 0  // placeholder — ClipboardWatcher overwrites this with the actual PNG buffer length
       }
     }
   }
 
-  if (isTextIntent) {
+  // Text intent (Notepad, Word, VS Code text copy, rich HTML copy)
+  if (rawText) {
     let html: string | undefined
-    const rawHtml = clipboard.readHTML().trim()
     if (rawHtml && rawHtml !== rawText) html = rawHtml
 
     const isUrl = URL_RE.test(rawText)
@@ -268,29 +266,16 @@ export async function readClipboard(): Promise<ItemData | null> {
     return { kind: 'text', text: rawText, html, isUrl, isColor }
   }
 
-  // If it wasn't determined to be text intent, but we have an image, prioritize the image.
-  const img = clipboard.readImage()
-  if (!img.isEmpty()) {
+  // Fallback to image if no text
+  if (hasImage) {
     const size = img.getSize()
     return {
       kind: 'image',
       imageId: '',
       width: size.width,
       height: size.height,
-      bytes: 0  // placeholder — ClipboardWatcher overwrites this with the actual PNG buffer length
+      bytes: 0
     }
-  }
-
-  // Fallback to text if it's the only thing left
-  if (rawText) {
-    let html: string | undefined
-    const rawHtml = clipboard.readHTML().trim()
-    if (rawHtml && rawHtml !== rawText) html = rawHtml
-
-    const isUrl = URL_RE.test(rawText)
-    const isColor = COLOR_HEX_RE.test(rawText)
-
-    return { kind: 'text', text: rawText, html, isUrl, isColor }
   }
 
   return null
@@ -302,8 +287,8 @@ export async function readClipboard(): Promise<ItemData | null> {
  *
  * Strategy:
  *  - Files   → the list of paths (totally stable, always unique per copy)
- *  - Text    → the text content itself
  *  - Images  → dimensions + a sampled FNV-1a hash of raw pixel bytes
+ *  - Text    → the text content itself
  *
  * For images we use `nativeImage.toBitmap()` (raw BGRA, no codec) and walk
  * ~400 evenly-spaced bytes through it.  This is:
@@ -311,11 +296,6 @@ export async function readClipboard(): Promise<ItemData | null> {
  *   - Stable: same clipboard content → same pixels → same hash on every poll
  *   - Unique: different images with the same resolution produce different pixel
  *             values in practice, so collisions are astronomically unlikely
- *
- * The old approach used toPNG().length which was (a) expensive — re-encodes the
- * whole image on every poll tick — and (b) non-unique: two different 1920×1080
- * screenshots of similar complexity can produce the same byte count, causing the
- * second to be silently ignored as "no change".
  */
 export function clipboardSignature(): string {
   const seq = getClipboardSequenceNumber()
@@ -332,27 +312,50 @@ export function clipboardSignature(): string {
     return `${seqPrefix}files:${files.join('\n')}`
   }
 
-  // Text — the content itself is the fingerprint.
-  const text = clipboard.readText().trim()
-  if (text) {
-    return `${seqPrefix}text:${text}`
+  const img = clipboard.readImage()
+  const hasImage = !img.isEmpty()
+  const rawText = clipboard.readText().trim()
+
+  // Images: if an image is present and text is not a rich document selection,
+  // prioritize image fingerprinting so Snipping Tool window titles don't shadow the screenshot.
+  if (hasImage) {
+    const rawHtml = clipboard.readHTML().trim()
+    const hasRichHtmlDoc = rawHtml.includes('<html') || rawHtml.includes('<body') || rawHtml.includes('<table') || (rawHtml.includes('<p>') && rawText.length > 300)
+    const isSingleUrl = isUrlText(rawText)
+    const isBareImgTag = /^<img\b[^>]*>$/i.test(rawText)
+    const isLikelyScreenshotOrImage = !rawText || isSingleUrl || isBareImgTag || !hasRichHtmlDoc
+
+    if (isLikelyScreenshotOrImage) {
+      const size = img.getSize()
+      const bitmap = img.toBitmap()  // raw BGRA — no encoding, just a memory copy
+
+      // FNV-1a over ~400 evenly-spaced bytes.
+      const step = Math.max(1, Math.floor(bitmap.length / 400))
+      let hash = 0x811c9dc5 // FNV offset basis
+      for (let i = 0; i < bitmap.length; i += step) {
+        hash ^= bitmap[i]
+        hash = Math.imul(hash, 0x01000193) >>> 0 // FNV prime, keep as uint32
+      }
+
+      return `${seqPrefix}image:${size.width}x${size.height}:${hash.toString(36)}`
+    }
   }
 
-  // Images: sample raw pixel bytes through FNV-1a for a fast, stable fingerprint.
-  const img = clipboard.readImage()
-  if (!img.isEmpty()) {
-    const size = img.getSize()
-    const bitmap = img.toBitmap()  // raw BGRA — no encoding, just a memory copy
+  // Text — the content itself is the fingerprint.
+  if (rawText) {
+    return `${seqPrefix}text:${rawText}`
+  }
 
-    // FNV-1a over ~400 evenly-spaced bytes.
-    // Step ensures we sample the full image regardless of resolution.
+  // Fallback to image if no text
+  if (hasImage) {
+    const size = img.getSize()
+    const bitmap = img.toBitmap()
     const step = Math.max(1, Math.floor(bitmap.length / 400))
-    let hash = 0x811c9dc5 // FNV offset basis
+    let hash = 0x811c9dc5
     for (let i = 0; i < bitmap.length; i += step) {
       hash ^= bitmap[i]
-      hash = Math.imul(hash, 0x01000193) >>> 0 // FNV prime, keep as uint32
+      hash = Math.imul(hash, 0x01000193) >>> 0
     }
-
     return `${seqPrefix}image:${size.width}x${size.height}:${hash.toString(36)}`
   }
 

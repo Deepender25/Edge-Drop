@@ -31,9 +31,9 @@ function signature(data: ItemData): string {
     case 'text':
       return `text|${data.text}`
     case 'image':
-      return `image|${data.imageId}`
+      return data.bytes && data.bytes > 0 ? `image|${data.width}x${data.height}|${data.bytes}` : `image|${data.imageId}`
     case 'image-collection':
-      return `image-collection|${data.images.map((i) => i.imageId).join(',')}`
+      return `image-collection|${data.images.map((i) => `${i.width}x${i.height}|${i.bytes || i.imageId}`).join(',')}`
     case 'files':
       return `files|${data.paths.join('\n')}`
   }
@@ -485,10 +485,21 @@ export class ItemStore {
       let newData: ItemData = { kind: 'files', paths: targetPaths }
       if (targetPaths.length === 1) {
         const p = targetPaths[0]
-        const imgName = pathBasename(p)
-        if (/^[a-z0-9]{6,12}-[a-z0-9]{6,12}\.[a-z0-9]+$/i.test(imgName) || p.includes('edge-drop/images') || p.includes('edge-drop\\images') || p.includes('edge-drop/temp') || p.includes('edge-drop\\temp')) {
-          const imageId = imgName.split('.')[0]
-          const ext = extname(p).slice(1) || 'png'
+        const pLower = p.toLowerCase()
+        const isFromManagedDir = pLower.includes('images') || pLower.includes('temp') || pLower.includes('edge-drop')
+        if (isImageExt(p) && isFromManagedDir) {
+          const imgName = pathBasename(p)
+          let imageId = imgName.split('.')[0]
+          const ext = (extname(p).slice(1) || 'png').toLowerCase()
+          if (!/^[a-z0-9]{6,12}-[a-z0-9]{6,12}$/i.test(imageId)) {
+            imageId = createId()
+            try {
+              if (existsSync(p)) {
+                const rawBytes = readFileSync(p)
+                this.stageImageBytes(imageId, rawBytes, ext)
+              }
+            } catch {}
+          }
           let bytes = 0
           try { bytes = statSync(p).size } catch {}
           newData = { kind: 'image', imageId, width: 0, height: 0, bytes, ext }

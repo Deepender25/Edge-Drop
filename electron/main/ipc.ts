@@ -658,11 +658,12 @@ function on<C extends SendChannel>(
 export function registerSendListeners(): void {
   on('item:start-drag', (sender, req) => {
     console.log('[IPC] item:start-drag req=', JSON.stringify(req))
-    const data = resolveDragData(req)
-    if (!data) {
+    const resolved = resolveDragData(req)
+    if (!resolved) {
       console.log('[IPC] start-drag: no data resolved')
       return
     }
+    const { data, capturedAt } = resolved
     console.log('[IPC] start-drag: kind=', data.kind)
 
     // Pause the always-on-top heartbeat for the duration of the drag.
@@ -671,7 +672,7 @@ export function registerSendListeners(): void {
     // dragged item appear to vanish ~0.5 s into any drag gesture.
     setHeartbeatPaused(true)
 
-    startDragOut(sender, data)
+    startDragOut(sender, data, capturedAt)
     console.log('[IPC] start-drag returned, sending drag-end')
     sender.send('item:drag-end')
 
