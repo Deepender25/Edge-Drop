@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath } from './powershell'
-import { filterValidPaths, isValidFilePath, isExistingFilePath } from './pathValidation'
+import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
 import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable } from './window'
@@ -108,37 +108,32 @@ async function writeFileListToClipboard(rawPaths: string[]): Promise<void> {
   }
 }
 
-async function writeImageToClipboard(imagePath: string | null, previewDataUrl: string): Promise<void> {
-  if (process.platform === 'win32' && imagePath && isValidFilePath(imagePath) && existsSync(imagePath)) {
+export async function writeImageToClipboard(imagePath: string | null, previewDataUrl?: string): Promise<void> {
+  // If we have the full image path on disk, load the nativeImage directly from path
+  if (imagePath && existsSync(imagePath)) {
     try {
-      const b64Path = Buffer.from(imagePath, 'utf8').toString('base64')
-      const script = [
-        'Add-Type -AssemblyName System.Windows.Forms',
-        'Add-Type -AssemblyName System.Drawing',
-        `$p=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${b64Path}'))`,
-        '$bmp=[Drawing.Image]::FromFile($p)',
-        '$d=New-Object Windows.Forms.DataObject',
-        '$d.SetImage($bmp)',
-        '$c=New-Object System.Collections.Specialized.StringCollection',
-        '$c.Add($p)|Out-Null',
-        '$d.SetFileDropList($c)',
-        '[Windows.Forms.Clipboard]::SetDataObject($d,$true)',
-        '$bmp.Dispose()'
-      ].join(';')
-      await psHost.run(script, 3000)
-      return
+      const img = nativeImage.createFromPath(imagePath)
+      if (!img.isEmpty()) {
+        clipboard.clear()
+        clipboard.writeImage(img)
+        return
+      }
     } catch (err) {
-      console.error('[ipc] writeImageToClipboard PowerShell failed, using bitmap fallback:', err)
+      console.error('[ipc] writeImageToClipboard nativeImage.createFromPath failed:', err)
     }
   }
-  // Fallback: write bitmap only via Electron (no file reference)
-  try {
-    const img = nativeImage.createFromDataURL(previewDataUrl)
-    if (!img.isEmpty()) {
-      clipboard.clear()
-      clipboard.writeImage(img)
-    }
-  } catch { /* ignore */ }
+
+  // Fallback if imagePath was missing but previewDataUrl exists
+  if (previewDataUrl) {
+    try {
+      const img = nativeImage.createFromDataURL(previewDataUrl)
+      if (!img.isEmpty()) {
+        clipboard.clear()
+        clipboard.writeImage(img)
+        return
+      }
+    } catch { /* ignore */ }
+  }
 }
 
 /**

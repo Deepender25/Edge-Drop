@@ -203,10 +203,15 @@
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 .link-preview-header {
   display: flex;
   align-items: center;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 .link-brand-pill {
   display: inline-flex;
@@ -216,21 +221,34 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   padding: 3px 10px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .link-service {
   font-size: calc(11.5px * var(--font-scale, 1));
   font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .link-dot {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
 }
 .link-domain {
   font-size: calc(11px * var(--font-scale, 1));
   color: rgba(255, 255, 255, 0.65);
   font-weight: 450;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
 }
 .link-title {
   font-size: calc(13px * var(--font-scale, 1));
@@ -240,11 +258,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 .link-url {
   font-size: calc(11.5px * var(--font-scale, 1));
   color: rgba(255, 255, 255, 0.70);
-  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 /* Image thumbnails */

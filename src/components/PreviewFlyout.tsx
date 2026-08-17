@@ -596,12 +596,16 @@ function PreviewContent({
               background: 'rgba(255, 255, 255, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.14)',
               borderRadius: 999,
-              padding: '3px 10px'
+              padding: '3px 10px',
+              maxWidth: 'calc(100% - 75px)',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              boxSizing: 'border-box'
             }}>
               <GlobeIcon width={13} height={13} style={{ color: 'rgba(255, 255, 255, 0.85)', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', fontFamily: SYS_FONT }}>{info.serviceName}</span>
-              <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.35)' }}>·</span>
-              <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.65)', fontFamily: SYS_FONT }}>{info.domain}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#ffffff', fontFamily: SYS_FONT, flexShrink: 0, whiteSpace: 'nowrap' }}>{info.serviceName}</span>
+              <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.35)', flexShrink: 0 }}>·</span>
+              <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.65)', fontFamily: SYS_FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 1 }}>{info.domain}</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
