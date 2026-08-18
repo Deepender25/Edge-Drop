@@ -40,8 +40,15 @@ export function Panel() {
 
   useEffect(() => {
     if (!open) {
-      setSettingsOpen(false)
-      setQuery('')
+      // Delay resetting view state until after the retraction spring finishes (~350ms),
+      // so the blade smoothly retracts with the current view without flashing the main clipboard.
+      const timer = window.setTimeout(() => {
+        if (!useStore.getState().open) {
+          setSettingsOpen(false)
+          setQuery('')
+        }
+      }, 400)
+      return () => window.clearTimeout(timer)
     }
   }, [open, setSettingsOpen, setQuery])
 

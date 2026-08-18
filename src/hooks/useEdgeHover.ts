@@ -142,7 +142,6 @@ export function useEdgeHover(): void {
     const closePanelNow = () => {
       const s = useStore.getState()
       if (s.styleFlyoutOpen) s.setStyleFlyoutOpen(false)
-      if (s.settingsOpen) s.setSettingsOpen(false)
       s.setOpen(false)
       if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
       interactiveTimer = window.setTimeout(() => {
