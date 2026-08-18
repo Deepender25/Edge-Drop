@@ -13,7 +13,9 @@ import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, cleanTemp, PATHS } from '../store/paths'
 import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener } from './window'
 import { createTray, registerIncognitoApplier, refreshTray } from './tray'
-import { registerIpc, registerSendListeners, syncLoginItemSettings } from './ipc'
+import { registerIpc, registerSendListeners } from './ipc'
+import { reconcileLaunchAtLoginOnStartup } from './loginItems'
+import { isStoreBuild } from './config'
 import { prewarmDragIcons } from './drag'
 import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
 import { initAutoUpdater } from './updater'
@@ -84,8 +86,11 @@ app.on('before-quit', () => {
 })
 
 app.whenReady().then(() => {
-  // Set App User Model ID so native notifications are branded as "Edge-Drop" on Windows
-  app.setAppUserModelId('com.edgedrop.app')
+  // GitHub NSIS needs an explicit AUMID. Store packages already have one from
+  // the AppX identity; overriding it breaks toasts and taskbar grouping.
+  if (!isStoreBuild()) {
+    app.setAppUserModelId('com.edgedrop.app')
+  }
 
   ensureDirs()
   cleanTemp()
@@ -122,8 +127,12 @@ app.whenReady().then(() => {
     }, 2000)
   }
   setHotZoneWidth(settings.hotZoneWidth || 3)
-  
-  syncLoginItemSettings(settings.launchAtLogin)
+
+  void reconcileLaunchAtLoginOnStartup().then((reconciled) => {
+    pushState.settings(reconciled)
+  }).catch((err) => {
+    console.error('[Main] Failed to reconcile launch-at-login with Windows:', err)
+  })
   registerIncognitoApplier((v) => getWatcher().setPaused(v))
   getWatcher().setPaused(settings.incognito)
   pushState.settings(settings)

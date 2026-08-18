@@ -1,6 +1,6 @@
 {
   "name": "edge-drop",
-  "version": "0.2.7",
+  "version": "0.2.9",
   "description": "Edge-Drop — a clipboard manager that lives on the left edge of your screen and expands on hover.",
   "author": "Edge-Drop",
   "license": "Apache-2.0",
@@ -31,7 +31,20 @@
     "files": [
       "out/**/*",
       "resources/**/*",
+      "!resources/startup/**/*.exe",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/startup/EdgeDropStartup.exe",
+        "to": "startup/EdgeDropStartup.exe"
+      }
+    ],
+    "asarUnpack": [
+      "**/*.{node,dll}",
+      "**/node_modules/koffi/**/*",
+      "**/node_modules/@koromix/**/*",
+      "**/node_modules/@resvg/**/*"
     ],
     "publish": {
       "provider": "github",
@@ -69,7 +82,12 @@
       "publisher": "CN=55FECDC4-7144-4A41-98FC-056C003F76FD",
       "publisherDisplayName": "Deepender",
       "applicationId": "EdgeDrop",
-      "displayName": "Edge Drop"
+      "displayName": "Edge Drop",
+      "capabilities": [
+        "runFullTrust",
+        "internetClient"
+      ],
+      "customExtensionsPath": "resources/appx/startup-extensions.xml"
     }
   },
   "devDependencies": {

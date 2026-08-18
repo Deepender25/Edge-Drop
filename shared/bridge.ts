@@ -35,6 +35,7 @@ export interface EdgeApi {
   mergeItems: (sourceId: string, targetId: string) => Promise<import('./types').MergeResult>
   splitItem: (req: import('./types').DragRequest) => Promise<boolean>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
+  refreshLaunchAtLogin: () => Promise<Settings>
   setInteractive: (value: boolean) => Promise<void>
   setPreviewMode: (active: boolean) => Promise<void>
   pauseHotkey: (paused: boolean) => Promise<void>

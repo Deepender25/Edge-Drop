@@ -1,8 +1,18 @@
 import { spawn, ChildProcess } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { isStoreBuild } from './config'
 
 export function getSystemPowerShellPath(): string {
   const systemRoot = process.env.SystemRoot || 'C:\\Windows'
   return `${systemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
+}
+
+/** Writable cwd so packaged (WindowsApps) launches don't inherit a read-only working directory. */
+export function getWritableCwd(): string {
+  for (const candidate of [process.env.TEMP, process.env.TMP, process.env.USERPROFILE]) {
+    if (candidate && existsSync(candidate)) return candidate
+  }
+  return 'C:\\Windows\\Temp'
 }
 
 class PersistentPowerShell {
@@ -23,7 +33,8 @@ class PersistentPowerShell {
     try {
       this.proc = spawn(this.powershellPath, ['-NoProfile', '-NonInteractive', '-Command', '-'], {
         stdio: ['pipe', 'pipe', 'ignore'],
-        windowsHide: true
+        windowsHide: true,
+        ...(isStoreBuild() ? { cwd: getWritableCwd() } : {})
       })
 
       this.proc.stdout?.on('data', (data) => {

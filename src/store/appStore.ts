@@ -103,6 +103,7 @@ interface AppState {
   paste: (id: string) => Promise<void>
   pasteSubitem: (req: DragRequest) => Promise<void>
   patchSettings: (patch: Partial<Settings>) => Promise<void>
+  refreshLaunchAtLogin: () => Promise<void>
   setTutorialStep: (step: number) => void
 }
 
@@ -385,6 +386,15 @@ export const useStore = create<AppState>((set, get) => ({
   async patchSettings(patch) {
     const next = await edge.updateSettings(patch)
     set({ settings: next })
+  },
+
+  async refreshLaunchAtLogin() {
+    try {
+      const next = await edge.refreshLaunchAtLogin()
+      if (next) set({ settings: next })
+    } catch {
+      /* ignore */
+    }
   },
 
   setTutorialStep: (step) => {

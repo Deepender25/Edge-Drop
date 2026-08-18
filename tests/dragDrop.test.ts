@@ -7,7 +7,10 @@ vi.mock('../electron/store/paths', () => ({
   PATHS: {
     tempDir: () => 'C:\\mock\\temp',
     imagesDir: () => 'C:\\mock\\images'
-  }
+  },
+  getUnpackagedTempDir: () => 'C:\\mock\\temp',
+  toUnpackagedFilePath: (p: string) => p,
+  toUnpackagedFilePaths: (ps: string[]) => ps
 }))
 
 vi.mock('../electron/main/state', () => ({
@@ -23,7 +26,8 @@ vi.mock('node:fs', () => ({
     return false
   }),
   copyFileSync: vi.fn(),
-  writeFileSync: vi.fn()
+  writeFileSync: vi.fn(),
+  mkdirSync: vi.fn()
 }))
 
 describe('formatScreenshotFilename', () => {

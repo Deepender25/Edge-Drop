@@ -73,6 +73,13 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
     window.edge.getDisplays().then(setDisplays).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    const pull = () => { void useStore.getState().refreshLaunchAtLogin() }
+    pull()
+    const timer = window.setInterval(pull, 2000)
+    return () => window.clearInterval(timer)
+  }, [])
+
   const updateDownloaded = updateInfo?.downloaded ? { version: updateInfo.latestVersion } : null
   const autoUpdates = settings.autoUpdates ?? true
 
@@ -328,7 +335,12 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                     </div>
                     <Toggle
                       checked={settings.launchAtLogin}
-                      onChange={(v) => patch({ launchAtLogin: v })}
+                      onChange={(v) => {
+                        useStore.setState((s) => ({
+                          settings: { ...s.settings, launchAtLogin: v }
+                        }))
+                        void patch({ launchAtLogin: v })
+                      }}
                     />
                   </div>
 

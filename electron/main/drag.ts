@@ -15,9 +15,9 @@
  */
 import { app, nativeImage, type WebContents } from 'electron'
 import { Resvg } from '@resvg/resvg-js'
-import { copyFileSync, writeFileSync, existsSync } from 'node:fs'
+import { copyFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 import { join, extname } from 'node:path'
-import { PATHS } from '../store/paths'
+import { getUnpackagedTempDir, toUnpackagedFilePaths } from '../store/paths'
 import type { DragRequest, ItemData } from '../../shared/types'
 import { getStore } from './state'
 import { getFileKind } from '../../src/lib/fileType'
@@ -88,12 +88,14 @@ interface Staged {
 
 /** Resolve the item to a concrete file path to hand to the OS. */
 export function stageDragFile(data: ItemData, capturedAt?: number): Staged | null {
-  const temp = PATHS.tempDir()
+  const temp = getUnpackagedTempDir()
+  mkdirSync(temp, { recursive: true })
   switch (data.kind) {
     case 'files': {
       const real = data.paths.filter((p) => existsSync(p))
       if (!real.length) return null
-      return { file: real[0], files: real }
+      const exposed = toUnpackagedFilePaths(real)
+      return { file: exposed[0], files: exposed }
     }
     case 'image': {
       const src = getStore().getImagePath(data.imageId, data.ext)

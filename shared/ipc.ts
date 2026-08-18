@@ -65,6 +65,9 @@ export interface InvokeMap {
   /** Update a persisted setting. */
   'settings:update': { args: [patch: Partial<Settings>]; result: Settings }
 
+  /** Re-read launch-at-login from Windows and persist it into settings. */
+  'startup:refresh': { args: []; result: Settings }
+
   /** Pause/resume global shortcut registration temporarily (e.g. while recording a new hotkey). */
   'hotkey:pause': { args: [paused: boolean]; result: void }
 

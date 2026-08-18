@@ -32,8 +32,9 @@ export function getClipboardSequenceNumber(): number {
   }
   return 0
 }
-import { getSystemPowerShellPath } from '../main/powershell'
+import { getSystemPowerShellPath, getWritableCwd } from '../main/powershell'
 import { filterValidPaths } from '../main/pathValidation'
+import { isStoreBuild } from '../main/config'
 
 const execFileAsync = promisify(execFile)
 
@@ -70,7 +71,7 @@ async function readFileListAsync(): Promise<string[] | null> {
             '-Command',
             'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::GetFileDropList()'
           ],
-          { encoding: 'utf8', timeout: 2000 }
+          { encoding: 'utf8', timeout: 2000, windowsHide: true, ...(isStoreBuild() ? { cwd: getWritableCwd() } : {}) }
         )
         if (stdout) {
           const paths = filterValidPaths(stdout.split(/\r?\n/).map((l) => l.trim()))

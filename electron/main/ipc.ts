@@ -6,10 +6,9 @@
  * is a compile-time error rather than a runtime one.
  */
 import { app, ipcMain, clipboard, nativeImage, shell, net } from 'electron'
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync } from 'node:fs'
 import { execFile } from 'node:child_process'
-import { psHost, getSystemPowerShellPath } from './powershell'
+import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
@@ -22,6 +21,11 @@ import { clipboardSignature } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
 import { createId } from '../store/ids'
+import { isStoreBuild } from './config'
+import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
+import { toUnpackagedFilePath, toUnpackagedFilePaths } from '../store/paths'
+
+export { isStoreBuild }
 
 /**
  * Returns true if the current system clipboard content matches the given item data.
@@ -64,7 +68,7 @@ function simulatePaste(): void {
           '-NonInteractive',
           '-Command',
           "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('^v')"
-        ], (fallbackErr) => {
+        ], { windowsHide: true, ...(isStoreBuild() ? { cwd: getWritableCwd() } : {}) }, (fallbackErr) => {
           if (fallbackErr) console.error('[Main] simulatePaste fallback error:', fallbackErr)
         })
       })
@@ -83,7 +87,7 @@ function simulatePaste(): void {
  * Paths are base64-encoded so any character (spaces, quotes, Unicode) is safe.
  */
 async function writeFileListToClipboard(rawPaths: string[]): Promise<void> {
-  const validPaths = filterValidPaths(rawPaths)
+  const validPaths = toUnpackagedFilePaths(filterValidPaths(rawPaths))
   if (process.platform === 'win32' && validPaths.length > 0) {
     try {
       const addLines = validPaths
@@ -147,49 +151,12 @@ function handle<C extends InvokeChannel>(
   ipcMain.handle(channel, (_e, ...args) => fn(...(args as InvokeMap[C]['args'])))
 }
 
-/** Detects whether the app is packaged and running as a Microsoft Store (MSIX) build. */
-export function isStoreBuild(): boolean {
-  if (process.windowsStore || process.env.APP_BUILD_TARGET === 'store') {
-    return true
-  }
-  try {
-    if (app.isPackaged) {
-      const pkgPath = join(app.getAppPath(), 'package.json')
-      if (existsSync(pkgPath)) {
-        const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
-        if (pkg.buildTarget === 'store') {
-          return true
-        }
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  return false
-}
-
-/** Synchronizes launch at login settings with Windows Registry, resolving path drift after updates. */
-export function syncLoginItemSettings(launchAtLogin?: boolean): void {
-  if (!app.isPackaged) return
+/** Apply launch-at-login to the OS and return the state Windows actually kept. */
+export async function syncLoginItemSettings(launchAtLogin?: boolean): Promise<void> {
   const wantLaunch = launchAtLogin ?? loadSettings().launchAtLogin
-  try {
-    const exePath = app.getPath('exe')
-    if (wantLaunch) {
-      app.setLoginItemSettings({
-        openAtLogin: true,
-        path: exePath,
-        args: ['--hidden'],
-        name: 'Edge-Drop'
-      })
-    } else {
-      app.setLoginItemSettings({
-        openAtLogin: false,
-        path: exePath,
-        name: 'Edge-Drop'
-      })
-    }
-  } catch (err) {
-    console.error('[IPC] Failed to sync login item settings:', err)
+  const result = await applyLaunchAtLogin(wantLaunch)
+  if (!result.ok) {
+    console.error('[IPC] launch-at-login apply did not stick. wanted=', wantLaunch, 'result=', result)
   }
 }
 
@@ -556,7 +523,11 @@ export function registerIpc(): void {
     return success
   })
 
-  handle('settings:update', (patch) => {
+  handle('startup:refresh', async () => {
+    return refreshLaunchAtLoginFromOs()
+  })
+
+  handle('settings:update', async (patch) => {
     // When the user explicitly picks a display, also persist its geometry so
     // the next reboot can re-identify the monitor via fuzzy bounds matching
     // even after Windows re-assigns numeric display IDs.
@@ -576,9 +547,17 @@ export function registerIpc(): void {
         }
       }
     }
-    const next = saveSettings(enrichedPatch)
+    let next = saveSettings(enrichedPatch)
     if (patch.launchAtLogin !== undefined) {
-      syncLoginItemSettings(next.launchAtLogin)
+      const applied = await applyLaunchAtLogin(patch.launchAtLogin)
+      if (applied.enabled !== next.launchAtLogin) {
+        next = saveSettings({ launchAtLogin: applied.enabled })
+      }
+      if (applied.blockedByUser && patch.launchAtLogin) {
+        toast('Windows blocked launch at login. Enable Edge-Drop in Settings → Apps → Startup.', 'info')
+      } else if (!applied.ok) {
+        toast('Could not update launch at login.', 'error')
+      }
     }
     if (patch.hotZoneWidth !== undefined) {
       setHotZoneWidth(patch.hotZoneWidth)
@@ -725,7 +704,7 @@ export async function writeItemToClipboard(data: ItemData): Promise<void> {
         const paths: string[] = []
         for (const img of dto.data.images) {
           const src = getStore().getImagePath(img.imageId, img.ext)
-          if (existsSync(src)) paths.push(src)
+          if (existsSync(src)) paths.push(toUnpackagedFilePath(src))
         }
         if (paths.length > 0) {
           // For multi-image collections, write all file refs atomically.

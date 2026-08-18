@@ -1,0 +1,3 @@
+        <desktop:Extension Category="windows.startupTask" Executable="app\Edge-Drop.exe" EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="EdgeDropStartup" Enabled="true" DisplayName="Edge-Drop" />
+        </desktop:Extension>

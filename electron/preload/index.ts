@@ -162,6 +162,7 @@ const api = {
   getReleases: () => invoke('app:get-releases'),
   updateSettings: (patch: Partial<InvokeResult<'settings:update'>>) =>
     invoke('settings:update', patch),
+  refreshLaunchAtLogin: () => invoke('startup:refresh'),
   setInteractive: (value: boolean) => invoke('window:set-interactive', value),
   setPreviewMode: (active: boolean) => invoke('window:set-preview-mode', active),
   pauseHotkey: (paused: boolean) => invoke('hotkey:pause', paused),

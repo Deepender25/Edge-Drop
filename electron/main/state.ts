@@ -13,7 +13,7 @@ import { MAX_STACK } from '../../shared/types'
 import { createId } from '../store/ids'
 import { nativeImage, BrowserWindow, powerMonitor } from 'electron'
 import { readFileSync } from 'node:fs'
-import { PATHS } from '../store/paths'
+import { isStagedTempPath } from '../store/paths'
 import { prefetchFileIcons } from './drag'
 import { runtime } from './config'
 import { getMainWindow } from './window'
@@ -180,7 +180,7 @@ export function addFiles(paths: string[]): AddFilesResult {
   // Prevent duplicating items when a user accidentally drops our own staged temp
   // files back into the app. Real files are deduplicated automatically by path,
   // but images are staged to temp-drag and would otherwise get new IDs.
-  const clean = paths.filter((p) => !p.startsWith(PATHS.tempDir()))
+  const clean = paths.filter((p) => !isStagedTempPath(p))
   if (clean.length === 0) return { stacksCreated: 0 }
 
   const imageExts = /\.(png|jpe?g|gif|webp|bmp|svg|avif|ico|tiff?|jfif|pjpeg|pjp)$/i

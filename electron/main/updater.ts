@@ -1,5 +1,5 @@
 import { app, net } from 'electron'
-import { isStoreBuild } from './ipc'
+import { isStoreBuild } from './config'
 import { pushState } from './state'
 import { getSettings } from '../store/settings'
 
