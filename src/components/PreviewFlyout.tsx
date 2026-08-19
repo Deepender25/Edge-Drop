@@ -176,7 +176,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
           [isRight ? 'right' : 'left']: 'var(--panel-width)',
           marginLeft: isRight ? 0 : 12,
           marginRight: isRight ? 12 : 0,
-          width: 420,
+          width: 440,
           display: 'flex',
           alignItems: 'center',
           pointerEvents: 'none',
@@ -240,7 +240,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             </div>
           )}
           {/* Content — even bezels, no header chrome */}
-          <div style={{ padding: selectedKeys.size > 0 ? '20px 20px 68px 20px' : '20px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
+          <div style={{ padding: selectedKeys.size > 0 ? '20px 20px 68px 20px' : '20px', overflowY: 'auto', overflowX: 'hidden', flex: 1, minHeight: 0 }}>
             <PreviewContent
               item={item}
               selectedKeys={selectedKeys}
@@ -881,18 +881,127 @@ function PreviewContent({
       )
     }
 
-    const isSingleFile = item.data.paths.length === 1
-    const hasImageFiles = item.data.entries?.some((e: any) => e.isImage) || item.data.paths.some((p: string) => getFileKind(p).kind === 'image')
-    const useSingleColumn = isSingleFile || hasImageFiles
+    const isSingleNonImage = item.data.paths.length === 1
+    if (isSingleNonImage) {
+      const p = item.data.paths[0]
+      const entry = item.data.entries?.[0]
+      const info = getFileKind(p, entry?.isDirectory)
+      const fileName = formatImageDisplayName(entry?.name || p, item.capturedAt)
+      return (
+        <div
+          draggable={true}
+          onDragStart={(e) => {
+            e.preventDefault()
+            const req = { id: item.id, paths: [p] }
+            useStore.getState().setInternalDragReq(req)
+            startDrag(req)
+          }}
+          onDragEnd={() => useStore.getState().setInternalDragReq(null)}
+          onClick={(e) => {
+            e.stopPropagation()
+            tryPaste(() => useStore.getState().paste(item.id))
+          }}
+          title={t('flyout.clickToPasteDrag')}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: 16,
+            padding: '36px 20px 28px',
+            background: 'rgba(255, 255, 255, 0.035)',
+            borderRadius: 14,
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            position: 'relative',
+            cursor: 'grab'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
+            <QuickActionButton
+              title={t('flyout.copyFile')}
+              icon={CopyIcon}
+              onClick={() => window.edge.copyItem(item.id)}
+            />
+            <button
+              title={t('flyout.openInExplorer')}
+              onClick={(e) => {
+                e.stopPropagation()
+                window.edge.revealFile(p)
+              }}
+              style={{
+                width: 28,
+                height: 28,
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: 'rgba(255, 255, 255, 0.75)',
+                borderRadius: 8,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)'
+                e.currentTarget.style.color = '#fff'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
+                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)'
+              }}
+            >
+              <FolderOpenIcon width={14} height={14} />
+            </button>
+          </div>
+
+          <div style={{
+            width: 104,
+            height: 104,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.55))',
+            marginTop: 4
+          }}>
+            <FileKindIcon path={p} width={104} height={104} isDirectory={entry?.isDirectory} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: '100%', padding: '0 10px' }}>
+            <div
+              title={fileName}
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: '#ffffff',
+                wordBreak: 'break-word',
+                lineHeight: 1.4,
+                fontFamily: SYS_FONT
+              }}
+            >
+              {fileName}
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.45)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+              {!entry?.isDirectory && entry?.size ? `${formatBytes(entry.size)} · ` : ''}{info.label}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    const hasImageFiles = item.data.entries?.some((e: any) => !e.isDirectory && e.isImage) || item.data.paths.some((p: string, i: number) => {
+      const e = item.data.entries?.[i]
+      return !e?.isDirectory && getFileKind(p, e?.isDirectory).kind === 'image'
+    })
+    const useSingleColumn = hasImageFiles
 
     return (
-      <div style={{ display: useSingleColumn ? 'flex' : 'grid', flexDirection: useSingleColumn ? 'column' : undefined, gridTemplateColumns: useSingleColumn ? undefined : 'repeat(2, 1fr)', gap: 12 }}>
+      <div style={{ display: useSingleColumn ? 'flex' : 'grid', flexDirection: useSingleColumn ? 'column' : undefined, gridTemplateColumns: useSingleColumn ? undefined : 'repeat(2, minmax(0, 1fr))', gap: 12, width: '100%', boxSizing: 'border-box' }}>
         {item.data.paths.map((p: string, i: number) => {
           const entry = item.data.entries?.[i]
-          const info = getFileKind(p)
+          const info = getFileKind(p, entry?.isDirectory)
           const fileName = formatImageDisplayName(entry?.name || p, item.capturedAt)
           const isSelected = selectedKeys?.has(p) ?? false
-          const isImg = entry?.isImage || info.kind === 'image'
+          const isImg = !entry?.isDirectory && (entry?.isImage || info.kind === 'image')
 
           if (isImg) {
             const fullResUrl = `edgelocal://file/${encodeURIComponent(p.replace(/\\/g, '/'))}`
@@ -918,115 +1027,139 @@ function PreviewContent({
                     tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [p] }))
                   }
                 }}
-                title={selectedKeys && selectedKeys.size > 0 ? (isSelected ? 'Click to deselect' : 'Click to select') : `Click to paste "${fileName}" · Drag to move`}
+                title={t('flyout.clickToPasteDrag')}
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  background: isSelected ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255,255,255,0.035)',
-                  borderRadius: 12,
-                  border: isSelected ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.06)',
-                  boxShadow: isSelected ? '0 0 14px rgba(255, 255, 255, 0.15)' : 'none',
-                  overflow: 'hidden',
-                  transition: 'all 0.18s ease',
-                  minWidth: 0,
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '8px 10px',
+                  background: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.035)',
+                  borderRadius: 10,
+                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                  cursor: 'grab',
                   position: 'relative',
-                  cursor: 'grab'
+                  minWidth: 0,
+                  width: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
-                {/* Floating Top Overlay: Selection & Action Buttons */}
-                <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 3 }}>
-                  <SelectionBadge
-                    isSelected={isSelected}
-                    onToggle={(e) => onToggleSelectKey?.(p, e)}
+                {/* Multi-Select Checkbox */}
+                {onToggleSelectKey && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onToggleSelectKey(p, e)
+                    }}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: isSelected ? '1.5px solid #fff' : '1.5px solid rgba(255, 255, 255, 0.3)',
+                      background: isSelected ? '#fff' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      flexShrink: 0
+                    }}
+                  >
+                    {isSelected && (
+                      <CheckIcon width={12} height={12} style={{ color: '#000', strokeWidth: 3 }} />
+                    )}
+                  </div>
+                )}
+
+                {/* Left Thumbnail (small image card) */}
+                <div style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid rgba(255, 255, 255, 0.08)'
+                }}>
+                  <img
+                    src={fullResUrl}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
 
-                <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {/* File Name & Metadata */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0, flex: 1, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                  <span
+                    title={fileName}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: '#ffffff',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
+                      lineHeight: 1.35,
+                      fontFamily: SYS_FONT,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {fileName}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.45)', fontFamily: SYS_FONT }}>
+                    {entry?.size ? `${formatBytes(entry.size)} · ` : ''}{info.label}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                   <QuickActionButton
-                    title="Copy File"
+                    title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => window.edge.copySubitem({ id: item.id, paths: [p] })}
-                    solidDark={true}
                   />
                   <button
-                    title="Open location in Explorer"
+                    title={t('flyout.openInExplorer')}
                     onClick={(e) => {
                       e.stopPropagation()
                       window.edge.revealFile(p)
                     }}
                     style={{
-                      width: 28,
-                      height: 28,
-                      background: 'rgba(0, 0, 0, 0.75)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: 8,
+                      width: 24,
+                      height: 24,
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      color: 'rgba(255, 255, 255, 0.65)',
+                      borderRadius: 6,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      transition: 'all 0.15s ease',
-                      flexShrink: 0
+                      transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.95)'
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
                       e.currentTarget.style.color = '#fff'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)'
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
                     }}
                   >
-                    <FolderOpenIcon width={14} height={14} />
+                    <FolderOpenIcon width={12} height={12} />
                   </button>
-                </div>
-
-                {/* Real full-resolution image loaded directly from disk without thumbnail blur */}
-                <div style={{ width: '100%', background: 'rgba(0, 0, 0, 0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 120 }}>
-                  <img
-                    src={fullResUrl}
-                    onError={(e) => {
-                      // Fallback to entry.preview if file on disk was moved
-                      if (entry?.preview) {
-                        e.currentTarget.src = entry.preview
-                      }
-                    }}
-                    alt={fileName}
-                    style={{
-                      width: '100%',
-                      height: 'auto',
-                      maxHeight: '65vh',
-                      objectFit: 'contain',
-                      display: 'block'
-                    }}
-                    draggable={false}
-                  />
-                </div>
-
-                {/* File Name & Size at the Bottom — NO image icon */}
-                <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 2, background: 'rgba(0, 0, 0, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                  <span
-                    title={fileName}
-                    style={{
-                      fontSize: 12.5,
-                      fontWeight: 500,
-                      color: 'rgba(255,255,255,0.95)',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      fontFamily: SYS_FONT
-                    }}
-                  >
-                    {fileName}
-                  </span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                    {entry?.size ? formatBytes(entry.size) : info.label}
-                  </span>
                 </div>
               </div>
             )
           }
 
+          // Non-image file card in multi-file view (2-column grid or single column)
           return (
             <div
               key={i}
@@ -1049,89 +1182,126 @@ function PreviewContent({
                   tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [p] }))
                 }
               }}
-              title={selectedKeys && selectedKeys.size > 0 ? (isSelected ? 'Click to deselect' : 'Click to select') : `Click to paste "${fileName}" · Drag to move`}
+              title={t('flyout.clickToPasteDrag')}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '12px 14px',
-                background: isSelected ? 'rgba(255, 255, 255, 0.09)' : 'rgba(255,255,255,0.035)',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 8,
+                padding: '14px 10px 12px',
+                background: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.035)',
                 borderRadius: 12,
-                border: isSelected ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.06)',
-                boxShadow: isSelected ? '0 0 14px rgba(255, 255, 255, 0.15)' : 'none',
-                gap: 10,
-                transition: 'all 0.18s ease',
+                border: isSelected ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                cursor: 'grab',
+                position: 'relative',
                 minWidth: 0,
-                cursor: 'grab'
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-                  <SelectionBadge
-                    isSelected={isSelected}
-                    onToggle={(e) => onToggleSelectKey?.(p, e)}
-                  />
-                  <div style={{ color: info.color, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                    <FileKindIcon path={p} width={18} height={18} />
+              {/* Top Controls: Checkbox (left) + Action Buttons (right) */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 4 }}>
+                {onToggleSelectKey ? (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onToggleSelectKey(p, e)
+                    }}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: isSelected ? '1.5px solid #fff' : '1.5px solid rgba(255, 255, 255, 0.3)',
+                      background: isSelected ? '#fff' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      flexShrink: 0
+                    }}
+                  >
+                    {isSelected && (
+                      <CheckIcon width={12} height={12} style={{ color: '#000', strokeWidth: 3 }} />
+                    )}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-                    <span
-                      title={fileName}
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: 500,
-                        color: 'rgba(255,255,255,0.9)',
-                        whiteSpace: 'nowrap',
-                        textOverflow: 'ellipsis',
-                        overflow: 'hidden',
-                        fontFamily: SYS_FONT
-                      }}
-                    >
-                      {fileName}
-                    </span>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                      {entry?.size ? formatBytes(entry.size) : info.label}
-                    </span>
-                  </div>
-                </div>
+                ) : <div />}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 4 }}>
                   <QuickActionButton
-                    title="Copy File"
+                    title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => window.edge.copySubitem({ id: item.id, paths: [p] })}
                   />
                   <button
-                    title="Open location in Explorer"
+                    title={t('flyout.openInExplorer')}
                     onClick={(e) => {
                       e.stopPropagation()
                       window.edge.revealFile(p)
                     }}
                     style={{
-                      width: 28,
-                      height: 28,
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      color: 'rgba(255,255,255,0.7)',
-                      borderRadius: 8,
+                      width: 24,
+                      height: 24,
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      color: 'rgba(255, 255, 255, 0.65)',
+                      borderRadius: 6,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      transition: 'all 0.15s ease',
-                      flexShrink: 0
+                      transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.18)'
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
                       e.currentTarget.style.color = '#fff'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-                      e.currentTarget.style.color = 'rgba(255,255,255,0.7)'
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
                     }}
                   >
-                    <FolderOpenIcon width={14} height={14} />
+                    <FolderOpenIcon width={12} height={12} />
                   </button>
                 </div>
+              </div>
+
+              {/* Centered Large 3D Pastel Vector Icon */}
+              <div style={{
+                width: 64,
+                height: 64,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45))',
+                marginTop: 8
+              }}>
+                <FileKindIcon path={p} width={64} height={64} isDirectory={entry?.isDirectory} />
+              </div>
+
+              {/* File Name & Metadata below icon */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0, padding: '0 4px', boxSizing: 'border-box' }}>
+                <span
+                  title={fileName}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: 'rgba(255, 255, 255, 0.92)',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'anywhere',
+                    lineHeight: 1.35,
+                    fontFamily: SYS_FONT,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {fileName}
+                </span>
+                <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.42)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+                  {!entry?.isDirectory && entry?.size ? formatBytes(entry.size) : info.label}
+                </span>
               </div>
             </div>
           )

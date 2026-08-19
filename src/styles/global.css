@@ -63,14 +63,7 @@ svg {
   backface-visibility: hidden;
 }
 
-svg path,
-svg circle,
-svg line,
-svg polyline,
-svg rect,
-svg polygon {
-  vector-effect: non-scaling-stroke;
-}
+
 
 /* HD Anti-Aliased Curved Edges & Micro Surfaces */
 .blade,

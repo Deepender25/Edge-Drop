@@ -518,55 +518,55 @@ function BundleFluidPreview({
                   </button>
                 </div>
               </div>
-              {paths.map((filePath, idx) => {
-                const entry = entries?.[idx]
+              {paths.map((filePath, index) => {
+                const entry = entries?.[index]
                 const name = formatImageDisplayName(entry?.name ?? filePath, item.capturedAt)
                 const size = entry?.size ?? 0
                 return (
                   <motion.div
-                    key={`${item.id}-${idx}`}
-                    className="fluid-list-row"
-                    variants={rowVariants}
+                    key={`${item.id}-${filePath}-${index}`}
+                    className="fluid-card-row"
+                    layout
                     draggable
                     onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, paths: [filePath] }) }}
                     onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [filePath] })) }}
                   >
-                    {entry?.isImage && entry.preview ? (
-                      <div className="fluid-list-icon" style={{ overflow: 'hidden', padding: 0 }}>
+                    <div className="fluid-row-icon">
+                      {entry?.isImage && entry.preview ? (
                         <img 
                           src={entry.preview} 
                           alt="" 
                           loading="lazy"
                           decoding="async"
                           draggable={false} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 6 }} 
+                          className="fluid-row-img"
                         />
-                      </div>
-                    ) : (
-                      <div className="fluid-list-icon" style={{ color: getFileKind(filePath).color }}>
-                        <FileKindIcon path={filePath} width={16} height={16} />
-                      </div>
-                    )}
-                    <div className="fluid-list-text-wrap">
-                      <div className="fluid-list-text">{name}</div>
-                      {size > 0 && <div className="fluid-list-sub">{formatBytes(size)}</div>}
+                      ) : (
+                        <FileKindIcon path={filePath} width={44} height={44} isDirectory={entry?.isDirectory} />
+                      )}
                     </div>
-                    <button
-                      className="act subitem-copy-btn"
-                      title={t('item.copyFilePath')}
-                      onClick={(e) => { e.stopPropagation(); window.edge.copySubitem({ id: item.id, paths: [filePath] }); }}
-                      style={{ width: 24, height: 24 }}
-                    >
-                      <CopyIcon width={12} height={12} />
-                    </button>
-                    <button
-                      className="act subitem-delete-btn"
-                      title={t('item.ungroup')}
-                      onClick={(e) => { e.stopPropagation(); window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' }); }}
-                      style={{ width: 24, height: 24 }}
-                    >
-                      <MinusIcon width={12} height={12} />
-                    </button>
+                    <div className="fluid-row-content">
+                      <div className="fluid-row-name" title={name}>{name}</div>
+                      <div className="fluid-row-sub">
+                        {size > 0 ? formatBytes(size) : getFileKind(filePath, entry?.isDirectory).label}
+                      </div>
+                    </div>
+                    <div className="fluid-row-actions">
+                      <button
+                        className="act subitem-copy-btn"
+                        title={t('item.copyFilePath')}
+                        onClick={(e) => { e.stopPropagation(); window.edge.copySubitem({ id: item.id, paths: [filePath] }); }}
+                      >
+                        <CopyIcon width={12} height={12} />
+                      </button>
+                      <button
+                        className="act subitem-delete-btn"
+                        title={t('item.ungroup')}
+                        onClick={(e) => { e.stopPropagation(); window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' }); }}
+                      >
+                        <MinusIcon width={12} height={12} />
+                      </button>
+                    </div>
                   </motion.div>
                 )
               })}
@@ -584,20 +584,25 @@ function BundleFluidPreview({
                 {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
                   const realIndex = arr.length - 1 - idx
                   const entry = entries?.[pathIndex]
+                  const isImg = entry?.isImage && !!entry.preview
+                  const spread = arr.length > 1 ? 22 : 0
+                  const rotSpread = arr.length > 1 ? 9 : 0
+                  const centerOffset = ((arr.length - 1) * spread) / 2
+                  const centerRot = ((arr.length - 1) * rotSpread) / 2
+
                   return (
                     <motion.div
                       key={`${item.id}-${pathIndex}`}
-                      className="bundle-stack-card bundle-file-stack-card"
+                      className={isImg ? "bundle-stack-card" : "bundle-stack-icon-item"}
                       animate={{
-                        x: realIndex * 20 - 20,
-                        y: realIndex * 6,
-                        rotate: realIndex * 6 - 6,
+                        x: realIndex * spread - centerOffset,
+                        y: realIndex * 5,
+                        rotate: realIndex * rotSpread - centerRot,
                         scale: 1 - realIndex * 0.05
                       }}
                       style={{ zIndex: 10 - realIndex }}
-                      initial={{ borderRadius: 8 }}
                     >
-                      {entry?.isImage && entry.preview ? (
+                      {isImg ? (
                         <img 
                           src={entry.preview} 
                           alt="" 
@@ -607,9 +612,7 @@ function BundleFluidPreview({
                           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} 
                         />
                       ) : (
-                        <div style={{ color: getFileKind(filePath).color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <FileKindIcon path={filePath} width={40} height={40} />
-                        </div>
+                        <FileKindIcon path={filePath} width={100} height={100} isDirectory={entry?.isDirectory} />
                       )}
                     </motion.div>
                   )
@@ -679,7 +682,7 @@ function Preview({ item }: { item: ClipboardItemDto }) {
       const rawName = entry?.name ?? basename(first)
       const displayName = formatImageDisplayName(first, item.capturedAt)
       const isInternalHash = /^[a-z0-9]{6,12}-[a-z0-9]{6,12}\.[a-z0-9]+$/i.test(rawName) || first.includes('edge-drop/images') || first.includes('edge-drop\\images') || first.includes('edge-drop/temp') || first.includes('edge-drop\\temp')
-      const isImage = entry?.isImage || getFileKind(first).kind === 'image'
+      const isImage = !entry?.isDirectory && (entry?.isImage || getFileKind(first).kind === 'image')
 
       // Single image file — show its thumbnail.
       if (item.data.paths.length === 1 && isImage) {
@@ -707,19 +710,19 @@ function Preview({ item }: { item: ClipboardItemDto }) {
           </>
         )
       }
-      // Non-image single file — show a tinted type icon alongside its name.
-      const info = getFileKind(first)
+      // Non-image single file — show big hero icon on top, and name + meta on the bottom!
+      const info = getFileKind(first, entry?.isDirectory)
       return (
         <div className="single-file-preview">
-          <div className="single-file-icon" style={{ color: info.color }}>
-            <FileKindIcon path={first} width={28} height={28} />
+          <div className="single-file-hero" style={{ color: info.color }}>
+            <FileKindIcon path={first} width={120} height={120} isDirectory={entry?.isDirectory} />
           </div>
           <div className="single-file-meta">
-            <div className="preview single">
+            <div className="preview single single-file-name" title={displayName}>
               {displayName}
             </div>
             <div className="single-file-sub">
-              {info.label}{entry && entry.size > 0 ? ` · ${formatBytes(entry.size)}` : ''}
+              {info.label}{!entry?.isDirectory && entry && entry.size > 0 ? ` · ${formatBytes(entry.size)}` : ''}
             </div>
           </div>
         </div>
@@ -757,9 +760,10 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
       )
     case 'files': {
       const firstPath = item.data.paths[0]
-      const info = getFileKind(firstPath)
+      const entry = item.data.entries?.[0]
+      const info = getFileKind(firstPath, entry?.isDirectory)
       const count = item.data.paths.length
-      const isImage = count === 1 && (item.data.entries?.[0]?.isImage || info.kind === 'image')
+      const isImage = count === 1 && !entry?.isDirectory && (entry?.isImage || info.kind === 'image')
       if (isImage) {
         return (
           <span className="kind-badge">
@@ -770,7 +774,7 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
       const label = count > 1 ? `${count} ${t('filters.files').toLowerCase()}` : info.label.toLowerCase()
       return (
         <span className="kind-badge" style={{ color: count > 1 ? undefined : info.color }}>
-          <FileKindIcon path={firstPath} width={11} height={11} />
+          <FileKindIcon path={firstPath} width={11} height={11} isDirectory={entry?.isDirectory} />
           {label}
         </span>
       )

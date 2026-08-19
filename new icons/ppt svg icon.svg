@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Soft Matte Shadow for the Presentation Easel -->
+    <filter id="sheetShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.06"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.04"/>
+    </filter>
+
+    <!-- Folder Base Soft Shadow -->
+    <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#folderShadow)">
+    <!-- 1. Folder Back Plate & Tab -->
+    <path d="M 56 378
+             L 56 128
+             C 56 112 68 100 84 100
+             L 162 100
+             C 178 100 190 108 200 120
+             C 208 130 218 136 232 136
+             L 428 136
+             C 444 136 456 148 456 164
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#FFC492"/>
+
+    <!-- 2. Paper Sheet Peeking Inside -->
+    <path d="M 74 162
+             L 74 152
+             C 74 147 78 143 83 143
+             L 429 143
+             C 434 143 438 147 438 152
+             L 438 162 Z"
+          fill="#FFF8F2"/>
+
+    <!-- 3. Folder Front Flap -->
+    <path d="M 56 168
+             C 56 156 65 148 76 148
+             L 436 148
+             C 447 148 456 156 456 168
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#FFA25B"/>
+
+    <!-- 4. Presentation Easel & Tripod Stand Motif -->
+    <g filter="url(#sheetShadow)">
+      <!-- Tripod Stand Legs (Behind Board) -->
+      <!-- Center Pole -->
+      <line x1="256" y1="306" x2="256" y2="368"
+            stroke="#FFF8F2"
+            stroke-width="8"
+            stroke-linecap="round"/>
+
+      <!-- Left Leg -->
+      <line x1="256" y1="312" x2="222" y2="368"
+            stroke="#FFF8F2"
+            stroke-width="8"
+            stroke-linecap="round"/>
+
+      <!-- Right Leg -->
+      <line x1="256" y1="312" x2="290" y2="368"
+            stroke="#FFF8F2"
+            stroke-width="8"
+            stroke-linecap="round"/>
+
+      <!-- Top Roller Header Bar -->
+      <rect x="182" y="196" width="148" height="14" rx="7" fill="#FFF8F2"/>
+
+      <!-- Main Presentation Screen Board -->
+      <rect x="188" y="210" width="136" height="96" rx="8" fill="#FFF8F2"/>
+
+      <!-- Pie Chart on Screen (Exact 1:1 Color Match with Front Flap) -->
+      <!-- Main Large Sector (Left 225°) -->
+      <path d="M 252 230
+               A 28 28 0 1 0 273 277
+               L 252 258
+               Z"
+            fill="#FFA25B"/>
+
+      <!-- Top-Right Slice (90° Sector) -->
+      <path d="M 260 228
+               A 28 28 0 0 1 288 255
+               L 260 255
+               Z"
+            fill="#FFA25B"/>
+
+      <!-- Bottom-Right Slice (45° Sector) -->
+      <path d="M 288 261
+               A 28 28 0 0 1 279 280
+               L 260 261
+               Z"
+            fill="#FFA25B"/>
+    </g>
+  </g>
+</svg>

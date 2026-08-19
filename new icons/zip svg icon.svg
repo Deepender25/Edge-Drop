@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Soft Matte Shadow for the Zipper Motif -->
+    <filter id="glyphShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#B45309" flood-opacity="0.22"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.05"/>
+    </filter>
+
+    <!-- Folder Base Soft Shadow -->
+    <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#D97706" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#folderShadow)">
+    <!-- 1. Folder Back Plate & Tab -->
+    <path d="M 56 378
+             L 56 128
+             C 56 112 68 100 84 100
+             L 162 100
+             C 178 100 190 108 200 120
+             C 208 130 218 136 232 136
+             L 428 136
+             C 444 136 456 148 456 164
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#FDE68A"/>
+
+    <!-- 2. Paper Sheet Peeking Inside -->
+    <path d="M 74 162
+             L 74 152
+             C 74 147 78 143 83 143
+             L 429 143
+             C 434 143 438 147 438 152
+             L 438 162 Z"
+          fill="#FFFDF5"/>
+
+    <!-- 3. Folder Front Flap -->
+    <path d="M 56 168
+             C 56 156 65 148 76 148
+             L 436 148
+             C 447 148 456 156 456 168
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#FBBF24"/>
+
+    <!-- 4. Clean Geometric Zipper & Puller Motif -->
+    <g filter="url(#glyphShadow)">
+      <!-- Central Zipper Track Spine -->
+      <line x1="256" y1="178" x2="256" y2="284"
+            stroke="#FFFDF5"
+            stroke-width="6"
+            stroke-linecap="round"/>
+
+      <!-- Clean Alternating Zipper Teeth -->
+      <!-- Left Teeth -->
+      <rect x="236" y="184" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="236" y="204" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="236" y="224" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="236" y="244" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="236" y="264" width="20" height="6" rx="3" fill="#FFFDF5"/>
+
+      <!-- Right Teeth (Staggered by 10px) -->
+      <rect x="256" y="194" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="256" y="214" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="256" y="234" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="256" y="254" width="20" height="6" rx="3" fill="#FFFDF5"/>
+      <rect x="256" y="274" width="20" height="6" rx="3" fill="#FFFDF5"/>
+
+      <!-- Slider Head (Shield Contour) -->
+      <path d="M 242 282
+               L 270 282
+               C 274 282 277 285 277 289
+               L 275 304
+               C 275 310 277 314 273 320
+               L 260 327
+               C 257.5 328.5 254.5 328.5 252 327
+               L 239 320
+               C 235 314 237 310 237 304
+               L 235 289
+               C 235 285 238 282 242 282
+               Z"
+            fill="#FFFDF5"/>
+
+      <!-- Puller Tab (Smooth Teardrop Handle) -->
+      <path d="M 249 314
+               C 249 311 251 309 254 309
+               L 258 309
+               C 261 309 263 311 263 314
+               L 264 346
+               C 266 354 275 362 275 374
+               C 275 384.5 266.5 393 256 393
+               C 245.5 393 237 384.5 237 374
+               C 237 362 246 354 248 346
+               Z"
+            fill="#FFFDF5"/>
+
+      <!-- Slider Attachment Slot (Cutout matched to Front Flap) -->
+      <rect x="252" y="294" width="8" height="22" rx="4" fill="#FBBF24"/>
+
+      <!-- Puller Ring Hole (Cutout matched to Front Flap) -->
+      <circle cx="256" cy="374" r="9" fill="#FBBF24"/>
+    </g>
+  </g>
+</svg>

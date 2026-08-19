@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Soft Matte Shadow for the Document Sheet -->
+    <filter id="sheetShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.06"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.04"/>
+    </filter>
+
+    <!-- Folder Base Soft Shadow -->
+    <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#475569" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#folderShadow)">
+    <!-- 1. Folder Back Plate & Tab -->
+    <path d="M 56 378
+             L 56 128
+             C 56 112 68 100 84 100
+             L 162 100
+             C 178 100 190 108 200 120
+             C 208 130 218 136 232 136
+             L 428 136
+             C 444 136 456 148 456 164
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#D1DBE5"/>
+
+    <!-- 2. Paper Sheet Peeking Inside -->
+    <path d="M 74 162
+             L 74 152
+             C 74 147 78 143 83 143
+             L 429 143
+             C 434 143 438 147 438 152
+             L 438 162 Z"
+          fill="#F8FAFC"/>
+
+    <!-- 3. Folder Front Flap -->
+    <path d="M 56 168
+             C 56 156 65 148 76 148
+             L 436 148
+             C 447 148 456 156 456 168
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#B2C0D0"/>
+
+    <!-- 4. Folded Note Document Motif -->
+    <g filter="url(#sheetShadow)">
+      <!-- Main Paper Sheet with Corner Cut -->
+      <path d="M 204 200
+               C 195 200 188 207 188 216
+               L 188 364
+               C 188 373 195 380 204 380
+               L 308 380
+               C 317 380 324 373 324 364
+               L 324 244
+               C 324 240 322 236 319 233
+               L 291 205
+               C 288 202 284 200 280 200
+               Z"
+            fill="#F8FAFC"/>
+
+      <!-- Folded Corner L-Flap -->
+      <path d="M 281 201
+               L 281 232
+               C 281 238 286 243 292 243
+               L 323 243"
+            fill="none"
+            stroke="#B2C0D0"
+            stroke-width="7"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+
+      <!-- Note Line 1 (Short Heading) -->
+      <line x1="210" y1="268" x2="256" y2="268"
+            stroke="#B2C0D0"
+            stroke-width="7"
+            stroke-linecap="round"/>
+
+      <!-- Note Line 2 (Full Line) -->
+      <line x1="210" y1="294" x2="300" y2="294"
+            stroke="#B2C0D0"
+            stroke-width="7"
+            stroke-linecap="round"/>
+
+      <!-- Note Line 3 (Full Line) -->
+      <line x1="210" y1="320" x2="300" y2="320"
+            stroke="#B2C0D0"
+            stroke-width="7"
+            stroke-linecap="round"/>
+
+      <!-- Note Line 4 (Medium Line) -->
+      <line x1="210" y1="346" x2="276" y2="346"
+            stroke="#B2C0D0"
+            stroke-width="7"
+            stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

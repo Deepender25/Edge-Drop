@@ -160,10 +160,13 @@
 }
 
 .bundle-stack-large {
-  height: 110px;
+  height: 124px;
   position: relative;
   width: 100%;
   margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .bundle-stack-card {
@@ -172,7 +175,7 @@
   left: 50%;
   margin-left: calc(-50% + 20px);
   width: calc(100% - 40px);
-  height: 90px;
+  height: 94px;
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -180,11 +183,22 @@
   transform-origin: bottom center;
 }
 
-.bundle-file-stack-card {
-  background: linear-gradient(135deg, rgba(38, 38, 42, 0.98), rgba(24, 24, 28, 0.98));
+.bundle-stack-icon-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -50px;
+  width: 100px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transform-origin: center center;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
 }
 
 .kind-badge {
@@ -482,69 +496,123 @@
 .fluid-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   width: 100%;
   padding-top: 8px;
 }
 
-.fluid-list-row {
+.fluid-card-row {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(40, 40, 40, 0.6);
-  border-radius: 6px;
-  font-size: calc(13px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.85);
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   cursor: grab;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-.fluid-list-row:hover {
-  background: rgba(60, 60, 60, 0.8);
-}
-.fluid-list-row:active {
-  cursor: grabbing;
-}
-.fluid-list-row .subitem-delete-btn {
-  opacity: 0.4;
-  background: rgba(255, 255, 255, 0.05);
-  transition: all 0.2s ease;
-}
-.fluid-list-row:hover .subitem-delete-btn {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.15);
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
 
-/* The tinted file-type icon tile in expanded file rows */
-.fluid-list-icon {
+.fluid-card-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.fluid-card-row:active {
+  cursor: grabbing;
+}
+
+.fluid-row-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.fluid-row-img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
   border-radius: 6px;
 }
 
-/* File name + size stack inside an expanded file row */
-.fluid-list-text-wrap {
+.fluid-row-content {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  justify-content: center;
+  text-align: left;
 }
-.fluid-list-text {
-  font-size: calc(13px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.9);
+
+.fluid-row-name {
+  font-size: calc(12.5px * var(--font-scale, 1));
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.3;
 }
-.fluid-list-sub {
+
+.fluid-row-sub {
   font-size: calc(11px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.45);
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", ui-monospace, monospace;
+}
+
+.fluid-row-actions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  background: #141416;
+  padding: 3px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 5;
+}
+
+.fluid-card-row:hover .fluid-row-actions,
+.fluid-card-row:focus-within .fluid-row-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fluid-row-actions .act {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e1e22;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fluid-row-actions .act:hover {
+  background: #2c2c32;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* "N / 10" capacity readout next to the bundle actions pill */
@@ -557,32 +625,52 @@
   white-space: nowrap;
 }
 
-/* Single (non-image) file tile: tinted type icon + name + type/size */
+/* Single (non-image) file tile: big hero icon on top, name + details on the bottom */
 .single-file-preview {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 0 2px;
 }
-.single-file-icon {
+
+.single-file-hero {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  width: 100%;
+  padding: 4px 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.item-main:hover .single-file-hero {
+  transform: translateY(-2px) scale(1.02);
+}
+
 .single-file-meta {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 0 2px;
 }
+
+.single-file-name {
+  font-size: calc(13px * var(--font-scale, 1));
+  font-weight: 500;
+  color: var(--text-primary, #ffffff);
+  line-height: 1.35;
+}
+
 .single-file-sub {
   font-size: calc(11px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.45);
+  font-family: "JetBrains Mono", "SF Mono", "Fira Code", ui-monospace, monospace;
   text-transform: lowercase;
 }
 

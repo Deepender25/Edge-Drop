@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Soft Matte Shadow for the Code Glyph -->
+    <filter id="glyphShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0369A1" flood-opacity="0.18"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.05"/>
+    </filter>
+
+    <!-- Folder Base Soft Shadow -->
+    <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#0284C7" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#folderShadow)">
+    <!-- 1. Folder Back Plate & Tab -->
+    <path d="M 56 378
+             L 56 128
+             C 56 112 68 100 84 100
+             L 162 100
+             C 178 100 190 108 200 120
+             C 208 130 218 136 232 136
+             L 428 136
+             C 444 136 456 148 456 164
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#86DDFB"/>
+
+    <!-- 2. Paper Sheet Peeking Inside -->
+    <path d="M 74 162
+             L 74 152
+             C 74 147 78 143 83 143
+             L 429 143
+             C 434 143 438 147 438 152
+             L 438 162 Z"
+          fill="#F0FBFF"/>
+
+    <!-- 3. Folder Front Flap -->
+    <path d="M 56 168
+             C 56 156 65 148 76 148
+             L 436 148
+             C 447 148 456 156 456 168
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#53CAF7"/>
+
+    <!-- 4. Correctly Angled Code Syntax Glyph (</>) -->
+    <g filter="url(#glyphShadow)"
+       fill="none"
+       stroke="#FFFFFF"
+       stroke-width="16"
+       stroke-linecap="round"
+       stroke-linejoin="round">
+      <!-- Left Angle Bracket (<) -->
+      <path d="M 200 240 L 156 289 L 200 338"/>
+
+      <!-- Center Forward Slash (/) - Correct 22° Slant & Perfectly Centered -->
+      <line x1="282" y1="222" x2="230" y2="356"/>
+
+      <!-- Right Angle Bracket (>) -->
+      <path d="M 312 240 L 356 289 L 312 338"/>
+    </g>
+  </g>
+</svg>

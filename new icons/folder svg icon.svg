@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Folder Base Soft Shadow -->
+    <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#D97706" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#folderShadow)">
+    <!-- 1. Folder Back Plate & Tab -->
+    <path d="M 56 378
+             L 56 128
+             C 56 112 68 100 84 100
+             L 162 100
+             C 178 100 190 108 200 120
+             C 208 130 218 136 232 136
+             L 428 136
+             C 444 136 456 148 456 164
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#FDE68A"/>
+
+    <!-- 2. Paper Sheet Peeking Inside -->
+    <path d="M 74 162
+             L 74 152
+             C 74 147 78 143 83 143
+             L 429 143
+             C 434 143 438 147 438 152
+             L 438 162 Z"
+          fill="#FFFDF5"/>
+
+    <!-- 3. Clean Yellow Front Flap -->
+    <path d="M 56 168
+             C 56 156 65 148 76 148
+             L 436 148
+             C 447 148 456 156 456 168
+             L 456 378
+             C 456 396 442 410 424 410
+             L 88 410
+             C 70 410 56 396 56 378 Z"
+          fill="#FBBF24"/>
+  </g>
+</svg>

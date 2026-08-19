@@ -48,6 +48,7 @@ export interface FileEntry {
   ext: string
   size: number
   isImage: boolean
+  isDirectory?: boolean
   preview?: string
 }
 

@@ -161,6 +161,7 @@ export interface TranslationKeys {
     audio: string
     video: string
     image: string
+    folder?: string
     file: string
   }
   emptyState: {

@@ -217,6 +217,64 @@ export function isClipboardExcluded(): boolean {
  * Async snapshot of the current clipboard into a single ItemData, or null.
  *
  * Order matters: a file copy should win over its text fallback, an image wins
+/**
+ * Helper to determine whether a clipboard payload containing an image and text
+ * is intended as an image (e.g. Snipping Tool window capture, browser "Copy Image",
+ * or screenshot tool) or as text (e.g. Excel/Google Sheets tabular data, rich text,
+ * multiline documents, code).
+ */
+export function isScreenshotOrImageIntent(hasImage: boolean, rawText: string, rawHtml: string): boolean {
+  if (!hasImage) return false
+  if (!rawText) return true
+
+  // Single bare image tag from browser "Copy Image" (e.g. <img src="...">)
+  if (/^<img\b[^>]*>$/i.test(rawText) || /^<img\b[^>]*\/?>$/i.test(rawHtml)) return true
+
+  // Single URL without any other text (browser "Copy Image" often sets image URL as text)
+  if (URL_RE.test(rawText) && rawText.length < 500) return true
+
+  // Spreadsheets (Excel, Google Sheets, Calc) & tabular text:
+  // 1. Tab characters (\t) indicate column separators
+  if (rawText.includes('\t')) return false
+
+  // 2. Multiline text (multiple rows) indicates real tabular data, document paragraphs, or code
+  const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  if (lines.length > 1) return false
+
+  // 3. Spreadsheet HTML markup tags & rich office metadata
+  const lowerHtml = rawHtml.toLowerCase()
+  if (
+    lowerHtml.includes('<table') ||
+    lowerHtml.includes('<tr') ||
+    lowerHtml.includes('<td') ||
+    lowerHtml.includes('<th') ||
+    lowerHtml.includes('google-sheets') ||
+    lowerHtml.includes('data-sheets') ||
+    lowerHtml.includes('urn:schemas-microsoft-com:office:spreadsheet') ||
+    lowerHtml.includes('excel') ||
+    lowerHtml.includes('<html') ||
+    lowerHtml.includes('<body') ||
+    lowerHtml.includes('<p') ||
+    lowerHtml.includes('<pre') ||
+    lowerHtml.includes('<code') ||
+    lowerHtml.includes('<ul') ||
+    lowerHtml.includes('<ol') ||
+    lowerHtml.includes('<li')
+  ) {
+    return false
+  }
+
+  // 4. If text is long (> 200 chars), it is a text document, not a window title
+  if (rawText.length > 200) return false
+
+  // Snipping tool window mode: single-line window title text <= 200 chars without tabs or HTML structure
+  return true
+}
+
+/**
+ * Async snapshot of the current clipboard into a single ItemData, or null.
+ *
+ * Order matters: a file copy should win over its text fallback, an image wins
  * over nothing, otherwise we keep text (preferring HTML if it carries rich text).
  *
  * This is async because reading the full multi-file list from a Windows
@@ -236,27 +294,19 @@ export async function readClipboard(): Promise<ItemData | null> {
   const rawText = clipboard.readText().trim()
   const rawHtml = clipboard.readHTML().trim()
 
-  // If an image is present on the clipboard (e.g. Snipping Tool, Screenshot, browser copy image)
-  if (hasImage) {
-    const hasRichHtmlDoc = rawHtml.includes('<html') || rawHtml.includes('<body') || rawHtml.includes('<table') || (rawHtml.includes('<p>') && rawText.length > 300)
-    const isSingleUrl = URL_RE.test(rawText) && rawText.length < 500
-    const isImgTag = /^<img\b[^>]*>$/i.test(rawText)
-
-    // Snipping Tool (Window mode, Freeform, Rectangular) or browser images:
-    // When text is absent, is a URL, is a single-line window title, or is an image tag without a rich document:
-    if (!rawText || isSingleUrl || isImgTag || !hasRichHtmlDoc) {
-      const size = img.getSize()
-      return {
-        kind: 'image',
-        imageId: '',
-        width: size.width,
-        height: size.height,
-        bytes: 0  // placeholder — ClipboardWatcher overwrites this with the actual PNG buffer length
-      }
+  // Snipping Tool (Window mode, Freeform, Rectangular) or browser images:
+  if (isScreenshotOrImageIntent(hasImage, rawText, rawHtml)) {
+    const size = img.getSize()
+    return {
+      kind: 'image',
+      imageId: '',
+      width: size.width,
+      height: size.height,
+      bytes: 0  // placeholder — ClipboardWatcher overwrites this with the actual PNG buffer length
     }
   }
 
-  // Text intent (Notepad, Word, VS Code text copy, rich HTML copy)
+  // Text intent (Notepad, Word, VS Code text copy, Excel/Google Sheets tabular copy, rich HTML copy)
   if (rawText) {
     let html: string | undefined
     if (rawHtml && rawHtml !== rawText) html = rawHtml
@@ -316,30 +366,21 @@ export function clipboardSignature(): string {
   const img = clipboard.readImage()
   const hasImage = !img.isEmpty()
   const rawText = clipboard.readText().trim()
+  const rawHtml = clipboard.readHTML().trim()
 
-  // Images: if an image is present and text is not a rich document selection,
-  // prioritize image fingerprinting so Snipping Tool window titles don't shadow the screenshot.
-  if (hasImage) {
-    const rawHtml = clipboard.readHTML().trim()
-    const hasRichHtmlDoc = rawHtml.includes('<html') || rawHtml.includes('<body') || rawHtml.includes('<table') || (rawHtml.includes('<p>') && rawText.length > 300)
-    const isSingleUrl = isUrlText(rawText)
-    const isBareImgTag = /^<img\b[^>]*>$/i.test(rawText)
-    const isLikelyScreenshotOrImage = !rawText || isSingleUrl || isBareImgTag || !hasRichHtmlDoc
+  if (isScreenshotOrImageIntent(hasImage, rawText, rawHtml)) {
+    const size = img.getSize()
+    const bitmap = img.toBitmap()  // raw BGRA — no encoding, just a memory copy
 
-    if (isLikelyScreenshotOrImage) {
-      const size = img.getSize()
-      const bitmap = img.toBitmap()  // raw BGRA — no encoding, just a memory copy
-
-      // FNV-1a over ~400 evenly-spaced bytes.
-      const step = Math.max(1, Math.floor(bitmap.length / 400))
-      let hash = 0x811c9dc5 // FNV offset basis
-      for (let i = 0; i < bitmap.length; i += step) {
-        hash ^= bitmap[i]
-        hash = Math.imul(hash, 0x01000193) >>> 0 // FNV prime, keep as uint32
-      }
-
-      return `${seqPrefix}image:${size.width}x${size.height}:${hash.toString(36)}`
+    // FNV-1a over ~400 evenly-spaced bytes.
+    const step = Math.max(1, Math.floor(bitmap.length / 400))
+    let hash = 0x811c9dc5 // FNV offset basis
+    for (let i = 0; i < bitmap.length; i += step) {
+      hash ^= bitmap[i]
+      hash = Math.imul(hash, 0x01000193) >>> 0 // FNV prime, keep as uint32
     }
+
+    return `${seqPrefix}image:${size.width}x${size.height}:${hash.toString(36)}`
   }
 
   // Text — the content itself is the fingerprint.

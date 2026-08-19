@@ -178,4 +178,64 @@ describe('Windows Snipping Tool & Clipboard Image Detection (#41)', () => {
       expect(result.html).toBe(richHtml)
     }
   })
+
+  it('captures Excel / Spreadsheet Ctrl+A copy (tab-separated rows with DIB bitmap) as text', async () => {
+    const spreadsheetText = 'Product\tQuantity\tPrice\nApple\t50\t$1.20\nBanana\t120\t$0.50\nOrange\t80\t$0.80'
+    const spreadsheetHtml = '<style><!--table{}--></style><table border=0 cellpadding=0 cellspacing=0 width=200><tr height=20><td class=xl65>Product</td><td class=xl65>Quantity</td><td class=xl65>Price</td></tr></table>'
+
+    const mockBgra = Buffer.alloc(400 * 200 * 4, 200)
+    const mockImage = {
+      isEmpty: () => false,
+      getSize: () => ({ width: 400, height: 200 }),
+      toBitmap: () => mockBgra,
+      toPNG: () => Buffer.from('mock-excel-table-png')
+    }
+
+    ;(clipboard as any).__setMockState({
+      formats: ['XML Spreadsheet', 'HTML Format', 'CF_DIBV5', 'CF_BITMAP', 'CF_UNICODETEXT'],
+      text: spreadsheetText,
+      html: spreadsheetHtml,
+      image: mockImage
+    })
+
+    const result = await readClipboard()
+    expect(result).not.toBeNull()
+    expect(result?.kind).toBe('text')
+    if (result?.kind === 'text') {
+      expect(result.text).toBe(spreadsheetText)
+    }
+
+    const sig = clipboardSignature()
+    expect(sig).toContain('text:Product\tQuantity\tPrice')
+  })
+
+  it('captures Google Sheets Ctrl+A copy with google-sheets-html-origin and DIB bitmap as text', async () => {
+    const sheetsText = 'Name\tScore\nAlice\t95\nBob\t88'
+    const sheetsHtml = '<google-sheets-html-origin><style type="text/css">td {border: 1px solid #ccc;}</style><table><tr><td>Name</td><td>Score</td></tr></table>'
+
+    const mockBgra = Buffer.alloc(300 * 150 * 4, 180)
+    const mockImage = {
+      isEmpty: () => false,
+      getSize: () => ({ width: 300, height: 150 }),
+      toBitmap: () => mockBgra,
+      toPNG: () => Buffer.from('mock-sheets-table-png')
+    }
+
+    ;(clipboard as any).__setMockState({
+      formats: ['text/html', 'CF_DIB', 'CF_UNICODETEXT'],
+      text: sheetsText,
+      html: sheetsHtml,
+      image: mockImage
+    })
+
+    const result = await readClipboard()
+    expect(result).not.toBeNull()
+    expect(result?.kind).toBe('text')
+    if (result?.kind === 'text') {
+      expect(result.text).toBe(sheetsText)
+    }
+
+    const sig = clipboardSignature()
+    expect(sig).toContain('text:Name\tScore')
+  })
 })

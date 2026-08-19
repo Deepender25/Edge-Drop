@@ -759,14 +759,23 @@ const fileEntryCache = new Map<string, FileEntry>()
 function buildFileEntry(p: string): FileEntry {
   if (fileEntryCache.has(p)) return fileEntryCache.get(p)!
   let size = 0
+  let isDirectory = false
   try {
-    size = statSync(p).size
+    const st = statSync(p)
+    size = st.size
+    isDirectory = st.isDirectory()
   } catch {
     /* file missing / unreadable — size stays 0 */
   }
-  const ext = (extname(p).slice(1) || '').toLowerCase()
+  const ext = isDirectory ? '' : (extname(p).slice(1) || '').toLowerCase()
   const name = pathBasename(p)
-  const entry = { name, ext, size, isImage: isImageExt(p) }
+  const entry: FileEntry = {
+    name,
+    ext,
+    size,
+    isImage: !isDirectory && isImageExt(p),
+    isDirectory
+  }
   if (fileEntryCache.size > 500) fileEntryCache.clear()
   fileEntryCache.set(p, entry)
   return entry
