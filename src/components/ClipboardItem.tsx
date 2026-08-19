@@ -693,6 +693,12 @@ function Preview({ item }: { item: ClipboardItemDto }) {
                 <img
                   className="thumb"
                   src={entry.preview}
+                  onError={(e) => {
+                    const fallback = `edgelocal://file/${encodeURIComponent(first.replace(/\\/g, '/'))}`
+                    if (e.currentTarget.src !== fallback) {
+                      e.currentTarget.src = fallback
+                    }
+                  }}
                   alt=""
                   loading="lazy"
                   decoding="async"

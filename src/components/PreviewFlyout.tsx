@@ -422,13 +422,15 @@ function QuickActionButton({
   icon: Icon,
   onClick,
   activeColor = '#4caf50',
-  solidDark = false
+  solidDark = false,
+  size = 28
 }: {
   title: string
   icon: any
   onClick: () => any
   activeColor?: string
   solidDark?: boolean
+  size?: number
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -445,18 +447,20 @@ function QuickActionButton({
 
   const hoverBg = solidDark ? 'rgba(0, 0, 0, 0.98)' : 'rgba(255, 255, 255, 0.18)'
   const hoverColor = '#ffffff'
+  const iconSize = size === 24 ? 12 : 14
+  const borderRadius = size === 24 ? 6 : 8
 
   return (
     <button
       title={copied ? 'Copied!' : title}
       onClick={handleClick}
       style={{
-        width: 28,
-        height: 28,
+        width: size,
+        height: size,
         background: copied ? (solidDark ? '#4caf50' : 'rgba(76, 175, 80, 0.2)') : defaultBg,
         border: copied ? (solidDark ? '1px solid #4caf50' : '1px solid rgba(76, 175, 80, 0.4)') : defaultBorder,
         color: copied ? (solidDark ? '#ffffff' : activeColor) : defaultColor,
-        borderRadius: 8,
+        borderRadius,
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -478,7 +482,63 @@ function QuickActionButton({
         }
       }}
     >
-      {copied ? <CheckIcon width={14} height={14} /> : <Icon width={14} height={14} />}
+      {copied ? <CheckIcon width={iconSize} height={iconSize} /> : <Icon width={iconSize} height={iconSize} />}
+    </button>
+  )
+}
+
+function ExplorerButton({
+  path,
+  title,
+  size = 28,
+  solidDark = false
+}: {
+  path: string
+  title?: string
+  size?: number
+  solidDark?: boolean
+}) {
+  const { t } = useTranslation()
+  const defaultBg = solidDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.06)'
+  const defaultBorder = solidDark ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)'
+  const defaultColor = solidDark ? '#ffffff' : 'rgba(255, 255, 255, 0.75)'
+  const hoverBg = solidDark ? 'rgba(0, 0, 0, 0.98)' : 'rgba(255, 255, 255, 0.18)'
+  const hoverColor = '#ffffff'
+  const iconSize = size === 24 ? 12 : 14
+  const borderRadius = size === 24 ? 6 : 8
+
+  return (
+    <button
+      title={title || t('flyout.openInExplorer')}
+      onClick={(e) => {
+        e.stopPropagation()
+        window.edge.revealFile(path)
+      }}
+      style={{
+        width: size,
+        height: size,
+        background: defaultBg,
+        border: defaultBorder,
+        color: defaultColor,
+        borderRadius,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.15s ease',
+        flexShrink: 0,
+        boxShadow: solidDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : undefined
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = hoverBg
+        e.currentTarget.style.color = hoverColor
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = defaultBg
+        e.currentTarget.style.color = defaultColor
+      }}
+    >
+      <FolderOpenIcon width={iconSize} height={iconSize} />
     </button>
   )
 }
@@ -836,31 +896,14 @@ function PreviewContent({
               icon={CopyIcon}
               onClick={() => window.edge.copyItem(item.id)}
               solidDark={true}
+              size={28}
             />
-            <button
+            <ExplorerButton
+              path={p}
               title={t('flyout.openInExplorer')}
-              onClick={(e) => {
-                e.stopPropagation()
-                window.edge.revealFile(p)
-              }}
-              style={{
-                width: 28,
-                height: 28,
-                background: 'rgba(0, 0, 0, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-                color: '#ffffff',
-                borderRadius: 8,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-                transition: 'all 0.15s ease',
-                flexShrink: 0
-              }}
-            >
-              <FolderOpenIcon width={14} height={14} />
-            </button>
+              solidDark={true}
+              size={28}
+            />
           </div>
           <img
             src={fullResUrl}
@@ -921,37 +964,13 @@ function PreviewContent({
               title={t('flyout.copyFile')}
               icon={CopyIcon}
               onClick={() => window.edge.copyItem(item.id)}
+              size={28}
             />
-            <button
+            <ExplorerButton
+              path={p}
               title={t('flyout.openInExplorer')}
-              onClick={(e) => {
-                e.stopPropagation()
-                window.edge.revealFile(p)
-              }}
-              style={{
-                width: 28,
-                height: 28,
-                background: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                color: 'rgba(255, 255, 255, 0.75)',
-                borderRadius: 8,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)'
-                e.currentTarget.style.color = '#fff'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
-                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.75)'
-              }}
-            >
-              <FolderOpenIcon width={14} height={14} />
-            </button>
+              size={28}
+            />
           </div>
 
           <div style={{
@@ -1123,37 +1142,13 @@ function PreviewContent({
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => window.edge.copySubitem({ id: item.id, paths: [p] })}
+                    size={24}
                   />
-                  <button
+                  <ExplorerButton
+                    path={p}
                     title={t('flyout.openInExplorer')}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      window.edge.revealFile(p)
-                    }}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
-                      color: 'rgba(255, 255, 255, 0.65)',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
-                      e.currentTarget.style.color = '#fff'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
-                    }}
-                  >
-                    <FolderOpenIcon width={12} height={12} />
-                  </button>
+                    size={24}
+                  />
                 </div>
               </div>
             )
@@ -1232,37 +1227,13 @@ function PreviewContent({
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => window.edge.copySubitem({ id: item.id, paths: [p] })}
+                    size={24}
                   />
-                  <button
+                  <ExplorerButton
+                    path={p}
                     title={t('flyout.openInExplorer')}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      window.edge.revealFile(p)
-                    }}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
-                      color: 'rgba(255, 255, 255, 0.65)',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'
-                      e.currentTarget.style.color = '#fff'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)'
-                    }}
-                  >
-                    <FolderOpenIcon width={12} height={12} />
-                  </button>
+                    size={24}
+                  />
                 </div>
               </div>
 

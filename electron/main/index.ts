@@ -223,6 +223,21 @@ function registerImageProtocol(): void {
  * preview flyout and drag/paste flows.
  */
 function createThumbnailResponse(filePath: string): Response {
+  const ext = extname(filePath).toLowerCase()
+  // SVG files are vector XML documents; stream them directly with correct MIME type
+  // rather than failing inside nativeImage.createFromPath (which only supports raster bitmaps).
+  if (ext === '.svg') {
+    const stream = createReadStream(filePath)
+    const body = new Response(stream as unknown as ReadableStream<Uint8Array>).body
+    return new Response(body, {
+      status: 200,
+      headers: new Headers({
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'no-cache'
+      })
+    })
+  }
+
   const MAX_THUMBNAIL_EDGE_PX = 240
   const image = nativeImage.createFromPath(filePath)
   if (image.isEmpty()) return new Response('Unsupported image', { status: 415 })
