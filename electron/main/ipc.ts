@@ -17,7 +17,7 @@ import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData } from './drag'
-import { clipboardSignature } from '../clipboard/formats'
+import { clipboardSignature, formatTabularDataForClipboard } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
 import { createId } from '../store/ids'
@@ -674,9 +674,9 @@ export function registerSendListeners(): void {
 export async function writeItemToClipboard(data: ItemData): Promise<void> {
   switch (data.kind) {
     case 'text': {
-      const textToUse = data.text
+      const formatted = formatTabularDataForClipboard(data.text, data.html)
       clipboard.clear()
-      clipboard.write({ text: textToUse, html: data.html })
+      clipboard.write({ text: formatted.text, html: formatted.html })
       break
     }
 

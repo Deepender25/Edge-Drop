@@ -600,6 +600,7 @@ export const en: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Image",
+    "folder": "Folder",
     "file": "File"
   },
   "emptyState": {
@@ -865,6 +866,7 @@ export const es: TranslationKeys = {
     "audio": "Audio",
     "video": "Vídeo",
     "image": "Imagen",
+    "folder": "Carpeta",
     "file": "Archivo"
   },
   "emptyState": {
@@ -1130,6 +1132,7 @@ export const fr: TranslationKeys = {
     "audio": "Audio",
     "video": "Vidéo",
     "image": "Image",
+    "folder": "Dossier",
     "file": "Fichier"
   },
   "emptyState": {
@@ -1395,6 +1398,7 @@ export const de: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Bild",
+    "folder": "Ordner",
     "file": "Datei"
   },
   "emptyState": {
@@ -1660,6 +1664,7 @@ export const it: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Immagine",
+    "folder": "Cartella",
     "file": "File"
   },
   "emptyState": {
@@ -1925,6 +1930,7 @@ export const pt: TranslationKeys = {
     "audio": "Áudio",
     "video": "Vídeo",
     "image": "Imagem",
+    "folder": "Pasta",
     "file": "Arquivo"
   },
   "emptyState": {
@@ -2190,6 +2196,7 @@ export const ru: TranslationKeys = {
     "audio": "Аудио",
     "video": "Видео",
     "image": "Изображение",
+    "folder": "Папка",
     "file": "Файл"
   },
   "emptyState": {
@@ -2455,6 +2462,7 @@ export const ja: TranslationKeys = {
     "audio": "オーディオ",
     "video": "動画",
     "image": "画像",
+    "folder": "フォルダー",
     "file": "ファイル"
   },
   "emptyState": {
@@ -2720,6 +2728,7 @@ export const ko: TranslationKeys = {
     "audio": "오디오",
     "video": "비디오",
     "image": "이미지",
+    "folder": "폴더",
     "file": "파일"
   },
   "emptyState": {
@@ -2985,6 +2994,7 @@ export const zhCN: TranslationKeys = {
     "audio": "音频",
     "video": "视频",
     "image": "图片",
+    "folder": "文件夹",
     "file": "文件"
   },
   "emptyState": {
@@ -3250,6 +3260,7 @@ export const zhTW: TranslationKeys = {
     "audio": "音訊",
     "video": "影片",
     "image": "圖片",
+    "folder": "資料夾",
     "file": "檔案"
   },
   "emptyState": {
@@ -3515,6 +3526,7 @@ export const hi: TranslationKeys = {
     "audio": "ऑडियो",
     "video": "वीडियो",
     "image": "छवि",
+    "folder": "फ़ोल्डर",
     "file": "फ़ाइल"
   },
   "emptyState": {
@@ -3780,6 +3792,7 @@ export const ar: TranslationKeys = {
     "audio": "صوت",
     "video": "فيديو",
     "image": "صورة",
+    "folder": "مجلد",
     "file": "ملف"
   },
   "emptyState": {
@@ -4045,6 +4058,7 @@ export const fa: TranslationKeys = {
     "audio": "صدا",
     "video": "ویدیو",
     "image": "عکس",
+    "folder": "پوشه",
     "file": "فایل"
   },
   "emptyState": {
@@ -4310,6 +4324,7 @@ export const bn: TranslationKeys = {
     "audio": "অডিও",
     "video": "ভিডিও",
     "image": "ছবি",
+    "folder": "ফোল্ডার",
     "file": "ফাইল"
   },
   "emptyState": {
@@ -4575,6 +4590,7 @@ export const tr: TranslationKeys = {
     "audio": "Ses",
     "video": "Video",
     "image": "Görsel",
+    "folder": "Klasör",
     "file": "Dosya"
   },
   "emptyState": {
@@ -4840,6 +4856,7 @@ export const vi: TranslationKeys = {
     "audio": "Âm thanh",
     "video": "Video",
     "image": "Hình ảnh",
+    "folder": "Thư mục",
     "file": "Tệp"
   },
   "emptyState": {
@@ -5105,6 +5122,7 @@ export const pl: TranslationKeys = {
     "audio": "Audio",
     "video": "Wideo",
     "image": "Obraz",
+    "folder": "Folder",
     "file": "Plik"
   },
   "emptyState": {
@@ -5370,6 +5388,7 @@ export const nl: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Afbeelding",
+    "folder": "Map",
     "file": "Bestand"
   },
   "emptyState": {
@@ -5635,6 +5654,7 @@ export const sv: TranslationKeys = {
     "audio": "Ljud",
     "video": "Video",
     "image": "Bild",
+    "folder": "Mapp",
     "file": "Fil"
   },
   "emptyState": {
@@ -5900,6 +5920,7 @@ export const id: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Gambar",
+    "folder": "Folder",
     "file": "Berkas"
   },
   "emptyState": {
@@ -6165,6 +6186,7 @@ export const uk: TranslationKeys = {
     "audio": "Аудіо",
     "video": "Відео",
     "image": "Зображення",
+    "folder": "Папка",
     "file": "Файл"
   },
   "emptyState": {
@@ -6430,6 +6452,7 @@ export const el: TranslationKeys = {
     "audio": "Ήχος",
     "video": "Βίντεο",
     "image": "Εικόνα",
+    "folder": "Φάκελος",
     "file": "Αρχείο"
   },
   "emptyState": {
@@ -6695,6 +6718,7 @@ export const cs: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Obrázek",
+    "folder": "Složka",
     "file": "Soubor"
   },
   "emptyState": {
@@ -6960,6 +6984,7 @@ export const ro: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Imagine",
+    "folder": "Dosar",
     "file": "Fișier"
   },
   "emptyState": {
@@ -7225,6 +7250,7 @@ export const hu: TranslationKeys = {
     "audio": "Audió",
     "video": "Videó",
     "image": "Kép",
+    "folder": "Mappa",
     "file": "Fájl"
   },
   "emptyState": {
@@ -7490,6 +7516,7 @@ export const da: TranslationKeys = {
     "audio": "Lyd",
     "video": "Video",
     "image": "Billede",
+    "folder": "Mappe",
     "file": "Fil"
   },
   "emptyState": {
@@ -7755,6 +7782,7 @@ export const fi: TranslationKeys = {
     "audio": "Ääni",
     "video": "Video",
     "image": "Kuva",
+    "folder": "Kansio",
     "file": "Tiedosto"
   },
   "emptyState": {
@@ -8020,6 +8048,7 @@ export const th: TranslationKeys = {
     "audio": "เสียง",
     "video": "วิดีโอ",
     "image": "รูปภาพ",
+    "folder": "โฟลเดอร์",
     "file": "ไฟล์"
   },
   "emptyState": {
@@ -8285,6 +8314,7 @@ export const he: TranslationKeys = {
     "audio": "אודיו",
     "video": "וידאו",
     "image": "תמונה",
+    "folder": "תיקייה",
     "file": "קובץ"
   },
   "emptyState": {
@@ -8550,6 +8580,7 @@ export const no: TranslationKeys = {
     "audio": "Lyd",
     "video": "Video",
     "image": "Bilde",
+    "folder": "Mappe",
     "file": "Fil"
   },
   "emptyState": {

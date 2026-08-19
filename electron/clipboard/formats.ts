@@ -272,6 +272,55 @@ export function isScreenshotOrImageIntent(hasImage: boolean, rawText: string, ra
 }
 
 /**
+ * Format text and HTML data for clipboard write back.
+ *
+ * 1. Normalizes line breaks to Windows CRLF (\r\n). On Windows, Microsoft Excel and
+ *    other spreadsheet applications use \r\n to separate table rows. If bare \n (LF)
+ *    is used, Excel interprets the newline as an in-cell line feed (Alt+Enter) and
+ *    pastes the entire multiline table into a SINGLE cell!
+ *
+ * 2. If the text contains tab characters (\t), it represents spreadsheet tabular cells.
+ *    If no valid <table> HTML is provided (or if only non-table wrappers like
+ *    <google-sheets-html-origin> <div> exist), we synthesize a standard HTML <table>
+ *    so that spreadsheet apps (Excel, Google Sheets, Calc) and office apps (Word, Outlook)
+ *    distribute rows and columns across the cell grid rather than dumping text into one cell.
+ */
+export function formatTabularDataForClipboard(text: string, rawHtml?: string): { text: string; html?: string } {
+  if (!text) return { text: '', html: rawHtml }
+
+  // Normalize all line breaks to CRLF (\r\n) for Windows
+  const crlfText = text.replace(/\r?\n/g, '\r\n')
+
+  // Check if content has tab characters indicating column separators
+  if (text.includes('\t')) {
+    // If rawHtml already contains a standard table tag, use it
+    if (rawHtml && /<table\b[^>]*>/i.test(rawHtml)) {
+      return { text: crlfText, html: rawHtml }
+    }
+
+    // Otherwise, generate a clean, standard HTML table from the TSV content
+    const rows = text.split(/\r?\n/)
+    const htmlRows = rows.map((row) => {
+      const cells = row.split('\t').map((cell) => {
+        const escaped = cell
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
+        return `<td>${escaped}</td>`
+      }).join('')
+      return `<tr>${cells}</tr>`
+    }).join('')
+
+    const htmlTable = `<table border="0" cellpadding="0" cellspacing="0"><tbody>${htmlRows}</tbody></table>`
+    return { text: crlfText, html: htmlTable }
+  }
+
+  return { text: crlfText, html: rawHtml }
+}
+
+/**
  * Async snapshot of the current clipboard into a single ItemData, or null.
  *
  * Order matters: a file copy should win over its text fallback, an image wins
@@ -291,11 +340,13 @@ export async function readClipboard(): Promise<ItemData | null> {
 
   const img = clipboard.readImage()
   const hasImage = !img.isEmpty()
-  const rawText = clipboard.readText().trim()
-  const rawHtml = clipboard.readHTML().trim()
+  const rawText = clipboard.readText()
+  const rawHtml = clipboard.readHTML()
+  const trimmedText = rawText.trim()
+  const trimmedHtml = rawHtml.trim()
 
   // Snipping Tool (Window mode, Freeform, Rectangular) or browser images:
-  if (isScreenshotOrImageIntent(hasImage, rawText, rawHtml)) {
+  if (isScreenshotOrImageIntent(hasImage, trimmedText, trimmedHtml)) {
     const size = img.getSize()
     return {
       kind: 'image',
@@ -307,14 +358,17 @@ export async function readClipboard(): Promise<ItemData | null> {
   }
 
   // Text intent (Notepad, Word, VS Code text copy, Excel/Google Sheets tabular copy, rich HTML copy)
-  if (rawText) {
+  if (trimmedText) {
     let html: string | undefined
-    if (rawHtml && rawHtml !== rawText) html = rawHtml
+    if (trimmedHtml && trimmedHtml !== trimmedText) html = rawHtml
 
-    const isUrl = URL_RE.test(rawText)
-    const isColor = COLOR_HEX_RE.test(rawText)
+    // When text contains tabs (\t), preserve the exact TSV representation (including leading/trailing tabs for empty columns)
+    const textToStore = rawText.includes('\t') ? rawText.replace(/\r?\n+$/, '') : trimmedText
 
-    return { kind: 'text', text: rawText, html, isUrl, isColor }
+    const isUrl = URL_RE.test(trimmedText)
+    const isColor = COLOR_HEX_RE.test(trimmedText)
+
+    return { kind: 'text', text: textToStore, html, isUrl, isColor }
   }
 
   // Fallback to image if no text

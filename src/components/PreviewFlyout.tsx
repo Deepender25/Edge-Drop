@@ -743,7 +743,7 @@ function PreviewContent({
           <QuickActionButton
             title={t('flyout.copyText')}
             icon={CopyIcon}
-            onClick={() => navigator.clipboard.writeText(activeText)}
+            onClick={() => window.edge.copyItem(item.id)}
           />
         </div>
         <div style={{

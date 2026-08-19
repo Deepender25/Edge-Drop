@@ -29,21 +29,18 @@ import { parseUrlPreview } from '../lib/urlPreview'
 import '../styles/item.css'
 
 import { tryPaste } from '../lib/tryPaste'
-import { t } from '../i18n'
+import { useTranslation, t } from '../i18n'
 
 interface Props {
   item: ClipboardItemDto
 }
-
-
-
-
 
 /* ------------------------------------------------------------------ */
 /* Main item card                                                      */
 /* ------------------------------------------------------------------ */
 
 const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
+  const { t } = useTranslation()
   const copy = useStore.getState().copy
   const paste = useStore.getState().paste
   const togglePin = useStore.getState().togglePin
@@ -55,8 +52,15 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   
   const open = useStore((s) => s.open)
+  const [, setTimeTick] = useState(0)
+
   useEffect(() => {
-    if (!open) setExpanded(false)
+    if (!open) {
+      setExpanded(false)
+      return
+    }
+    const timer = window.setInterval(() => setTimeTick((n) => n + 1), 30000)
+    return () => window.clearInterval(timer)
   }, [open])
 
   const isPreviewing = useStore((s) => s.previewItemId) === item.id
@@ -542,7 +546,7 @@ function BundleFluidPreview({
                           className="fluid-row-img"
                         />
                       ) : (
-                        <FileKindIcon path={filePath} width={44} height={44} isDirectory={entry?.isDirectory} />
+                        <FileKindIcon path={filePath} width={48} height={48} isDirectory={entry?.isDirectory} />
                       )}
                     </div>
                     <div className="fluid-row-content">
@@ -612,7 +616,7 @@ function BundleFluidPreview({
                           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} 
                         />
                       ) : (
-                        <FileKindIcon path={filePath} width={100} height={100} isDirectory={entry?.isDirectory} />
+                        <FileKindIcon path={filePath} width={112} height={112} isDirectory={entry?.isDirectory} />
                       )}
                     </motion.div>
                   )
@@ -721,7 +725,7 @@ function Preview({ item }: { item: ClipboardItemDto }) {
       return (
         <div className="single-file-preview">
           <div className="single-file-hero" style={{ color: info.color }}>
-            <FileKindIcon path={first} width={120} height={120} isDirectory={entry?.isDirectory} />
+            <FileKindIcon path={first} width={136} height={136} isDirectory={entry?.isDirectory} />
           </div>
           <div className="single-file-meta">
             <div className="preview single single-file-name" title={displayName}>

@@ -90,13 +90,19 @@ const KEY_MAP: Record<FileKind, any> = {
   file: 'fileKinds.file'
 }
 
+function translateKind(key: string, fallback: string): string {
+  const val = t(key)
+  if (!val || val.startsWith('fileKinds.') || val === key) return fallback
+  return val
+}
+
 /** Resolve a file path to its display metadata (kind / label / color). */
 export function getFileKind(path: string, isDirectory?: boolean): FileKindInfo {
   if (isDirectory) {
     const base = KIND_INFO.folder
     return {
       ...base,
-      label: t('fileKinds.folder') || base.label
+      label: translateKind('fileKinds.folder', base.label)
     }
   }
   const ext = extOf(path)
@@ -104,7 +110,7 @@ export function getFileKind(path: string, isDirectory?: boolean): FileKindInfo {
   const base = KIND_INFO[kind]
   return {
     ...base,
-    label: t(KEY_MAP[kind]) || base.label
+    label: translateKind(KEY_MAP[kind], base.label)
   }
 }
 
@@ -114,13 +120,13 @@ export function getFileKindByExt(ext: string, isDirectory?: boolean): FileKindIn
     const base = KIND_INFO.folder
     return {
       ...base,
-      label: t('fileKinds.folder') || base.label
+      label: translateKind('fileKinds.folder', base.label)
     }
   }
   const kind = EXT_MAP[ext.toLowerCase()] ?? 'file'
   const base = KIND_INFO[kind]
   return {
     ...base,
-    label: t(KEY_MAP[kind]) || base.label
+    label: translateKind(KEY_MAP[kind], base.label)
   }
 }
