@@ -98,13 +98,12 @@ export function ItemList() {
   }, [open, topRecentId, topRecentTime, topPinnedTime])
 
   useLayoutEffect(() => {
-    // If recent or pinned items changed/updated while panel is open, instantly jump to top without animation
+    // If a brand new or freshly updated item was added while panel is open, jump to top
     if (open) {
-      const idChanged = topRecentId !== prevTopRecentId.current
-      const recentTimeChanged = topRecentTime !== prevTopRecentTime.current
-      const pinnedTimeChanged = topPinnedTime !== prevTopPinnedTime.current
+      const isNewRecent = !!topRecentTime && (!prevTopRecentTime.current || topRecentTime > prevTopRecentTime.current)
+      const isNewPinned = !!topPinnedTime && (!prevTopPinnedTime.current || topPinnedTime > prevTopPinnedTime.current)
 
-      if (idChanged || recentTimeChanged || pinnedTimeChanged) {
+      if (isNewRecent || isNewPinned) {
         if (listRef.current) {
           listRef.current.scrollTop = 0
         }

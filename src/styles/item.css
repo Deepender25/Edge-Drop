@@ -17,8 +17,6 @@
               border-color 0.16s ease,
               box-shadow 0.16s ease;
   overflow: hidden;
-  content-visibility: auto;
-  contain-intrinsic-size: 0 80px;
 }
 
 .item:hover {

@@ -125,8 +125,20 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       ref={ref}
       layout="position"
       initial={open ? { opacity: 0, scale: 0.96, y: 6 } : false}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -4, transition: { duration: 0.12, ease: [0.32, 0, 0.67, 0] } }}
+      animate={{ opacity: 1, scale: 1, y: 0, height: 'auto', marginBottom: undefined }}
+      exit={{
+        opacity: 0,
+        height: 0,
+        marginBottom: 0,
+        scale: 0.95,
+        y: -4,
+        transition: {
+          opacity: { duration: 0.12, ease: [0.32, 0, 0.67, 0] },
+          height: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
+          marginBottom: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
+          scale: { duration: 0.14, ease: [0.32, 0, 0.67, 0] }
+        }
+      }}
       transition={{
         layout: { duration: 0.22, ease: [0.16, 1, 0.3, 1] },
         type: 'spring',

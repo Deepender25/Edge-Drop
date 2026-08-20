@@ -237,6 +237,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   setItems: (items) => {
     const prevItems = get().items
+    if (
+      prevItems.length === items.length &&
+      prevItems.every((it, i) => it.id === items[i]?.id && it.pinned === items[i]?.pinned && it.hitCount === items[i]?.hitCount && it.capturedAt === items[i]?.capturedAt)
+    ) {
+      return
+    }
     const prevTop = prevItems.length > 0 ? prevItems[0] : null
     const newTop = items.length > 0 ? items[0] : null
 
@@ -333,7 +339,10 @@ export const useStore = create<AppState>((set, get) => ({
     set({ items: previousItems.filter((it) => it.id !== id) })
     try {
       const items = await edge.deleteItem(id)
-      set({ items })
+      const current = get().items
+      if (items.length !== current.length || items.some((it, i) => it.id !== current[i]?.id)) {
+        set({ items })
+      }
     } catch {
       // Do not leave the UI claiming an item was deleted when the main-process
       // persistence request failed (for example during a renderer reload).
@@ -348,7 +357,10 @@ export const useStore = create<AppState>((set, get) => ({
       set({ items: previousItems.filter((it) => it.pinned) })
       try {
         const items = await edge.clearItems()
-        set({ items })
+        const current = get().items
+        if (items.length !== current.length || items.some((it, i) => it.id !== current[i]?.id)) {
+          set({ items })
+        }
       } catch {
         set({ items: previousItems })
         get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
@@ -359,7 +371,10 @@ export const useStore = create<AppState>((set, get) => ({
       set({ items: previousItems.filter((it) => !idSet.has(it.id)) })
       try {
         const items = await edge.deleteBatchItems(ids)
-        set({ items })
+        const current = get().items
+        if (items.length !== current.length || items.some((it, i) => it.id !== current[i]?.id)) {
+          set({ items })
+        }
       } catch {
         set({ items: previousItems })
         get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
