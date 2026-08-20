@@ -16,7 +16,7 @@ import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, 
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
-import { startDragOut, resolveDragData } from './drag'
+import { startDragOut, resolveDragData, prestageDrag } from './drag'
 import { clipboardSignature, formatTabularDataForClipboard } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
@@ -667,6 +667,10 @@ export function registerSendListeners(): void {
         sender.send('item:internal-drop', { x: point.x - bounds.x, y: point.y - bounds.y })
       }
     }
+  })
+
+  on('item:prestage-drag', (_sender, req) => {
+    prestageDrag(req)
   })
 }
 

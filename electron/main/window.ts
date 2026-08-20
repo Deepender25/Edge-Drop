@@ -259,10 +259,14 @@ let _lastSentY = -9999
  */
 export function setHeartbeatPaused(paused: boolean): void {
   heartbeatPaused = paused
-  if (!paused) {
-    // Re-assert z-order immediately when drag ends so the window snaps back
-    // to the correct level without waiting for the next heartbeat tick.
-    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+  if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+    if (paused) {
+      // Temporarily lower window z-band from 'screen-saver' to 'normal' during active drag
+      // so the Windows DWM drag-ghost image renders ON TOP of our window.
+      mainWindow.setAlwaysOnTop(true, 'normal')
+    } else {
+      // Re-assert z-order immediately when drag ends so the window snaps back
+      // to the correct level without waiting for the next heartbeat tick.
       mainWindow.setAlwaysOnTop(true, 'screen-saver')
     }
   }

@@ -8,7 +8,7 @@
 
     <!-- Folder Base Soft Shadow -->
     <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#475569" flood-opacity="0.12"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#4A5F3B" flood-opacity="0.14"/>
     </filter>
   </defs>
 
@@ -26,7 +26,7 @@
              C 456 396 442 410 424 410
              L 88 410
              C 70 410 56 396 56 378 Z"
-          fill="#D1DBE5"/>
+          fill="#CEDDC3"/>
 
     <!-- 2. Paper Sheet Peeking Inside -->
     <path d="M 74 162
@@ -35,7 +35,7 @@
              L 429 143
              C 434 143 438 147 438 152
              L 438 162 Z"
-          fill="#F8FAFC"/>
+          fill="#F8FAF6"/>
 
     <!-- 3. Folder Front Flap -->
     <path d="M 56 168
@@ -46,7 +46,7 @@
              C 456 396 442 410 424 410
              L 88 410
              C 70 410 56 396 56 378 Z"
-          fill="#B2C0D0"/>
+          fill="#8CA77B"/>
 
     <!-- 4. Folded Note Document Motif -->
     <g filter="url(#sheetShadow)">
@@ -62,7 +62,7 @@
                L 291 205
                C 288 202 284 200 280 200
                Z"
-            fill="#F8FAFC"/>
+            fill="#F8FAF6"/>
 
       <!-- Folded Corner L-Flap -->
       <path d="M 281 201
@@ -70,32 +70,32 @@
                C 281 238 286 243 292 243
                L 323 243"
             fill="none"
-            stroke="#B2C0D0"
+            stroke="#8CA77B"
             stroke-width="7"
             stroke-linecap="round"
             stroke-linejoin="round"/>
 
       <!-- Note Line 1 (Short Heading) -->
       <line x1="210" y1="268" x2="256" y2="268"
-            stroke="#B2C0D0"
+            stroke="#8CA77B"
             stroke-width="7"
             stroke-linecap="round"/>
 
       <!-- Note Line 2 (Full Line) -->
       <line x1="210" y1="294" x2="300" y2="294"
-            stroke="#B2C0D0"
+            stroke="#8CA77B"
             stroke-width="7"
             stroke-linecap="round"/>
 
       <!-- Note Line 3 (Full Line) -->
       <line x1="210" y1="320" x2="300" y2="320"
-            stroke="#B2C0D0"
+            stroke="#8CA77B"
             stroke-width="7"
             stroke-linecap="round"/>
 
       <!-- Note Line 4 (Medium Line) -->
       <line x1="210" y1="346" x2="276" y2="346"
-            stroke="#B2C0D0"
+            stroke="#8CA77B"
             stroke-width="7"
             stroke-linecap="round"/>
     </g>

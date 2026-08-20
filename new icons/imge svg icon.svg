@@ -2,13 +2,13 @@
   <defs>
     <!-- Soft Matte Shadow for the Image Motif -->
     <filter id="glyphShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#9D174D" flood-opacity="0.22"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#6B4F3B" flood-opacity="0.22"/>
       <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.05"/>
     </filter>
 
     <!-- Folder Base Soft Shadow -->
     <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#BE185D" flood-opacity="0.12"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#8C6A4F" flood-opacity="0.14"/>
     </filter>
   </defs>
 
@@ -26,7 +26,7 @@
              C 456 396 442 410 424 410
              L 88 410
              C 70 410 56 396 56 378 Z"
-          fill="#F9A8D4"/>
+          fill="#DFCEBC"/>
 
     <!-- 2. Paper Sheet Peeking Inside -->
     <path d="M 74 162
@@ -35,7 +35,7 @@
              L 429 143
              C 434 143 438 147 438 152
              L 438 162 Z"
-          fill="#FFF1F8"/>
+          fill="#FFFDF9"/>
 
     <!-- 3. Folder Front Flap -->
     <path d="M 56 168
@@ -46,7 +46,7 @@
              C 456 396 442 410 424 410
              L 88 410
              C 70 410 56 396 56 378 Z"
-          fill="#F472B6"/>
+          fill="#BA9B7B"/>
 
     <!-- 4. Clean Seamless Photo Frame Motif (Zero Artifacts) -->
     <g filter="url(#glyphShadow)">

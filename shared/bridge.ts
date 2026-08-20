@@ -30,6 +30,11 @@ export interface EdgeApi {
    * from the DOM `dragstart` event, and main calls `event.sender.startDrag`.
    */
   startDrag: (req: DragRequest) => void
+  /**
+   * Pre-stage a drag request in the background (e.g. on hover or pointerdown)
+   * so drag initiation is 0ms.
+   */
+  prestageDrag: (req: DragRequest) => void
   addFiles: (paths: string[]) => Promise<import('./types').ClipboardItemDto[]>
   addItemData: (data: import('./types').ItemData) => Promise<import('./types').ClipboardItemDto[]>
   mergeItems: (sourceId: string, targetId: string) => Promise<import('./types').MergeResult>

@@ -18,6 +18,10 @@ describe('Custom File Category & Pastel Theme Palette', () => {
     const pptx = getFileKindByExt('pptx')
     expect(pptx.kind).toBe('powerpoint')
     expect(pptx.color).toBe('#FFA25B')
+
+    const txt = getFileKindByExt('txt')
+    expect(txt.kind).toBe('text')
+    expect(txt.color).toBe('#8CA77B')
   })
 
   it('correctly maps code and developer formats with cyan pastel', () => {
@@ -33,11 +37,11 @@ describe('Custom File Category & Pastel Theme Palette', () => {
   it('correctly maps media formats with respective pastel tones', () => {
     const png = getFileKindByExt('png')
     expect(png.kind).toBe('image')
-    expect(png.color).toBe('#F472B6')
+    expect(png.color).toBe('#BA9B7B')
 
     const mp4 = getFileKindByExt('mp4')
     expect(mp4.kind).toBe('video')
-    expect(mp4.color).toBe('#FF6E7F')
+    expect(mp4.color).toBe('#64748B')
 
     const mp3 = getFileKindByExt('mp3')
     expect(mp3.kind).toBe('audio')

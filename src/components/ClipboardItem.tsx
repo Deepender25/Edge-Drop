@@ -24,7 +24,7 @@ import { useDragOut } from '../hooks/useDragOut'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, ImageIcon, LinkIcon, GlobeIcon, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { CopyIcon, FileKindIcon, GlobeIcon, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { parseUrlPreview } from '../lib/urlPreview'
 import '../styles/item.css'
 
@@ -108,11 +108,17 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       // own ghost in parallel; Electron's startDrag starts an independent OLE
       // drag managed by the OS. Fire the IPC synchronously so main calls
       // event.sender.startDrag(...) on the same tick.
-      setInternalDragReq(req)
       e.preventDefault()
       startDrag(req)
+      setInternalDragReq(req)
     }
   }, [item.data, startDrag, setInternalDragReq])
+
+  const handlePrestage = useCallback(() => {
+    if (item.data.kind !== 'text' && !isPreviewing) {
+      window.edge.prestageDrag({ id: item.id })
+    }
+  }, [item.data.kind, isPreviewing, item.id])
 
   return (
     <motion.div
@@ -150,6 +156,8 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
         className={`item-main${isPreviewing ? ' force-actions previewing' : ''}`}
         data-id={item.id}
         draggable={!isPreviewing && item.data.kind !== 'text' && (!isBundle || !expanded)}
+        onMouseEnter={handlePrestage}
+        onPointerDown={handlePrestage}
         onDragStart={(e) => handleDragStart(e, { id: item.id })}
         onDragEnd={() => setInternalDragReq(null)}
         onDragOver={(e) => {
@@ -532,6 +540,8 @@ function BundleFluidPreview({
                     className="fluid-card-row"
                     layout
                     draggable
+                    onMouseEnter={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
+                    onPointerDown={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
                     onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, paths: [filePath] }) }}
                     onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [filePath] })) }}
                   >
@@ -749,22 +759,17 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
     case 'text':
       if (item.data.isUrl)
-        return (
-          <span className="kind-badge url">
-            <LinkIcon width={11} height={11} /> {t('filters.links').toLowerCase()}
-          </span>
-        )
+        return <span className="kind-badge url">{t('filters.links').toLowerCase()}</span>
       return <span className="kind-badge">{t('filters.text').toLowerCase()}</span>
     case 'image':
       return (
         <span className="kind-badge">
-          <ImageIcon width={11} height={11} /> {t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}
+          {t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}
         </span>
       )
     case 'image-collection':
       return (
         <span className="kind-badge">
-          <ImageIcon width={11} height={11} />
           {item.data.images.length} {t('filters.images').toLowerCase()}
         </span>
       )
@@ -777,14 +782,13 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
       if (isImage) {
         return (
           <span className="kind-badge">
-            <ImageIcon width={11} height={11} /> {t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}
+            {t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}
           </span>
         )
       }
       const label = count > 1 ? `${count} ${t('filters.files').toLowerCase()}` : info.label.toLowerCase()
       return (
         <span className="kind-badge" style={{ color: count > 1 ? undefined : info.color }}>
-          <FileKindIcon path={firstPath} width={11} height={11} isDirectory={entry?.isDirectory} />
           {label}
         </span>
       )

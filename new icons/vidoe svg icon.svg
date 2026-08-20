@@ -8,7 +8,7 @@
 
     <!-- Folder Base Soft Shadow -->
     <filter id="folderShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#BE123C" flood-opacity="0.12"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#1E293B" flood-opacity="0.14"/>
     </filter>
   </defs>
 
@@ -26,7 +26,7 @@
              C 456 396 442 410 424 410
              L 88 410
              C 70 410 56 396 56 378 Z"
-          fill="#FFA1AD"/>
+          fill="#94A3B8"/>
 
     <!-- 2. Paper Sheet Peeking Inside -->
     <path d="M 74 162
@@ -35,7 +35,7 @@
              L 429 143
              C 434 143 438 147 438 152
              L 438 162 Z"
-          fill="#FFF0F3"/>
+          fill="#F8FAFC"/>
 
     <!-- 3. Folder Front Flap -->
     <path d="M 56 168
@@ -46,27 +46,27 @@
              C 456 396 442 410 424 410
              L 88 410
              C 70 410 56 396 56 378 Z"
-          fill="#FF6E7F"/>
+          fill="#64748B"/>
 
     <!-- 4. Cinema Film Strip Motif -->
     <g filter="url(#sheetShadow)">
       <!-- Main White Film Strip Card -->
-      <rect x="176" y="224" width="160" height="128" rx="20" fill="#FFF0F3"/>
+      <rect x="176" y="224" width="160" height="128" rx="20" fill="#F8FAFC"/>
 
       <!-- Left Sprocket Holes -->
-      <rect x="192" y="240" width="16" height="16" rx="4" fill="#FF6E7F"/>
-      <rect x="192" y="266.67" width="16" height="16" rx="4" fill="#FF6E7F"/>
-      <rect x="192" y="293.33" width="16" height="16" rx="4" fill="#FF6E7F"/>
-      <rect x="192" y="320" width="16" height="16" rx="4" fill="#FF6E7F"/>
+      <rect x="192" y="240" width="16" height="16" rx="4" fill="#64748B"/>
+      <rect x="192" y="266.67" width="16" height="16" rx="4" fill="#64748B"/>
+      <rect x="192" y="293.33" width="16" height="16" rx="4" fill="#64748B"/>
+      <rect x="192" y="320" width="16" height="16" rx="4" fill="#64748B"/>
 
       <!-- Center Film Frame Window (x=216 to 296, Center=256) -->
-      <rect x="216" y="240" width="80" height="96" rx="8" fill="#FF6E7F"/>
+      <rect x="216" y="240" width="80" height="96" rx="8" fill="#64748B"/>
 
       <!-- Right Sprocket Holes -->
-      <rect x="304" y="240" width="16" height="16" rx="4" fill="#FF6E7F"/>
-      <rect x="304" y="266.67" width="16" height="16" rx="4" fill="#FF6E7F"/>
-      <rect x="304" y="293.33" width="16" height="16" rx="4" fill="#FF6E7F"/>
-      <rect x="304" y="320" width="16" height="16" rx="4" fill="#FF6E7F"/>
+      <rect x="304" y="240" width="16" height="16" rx="4" fill="#64748B"/>
+      <rect x="304" y="266.67" width="16" height="16" rx="4" fill="#64748B"/>
+      <rect x="304" y="293.33" width="16" height="16" rx="4" fill="#64748B"/>
+      <rect x="304" y="320" width="16" height="16" rx="4" fill="#64748B"/>
 
       <!-- Mathematically Centered Play Triangle -->
       <path d="M 243 274

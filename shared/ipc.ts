@@ -173,6 +173,8 @@ export interface EventMap {
 export interface SendMap {
   /** Begin a native OS drag of an item (or one file of a bundle) out of the app. */
   'item:start-drag': { args: [req: DragRequest] }
+  /** Pre-stage drag file and warm icon in background before drag begins. */
+  'item:prestage-drag': { args: [req: DragRequest] }
   /** Synchronize tutorial step */
   'tutorial:set-step': { args: [step: number] }
 }
