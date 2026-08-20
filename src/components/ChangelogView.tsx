@@ -17,30 +17,54 @@ interface ChangelogRelease {
 
 const CHANGELOG_DATA: ChangelogRelease[] = [
   {
-    version: 'v0.2.7',
-    date: 'Aug 13, 2026',
+    version: 'v0.2.9',
+    date: 'Aug 20, 2026',
     isLatest: true,
-    summary: 'Disk-backed on-demand text payloads, image thumbnailing, RAM footprint stabilization (~130 MB), universal drag-and-drop vault, zero-cost URL previews, and Windows OS integration fixes.',
+    summary: 'Customizable shortcut, selective history clearing, pastel file icons, and smoother deletion animations.',
     highlights: [
       {
-        title: 'Disk-Backed Payloads & RAM Footprint Stabilization',
-        description: 'Large text entries (>300 chars) are stored as disk payload files, locking operational RAM down to ~130 MB–160 MB with zero copy/paste latency.'
+        title: 'Custom Global Shortcut',
+        description: 'Customize the shelf toggle hotkey (defaults to Alt+C) directly in Settings.'
       },
       {
-        title: 'Image Thumbnailing Protocol (edgelocal://thumb/)',
-        description: 'History cards now render 240px custom thumbnails instead of multi-megapixel raw images, preventing Chromium GPU memory bloat.'
+        title: 'Selective History Clearing',
+        description: 'Clear history by time window (1h, 6h, 24h) or clear only the active category (Images, Files, etc.).'
       },
       {
-        title: 'Windows Home Screen & Fullscreen Detection Fix',
-        description: 'Differentiates Windows Desktop/Home Screen shell focus from full-screen games via Win32 API window class filtering, enabling smooth edge opening on the Home Screen.'
+        title: 'Pastel File Icons',
+        description: 'New vector icons for folders, code, spreadsheets, PDFs, documents, and media files.'
       },
       {
-        title: 'Self-Healing Launch at Login Sync',
-        description: 'Unconditionally synchronizes Windows Registry startup entries with live binary paths and --hidden flags after every app update.'
+        title: 'Smoother Item Removal',
+        description: 'Deleting items now collapses smoothly without leaving empty gaps.'
       },
       {
-        title: 'Universal Drag-and-Drop & Zero-Cost URL Previews',
-        description: 'Drag text, links, web images, and files directly into Edge-Drop, with offline rich URL link preview cards and favicons.'
+        title: 'Windows Snipping Tool Integration',
+        description: 'Screenshots taken with Win+Shift+S are automatically captured with clean file names.'
+      }
+    ]
+  },
+  {
+    version: 'v0.2.7',
+    date: 'Aug 13, 2026',
+    isLatest: false,
+    summary: 'Lower memory usage, instant link previews, and improved desktop drag-and-drop.',
+    highlights: [
+      {
+        title: 'Lower Memory Usage',
+        description: 'Optimized storage so the app stays fast and lightweight in the background.'
+      },
+      {
+        title: 'Rich Link Previews',
+        description: 'Copied URLs automatically display website titles and icons.'
+      },
+      {
+        title: 'Desktop Drag & Drop',
+        description: 'Drag items directly into or out of the shelf into any desktop application.'
+      },
+      {
+        title: 'Better Fullscreen Handling',
+        description: 'Improved detection so the shelf stays hidden during games and videos.'
       }
     ]
   },
@@ -48,23 +72,19 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.2.6',
     date: 'Aug 05, 2026',
     isLatest: false,
-    summary: 'Performance optimizations, redesigned settings footer, custom support portal integration, and enhanced 30-language typography.',
+    summary: 'Cleaner settings interface, smoother scrolling, and improved translations.',
     highlights: [
       {
-        title: 'Performance Improvements',
-        description: 'Removed CPU blur effects across UI components for smoother panel opening and scrolling.'
+        title: 'Redesigned Settings',
+        description: 'Simpler navigation with categorized tabs and a cleaner layout.'
       },
       {
-        title: 'Settings UI & Navigation Redesign',
-        description: 'Reordered settings footer to place the Support section above the Quit button, redesigned buttons into matching pill shapes with a soft pastel red support button, and simplified Quit into a low-profile bottom button.'
+        title: 'Smoother Performance',
+        description: 'Faster panel opening and responsive scrolling.'
       },
       {
-        title: 'Official Support Portal Integration',
-        description: 'Updated support link to open official Edge-Drop support page supporting both International Ko-fi and Indian UPI options.'
-      },
-      {
-        title: 'Localization & Typography Enhancements',
-        description: 'Updated filter category labels across 30 languages with shorter native terms and added dynamic font scaling so filter text fits cleanly without overlapping.'
+        title: 'Support & Feedback',
+        description: 'Easy links to support the project and share feedback.'
       }
     ]
   },
@@ -72,23 +92,19 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.2.5',
     date: 'Aug 03, 2026',
     isLatest: false,
-    summary: 'Full 30-language localization with auto-scroll selector, powerMonitor sleep/wake protection, text size typography settings, and multi-file action bar.',
+    summary: '30+ language translations, sleep/wake protection, and font size controls.',
     highlights: [
       {
-        title: 'Complete 30-Language Localization & Smart Language Selector',
-        description: 'Implemented full translation dictionaries across 30 languages, added RTL layout support for Arabic and Hebrew, integrated audio haptics, and added auto-scrolling to position the selected language in the dropdown viewport.'
+        title: '30+ Languages',
+        description: 'Full translations including right-to-left layout support for Arabic and Hebrew.'
       },
       {
-        title: 'Laptop Sleep & Unlock Protection',
-        description: 'Eliminated false Copy Indicator activations when opening laptop lid or unlocking screen using native powerMonitor lifecycle handlers.'
+        title: 'Adjustable Font Size',
+        description: 'Choose between Small, Normal, Medium, and Large text scaling.'
       },
       {
-        title: 'Text Size Typography Scale Setting',
-        description: 'Added customizable typography scale settings (Small, Normal, Medium, Large) applying dynamic font scaling across the app.'
-      },
-      {
-        title: 'Multi-File Selection & Preview Action Bar',
-        description: 'Added tap-to-toggle multi-file selection with a batch action bar (Select All, Copy Selected, Paste Selected, Clear Selection).'
+        title: 'Multi-File Selection',
+        description: 'Select multiple files at once to copy, paste, or clear them together.'
       }
     ]
   },
@@ -96,23 +112,19 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.2.0',
     date: 'Jul 26, 2026',
     isLatest: false,
-    summary: 'Silent background auto-updater, direct web link launcher, dedicated Pinned items deck, and interactive controls.',
+    summary: 'Background updates, one-click link opening, and pinned items shelf.',
     highlights: [
       {
-        title: 'Silent Background Auto-Updates',
-        description: 'New updates download silently in the background with a single-click Restart to Update button.'
+        title: 'Background Updates',
+        description: 'Seamless auto-updates with a single-click restart button.'
       },
       {
-        title: 'Direct One-Click Web Link Launcher',
-        description: 'Copied links feature a dedicated launch button opening directly in your default browser.'
+        title: 'One-Click Link Launcher',
+        description: 'Open copied links directly in your default browser.'
       },
       {
-        title: 'Dedicated Pinned Items Deck',
-        description: 'Encapsulated pinned items inside a dedicated deck container at the top of the shelf.'
-      },
-      {
-        title: 'Live What\'s New Sync',
-        description: 'Release history connects live to GitHub Releases with automatic offline safeguards.'
+        title: 'Pinned Items Section',
+        description: 'Keep your favorite clips safely pinned at the top.'
       }
     ]
   },
@@ -120,27 +132,15 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.1.5',
     date: 'Jul 24, 2026',
     isLatest: false,
-    summary: 'Customizable Copy Indicator styles with a 2x2 grid selector flyout alongside panel hover stability fixes for medium and large panel heights.',
+    summary: 'Customizable copy indicator styles and hover zone improvements.',
     highlights: [
       {
-        title: 'Four Vector Indicator Options',
-        description: 'Added support for 4 customizable copy indicator styles including Logo, Tick, Copy, and Sparkle.'
+        title: 'Custom Copy Indicators',
+        description: 'Choose between Logo, Tick, Copy, and Sparkle indicator styles.'
       },
       {
-        title: 'Balanced 2x2 Grid Flyout Selector',
-        description: 'Integrated a 2x2 grid selector flyout inside Settings under Indicator Style for quick style previews and one-click selection.'
-      },
-      {
-        title: 'Clean Vector Graphic Rendering',
-        description: 'Removed background circle badges so all icons float natively as solid vector graphics with subtle glowing drop shadows.'
-      },
-      {
-        title: 'Panel Hover Boundary Fix for Settings Button',
-        description: 'Resolved an issue where moving the cursor down toward the Settings button on medium (60%) and large (80%) panel heights caused the clipboard to prematurely close.'
-      },
-      {
-        title: 'Recalibrated Y-Axis Hot Zone',
-        description: 'Updated the panel height bounds calculation in the edge hover detector so the entire vertical area of the expanded blade remains active.'
+        title: 'Hover Stability',
+        description: 'Smoother hover detection when accessing settings on taller shelves.'
       }
     ]
   },
@@ -148,27 +148,15 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.1.4',
     date: 'Jul 23, 2026',
     isLatest: false,
-    summary: 'Automatic Fullscreen Protection for gamers and presenters - detecting Direct3D games and fullscreen media via native Windows APIs.',
+    summary: 'Fullscreen game and presentation protection.',
     highlights: [
       {
-        title: 'Automatic OS Game & Fullscreen Detection',
-        description: 'Integrated native Windows API detection to identify Direct3D fullscreen games, presentation modes, and busy states.'
+        title: 'Fullscreen Protection',
+        description: 'Shelf pauses hover triggers while playing games or presenting.'
       },
       {
-        title: 'Hover Suppression & Instant Auto-Retract',
-        description: 'Automatically suppresses edge hover and instantly retracts the panel when a fullscreen game, video, or presentation is active in the foreground.'
-      },
-      {
-        title: '0ms Latency & Hotkey Access',
-        description: 'Background polling runs every 1 second with 0ms overhead during edge hover checks. Global shortcut Alt + C remains active.'
-      },
-      {
-        title: 'Settings Toggle (Fullscreen Protection)',
-        description: 'Added a user toggle under Behaviour in Settings (Fullscreen Protection, enabled by default).'
-      },
-      {
-        title: 'GitHub Support & Feedback Links',
-        description: 'Added a COMMUNITY & SUPPORT section in Settings linking directly to bug reports and feature requests.'
+        title: 'Quick Hotkey Access',
+        description: 'Toggle the shelf at any time using Alt+C.'
       }
     ]
   },
@@ -176,27 +164,15 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.1.3',
     date: 'Jul 23, 2026',
     isLatest: false,
-    summary: 'Major multi-display architecture overhaul featuring single-source display selection, System Tray sync, and automatic OS disconnect recovery.',
+    summary: 'Multi-monitor support and quick click-to-paste.',
     highlights: [
       {
-        title: 'Single-Source Display Engine & Real-Time Tray Sync',
-        description: 'Unified monitor listing and selection state across Application Settings and the System Tray context menu into a single source of truth.'
+        title: 'Multi-Monitor Support',
+        description: 'Place the shelf on any connected monitor with automatic recovery.'
       },
       {
-        title: 'Automatic OS Disconnect Recovery',
-        description: 'When a secondary display hosting the panel is disconnected, Edge-Drop auto-heals its target back to the Primary Display.'
-      },
-      {
-        title: 'Brief Visual Confirmation Pop-Ups',
-        description: 'The clipboard panel automatically pops open for 1.5 seconds to visually confirm its position whenever a monitor configuration changes.'
-      },
-      {
-        title: 'Universal Flyout Click-to-Paste',
-        description: 'Clicking any text snippet, image thumbnail, or file tile inside an open Preview Flyout now instantly pastes that item into active applications.'
-      },
-      {
-        title: 'Animation Controls',
-        description: 'Added independent settings under Animations for bounce scale pop (bounceAnimation) and background blurring (blurAnimation).'
+        title: 'Click to Paste',
+        description: 'Click any item in the preview flyout to paste it directly into your active app.'
       }
     ]
   },
@@ -204,23 +180,15 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.1.2',
     date: 'Jul 22, 2026',
     isLatest: false,
-    summary: 'Security infrastructure upgrades including Windows DPAPI history encryption, process isolation, Electron 34, and Preview Flyout drag-to-stack.',
+    summary: 'Encrypted local history and drag-to-stack grouping.',
     highlights: [
       {
-        title: 'Windows DPAPI safeStorage Encryption & Electron 34',
-        description: 'Clipboard history is now encrypted at rest using native Windows DPAPI. Core runtime upgraded to Electron v34.2.0.'
+        title: 'Secure Storage',
+        description: 'Clipboard history is encrypted securely on your device.'
       },
       {
-        title: 'Preview Flyout Drag-to-Stack Merging',
-        description: 'You can drag any item from the clipboard shelf directly onto an open Preview Flyout to stack and merge items instantly.'
-      },
-      {
-        title: 'Dynamic 100% Full-Width Single-File Layout',
-        description: 'Opening the Preview Flyout for a single file dynamically expands to a full-width presentation.'
-      },
-      {
-        title: 'Unified Image File Rendering',
-        description: 'Images copied from File Explorer or desktop automatically render as rich visual image cards with thumbnails.'
+        title: 'Drag to Stack',
+        description: 'Drag items onto the preview window to group them into stacks.'
       }
     ]
   },
@@ -228,19 +196,15 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.1.1',
     date: 'Jul 18, 2026',
     isLatest: false,
-    summary: 'Multi-monitor configuration, screen edge selection (Left/Right), and background memory optimizations.',
+    summary: 'Screen edge selection and performance improvements.',
     highlights: [
       {
-        title: 'Multi-Monitor & Position Support',
-        description: 'Targeted display selection allows anchoring to any connected monitor on either Left or Right screen edge.'
+        title: 'Left or Right Screen Edge',
+        description: 'Position the shelf on either the left or right side of your display.'
       },
       {
-        title: 'Resource & Memory Optimization',
-        description: 'Rebuilt image handling consuming up to 60% less RAM while idle.'
-      },
-      {
-        title: 'Bug Fixes & UI Refinements',
-        description: 'Display highlight accuracy defaults to primary display and Z-index rendering fixes.'
+        title: 'Faster Performance',
+        description: 'Lower memory footprint and improved responsiveness.'
       }
     ]
   },
@@ -248,23 +212,19 @@ const CHANGELOG_DATA: ChangelogRelease[] = [
     version: 'v0.1.0',
     date: 'Jul 10, 2026',
     isLatest: false,
-    summary: 'Initial release of Edge-Drop, a zero-click desktop clipboard shelf living on the screen edge.',
+    summary: 'Initial release of Edge-Drop, a zero-click clipboard shelf living on your screen edge.',
     highlights: [
       {
-        title: 'Zero-Click Activation & Edge Hover',
-        description: 'Anchored at the screen edge with 120ms dwelling detection and physics-based spring panel opening.'
+        title: 'Zero-Click Edge Hover',
+        description: 'Slide your mouse to the screen edge to open your clipboard.'
       },
       {
-        title: 'OS-Level OLE Native Drag & Drop',
-        description: 'Drag items directly into Photoshop, Word, Slack, or File Explorer.'
+        title: 'Drag & Drop Support',
+        description: 'Drag clips directly into your desktop apps.'
       },
       {
-        title: 'Fluid Collections & 3D Stacks',
-        description: 'Multi-file copies auto-group into expandable 3D card stacks.'
-      },
-      {
-        title: 'Configurable Clipboard Engine',
-        description: 'Incognito Mode, customizable history capacity (100-1000 items), auto-delete timers, and vertical trigger hot-zones.'
+        title: 'Smart Stacks',
+        description: 'Group multiple copied files and images into organized stacks.'
       }
     ]
   }
