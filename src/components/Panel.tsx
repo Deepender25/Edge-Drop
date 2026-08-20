@@ -30,7 +30,8 @@ export function Panel() {
   const filteredItems = useMemo(() => [...pinned, ...recent], [pinned, recent])
   const filteredCount = filteredItems.length
   const clear = useStore((s) => s.clear)
-  const items = useStore((s) => s.items)
+  const typeFilter = useStore((s) => s.typeFilter)
+  const query = useStore((s) => s.query)
 
   const settings = useStore((s) => s.settings)
   const settingsOpen = useStore((s) => s.settingsOpen)
@@ -376,11 +377,17 @@ export function Panel() {
                   </span>
                   <div className="spacer" />
                   <ClearMenu
-                    items={items}
+                    items={filteredItems}
                     disabled={recent.length === 0}
                     panelOpen={open}
                     onClear={(ids) => clear(ids)}
-                    onClearAll={() => clear()}
+                    onClearAll={() => {
+                      if (typeFilter === 'all' && !query.trim()) {
+                        clear()
+                      } else {
+                        clear(recent.map((it) => it.id))
+                      }
+                    }}
                   />
                 </div>
               </motion.div>
