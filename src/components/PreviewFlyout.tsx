@@ -13,11 +13,44 @@ import { playButtonClickSound, playToggleSound } from '../lib/soundEffects'
 
 import { useTranslation } from '../i18n'
 
+/** Fast start, soft landing — no overshoot, no spring hang. */
+const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
+const flyoutEaseClose = [0.3, 0, 0.2, 1] as const
+
+const flyoutVariants = {
+  hidden: (isRight: boolean) => ({
+    opacity: 0,
+    x: isRight ? 14 : -14,
+    scale: 0.97,
+  }),
+  shown: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: {
+      x: { duration: 0.26, ease: flyoutEaseOpen },
+      scale: { duration: 0.26, ease: flyoutEaseOpen },
+      opacity: { duration: 0.18, ease: 'easeOut' as const },
+    },
+  },
+  exit: (isRight: boolean) => ({
+    opacity: 0,
+    x: isRight ? 10 : -10,
+    scale: 0.98,
+    transition: {
+      x: { duration: 0.18, ease: flyoutEaseClose },
+      scale: { duration: 0.18, ease: flyoutEaseClose },
+      opacity: { duration: 0.14, ease: 'easeIn' as const },
+    },
+  }),
+  reducedHidden: { opacity: 0 },
+  reducedShown: { opacity: 1 },
+}
+
 export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const { t } = useTranslation()
   const previewItemId = useStore((s) => s.previewItemId)
   const items = useStore((s) => s.items)
-  const previewItemRect = useStore((s) => s.previewItemRect)
   const settings = useStore((s) => s.settings)
   const adaptiveSpring = useAdaptiveSpring()
   
@@ -32,16 +65,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const midY = Math.round(minY + vOffset * (maxY - minY))
   const panelTop = midY - panelH / 2
 
-  // The vertical center of the clicked item card, expressed as a % of the flyout height.
-  // This anchors the transformOrigin so the flyout physically grows FROM and collapses
-  // TO the exact item card — identical to macOS window minimize-to-dock.
-  const originY = (() => {
-    if (!previewItemRect) return '50%'
-    const itemCenterY = previewItemRect.y + previewItemRect.height / 2
-    const relY = itemCenterY - panelTop
-    const pct = Math.max(0, Math.min(100, (relY / panelH) * 100))
-    return `${pct}%`
-  })()
+  const reduceMotion = settings.reduceMotion || adaptiveSpring.type === 'tween'
 
   const maxFlyoutHeight = Math.max(100, panelH - 24)
 
@@ -55,10 +79,12 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
     }
 
     const updateRect = () => {
-      if (flyoutRef.current) {
-        const r = flyoutRef.current.getBoundingClientRect()
-        useStore.getState().setPreviewFlyoutRect({ top: r.top, bottom: r.bottom })
-      }
+      if (!flyoutRef.current) return
+      // offsetHeight ignores the wrapper transform, so the hover
+      // keep-alive zone stays full-size while the open/close motion plays.
+      const h = flyoutRef.current.offsetHeight
+      const top = panelTop + (panelH - h) / 2
+      useStore.getState().setPreviewFlyoutRect({ top, bottom: top + h })
     }
 
     updateRect()
@@ -71,7 +97,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
       window.removeEventListener('resize', updateRect)
       useStore.getState().setPreviewFlyoutRect(null)
     }
-  }, [item?.id])
+  }, [item?.id, panelTop, panelH])
 
   const handleDragOver = (e: React.DragEvent) => {
     const activeDrag = useStore.getState().internalDragReq
@@ -163,38 +189,42 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   }
 
   return createPortal(
-    <AnimatePresence mode="wait" onExitComplete={() => {
+    <AnimatePresence onExitComplete={() => {
       if (!useStore.getState().previewItemId) {
         window.edge.setPreviewMode(false)
       }
     }}>
       {item && (
-        <div style={{
-          position: 'absolute',
-          top: panelTop,
-          height: panelH,
-          [isRight ? 'right' : 'left']: 'var(--panel-width)',
-          marginLeft: isRight ? 0 : 12,
-          marginRight: isRight ? 12 : 0,
-          width: 440,
-          display: 'flex',
-          alignItems: 'center',
-          pointerEvents: 'none',
-          zIndex: 5,
-        }}>
-          <motion.div
+        <motion.div
+          key={item.id}
+          custom={isRight}
+          variants={flyoutVariants}
+          initial={reduceMotion ? 'reducedHidden' : 'hidden'}
+          animate={reduceMotion ? 'reducedShown' : 'shown'}
+          exit={reduceMotion ? 'reducedHidden' : 'exit'}
+          transition={reduceMotion ? { duration: 0.12, ease: 'linear' } : undefined}
+          style={{
+            position: 'absolute',
+            top: panelTop,
+            height: panelH,
+            [isRight ? 'right' : 'left']: 'var(--panel-width)',
+            marginLeft: isRight ? 0 : 12,
+            marginRight: isRight ? 12 : 0,
+            width: 440,
+            display: 'flex',
+            alignItems: 'center',
+            pointerEvents: 'none',
+            zIndex: 5,
+            originX: isRight ? 1 : 0,
+            originY: 0.5,
+            willChange: 'transform, opacity',
+            backfaceVisibility: 'hidden',
+          }}
+        >
+          <div
             ref={flyoutRef}
-            key={item.id}
             className="preview-flyout"
             data-preview-flyout="true"
-            initial={{ opacity: 0, scale: 0.88, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.88, y: 8 }}
-            transition={{
-              ...adaptiveSpring,
-              opacity: { type: 'tween', duration: 0.16, ease: 'easeOut' },
-              y: { type: 'spring', stiffness: 420, damping: 36, mass: 0.65, restDelta: 0.001 }
-            }}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -209,8 +239,6 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
               flexDirection: 'column',
               boxShadow: dragOver ? '0 0 35px rgba(76, 175, 80, 0.3)' : '0 20px 40px rgba(0,0,0,0.5)',
               pointerEvents: 'auto',
-              transformOrigin: `${isRight ? '100%' : '0%'} ${originY}`,
-              willChange: 'transform, opacity',
               transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
               position: 'relative'
             }}
@@ -398,8 +426,8 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </motion.div>
-        </div>
       )}
     </AnimatePresence>,
     document.body

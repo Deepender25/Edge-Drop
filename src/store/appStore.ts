@@ -113,7 +113,13 @@ export const useStore = create<AppState>((set, get) => ({
   hydrated: false,
   query: '',
   typeFilter: 'all',
-  setTypeFilter: (typeFilter) => set({ typeFilter }),
+  setTypeFilter: (typeFilter) => {
+    if (get().typeFilter === typeFilter) return
+    set({ typeFilter })
+    // The list remounts on filter change; leave the flyout open and it
+    // would float over a tab that no longer contains the source card.
+    if (get().previewItemId) get().setPreviewItemId(null)
+  },
   open: false,
   settingsOpen: false,
   settingsSubView: 'main',
