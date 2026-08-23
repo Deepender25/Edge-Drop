@@ -20,25 +20,23 @@ export function useAdaptiveSpring() {
     }
 
     if (dpr >= 1.75) {
-      // Hi-DPI (2×+): Apple fluid spring curve
       return {
         type: 'spring',
-        stiffness: 320,
-        damping: 30,
-        mass: 0.8,
-        restDelta: 0.001,
-        restSpeed: 0.001
+        stiffness: 520,
+        damping: 42,
+        mass: 0.5,
+        restDelta: 0.4,
+        restSpeed: 10
       } as const
     }
 
-    // Standard DPI: smooth fluid spring curve
     return {
       type: 'spring',
-      stiffness: 300,
-      damping: 28,
-      mass: 0.8,
-      restDelta: 0.001,
-      restSpeed: 0.001
+      stiffness: 480,
+      damping: 40,
+      mass: 0.5,
+      restDelta: 0.4,
+      restSpeed: 10
     } as const
   }, [])
 }
@@ -54,11 +52,11 @@ export function useSubtleSpring() {
 
     return {
       type: 'spring',
-      stiffness: 340,
-      damping: 34,
-      mass: 0.65,
-      restDelta: 0.001,
-      restSpeed: 0.001
+      stiffness: 480,
+      damping: 40,
+      mass: 0.5,
+      restDelta: 0.4,
+      restSpeed: 10
     } as const
   }, [])
 }

@@ -3,12 +3,12 @@
  *
  * Renders Pinned (if any) and Recent sections, handles OS drag-in of files &
  * images onto the shelf, and shows the empty state when there's nothing.
- * AnimatePresence here gives items their staggered enter/exit.
+ * AnimatePresence popLayout keeps pin/delete from height-collapsing the list.
  *
  * Drag-in awareness: sets `dragActive` on the store while OS files are being
  * dragged over the panel so the edge-hover hook knows not to close mid-drag.
  */
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
 import { useRef, useEffect, useLayoutEffect, useState } from 'react'
 import { useStore } from '../store/appStore'
 import { useFilteredItems } from '../hooks/useFilteredItems'
@@ -122,11 +122,8 @@ export function ItemList() {
   }, [isDraggingAny])
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (e.currentTarget.scrollTop > 50) {
-      setShowScrollTop(true)
-    } else {
-      setShowScrollTop(false)
-    }
+    const next = e.currentTarget.scrollTop > 50
+    setShowScrollTop((prev) => (prev === next ? prev : next))
   }
 
   const scrollToTop = () => {
@@ -186,10 +183,12 @@ export function ItemList() {
     stopScrolling()
   }
 
+  const filterKey = `${typeFilter}:${query}`
+
   return (
-    <motion.div 
-      className="list" 
-      ref={listRef} 
+    <div
+      className="list"
+      ref={listRef}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeaveOrDrop}
       onDrop={handleDragLeaveOrDrop}
@@ -198,12 +197,17 @@ export function ItemList() {
       {total === 0 ? (
         <EmptyState filtered={query.trim().length > 0} />
       ) : (
-        <>
+        <LayoutGroup id={`shelf-${typeFilter}`}>
+        <motion.div
+          key={filterKey}
+          className="list-stack"
+          initial={{ opacity: 0.45 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
+        >
           {pinned.length > 0 && (
-            <motion.section layout transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} className="pinned-section">
-              <motion.div 
-                layout
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            <section className="pinned-section">
+              <div
                 className={`section-label pinned-header-interactive ${pinnedCollapsed ? 'is-collapsed' : ''}`}
                 onClick={() => {
                   const next = !pinnedCollapsed
@@ -219,55 +223,39 @@ export function ItemList() {
                 </div>
                 <div className="pinned-header-right">
                   <button className="act bundle-collapse-btn" type="button" aria-label="Toggle pinned section">
-                    <ChevronDownIcon style={{ transform: pinnedCollapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.22s ease' }} />
+                    <ChevronDownIcon style={{ transform: pinnedCollapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.14s ease' }} />
                   </button>
                 </div>
-              </motion.div>
-              <AnimatePresence initial={false}>
-                {!pinnedCollapsed && (
-                  <motion.div
-                    key="pinned-items-container"
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}
-                  >
-                    <AnimatePresence initial={false}>
-                      {pinned.map((it) => (
-                        <ClipboardItemCard key={it.id} item={it} />
-                      ))}
-                    </AnimatePresence>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.section>
+              </div>
+              {!pinnedCollapsed && pinned.map((it) => (
+                <ClipboardItemCard key={it.id} item={it} />
+              ))}
+            </section>
           )}
 
           {recent.length > 0 && (
-            <motion.section layout transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <section className="recent-section">
               {pinned.length > 0 && (
-                <motion.div layout transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} className="section-label">
+                <div className="section-label">
                   {t('item.recent')}
-                </motion.div>
+                </div>
               )}
-              <AnimatePresence initial={false}>
-                {recent.map((it) => (
-                  <ClipboardItemCard key={it.id} item={it} />
-                ))}
-              </AnimatePresence>
-            </motion.section>
+              {recent.map((it) => (
+                <ClipboardItemCard key={it.id} item={it} />
+              ))}
+            </section>
           )}
-        </>
+        </motion.div>
+        </LayoutGroup>
       )}
 
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
             className="scroll-top-btn"
             onClick={scrollToTop}
             title={t('item.scrollToTop')}
@@ -278,6 +266,6 @@ export function ItemList() {
           </motion.button>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   )
 }

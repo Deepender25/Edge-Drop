@@ -195,7 +195,7 @@
   position: relative;
   z-index: 1;
   scrollbar-width: none; /* Firefox */
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 6px, #000 calc(100% - 6px), transparent 100%);
@@ -216,6 +216,13 @@
 }
 .section-label:first-child {
   margin-top: 4px;
+}
+
+.list-stack,
+.recent-section,
+.pinned-section {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Clean Pinned Section */

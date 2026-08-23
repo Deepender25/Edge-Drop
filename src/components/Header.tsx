@@ -78,7 +78,7 @@ export function Header() {
             <motion.div
               initial={false}
               animate={{ x: activeIndex * (filterChipWidth + 2) }}
-              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+              transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 position: 'absolute',
                 left: 3,
