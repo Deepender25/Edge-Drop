@@ -14,4 +14,9 @@ docs/
 dev-app-update.yml
 reddit-subreddits-for-edgedrop.md
 launch-playbook-edgedrop.md
+hn-showhn-hermes-plan.md
+edge-drop-icons-v0.2.9.png
+icons-showcase.html
+icons-showcase.svg
+scripts/generate_showcase.mjs
 
