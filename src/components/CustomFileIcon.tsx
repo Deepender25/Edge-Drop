@@ -572,3 +572,47 @@ export function CustomFileIcon({
     </svg>
   )
 }
+
+/** Same 512 viewBox and body silhouette as FileKindIcon. */
+const FILE_ICON_BODY =
+  'M 56 378 L 56 128 C 56 112 68 100 84 100 L 162 100 C 178 100 190 108 200 120 C 208 130 218 136 232 136 L 428 136 C 444 136 456 148 456 164 L 456 378 C 456 396 442 410 424 410 L 88 410 C 70 410 56 396 56 378 Z'
+
+const FILE_ICON_MASK = `url("data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="${FILE_ICON_BODY}"/></svg>`
+)}")`
+
+export function FileStackPhoto({
+  src,
+  width = 112,
+  height,
+}: {
+  src: string
+  width?: number | string
+  height?: number | string
+}) {
+  const resolvedHeight = height ?? width
+  return (
+    <img
+      src={src}
+      alt=""
+      draggable={false}
+      width={typeof width === 'number' ? width : undefined}
+      height={typeof resolvedHeight === 'number' ? resolvedHeight : undefined}
+      style={{
+        width,
+        height: resolvedHeight,
+        objectFit: 'cover',
+        flexShrink: 0,
+        display: 'block',
+        WebkitMaskImage: FILE_ICON_MASK,
+        maskImage: FILE_ICON_MASK,
+        WebkitMaskSize: '100% 100%',
+        maskSize: '100% 100%',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskPosition: 'center'
+      }}
+    />
+  )
+}

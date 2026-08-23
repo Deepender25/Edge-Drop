@@ -85,8 +85,8 @@ export const ExpandIcon = (p: P) => <Maximize2 size={p.width ?? 16} {...(p as an
 export const ContractIcon = (p: P) => <Minimize2 size={p.width ?? 16} {...(p as any)} />
 export const FolderOpenIcon = (p: P) => <FolderOpen size={p.width ?? 16} {...(p as any)} />
 export const CheckIcon = (p: P) => <Check size={p.width ?? 16} {...(p as any)} />
-import { CustomFileIcon } from './CustomFileIcon'
-export { CustomFileIcon, CustomFileIcon as FileKindIcon }
+import { CustomFileIcon, FileStackPhoto } from './CustomFileIcon'
+export { CustomFileIcon, CustomFileIcon as FileKindIcon, FileStackPhoto }
 
 export const FileIcon = (p: P) => <CustomFileIcon width={p.width ?? 16} height={p.height ?? 16} {...(p as any)} />
 export const FileIconGlyph = FileIcon

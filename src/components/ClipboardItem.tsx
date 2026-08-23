@@ -14,8 +14,8 @@
  * clamped preview; file items list names or bundle badge. Motion is handled by
  * the parent list (layout/AnimatePresence), so this component stays presentational.
  */
-import { memo, useState, useCallback, useEffect, forwardRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { memo, useState, useCallback, useEffect, forwardRef, type ReactNode } from 'react'
+import { motion } from 'framer-motion'
 import type { ClipboardItemDto } from '../../shared/types'
 import { MAX_STACK } from '../../shared/types'
 import type { DragRequest } from '../../shared/types'
@@ -24,7 +24,7 @@ import { useDragOut } from '../hooks/useDragOut'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, GlobeIcon, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { CopyIcon, FileKindIcon, FileStackPhoto, GlobeIcon, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { parseUrlPreview } from '../lib/urlPreview'
 import '../styles/item.css'
 
@@ -50,7 +50,6 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const [copied, setCopied] = useState(false)
   const [expanded, setExpanded] = useState(false)
 
-  
   const open = useStore((s) => s.open)
   const [, setTimeTick] = useState(0)
 
@@ -65,6 +64,10 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   const isPreviewing = useStore((s) => s.previewItemId) === item.id
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
+
+  useEffect(() => {
+    if (!isBundle) setExpanded(false)
+  }, [isBundle])
 
   const onCopy = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -288,70 +291,151 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   )
 })
 
-// Bundle expand/collapse — all blur removed; opacity+y+scale composite trivially.
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      opacity: { duration: 0.18, ease: 'easeOut' },
-      staggerChildren: 0.04,
-      delayChildren: 0.01
-    }
-  },
-  exit: {
-    opacity: 0,
-    transition: {
-      opacity: { duration: 0.12, ease: 'easeIn' },
-      staggerChildren: 0.025,
-      staggerDirection: -1
-    }
-  }
-};
+const expandEase = [0.16, 1, 0.3, 1] as const
+const collapseEase = [0.4, 0, 0.2, 1] as const
 
-const rowVariants = {
-  hidden: { opacity: 0, y: 8, scale: 0.98 },
-  visible: {
+const stackSlotVariants = {
+  open: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: {
-      y: { type: 'spring', stiffness: 500, damping: 38, mass: 0.6, restDelta: 0.001 },
-      scale: { type: 'spring', stiffness: 500, damping: 38, mass: 0.6, restDelta: 0.001 },
-      opacity: { duration: 0.16, ease: 'easeOut' }
-    }
+    transition: { duration: 0.28, ease: expandEase }
   },
-  exit: {
+  closed: {
     opacity: 0,
-    y: -6,
-    scale: 0.97,
-    transition: {
-      y: { duration: 0.1, ease: 'easeIn' },
-      scale: { duration: 0.1, ease: 'easeIn' },
-      opacity: { duration: 0.1, ease: 'easeIn' }
-    }
+    y: -10,
+    scale: 0.92,
+    transition: { duration: 0.18, ease: collapseEase }
   }
-};
+}
 
-const stackVariants = {
-  hidden: { opacity: 0, scale: 0.96 },
-  visible: {
+const listSlotVariants = {
+  open: {
     opacity: 1,
-    scale: 1,
+    y: 0,
     transition: {
-      scale: { type: 'spring', stiffness: 480, damping: 38, mass: 0.6, restDelta: 0.001 },
-      opacity: { duration: 0.18, ease: 'easeOut' }
+      duration: 0.24,
+      ease: expandEase,
+      staggerChildren: 0.032,
+      delayChildren: 0.05
     }
   },
-  exit: {
+  closed: {
     opacity: 0,
-    scale: 0.96,
-    transition: {
-      scale: { duration: 0.12, ease: 'easeIn' },
-      opacity: { duration: 0.12, ease: 'easeIn' }
-    }
+    y: 8,
+    transition: { duration: 0.15, ease: collapseEase }
   }
-};
+}
+
+const rowVariants = {
+  open: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.22, ease: expandEase }
+  },
+  closed: {
+    opacity: 0,
+    y: 8,
+    transition: { duration: 0.12, ease: collapseEase }
+  }
+}
+
+function BundleExpandShell({
+  expanded,
+  stack,
+  list
+}: {
+  expanded: boolean
+  stack: ReactNode
+  list: ReactNode
+}) {
+  return (
+    <div className={`fluid-bundle${expanded ? ' is-expanded' : ''}`}>
+      <div className="bundle-slot bundle-slot-stack" aria-hidden={expanded}>
+        <motion.div
+          className="bundle-slot-inner"
+          initial={false}
+          animate={expanded ? 'closed' : 'open'}
+          variants={stackSlotVariants}
+          style={{ originY: 0.5 }}
+        >
+          {stack}
+        </motion.div>
+      </div>
+      <div className="bundle-slot bundle-slot-list" aria-hidden={!expanded}>
+        <motion.div
+          className="bundle-slot-inner fluid-list"
+          initial={false}
+          animate={expanded ? 'open' : 'closed'}
+          variants={listSlotVariants}
+        >
+          {list}
+        </motion.div>
+      </div>
+    </div>
+  )
+}
+
+function BundleToolbar({
+  count,
+  showCapacity,
+  showPin,
+  pinned,
+  onCollapse,
+  onCopy,
+  onRemove,
+  onTogglePin
+}: {
+  count?: number
+  showCapacity?: boolean
+  showPin?: boolean
+  pinned?: boolean
+  onCollapse: (e?: React.MouseEvent) => void
+  onCopy: (e: React.MouseEvent) => void
+  onRemove: () => void
+  onTogglePin?: () => void
+}) {
+  return (
+    <div className="bundle-actions">
+      <button
+        type="button"
+        className="bundle-collapse-hit"
+        title={t('item.collapsePinned')}
+        onClick={(e) => {
+          e.stopPropagation()
+          onCollapse(e)
+        }}
+      >
+        <ChevronUpIcon />
+      </button>
+      {showCapacity && count != null && (
+        <div className="bundle-capacity">
+          {count} / {MAX_STACK}
+        </div>
+      )}
+      <div className="actions-pill">
+        {showPin && onTogglePin && (
+          <button
+            className={`act${pinned ? ' active' : ''}`}
+            title={pinned ? t('item.unpin') : t('item.pin')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onTogglePin()
+            }}
+          >
+            {pinned ? <PinFillIcon /> : <PinIcon />}
+          </button>
+        )}
+        <button className="act" title={t('item.copy')} onClick={(e) => { e.stopPropagation(); onCopy(e) }}>
+          <CopyIcon />
+        </button>
+        <button className="act danger" title={t('item.delete')} onClick={(e) => { e.stopPropagation(); onRemove() }}>
+          <TrashIcon />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function BundleFluidPreview({
   item,
@@ -368,121 +452,99 @@ function BundleFluidPreview({
   onRemove: () => void
   onCollapse: (e?: React.MouseEvent) => void
 }) {
-
-
+  const mixedStack = item.data.kind === 'files' && (() => {
+    const entries = item.data.entries
+    const paths = item.data.paths
+    let hasImage = false
+    let hasNonImage = false
+    for (let i = 0; i < paths.length; i++) {
+      const e = entries?.[i]
+      if (e?.isImage && e.preview) hasImage = true
+      else hasNonImage = true
+    }
+    return hasImage && hasNonImage
+  })()
 
   if (item.data.kind === 'image-collection') {
     const more = item.data.images.length - 1
     return (
-      <div className="fluid-bundle">
-        <AnimatePresence initial={false} mode="wait">
-          {expanded ? (
-            <motion.div
-              key="expanded"
-              className="fluid-list"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <div className="bundle-actions">
-                <div 
-                  className="bundle-collapse-zone" 
-                  title={t('item.collapsePinned')}
-                  onClick={(e) => { e.stopPropagation(); onCollapse(e); }}
-                >
-                  <button className="act bundle-collapse-btn">
-                    <ChevronUpIcon />
-                  </button>
-                </div>
-                <div className="actions-pill">
-                  <button
-                    className={`act${item.pinned ? ' active' : ''}`}
-                    title={item.pinned ? t('item.unpin') : t('item.pin')}
-                    onClick={(e) => { e.stopPropagation(); useStore.getState().togglePin(item.id, !item.pinned); }}
-                  >
-                    {item.pinned ? <PinFillIcon /> : <PinIcon />}
-                  </button>
-                  <button className="act" title={t('item.copy')} onClick={(e) => { e.stopPropagation(); onCopy(e); }}>
-                    <CopyIcon />
-                  </button>
-                  <button className="act danger" title={t('item.delete')} onClick={(e) => { e.stopPropagation(); onRemove(); }}>
-                    <TrashIcon />
-                  </button>
-                </div>
-              </div>
-              {item.data.images.map((img) => (
-                <motion.div
-                  key={img.imageId}
-                  className="fluid-list-row"
-                  variants={rowVariants}
-                  draggable
-                  onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
-                  onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
-                >
+      <BundleExpandShell
+        expanded={expanded}
+        stack={
+          <>
+            <div className="bundle-stack-large">
+              {item.data.images.slice(0, 4).reverse().map((img, idx, arr) => {
+                const realIndex = arr.length - 1 - idx
+                return (
                   <motion.img
+                    key={img.imageId}
                     src={img.preview}
                     loading="lazy"
                     decoding="async"
-                    style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4, background: 'rgba(0,0,0,0.5)' }}
+                    className="bundle-stack-card"
+                    animate={{
+                      x: realIndex * 20 - 20,
+                      y: realIndex * 6,
+                      rotate: realIndex * 6 - 6,
+                      scale: 1 - realIndex * 0.05
+                    }}
+                    style={{ zIndex: 10 - realIndex }}
                     draggable={false}
+                    initial={{ borderRadius: 8 }}
                   />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
-                       {t('item.imageItem')} • {img.width} × {img.height}
-                    </span>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                      {formatBytes(img.bytes)}
-                    </span>
-                  </div>
+                )
+              })}
+            </div>
+            {more > 0 && <div className="bundle-more-label">{t('item.moreImages', { count: more })}</div>}
+          </>
+        }
+        list={
+          <>
+            <BundleToolbar
+              showPin
+              pinned={item.pinned}
+              onCollapse={onCollapse}
+              onCopy={onCopy}
+              onRemove={onRemove}
+              onTogglePin={() => useStore.getState().togglePin(item.id, !item.pinned)}
+            />
+            {item.data.images.map((img) => (
+              <motion.div
+                key={img.imageId}
+                className="fluid-card-row"
+                variants={rowVariants}
+                draggable
+                onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
+                onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
+              >
+                <div className="fluid-row-icon">
+                  <img
+                    src={img.preview}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    className="fluid-row-img"
+                  />
+                </div>
+                <div className="fluid-row-content">
+                  <div className="fluid-row-name">{t('item.imageItem')} · {img.width} × {img.height}</div>
+                  <div className="fluid-row-sub">{formatBytes(img.bytes)}</div>
+                </div>
+                <div className="fluid-row-actions">
                   <button
                     className="act subitem-delete-btn"
                     title={t('item.ungroup')}
                     onClick={(e) => { e.stopPropagation(); window.edge.splitItem({ id: item.id, imageId: img.imageId, splitPlacement: 'after' }); }}
-                    style={{ width: 24, height: 24 }}
                   >
                     <MinusIcon width={12} height={12} />
                   </button>
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="collapsed"
-              style={{ width: '100%' }}
-              variants={stackVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <div className="bundle-stack-large">
-                {item.data.images.slice(0, 4).reverse().map((img, idx, arr) => {
-                  const realIndex = arr.length - 1 - idx
-                  return (
-                    <motion.img
-                      key={img.imageId}
-                      src={img.preview}
-                      loading="lazy"
-                      decoding="async"
-                      className="bundle-stack-card"
-                      animate={{ 
-                        x: realIndex * 20 - 20, 
-                        y: realIndex * 6, 
-                        rotate: realIndex * 6 - 6, 
-                        scale: 1 - realIndex * 0.05 
-                      }}
-                      style={{ zIndex: 10 - realIndex }}
-                      draggable={false}
-                      initial={{ borderRadius: 8 }}
-                    />
-                  )
-                })}
-              </div>
-              {more > 0 && <div className="bundle-more-label">{t('item.moreImages', { count: more })}</div>}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                </div>
+              </motion.div>
+            ))}
+          </>
+        }
+      />
     )
   }
 
@@ -491,150 +553,126 @@ function BundleFluidPreview({
     const paths = item.data.paths
     const count = paths.length
     return (
-      <div className="fluid-bundle">
-        <AnimatePresence initial={false} mode="wait">
-          {expanded ? (
-            <motion.div
-              key="expanded"
-              className="fluid-list"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <div className="bundle-actions">
-                <div
-                  className="bundle-collapse-zone"
-                  title={t('item.collapsePinned')}
-                  onClick={(e) => { e.stopPropagation(); onCollapse(e); }}
-                >
-                  <button className="act bundle-collapse-btn">
-                    <ChevronUpIcon />
-                  </button>
-                </div>
-                <div className="bundle-capacity">
-                  {count} / {MAX_STACK}
-                </div>
-                <div className="actions-pill">
-                  <button className="act" title={t('item.copy')} onClick={(e) => { e.stopPropagation(); onCopy(e); }}>
-                    <CopyIcon />
-                  </button>
-                  <button className="act danger" title={t('item.delete')} onClick={(e) => { e.stopPropagation(); onRemove(); }}>
-                    <TrashIcon />
-                  </button>
-                </div>
-              </div>
-              {paths.map((filePath, index) => {
-                const entry = entries?.[index]
-                const name = formatImageDisplayName(entry?.name ?? filePath, item.capturedAt)
-                const size = entry?.size ?? 0
+      <BundleExpandShell
+        expanded={expanded}
+        stack={
+          <>
+            <div className="bundle-stack-large">
+              {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
+                const realIndex = arr.length - 1 - idx
+                const entry = entries?.[pathIndex]
+                const isImg = !!(entry?.isImage && entry.preview)
+                const largePhoto = isImg && !mixedStack
+                const spread = arr.length > 1 ? 22 : 0
+                const rotSpread = arr.length > 1 ? 9 : 0
+                const centerOffset = ((arr.length - 1) * spread) / 2
+                const centerRot = ((arr.length - 1) * rotSpread) / 2
+                const stackMotion = {
+                  x: realIndex * spread - centerOffset,
+                  y: realIndex * 5,
+                  rotate: realIndex * rotSpread - centerRot,
+                  scale: 1 - realIndex * 0.05
+                }
+
+                if (largePhoto) {
+                  return (
+                    <motion.img
+                      key={`${item.id}-${pathIndex}`}
+                      src={entry.preview}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                      className="bundle-stack-card"
+                      animate={stackMotion}
+                      style={{ zIndex: 10 - realIndex }}
+                      initial={{ borderRadius: 8 }}
+                    />
+                  )
+                }
+
                 return (
                   <motion.div
-                    key={`${item.id}-${filePath}-${index}`}
-                    className="fluid-card-row"
-                    layout
-                    draggable
-                    onMouseEnter={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
-                    onPointerDown={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
-                    onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, paths: [filePath] }) }}
-                    onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [filePath] })) }}
+                    key={`${item.id}-${pathIndex}`}
+                    className="bundle-stack-icon-item"
+                    animate={stackMotion}
+                    style={{ zIndex: 10 - realIndex }}
                   >
-                    <div className="fluid-row-icon">
-                      {entry?.isImage && entry.preview ? (
-                        <img 
-                          src={entry.preview} 
-                          alt="" 
-                          loading="lazy"
-                          decoding="async"
-                          draggable={false} 
-                          className="fluid-row-img"
-                        />
-                      ) : (
-                        <FileKindIcon path={filePath} width={48} height={48} isDirectory={entry?.isDirectory} />
-                      )}
-                    </div>
-                    <div className="fluid-row-content">
-                      <div className="fluid-row-name" title={name}>{name}</div>
-                      <div className="fluid-row-sub">
-                        {size > 0 ? formatBytes(size) : getFileKind(filePath, entry?.isDirectory).label}
-                      </div>
-                    </div>
-                    <div className="fluid-row-actions">
-                      <button
-                        className="act subitem-copy-btn"
-                        title={t('item.copyFilePath')}
-                        onClick={(e) => { e.stopPropagation(); window.edge.copySubitem({ id: item.id, paths: [filePath] }); }}
-                      >
-                        <CopyIcon width={12} height={12} />
-                      </button>
-                      <button
-                        className="act subitem-delete-btn"
-                        title={t('item.ungroup')}
-                        onClick={(e) => { e.stopPropagation(); window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' }); }}
-                      >
-                        <MinusIcon width={12} height={12} />
-                      </button>
-                    </div>
+                    {isImg ? (
+                      <FileStackPhoto src={entry.preview!} width={112} height={112} />
+                    ) : (
+                      <FileKindIcon path={filePath} width={112} height={112} isDirectory={entry?.isDirectory} />
+                    )}
                   </motion.div>
                 )
               })}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="collapsed"
-              style={{ width: '100%' }}
-              variants={stackVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <div className="bundle-stack-large">
-                {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
-                  const realIndex = arr.length - 1 - idx
-                  const entry = entries?.[pathIndex]
-                  const isImg = entry?.isImage && !!entry.preview
-                  const spread = arr.length > 1 ? 22 : 0
-                  const rotSpread = arr.length > 1 ? 9 : 0
-                  const centerOffset = ((arr.length - 1) * spread) / 2
-                  const centerRot = ((arr.length - 1) * rotSpread) / 2
-
-                  return (
-                    <motion.div
-                      key={`${item.id}-${pathIndex}`}
-                      className={isImg ? "bundle-stack-card" : "bundle-stack-icon-item"}
-                      animate={{
-                        x: realIndex * spread - centerOffset,
-                        y: realIndex * 5,
-                        rotate: realIndex * rotSpread - centerRot,
-                        scale: 1 - realIndex * 0.05
-                      }}
-                      style={{ zIndex: 10 - realIndex }}
+            </div>
+            {count > 1 ? (
+              <div className="bundle-more-label">{t('item.moreFiles', { count: count - 1 })}</div>
+            ) : (
+              <div className="bundle-more-label">{t('item.singleFile')}</div>
+            )}
+          </>
+        }
+        list={
+          <>
+            <BundleToolbar
+              count={count}
+              showCapacity
+              onCollapse={onCollapse}
+              onCopy={onCopy}
+              onRemove={onRemove}
+            />
+            {paths.map((filePath, index) => {
+              const entry = entries?.[index]
+              const name = formatImageDisplayName(entry?.name ?? filePath, item.capturedAt)
+              const size = entry?.size ?? 0
+              return (
+                <motion.div
+                  key={`${item.id}-${filePath}-${index}`}
+                  className="fluid-card-row"
+                  variants={rowVariants}
+                  draggable
+                  onMouseEnter={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
+                  onPointerDown={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
+                  onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, paths: [filePath] }) }}
+                  onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [filePath] })) }}
+                >
+                  <div className="fluid-row-icon">
+                    {entry?.isImage && entry.preview ? (
+                      <FileStackPhoto src={entry.preview} width={48} height={48} />
+                    ) : (
+                      <FileKindIcon path={filePath} width={48} height={48} isDirectory={entry?.isDirectory} />
+                    )}
+                  </div>
+                  <div className="fluid-row-content">
+                    <div className="fluid-row-name" title={name}>{name}</div>
+                    <div className="fluid-row-sub">
+                      {size > 0 ? formatBytes(size) : getFileKind(filePath, entry?.isDirectory).label}
+                    </div>
+                  </div>
+                  <div className="fluid-row-actions">
+                    <button
+                      className="act subitem-copy-btn"
+                      title={t('item.copyFilePath')}
+                      onClick={(e) => { e.stopPropagation(); window.edge.copySubitem({ id: item.id, paths: [filePath] }); }}
                     >
-                      {isImg ? (
-                        <img 
-                          src={entry.preview} 
-                          alt="" 
-                          loading="lazy"
-                          decoding="async"
-                          draggable={false} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} 
-                        />
-                      ) : (
-                        <FileKindIcon path={filePath} width={112} height={112} isDirectory={entry?.isDirectory} />
-                      )}
-                    </motion.div>
-                  )
-                })}
-              </div>
-              {count > 1 ? (
-                <div className="bundle-more-label">{t('item.moreFiles', { count: count - 1 })}</div>
-              ) : (
-                <div className="bundle-more-label">{t('item.singleFile')}</div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                      <CopyIcon width={12} height={12} />
+                    </button>
+                    <button
+                      className="act subitem-delete-btn"
+                      title={t('item.ungroup')}
+                      onClick={(e) => { e.stopPropagation(); window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' }); }}
+                    >
+                      <MinusIcon width={12} height={12} />
+                    </button>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </>
+        }
+      />
     )
   }
   return null

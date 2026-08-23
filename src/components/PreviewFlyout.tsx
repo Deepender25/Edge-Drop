@@ -883,7 +883,7 @@ function PreviewContent({
                   solidDark={true}
                 />
               </div>
-              <img src={`edgelocal://${img.imageId}`} alt="" style={{ width: '100%', borderRadius: 8 }} draggable={false} />
+              <img src={`edgelocal://${img.imageId}`} alt="" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
                 {idx + 1} / {item.data.images.length} · {img.width} × {img.height} · {formatBytes(img.bytes)}
               </div>
@@ -1077,12 +1077,12 @@ function PreviewContent({
                 title={t('flyout.clickToPasteDrag')}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '8px 10px',
-                  background: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.035)',
+                  flexDirection: 'column',
+                  gap: 8,
+                  padding: 4,
+                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                   borderRadius: 10,
-                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                  border: isSelected ? '2px solid #ffffff' : '2px solid transparent',
                   cursor: 'grab',
                   position: 'relative',
                   minWidth: 0,
@@ -1090,93 +1090,42 @@ function PreviewContent({
                   boxSizing: 'border-box'
                 }}
               >
-                {/* Multi-Select Checkbox */}
                 {onToggleSelectKey && (
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onToggleSelectKey(p, e)
-                    }}
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 4,
-                      border: isSelected ? '1.5px solid #fff' : '1.5px solid rgba(255, 255, 255, 0.3)',
-                      background: isSelected ? '#fff' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      flexShrink: 0
-                    }}
-                  >
-                    {isSelected && (
-                      <CheckIcon width={12} height={12} style={{ color: '#000', strokeWidth: 3 }} />
-                    )}
+                  <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 3 }}>
+                    <SelectionBadge
+                      isSelected={isSelected}
+                      onToggle={(e) => onToggleSelectKey(p, e)}
+                    />
                   </div>
                 )}
 
-                {/* Left Thumbnail (small image card) */}
-                <div style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 6,
-                  overflow: 'hidden',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid rgba(255, 255, 255, 0.08)'
-                }}>
-                  <img
-                    src={fullResUrl}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    draggable={false}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                </div>
-
-                {/* File Name & Metadata */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0, flex: 1, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                  <span
-                    title={fileName}
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: '#ffffff',
-                      wordBreak: 'break-word',
-                      overflowWrap: 'anywhere',
-                      lineHeight: 1.35,
-                      fontFamily: SYS_FONT,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {fileName}
-                  </span>
-                  <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.45)', fontFamily: SYS_FONT }}>
-                    {entry?.size ? `${formatBytes(entry.size)} · ` : ''}{info.label}
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
                   <QuickActionButton
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => window.edge.copySubitem({ id: item.id, paths: [p] })}
-                    size={24}
+                    solidDark={true}
                   />
                   <ExplorerButton
                     path={p}
                     title={t('flyout.openInExplorer')}
-                    size={24}
+                    solidDark={true}
                   />
+                </div>
+
+                <img
+                  src={fullResUrl}
+                  onError={(e) => {
+                    if (entry?.preview) e.currentTarget.src = entry.preview
+                  }}
+                  alt={fileName}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
+                />
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
+                  {fileName}{entry?.size ? ` · ${formatBytes(entry.size)}` : ''}
                 </div>
               </div>
             )

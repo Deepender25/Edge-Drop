@@ -469,6 +469,30 @@
   position: relative;
 }
 
+.bundle-slot {
+  display: grid;
+  transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bundle-slot-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.bundle-slot-stack {
+  grid-template-rows: 1fr;
+}
+.bundle-slot-list {
+  grid-template-rows: 0fr;
+  pointer-events: none;
+}
+.fluid-bundle.is-expanded .bundle-slot-stack {
+  grid-template-rows: 0fr;
+  pointer-events: none;
+}
+.fluid-bundle.is-expanded .bundle-slot-list {
+  grid-template-rows: 1fr;
+  pointer-events: auto;
+}
+
 .fluid-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -517,7 +541,6 @@
 .fluid-card-row:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
 }
 
 .fluid-card-row:active {
@@ -681,41 +704,34 @@
 
 /* Bundle actions (Copy all / Delete) placed at the top when expanded */
 .bundle-actions {
-  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 6px;
-  padding: 6px 0 10px;
+  padding: 2px 0 10px;
   width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 6px;
 }
 
-/* The invisible buffer area covering the left side to collapse the bundle */
-.bundle-collapse-zone {
+.bundle-collapse-hit {
   display: flex;
   align-items: center;
-  flex: 1; /* stretches to push actions-pill to the right */
-  height: 100%;
-  padding-left: 8px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: auto;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  align-self: stretch; /* fill the vertical space of the actions bar */
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-
-/* Hovering anywhere in the buffer area highlights the button */
-.bundle-collapse-zone:hover .bundle-collapse-btn {
-  background: rgba(255, 255, 255, 0.15);
+.bundle-collapse-hit:hover {
+  background: rgba(255, 255, 255, 0.14);
   color: #fff;
-}
-
-/* Larger hit area for the collapse (chevron) button */
-.bundle-collapse-btn {
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 8px !important;
-  color: rgba(255, 255, 255, 0.75) !important;
-  pointer-events: none; /* Let the zone handle the click */
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .bundle-actions-label {
