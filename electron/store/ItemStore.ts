@@ -24,31 +24,37 @@ import {
 } from '../../shared/types'
 import { PATHS } from './paths'
 import { createId } from './ids'
-
-/** Stable, content-based key used for deduplication. */
-function signature(data: ItemData): string {
-  switch (data.kind) {
-    case 'text':
-      return `text|${data.text}`
-    case 'image':
-      return data.bytes && data.bytes > 0 ? `image|${data.width}x${data.height}|${data.bytes}` : `image|${data.imageId}`
-    case 'image-collection':
-      return `image-collection|${data.images.map((i) => `${i.width}x${i.height}|${i.bytes || i.imageId}`).join(',')}`
-    case 'files':
-      return `files|${data.paths.join('\n')}`
-  }
-}
+import { contentSignature } from './signature'
 
 /** Maps a signature -> item id so dedup is O(1). */
 interface Index {
   items: ClipboardItem[]
 }
 
+/**
+ * Invoked with every batch of items permanently removed from history, no
+ * matter which door removed them (manual delete, batch delete, clear,
+ * auto-delete prune, or silent capacity eviction). The staged-temp lifecycle
+ * manager uses it to reap orphaned artifacts.
+ */
+export type ItemsRemovedListener = (removed: readonly ClipboardItem[]) => void
+
 export class ItemStore {
   private items: ClipboardItem[] = []
   private sigToId = new Map<string, string>()
   /** Small, bounded thumbnails for renderer DTOs. Original image bytes stay on disk. */
   private previewCache = new Map<string, string>()
+
+  constructor(private readonly onRemoved?: ItemsRemovedListener) {}
+
+  private notifyRemoved(removed: ClipboardItem[]): void {
+    if (removed.length === 0) return
+    try {
+      this.onRemoved?.(removed)
+    } catch (err) {
+      console.error('[ItemStore] onRemoved listener failed:', err)
+    }
+  }
 
   /** Load persisted state from disk. Called once at startup. */
   load(): void {
@@ -136,7 +142,7 @@ export class ItemStore {
 
   private rebuildIndex(): void {
     this.sigToId.clear()
-    for (const it of this.items) this.sigToId.set(signature(it.data), it.id)
+    for (const it of this.items) this.sigToId.set(contentSignature(it.data), it.id)
   }
 
   private persistTimer: ReturnType<typeof setTimeout> | null = null
@@ -187,22 +193,25 @@ export class ItemStore {
     if (this.items.length <= limit) return
     const need = this.items.length - limit
     const survivors: ClipboardItem[] = []
+    const evicted: ClipboardItem[] = []
     let stillNeed = need
     for (let i = this.items.length - 1; i >= 0; i--) {
       const it = this.items[i]
       if (stillNeed > 0 && !it.pinned) {
-        this.sigToId.delete(signature(it.data))
+        this.sigToId.delete(contentSignature(it.data))
         if (it.data.kind === 'image') this.removeImageFile(it.data.imageId)
         if (it.data.kind === 'image-collection') {
           it.data.images.forEach((img) => this.removeImageFile(img.imageId))
         }
         if (it.data.kind === 'text') this.removeTextPayload(it.id)
+        evicted.push(it)
         stillNeed--
       } else {
         survivors.unshift(it)
       }
     }
     this.items = survivors
+    this.notifyRemoved(evicted)
   }
 
   /**
@@ -213,7 +222,7 @@ export class ItemStore {
     if (data.kind === 'text' && data.text.length > 500000) {
       data = { ...data, text: data.text.slice(0, 500000) }
     }
-    const sig = signature(data)
+    const sig = contentSignature(data)
     const existingId = this.sigToId.get(sig)
     const now = Date.now()
 
@@ -284,13 +293,14 @@ export class ItemStore {
     const idx = this.items.findIndex((x) => x.id === id)
     if (idx < 0) return
     const [removed] = this.items.splice(idx, 1)
-    this.sigToId.delete(signature(removed.data))
+    this.sigToId.delete(contentSignature(removed.data))
     if (removed.data.kind === 'image') this.removeImageFile(removed.data.imageId)
     if (removed.data.kind === 'image-collection') {
       removed.data.images.forEach((img) => this.removeImageFile(img.imageId))
     }
     if (removed.data.kind === 'text') this.removeTextPayload(removed.id)
     this.persistSync()
+    this.notifyRemoved([removed])
   }
 
   deleteBatch(ids: string[]): void {
@@ -306,7 +316,7 @@ export class ItemStore {
     })
 
     for (const removed of toRemove) {
-      this.sigToId.delete(signature(removed.data))
+      this.sigToId.delete(contentSignature(removed.data))
       if (removed.data.kind === 'image') this.removeImageFile(removed.data.imageId)
       if (removed.data.kind === 'image-collection') {
         removed.data.images.forEach((img) => this.removeImageFile(img.imageId))
@@ -314,6 +324,7 @@ export class ItemStore {
       if (removed.data.kind === 'text') this.removeTextPayload(removed.id)
     }
     this.persistSync()
+    this.notifyRemoved(toRemove)
   }
 
   merge(sourceId: string, targetId: string): MergeResult {
@@ -387,15 +398,15 @@ export class ItemStore {
     }
 
     // Update target item
-    this.sigToId.delete(signature(tgt.data))
+    this.sigToId.delete(contentSignature(tgt.data))
     tgt.data = newData
-    this.sigToId.set(signature(newData), tgt.id)
+    this.sigToId.set(contentSignature(newData), tgt.id)
     tgt.capturedAt = Date.now() // bump time
 
     // Remove source item completely but DO NOT delete its underlying files/images
     // because they are now owned by the target!
     const [removed] = this.items.splice(srcIdx, 1)
-    this.sigToId.delete(signature(removed.data))
+    this.sigToId.delete(contentSignature(removed.data))
 
     this.persist()
     return { ok: true }
@@ -524,43 +535,47 @@ export class ItemStore {
 
   clearUnpinned(): void {
     const kept: ClipboardItem[] = []
+    const removed: ClipboardItem[] = []
     for (const it of this.items) {
       if (it.pinned) kept.push(it)
       else {
-        this.sigToId.delete(signature(it.data))
+        this.sigToId.delete(contentSignature(it.data))
         if (it.data.kind === 'image') this.removeImageFile(it.data.imageId)
         if (it.data.kind === 'image-collection') {
           it.data.images.forEach((img) => this.removeImageFile(img.imageId))
         }
         if (it.data.kind === 'text') this.removeTextPayload(it.id)
+        removed.push(it)
       }
     }
     this.items = kept
     this.persistSync()
+    this.notifyRemoved(removed)
   }
 
   pruneExpired(hours: number): boolean {
     if (!hours || hours <= 0) return false
     const cutoff = Date.now() - hours * 3600 * 1000
     const kept: ClipboardItem[] = []
-    let removedAny = false
+    const expired: ClipboardItem[] = []
     for (const it of this.items) {
       if (it.pinned || it.capturedAt >= cutoff) {
         kept.push(it)
       } else {
-        removedAny = true
-        this.sigToId.delete(signature(it.data))
+        expired.push(it)
+        this.sigToId.delete(contentSignature(it.data))
         if (it.data.kind === 'image') this.removeImageFile(it.data.imageId)
         if (it.data.kind === 'image-collection') {
           it.data.images.forEach((img) => this.removeImageFile(img.imageId))
         }
       }
     }
-    if (removedAny) {
+    if (expired.length > 0) {
       this.items = kept
       this.persistSync()
+      this.notifyRemoved(expired)
     }
-    return removedAny
+    return expired.length > 0
   }
 
   get(id: string): ClipboardItem | undefined {
@@ -638,6 +653,37 @@ export class ItemStore {
       } catch { /* ignore */ }
     }
     return join(PATHS.imagesDir(), `${imageId}.png`)
+  }
+
+  /**
+   * Resolve the on-disk path for a stored image, recovering via a directory
+   * scan when the exact extension path is missing (e.g. the capture was
+   * re-staged with a different ext). Returns null only when the image is
+   * genuinely unrecoverable — callers must surface that to the user instead
+   * of silently degrading to low-res previews.
+   */
+  public resolveStoredImagePath(imageId: string, ext?: string): string | null {
+    if (!imageId) return null
+    if (ext) {
+      const cleanExt = ext.startsWith('.') ? ext.slice(1) : ext
+      const primary = join(PATHS.imagesDir(), `${imageId}.${cleanExt}`)
+      if (existsSync(primary)) return primary
+    }
+    // Recovery: scan the images dir for any extension matching this id.
+    try {
+      const scanned = this.imagePath(imageId, undefined)
+      if (existsSync(scanned)) return scanned
+    } catch { /* ignore */ }
+    return null
+  }
+
+  /**
+   * True when at least one image of a collection is still recoverable on
+   * disk. Used as a fast pre-check so paste can abort with an explicit error
+   * before mutating any UI state.
+   */
+  public hasRecoverableCollectionImage(images: Array<{ imageId: string; ext?: string }>): boolean {
+    return images.some((img) => this.resolveStoredImagePath(img.imageId, img.ext) !== null)
   }
 
   private removeImageFile(imageId: string): void {

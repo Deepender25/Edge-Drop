@@ -255,7 +255,17 @@ export const useStore = create<AppState>((set, get) => ({
     if (get().hydrated && newTop) {
       const isDifferentId = !prevTop || newTop.id !== prevTop.id
       const isNewCapturedAt = prevTop && newTop.capturedAt !== prevTop.capturedAt
-      if ((isDifferentId || isNewCapturedAt) && !get().isInternalCopying) {
+      // Suppress the flare while the mutation originated from this renderer
+      // session itself:
+      //  - isInternalCopying: click copy/paste flows (main rewrites the OS
+      //    clipboard, which is NOT a fresh capture).
+      //  - internalDragReq: a native drag-out that just ended. Main bumps the
+      //    item's usage (hitCount/capturedAt, move-to-top) and pushes the list
+      //    immediately after 'item:drag-end', which is still inside this
+      //    window — Panel.tsx only clears internalDragReq 150ms later. Without
+      //    this guard the usage bump would masquerade as a fresh capture and
+      //    flash the edge copy indicator on every drag-out.
+      if ((isDifferentId || isNewCapturedAt) && !get().isInternalCopying && !get().internalDragReq) {
         get().triggerCopyFlare()
       }
     }

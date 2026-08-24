@@ -25,6 +25,12 @@ export const PATHS = {
   indexFile: () => join(root(), 'items.json'),
   /** Path to the settings JSON. */
   settingsFile: () => join(root(), 'settings.json'),
+  /**
+   * Registry correlating staged temp artifacts with the history entries that
+   * own them. Lives OUTSIDE the temp dirs so cleanup sweeps never mistake it
+   * for debris.
+   */
+  stagedTempRegistryFile: () => join(root(), 'temp-staged.json'),
   /** Scratch dir for temp files handed to native drag-out. */
   tempDir: () => join(root(), 'temp'),
   /** App icon (used by window + native drag image). */

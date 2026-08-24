@@ -85,10 +85,14 @@ function simulatePaste(): void {
  * text. PowerShell's Clipboard.SetFileDropList writes CF_HDROP + FileNameW +
  * Shell IDList Array + all other shell formats in a single atomic transaction.
  * Paths are base64-encoded so any character (spaces, quotes, Unicode) is safe.
+ *
+ * Returns false when no valid path remained (e.g. every source file was
+ * deleted since capture) so callers can surface an explicit error.
  */
-async function writeFileListToClipboard(rawPaths: string[]): Promise<void> {
+async function writeFileListToClipboard(rawPaths: string[]): Promise<boolean> {
   const validPaths = toUnpackagedFilePaths(filterValidPaths(rawPaths))
-  if (process.platform === 'win32' && validPaths.length > 0) {
+  if (validPaths.length === 0) return false
+  if (process.platform === 'win32') {
     try {
       const addLines = validPaths
         .map(p => `$c.Add([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${Buffer.from(p, 'utf8').toString('base64')}')))|Out-Null`)
@@ -100,19 +104,44 @@ async function writeFileListToClipboard(rawPaths: string[]): Promise<void> {
         '[Windows.Forms.Clipboard]::SetFileDropList($c)'
       ].join(';')
       await psHost.run(script, 3000)
-      return
+      return true
     } catch (err) {
       console.error('[ipc] writeFileListToClipboard PowerShell failed, using text fallback:', err)
     }
   }
-  // Non-Windows fallback: plain text paths (best-effort)
-  if (validPaths.length > 0) {
-    clipboard.clear()
-    clipboard.writeText(validPaths.join('\r\n'))
-  }
+  // Non-Windows / PowerShell failure fallback: plain text paths (best-effort)
+  clipboard.clear()
+  clipboard.writeText(validPaths.join('\r\n'))
+  return true
 }
 
-/** Bitmap for apps that read CF_DIB, plus a named file so Explorer paste keeps our filename. */
+/**
+ * Write a full-resolution bitmap onto the system clipboard.
+ *
+ * Deliberately does NOT fall back to the low-res renderer preview: silently
+ * pasting a 240px thumbnail when the original vanished is worse than an
+ * explicit failure. Returns false so callers can show a precise toast.
+ */
+export async function writeImageToClipboard(imagePath: string | null): Promise<boolean> {
+  if (imagePath && existsSync(imagePath)) {
+    try {
+      const img = nativeImage.createFromPath(imagePath)
+      if (!img.isEmpty()) {
+        clipboard.clear()
+        clipboard.writeImage(img)
+        return true
+      }
+    } catch (err) {
+      console.error('[ipc] writeImageToClipboard nativeImage.createFromPath failed:', err)
+    }
+  }
+  return false
+}
+
+/**
+ * Bitmap for apps that read CF_DIB, plus a named file so Explorer paste keeps
+ * our friendly filename. Atomic multi-format write via PowerShell DataObject.
+ */
 async function writeImageWithNamedFile(imagePath: string, namedPath: string): Promise<boolean> {
   if (process.platform !== 'win32') return false
   try {
@@ -137,34 +166,6 @@ async function writeImageWithNamedFile(imagePath: string, namedPath: string): Pr
   } catch (err) {
     console.error('[ipc] writeImageWithNamedFile failed:', err)
     return false
-  }
-}
-
-export async function writeImageToClipboard(imagePath: string | null, previewDataUrl?: string): Promise<void> {
-  // If we have the full image path on disk, load the nativeImage directly from path
-  if (imagePath && existsSync(imagePath)) {
-    try {
-      const img = nativeImage.createFromPath(imagePath)
-      if (!img.isEmpty()) {
-        clipboard.clear()
-        clipboard.writeImage(img)
-        return
-      }
-    } catch (err) {
-      console.error('[ipc] writeImageToClipboard nativeImage.createFromPath failed:', err)
-    }
-  }
-
-  // Fallback if imagePath was missing but previewDataUrl exists
-  if (previewDataUrl) {
-    try {
-      const img = nativeImage.createFromDataURL(previewDataUrl)
-      if (!img.isEmpty()) {
-        clipboard.clear()
-        clipboard.writeImage(img)
-        return
-      }
-    } catch { /* ignore */ }
   }
 }
 
@@ -247,6 +248,13 @@ export function registerIpc(): void {
 
   handle('item:delete', (id) => {
     const item = getStore().get(id)
+    // Resolve clipboard ownership BEFORE mutating the store: if this exact
+    // content still sits on the system clipboard it must be cleared first so
+    // the staged-temp cleanup that runs inside delete() can never yank a
+    // file out from under a live OS clipboard reference.
+    if (item && clipboardMatchesItem(item.data)) {
+      clipboard.clear()
+    }
     getStore().delete(id)
     // If the deleted item is still on the system clipboard, clear the clipboard.
     // This is the fix for the copy→delete→copy cycle bug:
@@ -266,6 +274,11 @@ export function registerIpc(): void {
   handle('item:delete-batch', (ids) => {
     if (!ids || ids.length === 0) return getStore().toDto()
     const items = ids.map((id) => getStore().get(id)).filter(Boolean)
+    // Clear matching clipboard content before the batch removal triggers
+    // staged-temp cleanup (same ownership rule as single delete).
+    if (items.some((item) => item && clipboardMatchesItem(item.data))) {
+      clipboard.clear()
+    }
     getStore().deleteBatch(ids)
     if (items.some((item) => item && clipboardMatchesItem(item.data))) {
       clipboard.clear()
@@ -276,11 +289,13 @@ export function registerIpc(): void {
   })
 
   handle('item:clear', () => {
-    getStore().clearUnpinned()
     // Clear the system clipboard unconditionally: the user wiped their history,
     // so whatever is on the clipboard should not zombie-reappear, and clearing
     // ensures any subsequent re-copy of the same content is detectable.
-    clipboard.clear()
+    // Clear the system clipboard unconditionally and BEFORE the store wipe:
+    // the user wiped their history, so whatever is on the clipboard should
+    // not zombie-reappear, and every removed item's staged temp files become
+    // safe to reap inside clearUnpinned().
     getWatcher().resyncSignature()
     pushState.items()
     return getStore().toDto()
@@ -299,7 +314,17 @@ export function registerIpc(): void {
     watcher.setPaused(true)
     const fullText = item.data.kind === 'text' ? getStore().getFullText(id) : undefined
     const itemDataWithFullText = item.data.kind === 'text' && fullText ? { ...item.data, text: fullText } : item.data
-    await writeItemToClipboard(itemDataWithFullText)
+    const ok = await writeItemToClipboard(itemDataWithFullText, item.capturedAt)
+    if (!ok) {
+      // Source content (e.g. the staged image file) is unrecoverable. Do not
+      // promote a dead item to the top of history — tell the user instead.
+      console.log('[IPC] item:copy aborted — source content unavailable')
+      toast('Original image no longer available', 'error')
+      setTimeout(() => {
+        watcher.setPaused(loadSettings().incognito)
+      }, 200)
+      return false
+    }
     console.log('[IPC] item:copy wrote to clipboard, kind=', item.data.kind)
 
     // Promote the copied item to the top of the history stack
@@ -325,16 +350,15 @@ export function registerIpc(): void {
     if (dto.data.kind === 'files' && req.paths && req.paths.length > 0) {
       // Write real file references so pasting into Explorer copies the file,
       // not a path string.
-      await writeFileListToClipboard(req.paths)
-      wrote = true
+      wrote = await writeFileListToClipboard(req.paths)
+      if (!wrote) toast('Original file no longer available', 'error')
     } else if (dto.data.kind === 'image-collection' && req.imageId) {
       const img = dto.data.images.find((i) => i.imageId === req.imageId)
       if (img) {
         // Single image from a collection: write full bitmap + file reference atomically.
-        const src = getStore().getImagePath(img.imageId, img.ext)
-        const preview = img.preview ?? ''
-        await writeImageToClipboard(src && existsSync(src) ? src : null, preview)
-        wrote = true
+        const src = getStore().resolveStoredImagePath(img.imageId, img.ext)
+        wrote = await writeImageToClipboard(src)
+        if (!wrote) toast('Original image no longer available', 'error')
       }
     }
 
@@ -376,6 +400,19 @@ export function registerIpc(): void {
     console.log('[IPC] item:paste id=', id, 'found=', !!item)
     if (!item) return false
 
+    // Fast pre-flight BEFORE any UI state changes: if the source content is
+    // unrecoverable (e.g. the staged image file vanished), abort with an
+    // explicit message while the panel is still open — never close the shelf
+    // and then silently paste nothing / a blurry thumbnail.
+    if (
+      (item.data.kind === 'image' && !getStore().resolveStoredImagePath(item.data.imageId, item.data.ext)) ||
+      (item.data.kind === 'image-collection' && !getStore().hasRecoverableCollectionImage(item.data.images))
+    ) {
+      console.log('[IPC] item:paste aborted — source image no longer available')
+      toast('Original image no longer available', 'error')
+      return false
+    }
+
     const watcher = getWatcher()
     watcher.setPaused(true)
 
@@ -386,7 +423,12 @@ export function registerIpc(): void {
       // 2. Write item to system clipboard
       const fullText = item.data.kind === 'text' ? getStore().getFullText(id) : undefined
       const itemDataWithFullText = item.data.kind === 'text' && fullText ? { ...item.data, text: fullText } : item.data
-      await writeItemToClipboard(itemDataWithFullText)
+      const ok = await writeItemToClipboard(itemDataWithFullText, item.capturedAt)
+      if (!ok) {
+        // Extremely rare race: source vanished between pre-check and write.
+        toast('Original image no longer available', 'error')
+        return false
+      }
       console.log('[IPC] item:paste wrote to clipboard, kind=', item.data.kind)
 
       // 3. Touch item timestamp if enabled
@@ -435,16 +477,14 @@ export function registerIpc(): void {
     try {
       let wrote = false
       if (dto.data.kind === 'files' && req.paths && req.paths.length > 0) {
-        await writeFileListToClipboard(req.paths)
-        wrote = true
+        wrote = await writeFileListToClipboard(req.paths)
       } else if (dto.data.kind === 'image-collection' && req.imageId) {
         const img = dto.data.images.find((i) => i.imageId === req.imageId)
         if (img) {
           // Single image from a collection: write full bitmap + file reference atomically.
-          const src = getStore().getImagePath(img.imageId, img.ext)
-          const preview = img.preview ?? ''
-          await writeImageToClipboard(src && existsSync(src) ? src : null, preview)
-          wrote = true
+          const src = getStore().resolveStoredImagePath(img.imageId, img.ext)
+          wrote = await writeImageToClipboard(src)
+          if (!wrote) toast('Original image no longer available', 'error')
         }
       }
 
@@ -683,18 +723,37 @@ export function registerSendListeners(): void {
     const { data, capturedAt } = resolved
     console.log('[IPC] start-drag: kind=', data.kind)
 
+    // Usage accounting parity with click-to-paste: a whole-item drag counts
+    // as a use. Bumps hitCount and moves unpinned items to the top, gated
+    // behind the same movePastedToTop setting paste uses. Sub-item drags
+    // (one file out of a bundle, one image out of a collection) deliberately
+    // do not reorder history - same rule as item:paste-subitem.
+    const isWholeItemDrag = !(req.paths && req.paths.length > 0) && !req.imageId
+
     // Pause the always-on-top heartbeat for the duration of the drag.
     // The heartbeat fires SetWindowPos(HWND_TOPMOST) every 500 ms, which
     // pushes our window in front of the DWM drag-ghost image — making the
     // dragged item appear to vanish ~0.5 s into any drag gesture.
     setHeartbeatPaused(true)
 
-    startDragOut(sender, data, capturedAt)
+    const dragStarted = startDragOut(sender, data, capturedAt)
     console.log('[IPC] start-drag returned, sending drag-end')
     sender.send('item:drag-end')
 
     // Re-enable the heartbeat now that the drag is over.
     setHeartbeatPaused(false)
+
+    if (dragStarted && isWholeItemDrag) {
+      // Usage accounting parity with click-to-paste: a whole-item drag counts
+      // as a use — hitCount bump + optional move to top via the same
+      // movePastedToTop setting paste uses. Sub-item drags never reorder
+      // history (same rule as item:paste-subitem). Applied after the gesture
+      // finishes so nothing extra runs inside the OLE drag loop.
+      if (loadSettings().movePastedToTop !== false && getStore().get(req.id)) {
+        getStore().touch(req.id)
+      }
+      pushState.items()
+    }
 
     // Workaround for Electron/Windows not firing drop events on the source window:
     // Check if the user dropped the item back onto our window!
@@ -717,93 +776,101 @@ export function registerSendListeners(): void {
   })
 }
 
-/** Write any item payload back onto the system clipboard. */
-export async function writeItemToClipboard(data: ItemData): Promise<void> {
+/**
+ * Write any item payload back onto the system clipboard.
+ *
+ * CONTRACT: every kind resolves its concrete files through the SAME staging
+ * engine the native drag-out uses (`stageDragFile`), so paste and drag can
+ * never disagree about filenames or content. Returns false when nothing was
+ * written (e.g. every source image vanished from disk) so callers can show an
+ * explicit error instead of silently degrading quality.
+ */
+export async function writeItemToClipboard(data: ItemData, capturedAt?: number): Promise<boolean> {
   switch (data.kind) {
     case 'text': {
       const formatted = formatTabularDataForClipboard(data.text, data.html)
       clipboard.clear()
       clipboard.write({ text: formatted.text, html: formatted.html })
-      break
+      return true
     }
 
     case 'image': {
-      const dto = getStore().toDto().find(
-        (d) => d.data.kind === 'image' && d.data.imageId === data.imageId
-      )
-      if (dto && dto.data.kind === 'image') {
-        const src = getStore().getImagePath(dto.data.imageId, dto.data.ext)
-        const staged = src && existsSync(src) ? stageDragFile(data, dto.capturedAt) : null
-        if (staged?.file && src && existsSync(src)) {
-          const named = toUnpackagedFilePath(staged.file)
-          const ok = await writeImageWithNamedFile(toUnpackagedFilePath(src), named)
-          if (ok) break
-        }
-        await writeImageToClipboard(src && existsSync(src) ? src : null, dto.data.preview)
+      // Fix: recover via directory scan before giving up; abort explicitly
+      // when the original is unrecoverable instead of pasting a blurry
+      // low-res preview.
+      const src = getStore().resolveStoredImagePath(data.imageId, data.ext)
+      if (!src) return false
+
+      const staged = stageDragFile(data, capturedAt)
+      if (staged?.file && existsSync(staged.file)) {
+        // Full-res bitmap + friendly-named file reference in one atomic
+        // multi-format write, so Explorer keeps "Screenshot …" naming while
+        // pixel-oriented apps get CF_DIB.
+        const named = toUnpackagedFilePath(staged.file)
+        if (await writeImageWithNamedFile(toUnpackagedFilePath(src), named)) return true
       }
-      break
+      // Fallback: full-resolution bitmap only (no filename reference).
+      return writeImageToClipboard(src)
     }
 
     case 'image-collection': {
-      // Write all image file references so pasting into Explorer copies all files.
-      // Also write the first image as bitmap so single-image paste targets work.
-      const dto = getStore().toDto().find(
-        (d) => d.data.kind === 'image-collection'
-      )
-      if (dto && dto.data.kind === 'image-collection') {
-        const paths: string[] = []
-        for (const img of dto.data.images) {
-          const src = getStore().getImagePath(img.imageId, img.ext)
-          if (existsSync(src)) paths.push(toUnpackagedFilePath(src))
-        }
-        if (paths.length > 0) {
-          // For multi-image collections, write all file refs atomically.
-          // Also include the first image as bitmap using DataObject.
-          const firstImg = dto.data.images[0]
-          const firstPreview = firstImg?.preview ?? ''
-          if (paths.length === 1) {
-            // Single resolved path: use full atomic image+file write
-            await writeImageToClipboard(paths[0], firstPreview)
-          } else {
-            // Multiple files: write CF_HDROP for all + bitmap for first
-            try {
-              const addLines = paths
-                .map(p => `$c.Add([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${Buffer.from(p, 'utf8').toString('base64')}')))|Out-Null`)
-                .join(';')
-              const b64First = Buffer.from(paths[0], 'utf8').toString('base64')
-              const script = [
-                'Add-Type -AssemblyName System.Windows.Forms',
-                'Add-Type -AssemblyName System.Drawing',
-                `$fp=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${b64First}'))`,
-                '$bmp=[Drawing.Image]::FromFile($fp)',
-                '$d=New-Object Windows.Forms.DataObject',
-                '$d.SetImage($bmp)',
-                '$c=New-Object System.Collections.Specialized.StringCollection',
-                addLines,
-                '$d.SetFileDropList($c)',
-                '[Windows.Forms.Clipboard]::SetDataObject($d,$true)',
-                '$bmp.Dispose()'
-              ].join(';')
-              await psHost.run(script, 3000)
-            } catch (err) {
-              console.error('[ipc] image-collection clipboard write failed:', err)
-              // Fallback: write first image bitmap only
-              try {
-                const img = nativeImage.createFromDataURL(firstPreview)
-                if (!img.isEmpty()) { clipboard.clear(); clipboard.writeImage(img) }
-              } catch { /* ignore */ }
-            }
-          }
-        }
+      // Fix: stage through the shared engine so every file gets the same
+      // indexed pretty names drag-out produces ("Screenshot … (2).png")
+      // instead of raw storage ids ("<hex>.png").
+      const staged = stageDragFile(data, capturedAt)
+      const stagedFiles = staged?.files ?? []
+      if (stagedFiles.length === 0) return false
+
+      const firstImg = data.images[0]
+      const firstSrc = firstImg
+        ? getStore().resolveStoredImagePath(firstImg.imageId, firstImg.ext)
+        : null
+
+      if (stagedFiles.length === 1 && firstSrc) {
+        const named = toUnpackagedFilePath(stagedFiles[0])
+        if (await writeImageWithNamedFile(toUnpackagedFilePath(firstSrc), named)) return true
+        return writeImageToClipboard(firstSrc)
       }
-      break
+
+      if (!firstSrc) {
+        // No bitmap recoverable — the surviving named file references are
+        // still perfectly valid for Explorer-style targets.
+        return writeFileListToClipboard(stagedFiles)
+      }
+
+      // Multi-file: all pretty-named refs + first image as bitmap.
+      try {
+        const exposed = stagedFiles.map((p) => toUnpackagedFilePath(p))
+        const addLines = exposed
+          .map(p => `$c.Add([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${Buffer.from(p, 'utf8').toString('base64')}')))|Out-Null`)
+          .join(';')
+        const b64First = Buffer.from(toUnpackagedFilePath(firstSrc), 'utf8').toString('base64')
+        const script = [
+          'Add-Type -AssemblyName System.Windows.Forms',
+          'Add-Type -AssemblyName System.Drawing',
+          `$fp=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${b64First}'))`,
+          '$bmp=[Drawing.Image]::FromFile($fp)',
+          '$d=New-Object Windows.Forms.DataObject',
+          '$d.SetImage($bmp)',
+          '$c=New-Object System.Collections.Specialized.StringCollection',
+          addLines,
+          '$d.SetFileDropList($c)',
+          '[Windows.Forms.Clipboard]::SetDataObject($d,$true)',
+          '$bmp.Dispose()'
+        ].join(';')
+        await psHost.run(script, 3000)
+      } catch (err) {
+        console.error('[ipc] image-collection clipboard write failed:', err)
+        // Full-resolution fallback for the first image (never a low-res preview).
+        return writeImageToClipboard(firstSrc)
+      }
+      return true
     }
 
     case 'files':
       // Write real file references so pasting into Explorer copies the files,
       // not path strings.
-      await writeFileListToClipboard(data.paths)
-      break
+      return writeFileListToClipboard(data.paths)
   }
 }
 

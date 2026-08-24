@@ -21,6 +21,7 @@ import { getUnpackagedTempDir, toUnpackagedFilePaths } from '../store/paths'
 import type { DragRequest, ItemData } from '../../shared/types'
 import { getStore } from './state'
 import { getFileKind } from '../../src/lib/fileType'
+import { recordStagedFiles } from './stagedTemp'
 
 function stampForFilename(capturedAt?: number): string {
   const d = capturedAt ? new Date(capturedAt) : new Date()
@@ -89,9 +90,9 @@ export function resolveDragData(req: DragRequest): { data: ItemData; capturedAt?
   return { data: item.data, capturedAt: item.capturedAt }
 }
 
-export function startDragOut(sender: WebContents, data: ItemData, capturedAt?: number): void {
+export function startDragOut(sender: WebContents, data: ItemData, capturedAt?: number): boolean {
   const staged = stageDragFile(data, capturedAt)
-  if (!staged) return
+  if (!staged) return false
 
   const icon = dragIcon(data)
   const item: Electron.Item = { file: staged.file, icon }
@@ -99,6 +100,7 @@ export function startDragOut(sender: WebContents, data: ItemData, capturedAt?: n
     item.files = staged.files
   }
   sender.startDrag(item)
+  return true
 }
 
 /* ------------------------------------------------------------------ */
@@ -222,6 +224,15 @@ export function stageDragFile(data: ItemData, capturedAt?: number): Staged | nul
     if (stagedCache.size > STAGED_CACHE_MAX) {
       const first = stagedCache.keys().next().value
       if (first) stagedCache.delete(first)
+    }
+    // Lifecycle tracking: register generated artifacts with the staged-temp
+    // manager so they are reaped when their owning history item dies.
+    // Only paths inside our managed temp roots are recorded — original user
+    // files exposed by `files` bundles are never tracked.
+    try {
+      recordStagedFiles(data, result.files ?? [result.file])
+    } catch {
+      /* ignore — staging itself already succeeded */
     }
   }
 

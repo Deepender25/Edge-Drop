@@ -13,10 +13,11 @@ import { MAX_STACK } from '../../shared/types'
 import { BrowserWindow, powerMonitor } from 'electron'
 import { isStagedTempPath } from '../store/paths'
 import { prefetchFileIcons } from './drag'
+import { forgetStagedItems, reconcileTempOnStartup } from './stagedTemp'
 import { runtime } from './config'
 import { getMainWindow } from './window'
 
-const store = new ItemStore()
+const store = new ItemStore((removed) => forgetStagedItems(removed))
 const watcher = new ClipboardWatcher(600)
 let pruneTimer: ReturnType<typeof setInterval> | null = null
 let wakeTimer: ReturnType<typeof setTimeout> | null = null
@@ -40,6 +41,16 @@ function handleSystemWake(): void {
 /** Initialize persistence + start the clipboard watcher. */
 export function initState(): void {
   store.load()
+
+  // Reconcile staged temp artifacts with the freshly loaded history: files
+  // owned by living items survive, everything else (crash orphans, deleted
+  // items' leftovers, legacy pre-registry junk) is removed once. This replaces
+  // the old wipe-everything cleanTemp() pass. Runs once — milliseconds.
+  try {
+    reconcileTempOnStartup(store.list())
+  } catch (err) {
+    console.error('[State] Staged temp reconciliation failed:', err)
+  }
 
   // One-time v0.2.6 upgrade migration: clear unpinned items once & set default historyLimit to 250
   const currentSettings = loadSettings()

@@ -114,14 +114,21 @@ describe('writeImageToClipboard (#44)', () => {
     expect(clipboard.writeImage).toHaveBeenCalledTimes(1)
   })
 
-  it('uses previewDataUrl fallback if image file is missing on disk', async () => {
+  it('aborts with false and never degrades to a low-res preview when the image file is missing', async () => {
     const missingPath = 'C:\\mock\\images\\missing.png'
-    const fallbackDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg=='
-    await writeImageToClipboard(missingPath, fallbackDataUrl)
+    const result = await writeImageToClipboard(missingPath)
 
-    expect(nativeImage.createFromDataURL).toHaveBeenCalledWith(fallbackDataUrl)
-    expect(clipboard.clear).toHaveBeenCalledTimes(1)
-    expect(clipboard.writeImage).toHaveBeenCalledTimes(1)
+    // Fix contract: silent quality degradation is worse than explicit failure.
+    expect(result).toBe(false)
+    expect(nativeImage.createFromDataURL).not.toHaveBeenCalled()
+    expect(clipboard.clear).not.toHaveBeenCalled()
+    expect(clipboard.writeImage).not.toHaveBeenCalled()
+  })
+
+  it('reports success explicitly when the full-resolution bitmap was written', async () => {
+    const validPath = 'C:\\mock\\images\\valid.png'
+    const result = await writeImageToClipboard(validPath)
+    expect(result).toBe(true)
   })
 
   it('does not throw or corrupt clipboard when image is null/empty', async () => {

@@ -10,7 +10,7 @@
  */
 import { app, BrowserWindow, nativeImage, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
-import { ensureDirs, cleanTemp, PATHS } from '../store/paths'
+import { ensureDirs, PATHS } from '../store/paths'
 import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener } from './window'
 import { createTray, registerIncognitoApplier, refreshTray } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
@@ -21,6 +21,7 @@ import { initState, getWatcher, loadSettings, saveSettings, pushState, stopState
 import { initAutoUpdater } from './updater'
 import { createOnboardingWindow } from './onboardingWindow'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
+import { flushStagedTempRegistry } from './stagedTemp'
 import { extname, normalize } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
@@ -80,6 +81,9 @@ app.on('before-quit', () => {
     getStore().persistSync()
   } catch { /* ignore */ }
   try {
+    flushStagedTempRegistry()
+  } catch { /* ignore */ }
+  try {
     const { globalShortcut } = require('electron')
     globalShortcut.unregisterAll()
   } catch { /* ignore */ }
@@ -93,7 +97,9 @@ app.whenReady().then(() => {
   }
 
   ensureDirs()
-  cleanTemp()
+  // NOTE: temp cleanup is intentionally NOT a blind wipe anymore. Staged drag
+  // and paste artifacts are lifecycle-managed (see stagedTemp.ts) and are
+  // reconciled against living history inside initState().
 
   // Lock the renderer session down: block all permission requests by default.
   const ses = session.defaultSession
