@@ -69,6 +69,7 @@ describe('Windows Snipping Tool & Clipboard Image Detection (#41)', () => {
     if (result?.kind === 'image') {
       expect(result.width).toBe(1920)
       expect(result.height).toBe(1080)
+      expect(result.source).toBe('screenshot')
     }
 
     const sig = clipboardSignature()
@@ -97,6 +98,7 @@ describe('Windows Snipping Tool & Clipboard Image Detection (#41)', () => {
     if (result?.kind === 'image') {
       expect(result.width).toBe(800)
       expect(result.height).toBe(600)
+      expect(result.source).toBe('screenshot')
     }
 
     const sig = clipboardSignature()
@@ -122,6 +124,10 @@ describe('Windows Snipping Tool & Clipboard Image Detection (#41)', () => {
     const result = await readClipboard()
     expect(result).not.toBeNull()
     expect(result?.kind).toBe('image')
+    if (result?.kind === 'image') {
+      expect(result.source).toBe('image')
+      expect(result.fileName).toBe('photo.png')
+    }
 
     const sig = clipboardSignature()
     expect(sig).toContain('image:400x300:')

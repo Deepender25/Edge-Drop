@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { formatScreenshotFilename, stageDragFile } from '../electron/main/drag'
+import { formatScreenshotFilename, formatClipboardImageFilename, stageDragFile } from '../electron/main/drag'
 import type { ItemData } from '../shared/types'
 
 // Mock dependencies for staging
@@ -52,6 +52,18 @@ describe('formatScreenshotFilename', () => {
     expect(formatScreenshotFilename(date.getTime(), 'png', 3)).toBe('Screenshot 2026-08-15 14.00.00 (3).png')
   })
 
+  it('uses Image prefix for non-screenshot clipboard bitmaps', () => {
+    const date = new Date(2026, 7, 15, 22, 30, 45)
+    expect(formatClipboardImageFilename(date.getTime(), 'png', { source: 'image' })).toBe(
+      'Image 2026-08-15 22.30.45.png'
+    )
+  })
+
+  it('keeps an original filename when the clipboard provided one', () => {
+    expect(formatClipboardImageFilename(Date.now(), 'png', { source: 'image', fileName: 'vacation photo.jpg' }))
+      .toBe('vacation photo.jpg')
+  })
+
   it('ensures zero illegal Windows filesystem characters in generated names', () => {
     const date = new Date()
     const filename = formatScreenshotFilename(date.getTime())
@@ -80,6 +92,36 @@ describe('stageDragFile dual-channel payload', () => {
     expect(staged?.files).toBeDefined()
     expect(staged?.files).toHaveLength(1)
     expect(staged?.files?.[0]).toBe(staged?.file)
+  })
+
+  it('stages dropped folder images with their original filename', () => {
+    const dropped: ItemData = {
+      kind: 'image',
+      imageId: 'img_test_123',
+      width: 1920,
+      height: 1080,
+      bytes: 50000,
+      ext: 'jpg',
+      source: 'image',
+      fileName: 'holiday.jpg'
+    }
+    const staged = stageDragFile(dropped, timestamp)
+    expect(staged?.file).toMatch(/holiday\.jpg$/i)
+    expect(staged?.file).not.toContain('Screenshot')
+  })
+
+  it('stages copied photos as Image timestamp, not Screenshot', () => {
+    const copiedPhoto: ItemData = {
+      kind: 'image',
+      imageId: 'img_test_123',
+      width: 1920,
+      height: 1080,
+      bytes: 50000,
+      ext: 'png',
+      source: 'image'
+    }
+    const stagedPhoto = stageDragFile(copiedPhoto, timestamp)
+    expect(stagedPhoto?.file).toContain('Image 2026-08-15 22.30.45.png')
   })
 
   it('returns indexed filenames and files array for image-collection items', () => {

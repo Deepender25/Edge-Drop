@@ -16,7 +16,7 @@ import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, 
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
-import { startDragOut, resolveDragData, prestageDrag } from './drag'
+import { startDragOut, resolveDragData, prestageDrag, stageDragFile } from './drag'
 import { clipboardSignature, formatTabularDataForClipboard } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
@@ -109,6 +109,34 @@ async function writeFileListToClipboard(rawPaths: string[]): Promise<void> {
   if (validPaths.length > 0) {
     clipboard.clear()
     clipboard.writeText(validPaths.join('\r\n'))
+  }
+}
+
+/** Bitmap for apps that read CF_DIB, plus a named file so Explorer paste keeps our filename. */
+async function writeImageWithNamedFile(imagePath: string, namedPath: string): Promise<boolean> {
+  if (process.platform !== 'win32') return false
+  try {
+    const b64Img = Buffer.from(imagePath, 'utf8').toString('base64')
+    const b64File = Buffer.from(namedPath, 'utf8').toString('base64')
+    const script = [
+      'Add-Type -AssemblyName System.Windows.Forms',
+      'Add-Type -AssemblyName System.Drawing',
+      `$img=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${b64Img}'))`,
+      `$fp=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${b64File}'))`,
+      '$bmp=[Drawing.Image]::FromFile($img)',
+      '$d=New-Object Windows.Forms.DataObject',
+      '$d.SetImage($bmp)',
+      '$c=New-Object System.Collections.Specialized.StringCollection',
+      '$c.Add($fp)|Out-Null',
+      '$d.SetFileDropList($c)',
+      '[Windows.Forms.Clipboard]::SetDataObject($d,$true)',
+      '$bmp.Dispose()'
+    ].join(';')
+    await psHost.run(script, 3000)
+    return true
+  } catch (err) {
+    console.error('[ipc] writeImageWithNamedFile failed:', err)
+    return false
   }
 }
 
@@ -464,7 +492,17 @@ export function registerIpc(): void {
     }
 
     if (data.kind === 'image' && (data as any).imageUrl) {
-      const imageUrl = (data as any).imageUrl
+      const imageUrl = (data as any).imageUrl as string
+      if (/^file:/i.test(imageUrl)) {
+        const local = imageUrl.replace(/^file:\/\//i, '').replace(/^\/([a-zA-Z]:)/, '$1')
+        try {
+          const decoded = decodeURIComponent(local).replace(/\//g, '\\')
+          if (existsSync(decoded)) {
+            addFiles([decoded])
+            return getStore().toDto()
+          }
+        } catch { /* fall through to bitmap import */ }
+      }
       try {
         let img = nativeImage.createFromDataURL(imageUrl)
         if (img.isEmpty() && /^https?:\/\//i.test(imageUrl)) {
@@ -482,6 +520,11 @@ export function registerIpc(): void {
           data.width = size.width
           data.height = size.height
           data.ext = 'png'
+          data.source = 'image'
+          const fromUrl = imageUrl.split(/[\\/]/).pop()?.split('?')[0]
+          if (fromUrl && /\.(png|jpe?g|gif|webp|bmp|svg|avif)$/i.test(fromUrl)) {
+            data.fileName = decodeURIComponent(fromUrl)
+          }
           getStore().stageImageBytes(data.imageId, png)
           png = null
           img = null as any
@@ -689,10 +732,13 @@ export async function writeItemToClipboard(data: ItemData): Promise<void> {
         (d) => d.data.kind === 'image' && d.data.imageId === data.imageId
       )
       if (dto && dto.data.kind === 'image') {
-        // Write bitmap AND file reference atomically via PowerShell DataObject.
-        // This lets the user paste into Slack/Word (reads bitmap) AND into
-        // Explorer (reads CF_HDROP file reference) from the same clipboard write.
         const src = getStore().getImagePath(dto.data.imageId, dto.data.ext)
+        const staged = src && existsSync(src) ? stageDragFile(data, dto.capturedAt) : null
+        if (staged?.file && src && existsSync(src)) {
+          const named = toUnpackagedFilePath(staged.file)
+          const ok = await writeImageWithNamedFile(toUnpackagedFilePath(src), named)
+          if (ok) break
+        }
         await writeImageToClipboard(src && existsSync(src) ? src : null, dto.data.preview)
       }
       break

@@ -11,11 +11,24 @@
 /** Maximum number of sub-items that may live in a single stack/bundle. */
 export const MAX_STACK = 10
 
+/** How a clipboard bitmap was captured. Omitted on older persisted items. */
+export type ClipboardImageSource = 'screenshot' | 'image'
+
+export type ClipboardImageFields = {
+  imageId: string
+  width: number
+  height: number
+  bytes: number
+  ext?: string
+  source?: ClipboardImageSource
+  fileName?: string
+}
+
 /** Discriminated union describing the payload of a clipboard item. */
 export type ItemData =
   | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string }
-  | { kind: 'image'; imageId: string; width: number; height: number; bytes: number; ext?: string }
-  | { kind: 'image-collection'; images: { imageId: string; width: number; height: number; bytes: number; ext?: string }[] }
+  | ({ kind: 'image' } & ClipboardImageFields)
+  | { kind: 'image-collection'; images: ClipboardImageFields[] }
   | { kind: 'files'; paths: string[] }
 
 export type ItemKind = ItemData['kind']
@@ -56,8 +69,8 @@ export interface FileEntry {
 export interface ClipboardItemDto extends Omit<ClipboardItem, 'data'> {
   data:
   | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string }
-  | { kind: 'image'; imageId: string; width: number; height: number; bytes: number; preview: string; ext?: string }
-  | { kind: 'image-collection'; images: { imageId: string; width: number; height: number; bytes: number; preview: string; ext?: string }[] }
+  | ({ kind: 'image'; preview: string } & ClipboardImageFields)
+  | { kind: 'image-collection'; images: Array<ClipboardImageFields & { preview: string }> }
   | { kind: 'files'; paths: string[]; previews?: string[]; entries?: FileEntry[] }
 }
 

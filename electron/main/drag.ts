@@ -22,11 +22,7 @@ import type { DragRequest, ItemData } from '../../shared/types'
 import { getStore } from './state'
 import { getFileKind } from '../../src/lib/fileType'
 
-/**
- * Formats a clean, Windows OS-compliant human-readable screenshot filename
- * based on the capture timestamp (e.g. "Screenshot 2026-08-15 22.30.45.png").
- */
-export function formatScreenshotFilename(capturedAt?: number, ext = 'png', indexSuffix?: number): string {
+function stampForFilename(capturedAt?: number): string {
   const d = capturedAt ? new Date(capturedAt) : new Date()
   const year = d.getFullYear()
   const month = String(d.getMonth() + 1).padStart(2, '0')
@@ -34,10 +30,38 @@ export function formatScreenshotFilename(capturedAt?: number, ext = 'png', index
   const hours = String(d.getHours()).padStart(2, '0')
   const minutes = String(d.getMinutes()).padStart(2, '0')
   const seconds = String(d.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}.${minutes}.${seconds}`
+}
 
+function sanitizeFileName(name: string): string {
+  return name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').replace(/^\.+/, '').trim() || 'Image'
+}
+
+/**
+ * Filename for a staged clipboard bitmap.
+ * Screenshots keep the Windows-style Screenshot stamp; other bitmaps use Image
+ * (or the original name when the clipboard provided one).
+ */
+export function formatClipboardImageFilename(
+  capturedAt?: number,
+  ext = 'png',
+  opts?: { source?: 'screenshot' | 'image'; fileName?: string; indexSuffix?: number }
+): string {
   const cleanExt = ext.replace(/^\./, '') || 'png'
-  const suffix = typeof indexSuffix === 'number' && indexSuffix > 1 ? ` (${indexSuffix})` : ''
-  return `Screenshot ${year}-${month}-${day} ${hours}.${minutes}.${seconds}${suffix}.${cleanExt}`
+  const suffix = typeof opts?.indexSuffix === 'number' && opts.indexSuffix > 1 ? ` (${opts.indexSuffix})` : ''
+  if (opts?.fileName) {
+    const safe = sanitizeFileName(opts.fileName)
+    const base = safe.replace(/\.[^.]+$/, '')
+    const givenExt = (safe.match(/\.([a-z0-9]+)$/i)?.[1] || cleanExt).toLowerCase()
+    return `${base}${suffix}.${givenExt}`
+  }
+  const prefix = opts?.source === 'image' ? 'Image' : 'Screenshot'
+  return `${prefix} ${stampForFilename(capturedAt)}${suffix}.${cleanExt}`
+}
+
+/** @deprecated use formatClipboardImageFilename */
+export function formatScreenshotFilename(capturedAt?: number, ext = 'png', indexSuffix?: number): string {
+  return formatClipboardImageFilename(capturedAt, ext, { source: 'screenshot', indexSuffix })
 }
 
 /**
@@ -137,7 +161,10 @@ export function stageDragFile(data: ItemData, capturedAt?: number): Staged | nul
       const src = getStore().getImagePath(data.imageId, data.ext)
       if (!existsSync(src)) return null
       const ext = extname(src) || '.png'
-      const fileName = formatScreenshotFilename(capturedAt, ext)
+      const fileName = formatClipboardImageFilename(capturedAt, ext, {
+        source: data.source,
+        fileName: data.fileName
+      })
       const dest = join(temp, fileName)
       try {
         if (!existsSync(dest)) {
@@ -156,7 +183,11 @@ export function stageDragFile(data: ItemData, capturedAt?: number): Staged | nul
         const src = getStore().getImagePath(img.imageId, img.ext)
         if (existsSync(src)) {
           const ext = extname(src) || '.png'
-          const fileName = formatScreenshotFilename(capturedAt, ext, idx)
+          const fileName = formatClipboardImageFilename(capturedAt, ext, {
+            source: img.source,
+            fileName: img.fileName,
+            indexSuffix: idx
+          })
           const dest = join(temp, fileName)
           try {
             if (!existsSync(dest)) {

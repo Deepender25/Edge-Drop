@@ -10,9 +10,7 @@ import { ClipboardWatcher } from '../clipboard/ClipboardWatcher'
 import { loadSettings, saveSettings } from '../store/settings'
 import type { ClipboardItemDto, Settings } from '../../shared/types'
 import { MAX_STACK } from '../../shared/types'
-import { createId } from '../store/ids'
-import { nativeImage, BrowserWindow, powerMonitor } from 'electron'
-import { readFileSync } from 'node:fs'
+import { BrowserWindow, powerMonitor } from 'electron'
 import { isStagedTempPath } from '../store/paths'
 import { prefetchFileIcons } from './drag'
 import { runtime } from './config'
@@ -169,87 +167,20 @@ export interface AddFilesResult {
 }
 
 /**
- * Import dropped file paths.
- *
- * Drops are partitioned into images vs. other files (so a mixed drop of e.g.
- * 2 images + 3 docs becomes an image-collection *and* a files bundle instead of
- * collapsing everything into a generic bundle that loses image previews). Each
- * partition is then chunked into stacks of at most MAX_STACK items.
+ * Import dropped file paths the same way Explorer Ctrl+C is captured:
+ * keep the original paths (and names). Do not copy image bytes into the
+ * internal image store — that made drag-out invent a Screenshot filename.
  */
 export function addFiles(paths: string[]): AddFilesResult {
-  // Prevent duplicating items when a user accidentally drops our own staged temp
-  // files back into the app. Real files are deduplicated automatically by path,
-  // but images are staged to temp-drag and would otherwise get new IDs.
   const clean = paths.filter((p) => !isStagedTempPath(p))
   if (clean.length === 0) return { stacksCreated: 0 }
 
-  const imageExts = /\.(png|jpe?g|gif|webp|bmp|svg|avif|ico|tiff?|jfif|pjpeg|pjp)$/i
-  const imagePaths: string[] = []
-  const otherPaths: string[] = []
-  for (const p of clean) (imageExts.test(p) ? imagePaths : otherPaths).push(p)
-
-  if (otherPaths.length > 0) {
-    prefetchFileIcons(otherPaths)
-  }
+  prefetchFileIcons(clean)
 
   const limit = loadSettings().historyLimit
   let stacksCreated = 0
-
-  // --- images -> image collections (chunked to MAX_STACK) ---
-  if (imagePaths.length > 0) {
-    const images = []
-    for (const p of imagePaths) {
-      try {
-        const rawBytes = readFileSync(p)
-        let img = nativeImage.createFromBuffer(rawBytes)
-        if (img.isEmpty()) {
-          const ext = p.split('.').pop()?.toLowerCase() ?? 'png'
-          const mime = ext === 'svg' ? 'image/svg+xml'
-            : ext === 'gif' ? 'image/gif'
-            : ext === 'webp' ? 'image/webp'
-            : ext === 'bmp' ? 'image/bmp'
-            : ext === 'avif' ? 'image/avif'
-            : ext === 'ico' ? 'image/x-icon'
-            : ext === 'jpg' || ext === 'jpeg' || ext === 'jfif' || ext === 'pjpeg' || ext === 'pjp' ? 'image/jpeg'
-            : ext === 'tif' || ext === 'tiff' ? 'image/tiff'
-            : 'image/png'
-          const dataUrl = `data:${mime};base64,${rawBytes.toString('base64')}`
-          img = nativeImage.createFromDataURL(dataUrl)
-        }
-
-        const ext = p.split('.').pop()?.toLowerCase() || 'png'
-        let width = 300
-        let height = 300
-        if (!img.isEmpty()) {
-          const size = img.getSize()
-          if (size.width > 0 && size.height > 0) {
-            width = size.width
-            height = size.height
-          }
-        }
-
-        const imageId = createId()
-        store.stageImageBytes(imageId, rawBytes, ext)
-        images.push({ imageId, width, height, bytes: rawBytes.length, ext })
-      } catch {
-        otherPaths.push(p) // unreadable -> treat as plain file
-      }
-    }
-
-    for (let i = 0; i < images.length; i += MAX_STACK) {
-      const chunk = images.slice(i, i + MAX_STACK)
-      if (chunk.length === 1) {
-        store.add({ kind: 'image', ...chunk[0] }, limit)
-      } else {
-        store.add({ kind: 'image-collection', images: chunk }, limit)
-      }
-      stacksCreated++
-    }
-  }
-
-  // --- other files -> files bundles (chunked to MAX_STACK) ---
-  for (let i = 0; i < otherPaths.length; i += MAX_STACK) {
-    const chunk = otherPaths.slice(i, i + MAX_STACK)
+  for (let i = 0; i < clean.length; i += MAX_STACK) {
+    const chunk = clean.slice(i, i + MAX_STACK)
     store.add({ kind: 'files', paths: chunk }, limit)
     stacksCreated++
   }

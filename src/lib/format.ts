@@ -57,20 +57,26 @@ export function basename(p: string): string {
   return parts[parts.length - 1] ?? p
 }
 
-/** Formats a path into a clean display title (converts internal hash IDs to human screenshot titles). */
-export function formatImageDisplayName(path: string, capturedAt?: number): string {
+/** Formats a path into a clean display title (internal hashes become Screenshot or Image + time). */
+export function formatImageDisplayName(
+  path: string,
+  capturedAt?: number,
+  source?: 'screenshot' | 'image',
+  originalName?: string
+): string {
+  if (originalName && originalName.trim()) return originalName
   const name = basename(path)
   const isInternalHash = /^[a-z0-9]{6,12}-[a-z0-9]{6,12}\.[a-z0-9]+$/i.test(name) || path.includes('edge-drop/images') || path.includes('edge-drop\\images') || path.includes('edge-drop/temp') || path.includes('edge-drop\\temp')
-  
+
   if (isInternalHash) {
-    const screenshotLabel = t('item.screenshot')
+    const label = source === 'image' ? t('item.imageItem') : t('item.screenshot')
     if (capturedAt) {
       const d = new Date(capturedAt)
       const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
       const timeStr = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-      return `${screenshotLabel} ${dateStr}, ${timeStr}`
+      return `${label} ${dateStr}, ${timeStr}`
     }
-    return screenshotLabel
+    return label
   }
   return name
 }

@@ -9,8 +9,9 @@
 import { clipboard } from 'electron'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import { existsSync } from 'node:fs'
 import koffi from 'koffi'
-import type { ItemData } from '../../shared/types'
+import type { ClipboardImageSource, ItemData } from '../../shared/types'
 
 let getSeqNum: (() => number) | null = null
 if (process.platform === 'win32') {
@@ -122,6 +123,77 @@ export function buildFileListBuffer(paths: string[]): Buffer {
 
 const URL_RE = /^(https?:\/\/|www\.)[^\s]+$/i
 const COLOR_HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+const FILE_URL_RE = /file:\/\/\/?([^\s"'<>]+)/i
+
+/** Turn a clipboard file:// URL into a local path if that file exists. */
+export function localPathFromClipboardFileUrl(raw: string): string | null {
+  const m = raw.match(FILE_URL_RE)
+  if (!m) return null
+  try {
+    let decoded = decodeURIComponent(m[1].replace(/"/g, ''))
+    if (/^[a-zA-Z]:[\\/]/.test(decoded) || decoded.startsWith('\\\\')) {
+      decoded = decoded.replace(/\//g, '\\')
+    } else if (/^[a-zA-Z]\//.test(decoded)) {
+      decoded = decoded.replace(/^([a-zA-Z])\//, '$1:\\').replace(/\//g, '\\')
+    }
+    return existsSync(decoded) ? decoded : null
+  } catch {
+    return null
+  }
+}
+
+export function extractClipboardImageFileName(text: string, html: string): string | undefined {
+  const fromHtml = localPathFromClipboardFileUrl(html)
+  if (fromHtml) {
+    const base = fromHtml.replace(/^.*[\\/]/, '')
+    if (base) return base
+  }
+  const fromText = localPathFromClipboardFileUrl(text)
+  if (fromText) {
+    const base = fromText.replace(/^.*[\\/]/, '')
+    if (base) return base
+  }
+  const http = text.match(/^(https?:\/\/.+)\/([^/?#]+)$/i)
+  if (http && /\.(png|jpe?g|gif|webp|bmp|svg|avif)$/i.test(http[2])) {
+    try {
+      return decodeURIComponent(http[2])
+    } catch {
+      return http[2]
+    }
+  }
+  return undefined
+}
+
+export function detectClipboardImageSource(text: string, html: string): ClipboardImageSource {
+  try {
+    const formats = clipboard.availableFormats().map((f) => f.toLowerCase())
+    if (formats.some((f) => /screenshot|snipping|screen\s*clip|screenclip/.test(f))) {
+      return 'screenshot'
+    }
+    if (formats.some((f) => /filegroupdescriptor|filecontents|filenamew|shell idlist/.test(f))) {
+      return 'image'
+    }
+  } catch {
+    /* ignore */
+  }
+
+  if (localPathFromClipboardFileUrl(html) || localPathFromClipboardFileUrl(text)) return 'image'
+  if (/^<img\b/i.test(html.trim()) || URL_RE.test(text.trim())) return 'image'
+
+  const trimmed = text.trim()
+  if (
+    trimmed &&
+    !URL_RE.test(trimmed) &&
+    !trimmed.includes('\t') &&
+    trimmed.split(/\r?\n/).filter(Boolean).length === 1 &&
+    trimmed.length <= 200
+  ) {
+    return 'screenshot'
+  }
+
+  if (!trimmed && !html.trim()) return 'screenshot'
+  return 'image'
+}
 
 /** Sensitive clipboard formats used by password managers and transient scripts. */
 const IGNORED_FORMATS = [
@@ -345,6 +417,9 @@ export async function readClipboard(): Promise<ItemData | null> {
   const trimmedText = rawText.trim()
   const trimmedHtml = rawHtml.trim()
 
+  const localFromHtml = localPathFromClipboardFileUrl(trimmedHtml) || localPathFromClipboardFileUrl(trimmedText)
+  if (localFromHtml) return { kind: 'files', paths: [localFromHtml] }
+
   // Snipping Tool (Window mode, Freeform, Rectangular) or browser images:
   if (isScreenshotOrImageIntent(hasImage, trimmedText, trimmedHtml)) {
     const size = img.getSize()
@@ -353,7 +428,9 @@ export async function readClipboard(): Promise<ItemData | null> {
       imageId: '',
       width: size.width,
       height: size.height,
-      bytes: 0  // placeholder — ClipboardWatcher overwrites this with the actual PNG buffer length
+      bytes: 0,  // placeholder — ClipboardWatcher overwrites this with the actual PNG buffer length
+      source: detectClipboardImageSource(trimmedText, trimmedHtml),
+      fileName: extractClipboardImageFileName(trimmedText, trimmedHtml)
     }
   }
 
@@ -379,7 +456,9 @@ export async function readClipboard(): Promise<ItemData | null> {
       imageId: '',
       width: size.width,
       height: size.height,
-      bytes: 0
+      bytes: 0,
+      source: detectClipboardImageSource(trimmedText, trimmedHtml),
+      fileName: extractClipboardImageFileName(trimmedText, trimmedHtml)
     }
   }
 

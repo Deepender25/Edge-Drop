@@ -353,8 +353,8 @@ export class ItemStore {
       if (src.data.kind !== 'files' && tgt.data.kind !== 'files') {
         const srcData = src.data
         const tgtData = tgt.data
-        const srcImages = srcData.kind === 'image-collection' ? srcData.images : srcData.kind === 'image' ? [{ imageId: srcData.imageId, width: srcData.width, height: srcData.height, bytes: srcData.bytes, ext: srcData.ext }] : []
-        const tgtImages = tgtData.kind === 'image-collection' ? tgtData.images : tgtData.kind === 'image' ? [{ imageId: tgtData.imageId, width: tgtData.width, height: tgtData.height, bytes: tgtData.bytes, ext: tgtData.ext }] : []
+        const srcImages = srcData.kind === 'image-collection' ? srcData.images : srcData.kind === 'image' ? [{ imageId: srcData.imageId, width: srcData.width, height: srcData.height, bytes: srcData.bytes, ext: srcData.ext, source: srcData.source, fileName: srcData.fileName }] : []
+        const tgtImages = tgtData.kind === 'image-collection' ? tgtData.images : tgtData.kind === 'image' ? [{ imageId: tgtData.imageId, width: tgtData.width, height: tgtData.height, bytes: tgtData.bytes, ext: tgtData.ext, source: tgtData.source, fileName: tgtData.fileName }] : []
         const seen = new Set(tgtImages.map((i) => i.imageId))
         const combined = [...tgtImages, ...srcImages.filter((i) => !seen.has(i.imageId))]
 
@@ -463,7 +463,7 @@ export class ItemStore {
         capturedAt: Date.now(),
         hitCount: 1,
         pinned: false,
-        data: { kind: 'image', imageId: targetImg.imageId, width: targetImg.width, height: targetImg.height, bytes: targetImg.bytes }
+        data: { kind: 'image', ...targetImg }
       }
       this.items.splice(req.splitPlacement === 'after' ? sourceIndex + 1 : sourceIndex, 0, newItem)
       this.rebuildIndex()
@@ -695,10 +695,10 @@ export class ItemStore {
   toDto(): ClipboardItemDto[] {
     return this.items.map((it) => {
       if (it.data.kind === 'image') {
-        const { kind, imageId, width, height, bytes, ext } = it.data
+        const { kind, imageId, width, height, bytes, ext, source, fileName } = it.data
         return {
           ...it,
-          data: { kind, imageId, width, height, bytes, ext, preview: thumbnailUrlForStoredImage(imageId) }
+          data: { kind, imageId, width, height, bytes, ext, source, fileName, preview: thumbnailUrlForStoredImage(imageId) }
         }
       }
       if (it.data.kind === 'image-collection') {
