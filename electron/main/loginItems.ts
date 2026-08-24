@@ -2,7 +2,8 @@
  * Launch-at-login.
  *
  * GitHub NSIS: Electron Run keys. Older builds used different value names, so
- * enable/disable clears every name Task Manager might still list.
+ * disable still clears leftover names. Enable must not disable Edge-Drop first
+ * — that stamps Windows Startup apps as Off and the toggle then fails.
  *
  * Store / AppX: Windows.ApplicationModel.StartupTask only —
  * getStatus / enable (RequestEnableAsync) / disable. Same API as
@@ -31,11 +32,21 @@ export interface LaunchAtLoginResult {
   ok: boolean
 }
 
+export function normalizeLoginPath(p: string): string {
+  let s = p.trim().replace(/\//g, '\\').toLowerCase()
+  if (s.startsWith('"')) {
+    const end = s.indexOf('"', 1)
+    s = end > 0 ? s.slice(1, end) : s.replace(/"/g, '')
+  } else {
+    const exe = s.indexOf('.exe')
+    if (exe >= 0) s = s.slice(0, exe + 4)
+  }
+  return s
+}
+
 export function isOurLoginExe(candidate: string | undefined, exePath: string): boolean {
   if (!candidate) return false
-  const a = candidate.replace(/\//g, '\\').toLowerCase()
-  const b = exePath.replace(/\//g, '\\').toLowerCase()
-  return a === b
+  return normalizeLoginPath(candidate) === normalizeLoginPath(exePath)
 }
 
 function resultFromState(state: number | null, wantEnabled?: boolean): LaunchAtLoginResult {
@@ -53,6 +64,19 @@ function resultFromState(state: number | null, wantEnabled?: boolean): LaunchAtL
   }
 }
 
+function collectGithubLoginNames(exePath: string): Set<string> {
+  const names = new Set<string>(GITHUB_LOGIN_ITEM_NAMES)
+  try {
+    const items = app.getLoginItemSettings({ path: exePath }).launchItems ?? []
+    for (const item of items) {
+      if (item.name && isOurLoginExe(item.path, exePath)) names.add(item.name)
+    }
+  } catch {
+    /* ignore */
+  }
+  return names
+}
+
 function readGithubLaunchAtLogin(): LaunchAtLoginResult {
   const exePath = app.getPath('exe')
   const seen = app.getLoginItemSettings({
@@ -61,35 +85,30 @@ function readGithubLaunchAtLogin(): LaunchAtLoginResult {
   })
   const items = seen.launchItems ?? []
   const ours = items.filter((item) => isOurLoginExe(item.path, exePath))
-  const enabled = ours.some((item) => item.enabled) || (!!seen.executableWillLaunchAtLogin && ours.length > 0)
+  const anyEnabled = ours.some((item) => item.enabled)
+  const enabled = anyEnabled || !!seen.executableWillLaunchAtLogin
   return {
     enabled,
-    blockedByUser: ours.some((item) => !item.enabled) && !enabled,
+    blockedByUser: ours.length > 0 && !anyEnabled && ours.some((item) => !item.enabled) && !seen.executableWillLaunchAtLogin,
     ok: true
   }
 }
 
 function applyGithubLaunchAtLogin(wantLaunch: boolean): LaunchAtLoginResult {
   const exePath = app.getPath('exe')
-  const extraNames = new Set<string>(GITHUB_LOGIN_ITEM_NAMES)
-  try {
-    const items = app.getLoginItemSettings({ path: exePath }).launchItems ?? []
-    for (const item of items) {
-      if (item.name && isOurLoginExe(item.path, exePath)) extraNames.add(item.name)
-    }
-  } catch {
-    /* ignore */
-  }
-
-  for (const name of extraNames) {
-    app.setLoginItemSettings({
-      openAtLogin: false,
-      path: exePath,
-      name
-    })
-  }
+  const names = collectGithubLoginNames(exePath)
 
   if (wantLaunch) {
+    // Do not disable Edge-Drop before enabling it. That writes Windows
+    // StartupApproved as Off and the in-app toggle then fails after upgrades.
+    for (const name of names) {
+      if (name === CANONICAL_LOGIN_ITEM_NAME) continue
+      app.setLoginItemSettings({
+        openAtLogin: false,
+        path: exePath,
+        name
+      })
+    }
     app.setLoginItemSettings({
       openAtLogin: true,
       path: exePath,
@@ -97,8 +116,18 @@ function applyGithubLaunchAtLogin(wantLaunch: boolean): LaunchAtLoginResult {
       name: CANONICAL_LOGIN_ITEM_NAME,
       enabled: true
     })
+    const read = readGithubLaunchAtLogin()
+    if (read.blockedByUser) return { ...read, ok: false }
+    return { enabled: true, blockedByUser: false, ok: true }
   }
 
+  for (const name of names) {
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      path: exePath,
+      name
+    })
+  }
   return readGithubLaunchAtLogin()
 }
 
@@ -131,7 +160,8 @@ export async function applyLaunchAtLogin(wantLaunch: boolean): Promise<LaunchAtL
     }
     try {
       const result = applyGithubLaunchAtLogin(wantLaunch)
-      return { ...result, ok: result.enabled === wantLaunch }
+      if (wantLaunch) return result
+      return { ...result, ok: !result.enabled }
     } catch (err) {
       console.error('[LoginItems] GitHub Run-key update failed:', err)
       return { enabled: !wantLaunch, blockedByUser: false, ok: false }

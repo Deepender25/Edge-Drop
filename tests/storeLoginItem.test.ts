@@ -61,7 +61,7 @@ vi.mock('../electron/main/powershell', () => ({
   getWritableCwd: () => 'C:\\Temp'
 }))
 
-import { applyLaunchAtLogin, reconcileLaunchAtLoginOnStartup, GITHUB_LOGIN_ITEM_NAMES } from '../electron/main/loginItems'
+import { applyLaunchAtLogin, reconcileLaunchAtLoginOnStartup } from '../electron/main/loginItems'
 import { syncLoginItemSettings } from '../electron/main/ipc'
 
 describe('GitHub exe launch-at-login (orphan Run keys)', () => {
@@ -88,7 +88,7 @@ describe('GitHub exe launch-at-login (orphan Run keys)', () => {
     expect(mocks.setLoginItemSettings).not.toHaveBeenCalled()
   })
 
-  it('enable: clears every historical name then writes Edge-Drop with --hidden and enabled:true', async () => {
+  it('enable: writes Edge-Drop on without disabling it first, and only clears other leftover names', async () => {
     mocks.getLoginItemSettings.mockReturnValue({
       launchItems: [
         { name: 'Edge-Drop', path: mocks.exePath, enabled: true, args: ['--hidden'] }
@@ -98,13 +98,21 @@ describe('GitHub exe launch-at-login (orphan Run keys)', () => {
     const result = await applyLaunchAtLogin(true)
     expect(result.ok).toBe(true)
     expect(result.enabled).toBe(true)
-    for (const name of GITHUB_LOGIN_ITEM_NAMES) {
-      expect(mocks.setLoginItemSettings).toHaveBeenCalledWith({
-        openAtLogin: false,
-        path: mocks.exePath,
-        name
-      })
-    }
+    expect(mocks.setLoginItemSettings).not.toHaveBeenCalledWith({
+      openAtLogin: false,
+      path: mocks.exePath,
+      name: 'Edge-Drop'
+    })
+    expect(mocks.setLoginItemSettings).toHaveBeenCalledWith({
+      openAtLogin: false,
+      path: mocks.exePath,
+      name: 'com.edgedrop.app'
+    })
+    expect(mocks.setLoginItemSettings).toHaveBeenCalledWith({
+      openAtLogin: false,
+      path: mocks.exePath,
+      name: 'electron.app.Edge-Drop'
+    })
     expect(mocks.setLoginItemSettings).toHaveBeenCalledWith({
       openAtLogin: true,
       path: mocks.exePath,
@@ -112,6 +120,34 @@ describe('GitHub exe launch-at-login (orphan Run keys)', () => {
       name: 'Edge-Drop',
       enabled: true
     })
+  })
+
+  it('enable: does not fail the toggle when read-back is empty after writing', async () => {
+    mocks.getLoginItemSettings.mockReturnValue({
+      launchItems: [],
+      executableWillLaunchAtLogin: false
+    })
+    const result = await applyLaunchAtLogin(true)
+    expect(result.ok).toBe(true)
+    expect(result.enabled).toBe(true)
+    expect(mocks.setLoginItemSettings).toHaveBeenCalledWith(expect.objectContaining({
+      openAtLogin: true,
+      name: 'Edge-Drop',
+      enabled: true
+    }))
+  })
+
+  it('enable: Windows Startup apps Off is blocked, not treated as success', async () => {
+    mocks.getLoginItemSettings.mockReturnValue({
+      launchItems: [
+        { name: 'Edge-Drop', path: mocks.exePath, enabled: false, args: ['--hidden'] }
+      ],
+      executableWillLaunchAtLogin: false
+    })
+    const result = await applyLaunchAtLogin(true)
+    expect(result.enabled).toBe(false)
+    expect(result.blockedByUser).toBe(true)
+    expect(result.ok).toBe(false)
   })
 
   it('disable: removes every historical name, including leftovers Task Manager still lists', async () => {
