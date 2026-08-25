@@ -21,6 +21,8 @@ import { MAX_STACK } from '../../shared/types'
 import type { DragRequest } from '../../shared/types'
 import { useStore } from '../store/appStore'
 import { useDragOut } from '../hooks/useDragOut'
+import { useRelativeTimeTick } from '../hooks/useRelativeTimeTick'
+import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
@@ -51,15 +53,16 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const [expanded, setExpanded] = useState(false)
 
   const open = useStore((s) => s.open)
-  const [, setTimeTick] = useState(0)
+
+  // Shared clock: one refcounted interval refreshes every mounted card's
+  // relative-time label in a single batched pass (replaces the per-card
+  // setInterval, which scaled terribly across hundreds of cards).
+  useRelativeTimeTick()
 
   useEffect(() => {
     if (!open) {
       setExpanded(false)
-      return
     }
-    const timer = window.setInterval(() => setTimeTick((n) => n + 1), 30000)
-    return () => window.clearInterval(timer)
   }, [open])
 
   const isPreviewing = useStore((s) => s.previewItemId) === item.id
@@ -828,4 +831,25 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
   }
 }
 
-export const ClipboardItemCard = memo(ClipboardItemBase)
+/**
+ * Memo comparator backed by a value-based render key: every `state:items`
+ * push recreates all DTO objects, so shallow identity compare would re-render
+ * the entire list on each push. This skips the re-render unless any field the
+ * card actually displays changed. Store-subscription-driven updates (open,
+ * previewing) and local state (copied/expanded) are unaffected — memo only
+ * gates prop-driven renders.
+ */
+export const ClipboardItemCard = memo(
+  ClipboardItemBase,
+  (prevProps, nextProps) => {
+    const prev = prevProps.item
+    const next = nextProps.item
+    return (
+      prev.id === next.id &&
+      prev.pinned === next.pinned &&
+      prev.hitCount === next.hitCount &&
+      prev.capturedAt === next.capturedAt &&
+      itemRenderKey(prev) === itemRenderKey(next)
+    )
+  }
+)

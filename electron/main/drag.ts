@@ -255,11 +255,22 @@ export function prefetchFileIcons(paths: string[]): void {
     if (!iconCache.has(ext)) {
       app.getFileIcon(p, { size: 'normal' }).then((icon) => {
         if (icon && !icon.isEmpty()) {
+          // Store under the extension only — the previous per-full-path second
+          // entry grew the map without bound across a long session.
           iconCache.set(ext, icon)
-          iconCache.set(p, icon)
+          trimIconCache()
         }
       }).catch(() => {})
     }
+  }
+}
+
+/** Hard cap for both caches sharing this map, oldest entries evicted first. */
+function trimIconCache(): void {
+  while (iconCache.size > ICON_CACHE_MAX) {
+    const first = iconCache.keys().next().value
+    if (first === undefined) break
+    iconCache.delete(first)
   }
 }
 

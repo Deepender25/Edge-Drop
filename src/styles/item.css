@@ -19,6 +19,18 @@
   overflow: hidden;
 }
 
+/* Performance culling — invisible to users.
+   Cards outside the scroll viewport skip style/layout/paint of their whole
+   subtree; scrolling near them renders them normally. The `auto` keyword
+   remembers each card's real measured height after first paint, so scrollbar
+   geometry stays exact while `96px` is only the first-guess fallback for
+   never-rendered cards. Scoped to the scroll list so flyouts/overlays are
+   untouched. */
+.list-stack .item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 96px;
+}
+
 .item:hover {
   background: rgba(255, 255, 255, 0.085);
   border-color: rgba(255, 255, 255, 0.24);

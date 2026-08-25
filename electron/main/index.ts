@@ -8,7 +8,7 @@
  *   3. On 'window-all-closed' we DON'T quit (the panel is hidden, not closed).
  *   4. Quit from the tray menu tears everything down cleanly.
  */
-import { app, BrowserWindow, nativeImage, protocol, session } from 'electron'
+import { app, BrowserWindow, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, PATHS } from '../store/paths'
 import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener } from './window'
@@ -26,6 +26,7 @@ import { extname, normalize } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolveStoredImage } from './imageProtocol'
+import { getThumbnailPayload, thumbnailCacheControl } from './thumbnailCache'
 
 // Edge-Drop renders a small, mostly static transparent panel. Chromium's GPU
 // process costs substantially more memory (~150–250 MB) than the iGPU compositing
@@ -164,12 +165,13 @@ function registerImageProtocol(): void {
       // multi-megapixel file to Chromium merely to paint a 50–240px card.
       if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://thumb/`)) {
         const rawTarget = request.url.slice(`${APP_CONFIG.imageProtocol}://thumb/`.length)
-        const filePath = rawTarget.startsWith('file/')
+        const isFileThumb = rawTarget.startsWith('file/')
+        const filePath = isFileThumb
           ? normalize(decodeURIComponent(rawTarget.slice('file/'.length)))
           : resolveStoredImage(PATHS.imagesDir(), rawTarget)?.filePath
 
         if (!filePath || !existsSync(filePath)) return new Response('Not found', { status: 404 })
-        return createThumbnailResponse(filePath)
+        return createThumbnailResponse(filePath, !isFileThumb, request)
       }
 
       // Support streaming full-resolution local image files: edgelocal://file/<encodedPath>
@@ -224,11 +226,12 @@ function registerImageProtocol(): void {
 }
 
 /**
- * Encodes a display-sized PNG so renderer image decodes are strictly bounded.
- * The full-resolution source remains available through edgelocal:// for the
- * preview flyout and drag/paste flows.
+ * Serve a bounded thumbnail with proper HTTP caching: long immutable freshness
+ * for content-addressed captures, short freshness + ETag/304 for external
+ * files. Payloads come from the LRU thumbnail engine so repeated requests do
+ * zero decode work in the main process.
  */
-function createThumbnailResponse(filePath: string): Response {
+function createThumbnailResponse(filePath: string, isStoredCapture: boolean, request?: Request): Response {
   const ext = extname(filePath).toLowerCase()
   // SVG files are vector XML documents; stream them directly with correct MIME type
   // rather than failing inside nativeImage.createFromPath (which only supports raster bitmaps).
@@ -244,28 +247,21 @@ function createThumbnailResponse(filePath: string): Response {
     })
   }
 
-  const MAX_THUMBNAIL_EDGE_PX = 240
-  const image = nativeImage.createFromPath(filePath)
-  if (image.isEmpty()) return new Response('Unsupported image', { status: 415 })
+  const payload = getThumbnailPayload(filePath)
+  if (!payload) return new Response('Unsupported image', { status: 415 })
 
-  const { width, height } = image.getSize()
-  const scale = Math.min(1, MAX_THUMBNAIL_EDGE_PX / Math.max(width, height))
-  const thumbnail = scale < 1
-    ? image.resize({
-        width: Math.max(1, Math.round(width * scale)),
-        height: Math.max(1, Math.round(height * scale)),
-        quality: 'good'
-      })
-    : image
-
-  return new Response(thumbnail.toPNG(), {
-    status: 200,
-    headers: new Headers({
-      'Content-Type': 'image/png',
-      // The source file can change or be deleted; do not retain stale thumbs.
-      'Cache-Control': 'no-cache'
-    })
+  const headers = new Headers({
+    'Content-Type': payload.contentType,
+    'Cache-Control': thumbnailCacheControl(isStoredCapture),
+    'ETag': payload.etag
   })
+
+  const inm = request?.headers.get('if-none-match')
+  if (inm && inm === payload.etag) {
+    return new Response(null, { status: 304, headers })
+  }
+
+  return new Response(new Uint8Array(payload.body), { status: 200, headers })
 }
 
 // Silence unused import in environments where setVisible isn't referenced
