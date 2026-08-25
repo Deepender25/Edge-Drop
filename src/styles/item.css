@@ -183,10 +183,13 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  margin-top: -50px;
-  margin-left: -50px;
-  width: 100px;
-  height: 100px;
+  /* Wrapper is the centering pivot only; the masked tiles render slightly
+     larger than it (154px inside a 140px box) so the fan keeps breathing
+     room inside the fixed 124px stack area without growing the card. */
+  margin-top: -70px;
+  margin-left: -70px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;

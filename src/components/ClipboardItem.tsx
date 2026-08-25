@@ -37,6 +37,16 @@ interface Props {
   item: ClipboardItemDto
 }
 
+/**
+ * Full-resolution streaming URL for a local file. Used as the load-failure
+ * fallback for bounded thumbnails: Electron's nativeImage decodes only
+ * PNG/JPEG, so formats like GIF answer 415 from edgelocal://thumb and the
+ * tile swaps to this URL — Chromium then renders (and animates) natively.
+ */
+export function fileStreamUrl(filePath: string): string {
+  return `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+}
+
 /* ------------------------------------------------------------------ */
 /* Main item card                                                      */
 /* ------------------------------------------------------------------ */
@@ -536,7 +546,7 @@ function BundleFluidPreview({
                     animate={stackMotion}
                     style={{ zIndex: 10 - realIndex }}
                   >
-                    <FileStackPhoto src={img.preview} width={112} height={112} />
+                    <FileStackPhoto src={img.preview} width={154} height={154} />
                   </motion.div>
                 )
               })}
@@ -624,6 +634,8 @@ function BundleFluidPreview({
                 // Single unified tile path: photos wear the folder-silhouette
                 // mask (FileStackPhoto), everything else wears its category's
                 // pastel SVG icon — identical geometry for every stack size.
+                // GIF thumbs 415 in the bounded endpoint, so tiles fall back to
+                // streaming the original file (animated) on load failure.
                 return (
                   <motion.div
                     key={`${item.id}-${pathIndex}`}
@@ -632,9 +644,14 @@ function BundleFluidPreview({
                     style={{ zIndex: 10 - realIndex }}
                   >
                     {isImg ? (
-                      <FileStackPhoto src={entry.preview!} width={112} height={112} />
+                      <FileStackPhoto
+                        src={entry.preview!}
+                        width={154}
+                        height={154}
+                        fallbackSrc={fileStreamUrl(filePath)}
+                      />
                     ) : (
-                      <FileKindIcon path={filePath} width={112} height={112} isDirectory={entry?.isDirectory} />
+                      <FileKindIcon path={filePath} width={154} height={154} isDirectory={entry?.isDirectory} />
                     )}
                   </motion.div>
                 )
@@ -673,7 +690,7 @@ function BundleFluidPreview({
                 >
                   <div className="fluid-row-icon">
                     {entry?.isImage && entry.preview ? (
-                      <FileStackPhoto src={entry.preview} width={48} height={48} />
+                      <FileStackPhoto src={entry.preview} width={48} height={48} fallbackSrc={fileStreamUrl(filePath)} />
                     ) : (
                       <FileKindIcon path={filePath} width={48} height={48} isDirectory={entry?.isDirectory} />
                     )}

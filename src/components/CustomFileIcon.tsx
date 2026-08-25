@@ -1,4 +1,4 @@
-import { useId, type SVGProps, type JSX } from 'react'
+import { useId, useEffect, useState, type SVGProps, type JSX } from 'react'
 import { getFileKind, getFileKindByExt, extOf, type FileKind } from '../lib/fileType'
 
 export interface CustomFileIconProps extends SVGProps<SVGSVGElement> {
@@ -585,19 +585,35 @@ export function FileStackPhoto({
   src,
   width = 112,
   height,
+  fallbackSrc,
 }: {
   src: string
   width?: number | string
   height?: number | string
+  /**
+   * Streamed full-res substitute used when the bounded thumbnail cannot be
+   * produced. Electron's nativeImage decodes only PNG/JPEG — formats like
+   * GIF make the thumb endpoint answer 415, and without this fallback the
+   * masked tile renders as an empty broken image (animated GIFs lose their
+   * stack tile). Swapping to edgelocal://file/ lets Chromium play them.
+   */
+  fallbackSrc?: string
 }) {
   const resolvedHeight = height ?? width
+  // One-shot swap on load failure; keyed back to src whenever a different
+  // image reuses this element.
+  const [activeSrc, setActiveSrc] = useState(src)
+  useEffect(() => { setActiveSrc(src) }, [src])
   return (
     <img
-      src={src}
+      src={activeSrc}
       alt=""
       draggable={false}
       width={typeof width === 'number' ? width : undefined}
       height={typeof resolvedHeight === 'number' ? resolvedHeight : undefined}
+      onError={() => {
+        if (fallbackSrc && activeSrc !== fallbackSrc) setActiveSrc(fallbackSrc)
+      }}
       style={{
         width,
         height: resolvedHeight,
