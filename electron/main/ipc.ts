@@ -699,7 +699,7 @@ export function registerSendListeners(): void {
       console.log('[IPC] start-drag: no data resolved')
       return
     }
-    const { data, capturedAt } = resolved
+    const { data, capturedAt, subIndex } = resolved
     console.log('[IPC] start-drag: kind=', data.kind)
 
     // Usage accounting parity with click-to-paste: a whole-item drag counts
@@ -715,7 +715,7 @@ export function registerSendListeners(): void {
     // dragged item appear to vanish ~0.5 s into any drag gesture.
     setHeartbeatPaused(true)
 
-    const dragStarted = startDragOut(sender, data, capturedAt)
+    const dragStarted = startDragOut(sender, data, capturedAt, subIndex)
     console.log('[IPC] start-drag returned, sending drag-end')
     sender.send('item:drag-end')
 

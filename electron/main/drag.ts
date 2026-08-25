@@ -15,7 +15,7 @@
  */
 import { app, nativeImage, type WebContents } from 'electron'
 import { Resvg } from '@resvg/resvg-js'
-import { copyFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
+import { copyFileSync, mkdirSync, writeFileSync, existsSync, statSync } from 'node:fs'
 import { join, extname } from 'node:path'
 import { getUnpackagedTempDir, toUnpackagedFilePaths } from '../store/paths'
 import type { DragRequest, ItemData } from '../../shared/types'
@@ -69,9 +69,13 @@ export function formatScreenshotFilename(capturedAt?: number, ext = 'png', index
  * Resolve a DragRequest into concrete ItemData along with capture timestamp.
  *
  * If `paths` is provided (dragging one file out of an expanded bundle), synthesize
- * a singleton `files` item. Otherwise look up the full item by id.
+ * a singleton `files` item. If `imageId` is provided, resolve that ONE image of
+ * an image-collection and report its sibling index (1-based) via `subIndex` so
+ * staging can give it a collision-free filename — every image in a collection
+ * shares the parent's capturedAt stamp, and identical stamps otherwise collapse
+ * every sub-drag onto the first-staged file.
  */
-export function resolveDragData(req: DragRequest): { data: ItemData; capturedAt?: number } | null {
+export function resolveDragData(req: DragRequest): { data: ItemData; capturedAt?: number; subIndex?: number } | null {
   if (req.paths && req.paths.length > 0) {
     prefetchFileIcons(req.paths)
     return { data: { kind: 'files', paths: req.paths } }
@@ -83,15 +87,26 @@ export function resolveDragData(req: DragRequest): { data: ItemData; capturedAt?
     prefetchFileIcons(item.data.paths)
   }
 
-  if (req.imageId && item.data.kind === 'image-collection') {
-    const img = item.data.images.find((i) => i.imageId === req.imageId)
-    if (img) return { data: { kind: 'image', ...img }, capturedAt: item.capturedAt }
+  if (req.imageId) {
+    if (item.data.kind === 'image-collection') {
+      const idx = item.data.images.findIndex((i) => i.imageId === req.imageId)
+      if (idx >= 0) {
+        return { data: { kind: 'image', ...item.data.images[idx] }, capturedAt: item.capturedAt, subIndex: idx + 1 }
+      }
+      // Requested image no longer exists in this collection. Refuse the drag
+      // rather than silently dragging the whole collection (which surfaced as
+      // "dragging any row always delivered the top image").
+      console.warn('[Drag] sub-image not found in collection; aborting drag. id=', req.id, 'imageId=', req.imageId)
+      return null
+    }
+    console.warn('[Drag] imageId requested for non-collection item; aborting drag. id=', req.id)
+    return null
   }
   return { data: item.data, capturedAt: item.capturedAt }
 }
 
-export function startDragOut(sender: WebContents, data: ItemData, capturedAt?: number): boolean {
-  const staged = stageDragFile(data, capturedAt)
+export function startDragOut(sender: WebContents, data: ItemData, capturedAt?: number, subIndex?: number): boolean {
+  const staged = stageDragFile(data, capturedAt, typeof subIndex === 'number' ? { indexSuffix: subIndex } : undefined)
   if (!staged) return false
 
   const icon = dragIcon(data)
@@ -133,14 +148,47 @@ export function prestageDrag(req: DragRequest): void {
   try {
     const resolved = resolveDragData(req)
     if (!resolved) return
-    const { data, capturedAt } = resolved
-    stageDragFile(data, capturedAt)
+    const { data, capturedAt, subIndex } = resolved
+    stageDragFile(data, capturedAt, typeof subIndex === 'number' ? { indexSuffix: subIndex } : undefined)
     dragIcon(data)
   } catch {}
 }
 
+/**
+ * Resolve a unique destination path inside `temp` for a staged image.
+ *
+ * WHY NOT A BLIND existsSync SKIP: images inside one collection share the
+ * parent's capturedAt stamp, so distinct photos computed identical names —
+ * the first staged file won and every sibling silently reused it. We now
+ * treat an existing candidate as reusable ONLY when its size matches the
+ * expected payload; otherwise we append Windows-style " (2)", " (3)"…
+ * until the name is genuinely free.
+ */
+function resolveUniqueImageDest(temp: string, fileName: string, ext: string, expectedBytes: number): string {
+  const cleanExt = ext.replace(/^\./, '') || 'png'
+  const base = fileName.replace(/\.[^.]+$/, '')
+  let candidate = join(temp, `${base}.${cleanExt}`)
+  if (!existsSync(candidate)) return candidate
+
+  // Existing file: reusable only if it plausibly holds this exact payload.
+  try {
+    if (expectedBytes > 0 && statSync(candidate).size === expectedBytes) return candidate
+  } catch { /* fall through to suffixing */ }
+
+  let n = 2
+  do {
+    candidate = join(temp, `${base} (${n}).${cleanExt}`)
+    n++
+  } while (existsSync(candidate) && n < 1000)
+  return candidate
+}
+
 /** Resolve the item to a concrete file path to hand to the OS. */
-export function stageDragFile(data: ItemData, capturedAt?: number): Staged | null {
+export function stageDragFile(
+  data: ItemData,
+  capturedAt?: number,
+  opts?: { indexSuffix?: number }
+): Staged | null {
   const cacheKey = getStagedCacheKey(data, capturedAt)
   const cached = stagedCache.get(cacheKey)
   if (cached && existsSync(cached.file)) {
@@ -165,13 +213,14 @@ export function stageDragFile(data: ItemData, capturedAt?: number): Staged | nul
       const ext = extname(src) || '.png'
       const fileName = formatClipboardImageFilename(capturedAt, ext, {
         source: data.source,
-        fileName: data.fileName
+        fileName: data.fileName,
+        indexSuffix: opts?.indexSuffix
       })
-      const dest = join(temp, fileName)
+      // Sub-images of one collection share the parent's stamp; guarantee a
+      // distinct file per photo instead of blind-reusing an existing name.
+      const dest = resolveUniqueImageDest(temp, fileName, ext, data.bytes || 0)
       try {
-        if (!existsSync(dest)) {
-          copyFileSync(src, dest)
-        }
+        copyFileSync(src, dest)
       } catch {
         return null
       }
@@ -190,11 +239,9 @@ export function stageDragFile(data: ItemData, capturedAt?: number): Staged | nul
             fileName: img.fileName,
             indexSuffix: idx
           })
-          const dest = join(temp, fileName)
+          const dest = resolveUniqueImageDest(temp, fileName, ext, img.bytes || 0)
           try {
-            if (!existsSync(dest)) {
-              copyFileSync(src, dest)
-            }
+            copyFileSync(src, dest)
             paths.push(dest)
             idx++
           } catch {

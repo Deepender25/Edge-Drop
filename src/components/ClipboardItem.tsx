@@ -50,27 +50,52 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const setInternalDragReq = useStore.getState().setInternalDragReq
   const startDrag = useDragOut()
   const [copied, setCopied] = useState(false)
-  const [expanded, setExpanded] = useState(false)
 
-  const open = useStore((s) => s.open)
+  // Accordion expansion: ONE stack open at a time, coordinated store-wide
+  // (expanding another stack collapses this one; Escape / outside click /
+  // filter or settings switches collapse via the same store field).
+  const expandedStackId = useStore((s) => s.expandedStackId)
+  const expanded = expandedStackId === item.id
+  const setExpandedFlag = useCallback((v: boolean) => {
+    useStore.getState().setExpandedStackId(v ? item.id : null)
+  }, [item.id])
 
   // Shared clock: one refcounted interval refreshes every mounted card's
   // relative-time label in a single batched pass (replaces the per-card
   // setInterval, which scaled terribly across hundreds of cards).
   useRelativeTimeTick()
 
-  useEffect(() => {
-    if (!open) {
-      setExpanded(false)
-    }
-  }, [open])
-
   const isPreviewing = useStore((s) => s.previewItemId) === item.id
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
 
   useEffect(() => {
-    if (!isBundle) setExpanded(false)
-  }, [isBundle])
+    if (!isBundle && expanded) setExpandedFlag(false)
+  }, [isBundle, expanded, setExpandedFlag])
+
+  // ── Intuitive collapse affordances ──────────────────────────────────────
+  // While THIS stack is the open one, a pointerdown anywhere OUTSIDE this
+  // card (other cards, empty shelf space) collapses it — standard disclosure
+  // behavior. Everything INSIDE this card is exempt, including its empty
+  // padding/margins: a partial-boundary exemption caused the infamous
+  // collapse→re-expand bounce, because the follow-up click event dispatched
+  // against freshly-collapsed state and the body contract re-opened it.
+  // The preview flyout is exempt too, so interacting there never surprises.
+  useEffect(() => {
+    if (!expanded) return
+
+    const onPointerDown = (e: PointerEvent): void => {
+      const target = e.target as Element | null
+      if (!target || typeof target.closest !== 'function') return
+      if (target.closest('[data-expanded-stack]')) return
+      if (target.closest('[data-preview-flyout], .preview-flyout')) return
+      setExpandedFlag(false)
+    }
+
+    document.addEventListener('pointerdown', onPointerDown, true)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+    }
+  }, [expanded, setExpandedFlag])
 
   const onCopy = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -89,18 +114,18 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     e?.stopPropagation()
     if (isBundle) {
       playCardExpandSound(true)
-      setExpanded(true)
+      setExpandedFlag(true)
       if (useStore.getState().tutorialStep === 4 && item.id === 'onboarding-files') {
         useStore.getState().setTutorialStep(5)
       }
     }
-  }, [isBundle, item.id])
+  }, [isBundle, item.id, setExpandedFlag])
 
   const onCollapse = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
     playCardExpandSound(false)
-    setExpanded(false)
-  }, [])
+    setExpandedFlag(false)
+  }, [setExpandedFlag])
 
   const handleDragStart = useCallback((e: React.DragEvent, req: DragRequest) => {
     if (item.data.kind === 'text') {
@@ -135,6 +160,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       animate={{ opacity: 1 }}
       transition={{ layout: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
       className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}`}
+      data-expanded-stack={expanded ? 'true' : undefined}
     >
       {copied && (
         <motion.div
@@ -399,13 +425,24 @@ function BundleToolbar({
   onTogglePin?: () => void
 }) {
   return (
-    <div className="bundle-actions">
+    // The ENTIRE toolbar bar is a collapse target — a huge, always-visible
+    // hit area where the user's eyes already are. The pills stopPropagation,
+    // so Copy/Pin/Delete still do their own jobs without collapsing.
+    <div
+      className="bundle-actions"
+      title={t('item.collapsePinned')}
+      onClick={(e) => {
+        e.stopPropagation()
+        onCollapse(e)
+      }}
+    >
       <button
         type="button"
         className="bundle-collapse-hit"
         title={t('item.collapsePinned')}
         onClick={(e) => {
           e.stopPropagation()
+          e.currentTarget.blur()
           onCollapse(e)
         }}
       >
@@ -423,16 +460,28 @@ function BundleToolbar({
             title={pinned ? t('item.unpin') : t('item.pin')}
             onClick={(e) => {
               e.stopPropagation()
+              e.currentTarget.blur()
               onTogglePin()
             }}
           >
             {pinned ? <PinFillIcon /> : <PinIcon />}
           </button>
         )}
-        <button className="act" title={t('item.copy')} onClick={(e) => { e.stopPropagation(); onCopy(e) }}>
+        {/* blur() on every pill: without it the button keeps focus and the
+            card's :focus-within rule latches the action bar open after the
+            cursor leaves. */}
+        <button
+          className="act"
+          title={t('item.copy')}
+          onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onCopy(e) }}
+        >
           <CopyIcon />
         </button>
-        <button className="act danger" title={t('item.delete')} onClick={(e) => { e.stopPropagation(); onRemove() }}>
+        <button
+          className="act danger"
+          title={t('item.delete')}
+          onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onRemove() }}
+        >
           <TrashIcon />
         </button>
       </div>
@@ -455,19 +504,6 @@ function BundleFluidPreview({
   onRemove: () => void
   onCollapse: (e?: React.MouseEvent) => void
 }) {
-  const mixedStack = item.data.kind === 'files' && (() => {
-    const entries = item.data.entries
-    const paths = item.data.paths
-    let hasImage = false
-    let hasNonImage = false
-    for (let i = 0; i < paths.length; i++) {
-      const e = entries?.[i]
-      if (e?.isImage && e.preview) hasImage = true
-      else hasNonImage = true
-    }
-    return hasImage && hasNonImage
-  })()
-
   if (item.data.kind === 'image-collection') {
     const more = item.data.images.length - 1
     return (
@@ -476,25 +512,32 @@ function BundleFluidPreview({
         stack={
           <>
             <div className="bundle-stack-large">
-              {item.data.images.slice(0, 4).reverse().map((img, idx, arr) => {
+              {/* Photo stacks wear the same fixed-shape folder tile as file
+                  stacks (FileStackPhoto masks each preview into the SVG
+                  silhouette), fanned with the same CENTER-symmetric spread
+                  math as the files branch so larger stacks stay inside the
+                  container instead of clipping at the card edge. */}
+              {item.data.images.slice(0, 4).map((img, pathIndex) => ({ img, pathIndex })).reverse().map(({ img }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
+                const spread = arr.length > 1 ? 22 : 0
+                const rotSpread = arr.length > 1 ? 9 : 0
+                const centerOffset = ((arr.length - 1) * spread) / 2
+                const centerRot = ((arr.length - 1) * rotSpread) / 2
+                const stackMotion = {
+                  x: realIndex * spread - centerOffset,
+                  y: realIndex * 5,
+                  rotate: realIndex * rotSpread - centerRot,
+                  scale: 1 - realIndex * 0.05
+                }
                 return (
-                  <motion.img
+                  <motion.div
                     key={img.imageId}
-                    src={img.preview}
-                    loading="lazy"
-                    decoding="async"
-                    className="bundle-stack-card"
-                    animate={{
-                      x: realIndex * 20 - 20,
-                      y: realIndex * 6,
-                      rotate: realIndex * 6 - 6,
-                      scale: 1 - realIndex * 0.05
-                    }}
+                    className="bundle-stack-icon-item"
+                    animate={stackMotion}
                     style={{ zIndex: 10 - realIndex }}
-                    draggable={false}
-                    initial={{ borderRadius: 8 }}
-                  />
+                  >
+                    <FileStackPhoto src={img.preview} width={112} height={112} />
+                  </motion.div>
                 )
               })}
             </div>
@@ -511,15 +554,17 @@ function BundleFluidPreview({
               onRemove={onRemove}
               onTogglePin={() => useStore.getState().togglePin(item.id, !item.pinned)}
             />
-            {item.data.images.map((img) => (
-              <motion.div
-                key={img.imageId}
-                className="fluid-card-row"
-                variants={rowVariants}
-                draggable
-                onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
-                onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
-              >
+              {item.data.images.map((img) => (
+                <motion.div
+                  key={img.imageId}
+                  className="fluid-card-row"
+                  variants={rowVariants}
+                  draggable
+                  onMouseEnter={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
+                  onPointerDown={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
+                  onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
+                  onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
+                >
                 <div className="fluid-row-icon">
                   <img
                     src={img.preview}
@@ -538,7 +583,7 @@ function BundleFluidPreview({
                   <button
                     className="act subitem-delete-btn"
                     title={t('item.ungroup')}
-                    onClick={(e) => { e.stopPropagation(); window.edge.splitItem({ id: item.id, imageId: img.imageId, splitPlacement: 'after' }); }}
+                    onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); window.edge.splitItem({ id: item.id, imageId: img.imageId, splitPlacement: 'after' }); }}
                   >
                     <MinusIcon width={12} height={12} />
                   </button>
@@ -565,7 +610,6 @@ function BundleFluidPreview({
                 const realIndex = arr.length - 1 - idx
                 const entry = entries?.[pathIndex]
                 const isImg = !!(entry?.isImage && entry.preview)
-                const largePhoto = isImg && !mixedStack
                 const spread = arr.length > 1 ? 22 : 0
                 const rotSpread = arr.length > 1 ? 9 : 0
                 const centerOffset = ((arr.length - 1) * spread) / 2
@@ -577,23 +621,9 @@ function BundleFluidPreview({
                   scale: 1 - realIndex * 0.05
                 }
 
-                if (largePhoto) {
-                  return (
-                    <motion.img
-                      key={`${item.id}-${pathIndex}`}
-                      src={entry.preview}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      draggable={false}
-                      className="bundle-stack-card"
-                      animate={stackMotion}
-                      style={{ zIndex: 10 - realIndex }}
-                      initial={{ borderRadius: 8 }}
-                    />
-                  )
-                }
-
+                // Single unified tile path: photos wear the folder-silhouette
+                // mask (FileStackPhoto), everything else wears its category's
+                // pastel SVG icon — identical geometry for every stack size.
                 return (
                   <motion.div
                     key={`${item.id}-${pathIndex}`}
@@ -658,14 +688,14 @@ function BundleFluidPreview({
                     <button
                       className="act subitem-copy-btn"
                       title={t('item.copyFilePath')}
-                      onClick={(e) => { e.stopPropagation(); window.edge.copySubitem({ id: item.id, paths: [filePath] }); }}
+                      onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); window.edge.copySubitem({ id: item.id, paths: [filePath] }); }}
                     >
                       <CopyIcon width={12} height={12} />
                     </button>
                     <button
                       className="act subitem-delete-btn"
                       title={t('item.ungroup')}
-                      onClick={(e) => { e.stopPropagation(); window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' }); }}
+                      onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' }); }}
                     >
                       <MinusIcon width={12} height={12} />
                     </button>

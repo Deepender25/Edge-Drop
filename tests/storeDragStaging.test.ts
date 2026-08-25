@@ -142,4 +142,69 @@ describe('stageDragFile uses the correct staging root per build', () => {
     }, stamp)
     expect(staged).toBeNull()
   })
+
+  // ---------------------------------------------------------------------
+  // REGRESSION: sub-images of one collection share the parent's capturedAt
+  // stamp. The old blind existsSync-skip collapsed every sibling onto the
+  // first-staged file, so dragging ANY expanded row delivered the top image.
+  // ---------------------------------------------------------------------
+  it('stages two DIFFERENT sub-images sharing one timestamp as two distinct files', () => {
+    writeImage('sub_a')
+    writeImage('sub_b')
+    const base = { width: 10, height: 10 } as const
+
+    const a = stageDragFile({ kind: 'image', imageId: 'sub_a', ...base, bytes: 'png-sub_a'.length, ext: 'png' },
+      stamp, { indexSuffix: 1 })
+    const b = stageDragFile({ kind: 'image', imageId: 'sub_b', ...base, bytes: 'png-sub_b'.length, ext: 'png' },
+      stamp, { indexSuffix: 2 })
+
+    expect(a).not.toBeNull()
+    expect(b).not.toBeNull()
+    expect(a!.file).not.toBe(b!.file)
+    expect(readFileSync(a!.file, 'utf8')).toBe('png-sub_a')
+    expect(readFileSync(b!.file, 'utf8')).toBe('png-sub_b')
+  })
+
+  it('never reuses an existing staged name that holds different content (auto "(2)" rename)', () => {
+    writeImage('victim') // source whose payload differs from the impostor below
+    const tempDir = join(fsRoots.userData, 'temp')
+    mkdirSync(tempDir, { recursive: true })
+    // Impostor: occupies the exact candidate name with WRONG content/size.
+    writeFileSync(join(tempDir, 'Screenshot 2026-08-15 22.30.45.png'), 'impostor-bytes')
+
+    const staged = stageDragFile({
+      kind: 'image',
+      imageId: 'victim',
+      width: 10,
+      height: 10,
+      bytes: 'png-victim'.length,
+      ext: 'png'
+    }, stamp)
+
+    expect(staged).not.toBeNull()
+    expect(readFileSync(staged!.file, 'utf8')).toBe('png-victim')
+    expect(staged!.file).toMatch(/Screenshot 2026-08-15 22\.30\.45 \(2\)\.png$/)
+    // The impostor file must remain untouched.
+    expect(readFileSync(join(tempDir, 'Screenshot 2026-08-15 22.30.45.png'), 'utf8')).toBe('impostor-bytes')
+  })
+
+  it('reuses an existing staged name only when the payload size matches exactly', () => {
+    writeImage('same')
+    const tempDir = join(fsRoots.userData, 'temp')
+    mkdirSync(tempDir, { recursive: true })
+    writeFileSync(join(tempDir, 'Image 2026-08-15 22.30.45.png'), 'png-same')
+
+    const first = stageDragFile({
+      kind: 'image',
+      imageId: 'same',
+      width: 10,
+      height: 10,
+      bytes: 'png-same'.length,
+      ext: 'png',
+      source: 'image'
+    }, stamp)
+    expect(first).not.toBeNull()
+    expect(first!.file).toBe(join(tempDir, 'Image 2026-08-15 22.30.45.png'))
+    expect(readFileSync(first!.file, 'utf8')).toBe('png-same')
+  })
 })

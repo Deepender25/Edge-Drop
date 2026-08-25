@@ -38,6 +38,13 @@ interface AppState {
   setSettingsSubView: (subView: 'main' | 'changelog') => void
   /** True while an OS file drag is hovering the panel (prevents premature close). */
   dragActive: boolean
+  /**
+   * The one stack/bundle whose expanded sub-item list is open (accordion).
+   * Single source of truth so expanding one stack collapses the previous,
+   * and so Escape / outside-click / view switches can coordinate closure.
+   */
+  expandedStackId: string | null
+  setExpandedStackId: (id: string | null) => void
   /** True if the active drag originated from within the app itself. Stores the drag request (which item/sub-item). */
   internalDragReq: import('../../shared/types').DragRequest | null
   /** Active toasts (auto-dismissed after a short delay). */
@@ -119,12 +126,16 @@ export const useStore = create<AppState>((set, get) => ({
     // The list remounts on filter change; leave the flyout open and it
     // would float over a tab that no longer contains the source card.
     if (get().previewItemId) get().setPreviewItemId(null)
+    // Same for an expanded stack: its card may not exist in the new tab.
+    set({ expandedStackId: null })
   },
   open: false,
   settingsOpen: false,
   settingsSubView: 'main',
   setSettingsSubView: (subView) => set({ settingsSubView: subView }),
   dragActive: false,
+  expandedStackId: null,
+  setExpandedStackId: (expandedStackId) => set({ expandedStackId }),
   internalDragReq: null,
   toasts: [],
   tutorialStep: 0,
@@ -277,10 +288,17 @@ export const useStore = create<AppState>((set, get) => ({
   setOpen: (open) => {
     set({ open })
     if (!open) {
+      // Release any focused control inside the blade. Without this, a button
+      // left focused from a click keeps matching the card's :focus-within
+      // rule and its action bar stays lit after the next open.
+      // (Accessed via globalThis with structural typing so this module keeps
+      // compiling under the DOM-less node tsconfig.)
+      const active = (globalThis as { document?: { activeElement?: { blur?: () => void } } }).document?.activeElement
+      try { active?.blur?.() } catch { /* ignore */ }
       // NOTE: Do NOT reset styleFlyoutOpen here — closePanel() handles the
       // sequencing so the flyout exit animation completes before the panel closes.
       // Only reset previewItemId so the normal preview flyout clears correctly.
-      set({ previewItemId: null, previewItemRect: null })
+      set({ previewItemId: null, previewItemRect: null, expandedStackId: null })
       edge.setPreviewMode(false)
     }
   },
@@ -291,7 +309,8 @@ export const useStore = create<AppState>((set, get) => ({
       previewItemId: null,
       previewItemRect: null,
       previewFlyoutRect: null,
-      styleFlyoutOpen: false
+      styleFlyoutOpen: false,
+      expandedStackId: null
     })
   },
   setDragActive: (dragActive) => set({ dragActive }),
