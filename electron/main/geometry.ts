@@ -20,7 +20,6 @@ export interface StickBoundsParams {
   /** Persisted scale factor — secondary discriminator for identical-geometry monitors. */
   savedScaleFactor?: number
   windowWidth: number
-  windowHeight: number
   currentBounds?: { x: number; y: number }
 }
 
@@ -73,17 +72,20 @@ export function computeStickBounds(params: StickBoundsParams): StickBoundsResult
   // geometry (within BOUNDS_TOLERANCE) and optionally the DPI scale factor as a
   // secondary discriminator when two monitors share the same resolution.
   if (!display && savedWorkArea) {
-    const candidates = displays.filter(d => boundsMatch(d.workArea, savedWorkArea))
-    if (candidates.length === 1) {
-      // Only one display matches the stored geometry — unambiguous.
-      display = candidates[0]
-    } else if (candidates.length > 1 && savedScaleFactor !== undefined) {
-      // Multiple displays with the same geometry (e.g. dual same-res). Use
-      // scale factor as a tiebreaker.
-      const byScale = candidates.find(d => d.scaleFactor === savedScaleFactor)
-      display = byScale ?? candidates[0]
-    } else if (candidates.length > 1) {
-      // Tie with no scale discriminator — take the first candidate.
+    let candidates = displays.filter(d => boundsMatch(d.workArea, savedWorkArea))
+    if (candidates.length > 1 && savedScaleFactor !== undefined) {
+      const byScale = candidates.filter(d => d.scaleFactor === savedScaleFactor)
+      if (byScale.length) candidates = byScale
+    }
+    if (candidates.length > 1) {
+      // Identical twins (same geometry AND scale): geometry is exhausted as a
+      // discriminator by definition, so anchor on the OS-designated primary -
+      // deterministic across reboots, independent of array order.
+      const primaryCandidate = candidates.find(d => d.isPrimary)
+      if (primaryCandidate) candidates = [primaryCandidate]
+    }
+    if (candidates.length >= 1) {
+      // Only one unambiguous match, or the best-ranked twin.
       display = candidates[0]
     }
     // If candidates.length === 0 the saved display is genuinely gone; fall through.
@@ -126,15 +128,20 @@ function findNearestDisplay(displays: DisplayInfo[], point: { x: number; y: numb
   let nearest: DisplayInfo | undefined
   let minDist = Infinity
   for (const d of displays) {
-    const cx = d.workArea.x + d.workArea.width / 2
-    const cy = d.workArea.y + d.workArea.height / 2
-    const dx = cx - point.x
-    const dy = cy - point.y
-    const dist = dx * dx + dy * dy
+    const dist = centerDistSq(d, point)
     if (dist < minDist) {
       minDist = dist
       nearest = d
     }
   }
   return nearest
+}
+
+/** Squared distance from a display's center to a point (avoids sqrt). */
+function centerDistSq(d: DisplayInfo, point: { x: number; y: number }): number {
+  const cx = d.workArea.x + d.workArea.width / 2
+  const cy = d.workArea.y + d.workArea.height / 2
+  const dx = cx - point.x
+  const dy = cy - point.y
+  return dx * dx + dy * dy
 }

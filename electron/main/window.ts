@@ -1,36 +1,27 @@
 /**
  * The edge panel BrowserWindow.
  *
- * The window is the full *expanded* size and sits at the left edge of the
- * primary display's work area. It is transparent and frameless, and is normally
- * click-through (`setIgnoreMouseEvents(true, { forward: true })`) so the desktop
- * stays fully usable. The renderer listens for pointer movement across the whole
- * page (which is still delivered even while click-through, thanks to `forward`)
- * and toggles interactivity via `setInteractive` once the cursor dwells in the
- * hot zone. This is what produces the "invisible until you approach the edge"
- * effect without a separate hidden trigger window.
- *
- * Drag-in support: a separate thin "detector" window is layered behind the
- * main panel. Historically it was kept non-click-through so it could receive
- * OS dragenter events, but on Windows that made it swallow all desktop clicks
- * across the hint-bar band (a transparent always-on-top BrowserWindow still
- * hit-tests across a minimum footprint). It is now click-through too; drag-in
- * still works because the main-process cursor poll (startCursorPoll) reads the
- * OS cursor position independently of mouse events, so it fires during an OS
- * file drag — the edge dwell opens the panel and makes the main window
+ * The window is the full *expanded* size and sits at the edge of the stick
+ * display's work area. It is transparent and frameless, and is normally
+ * click-through (`setIgnoreMouseEvents(true, { forward: false })`) so the
+ * desktop stays fully usable. Edge detection does NOT rely on DOM pointer
+ * events: the main-process cursor poll (startCursorPoll) reads the OS cursor
+ * position directly every tick, which also keeps working during OS file
+ * drags — the edge dwell opens the panel and makes the main window
  * interactive, and the drop then lands on the main window.
  *
  * NOTE: this module must NOT import from state.ts to avoid circular dependencies.
  */
 import { BrowserWindow, screen, shell, powerMonitor, app } from 'electron'
 import { join } from 'node:path'
-import { existsSync } from 'node:fs'
 import koffi from 'koffi'
 import { APP_CONFIG } from './config'
 import { runtime } from './config'
 import { PATHS } from '../store/paths'
 import { TRANSLATIONS, en } from '../../src/i18n/translations'
 import { computeStickBounds } from './geometry'
+import { WorkAreaCache } from './workAreaCache'
+import { probeStickEdge, isNearProximity } from './stickProbe'
 import { loadSettings, saveSettings } from '../store/settings'
 import { isFullscreenAppActive, registerFullscreenActiveListener } from './fullscreen'
 
@@ -101,9 +92,6 @@ export const PANEL_WIDTH = 384
 export const COLLAPSED_WIDTH = 0
 
 let mainWindow: BrowserWindow | null = null
-// Kept only by the unused legacy helper at the bottom of this module. The
-// detector window is deliberately no longer created at runtime.
-let detectorWindow: BrowserWindow | null = null
 let interactive = false
 export let previewActive = false
 
@@ -111,16 +99,22 @@ export let currentHotZoneWidth = 3
 export let currentStickDisplayId: number | undefined
 
 let staleIdConsecutiveCount = 0
-let cachedWorkArea = { x: 0, y: 0, width: 1920, height: 1080 }
 
+/**
+ * Stick-display work area cache (versioned, last-known-good).
+ * Rebuilds automatically when the stick display id changes - this is the fix
+ * for "switched monitors in Settings but edge detection kept listening to
+ * the old screen". See workAreaCache.ts for the full contract.
+ */
+const workAreaCache = new WorkAreaCache((displayId) => {
+  const all = screen.getAllDisplays()
+  const stick = all.find(d => d.id === displayId) ?? screen.getPrimaryDisplay()
+  return stick?.workArea ? { displayId: stick.id, workArea: stick.workArea } : null
+})
+
+/** Force a cache re-read (display topology events). */
 export function updateCachedWorkArea(): void {
-  try {
-    const all = screen.getAllDisplays()
-    const stick = all.find(d => d.id === currentStickDisplayId) || screen.getPrimaryDisplay()
-    if (stick && stick.workArea) {
-      cachedWorkArea = stick.workArea
-    }
-  } catch {}
+  workAreaCache.refresh(currentStickDisplayId)
 }
 
 export function setHotZoneWidth(width: number): void {
@@ -129,7 +123,7 @@ export function setHotZoneWidth(width: number): void {
 
 export function setStickDisplayId(id: number | undefined): void {
   currentStickDisplayId = id
-  updateCachedWorkArea()
+  workAreaCache.refresh(id)
 }
 
 export function getMainWindow(): BrowserWindow | null {
@@ -219,8 +213,6 @@ export function setPreviewMode(active: boolean): void {
  * is ~150ms, so a SLOW tick of 150ms is imperceptible).
  */
 
-/** Proximity threshold for entering fast-poll mode (px from the edge). */
-const FAST_POLL_PROXIMITY_PX = 450
 /** Full-speed poll when edge is near. */
 const POLL_FAST_MS = 16
 /** Battery-power slow poll (panel closed, cursor far). */
@@ -289,23 +281,27 @@ function _pollTick(): void {
 
   const pt = screen.getCursorScreenPoint()
 
-  if (cachedWorkArea.width === 1920 && cachedWorkArea.height === 1080) {
-    updateCachedWorkArea()
-  }
-  const wa = cachedWorkArea
+  // Versioned read: rebuilds automatically whenever the stick display id
+  // changed (Settings/tray switch, re-resolution after topology events).
+  const wa = workAreaCache.get(currentStickDisplayId)
+  if (!wa) return // no successful enumeration yet; retry next tick
 
-  // Translate screen coords → stick display client coords.
-  const clientX = pt.x - wa.x
-  const clientY = pt.y - wa.y
+  // Pure edge-probe math (unit-tested against simulated multi-display
+  // topologies in tests/stickProbeScenarios.test.ts).
+  const probe = probeStickEdge({
+    cursor: pt,
+    workArea: wa,
+    stickPosition: settings.stickPosition,
+    hotZoneWidth: currentHotZoneWidth
+  })
+  if (probe.garbage) return
 
-  // Guard against garbage values that Windows occasionally sends.
-  if (clientX < -5000 || clientX > 15000 || clientY < -5000 || clientY > 15000) return
+  const clientX = probe.clientX
+  const clientY = probe.clientY
+  const distFromEdge = probe.distFromEdge
 
   // ── Adaptive speed: switch to fast poll when cursor approaches the edge ──
-  const distFromEdge = settings.stickPosition === 'right'
-    ? wa.width - clientX   // distance from right edge
-    : clientX              // distance from left edge
-  const nearProximity = distFromEdge <= FAST_POLL_PROXIMITY_PX
+  const nearProximity = isNearProximity(distFromEdge)
 
   if (nearProximity || interactive) {
     _lastProximityExitMs = 0  // reset cooldown
@@ -330,17 +326,7 @@ function _pollTick(): void {
     }
   }
 
-  let inEdge = false
-  switch (settings.stickPosition) {
-    case 'left':
-      inEdge = clientX >= -30 && clientX <= currentHotZoneWidth
-      break
-    case 'right': {
-      const d = wa.width - clientX
-      inEdge = d >= -30 && d <= currentHotZoneWidth
-      break
-    }
-  }
+  const inEdge = probe.inEdge
 
   const newState = inEdge
 
@@ -356,9 +342,7 @@ function _pollTick(): void {
   //   c) Cursor moved >= IPC_MIN_DELTA_PX since last send — avoids spamming
   //      the renderer when the cursor is stationary near the edge.
   const IPC_MIN_DELTA_PX = 3
-  const nearEdge = settings.stickPosition === 'right'
-    ? (wa.width - clientX) <= 450
-    : clientX <= 450
+  const nearEdge = isNearProximity(distFromEdge)
 
   const positionChangedEnough =
     Math.abs(clientX - _lastSentX) >= IPC_MIN_DELTA_PX ||
@@ -416,7 +400,6 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
     savedWorkArea: settings.stickDisplayWorkArea,
     savedScaleFactor: settings.stickDisplayScaleFactor,
     windowWidth: currentWindowWidth,
-    windowHeight: primaryDisplay.workArea.height, // initial hint; result uses resolvedDisplay.workArea.height
     currentBounds: getMainWindow()?.getBounds()
   })
 
@@ -498,6 +481,12 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
   }
 
   currentStickDisplayId = resolved.id
+  // CRITICAL: re-version the poll cache to the freshly resolved display.
+  // Without this, Settings/tray display switches moved the WINDOW correctly
+  // while edge detection kept measuring against the previous monitor's
+  // origin (the "hover secondary does nothing, hover primary opens it on
+  // secondary" report).
+  workAreaCache.refresh(resolved.id)
   return { x: result.x, y: result.y, width: result.width, height: result.height }
 }
 
@@ -747,6 +736,10 @@ export function getDisplayListOptions(): Array<{
   }
   const dict = TRANSLATIONS[langCode]
   const primaryText = dict?.position?.primaryDisplay || en.position.primaryDisplay
+  // Localized side tags reuse the fully translated tray words; vertical
+  // arrangements get no tag rather than inventing untranslated strings.
+  const sideWord = (key: 'left' | 'right'): string =>
+    (dict?.tray?.[key]) || en.tray[key] || key
 
   return all.map((d, index) => {
     const isPrimary = d.id === primary.id
@@ -760,6 +753,19 @@ export function getDisplayListOptions(): Array<{
     const physW = Math.round(d.bounds.width * scale)
     const physH = Math.round(d.bounds.height * scale)
     const resolution = `${physW}×${physH}`
+
+    // Positional tag so users can tell which entry is which physical panel:
+    // non-primary displays on the same row as the primary are tagged with the
+    // localized side they sit on ("Display 2 · Right · 2560×1440").
+    let positionTag = ''
+    if (!isPrimary) {
+      const sameRow =
+        Math.abs(d.bounds.y - primary.bounds.y) <= Math.max(primary.bounds.height, d.bounds.height) / 2
+      if (sameRow) {
+        positionTag = ` · ${sideWord(d.bounds.x > primary.bounds.x ? 'right' : 'left')}`
+      }
+    }
+
     return {
       id: d.id,
       bounds: { x: d.bounds.x, y: d.bounds.y, width: d.bounds.width, height: d.bounds.height },
@@ -767,7 +773,7 @@ export function getDisplayListOptions(): Array<{
       scaleFactor: scale,
       isPrimary,
       isCurrent: d.id === activeId,
-      label: `${name} ${resolution}`,
+      label: `${name}${positionTag} ${resolution}`,
       name,
       resolution
     }
@@ -835,91 +841,4 @@ export function setWindowFocusable(focusable: boolean): void {
 
 export function focusMainWindow(): void {
   setWindowFocusable(true)
-}
-
-/**
- * Thin invisible detector window.
- *
- * It is click-through just like the main window, so when the panel is collapsed
- * it does not steal desktop clicks. It no longer drives opening (the cursor
- * poll does that). It is kept around as a fallback drag surface and a no-op
- * drag-event absorber; its inline script still forwards file drags to the main
- * window via `window.edge.setInteractive(true)` should it ever receive one.
- */
-function getDetectorBounds(g: { x: number; y: number; width: number; height: number }, stickPosition: string): { x: number; y: number; width: number; height: number } {
-  if (stickPosition === 'top') {
-    const detWidth = Math.floor(g.width * 0.3)
-    return { x: g.x + Math.floor((g.width - detWidth) / 2), y: g.y, width: detWidth, height: 1 }
-  }
-  const h = g.height
-  const detHeight = Math.floor(h * 0.3)
-  const detY = g.y + Math.floor((h - detHeight) / 2)
-  return { x: g.x, y: detY, width: 1, height: detHeight }
-}
-
-export function createDetectorWindow(x: number, y: number, _w: number, h: number): void {
-  const detBounds = getDetectorBounds({ x, y, width: _w, height: h }, loadSettings().stickPosition)
-
-  detectorWindow = new BrowserWindow({
-    x: detBounds.x,
-    y: detBounds.y,
-    width: detBounds.width,
-    height: detBounds.height,
-    show: false,
-    frame: false,
-    fullscreenable: false,
-    maximizable: false,
-    movable: false,
-    resizable: false,
-    transparent: true,
-    hasShadow: false,
-    skipTaskbar: true,
-    alwaysOnTop: true,
-    backgroundColor: '#00000000',
-    roundedCorners: false,
-    focusable: false,
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.cjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-      spellcheck: false
-    }
-  })
-
-  // Click-through, like the main window. A non-click-through always-on-top
-  // window here used to swallow all desktop clicks across the hint-bar band
-  // even though it was only 1px wide (Windows still hit-tests a transparent
-  // always-on-top BrowserWindow across a minimum footprint). Keeping it
-  // click-through means the collapsed panel passes clicks through everywhere.
-  //
-  // Drag-in is NOT lost: the main-process cursor poll
-  // (screen.getCursorScreenPoint) reads the OS cursor position every ~16ms
-  // regardless of mouse events, so it still fires while an OS file drag is in
-  // progress — the 120ms edge dwell opens the panel and makes the main window
-  // interactive, and the drop then lands on the main window.
-  detectorWindow.setIgnoreMouseEvents(true, { forward: false })
-
-  // Layer behind the main panel (lower always-on-top level).
-  detectorWindow.setAlwaysOnTop(true, 'normal')
-
-  const devDetectorFile = join(__dirname, '../../resources/detector.html')
-  const detectorFile = existsSync(devDetectorFile) ? devDetectorFile : join(process.resourcesPath, 'detector.html')
-  if (existsSync(detectorFile)) {
-    detectorWindow.loadFile(detectorFile)
-  }
-
-  detectorWindow.once('ready-to-show', () => {
-    detectorWindow?.showInactive()
-  })
-
-  detectorWindow.on('close', (e) => {
-    if (!runtime.quitting) {
-      e.preventDefault()
-    }
-  })
-
-  detectorWindow.on('closed', () => {
-    detectorWindow = null
-  })
 }
