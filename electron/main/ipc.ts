@@ -17,7 +17,7 @@ import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData, prestageDrag, stageDragFile } from './drag'
-import { clipboardSignature, formatTabularDataForClipboard } from '../clipboard/formats'
+import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import type { ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
 import { createId } from '../store/ids'
@@ -30,24 +30,17 @@ export { isStoreBuild }
 /**
  * Returns true if the current system clipboard content matches the given item data.
  *
- * Used before delete to decide whether to clear the system clipboard. Clearing
- * is only done when the deleted item IS the thing currently on the clipboard;
- * deleting an old history entry that the user has since replaced must never
- * wipe their current clipboard contents.
+ * Delegates to the pure, unit-tested matcher in formats.ts, which strips the
+ * Win32 sequence-number prefix before comparing — without that strip, text
+ * ownership checks could never match on real Windows sessions.
+ *
+ * Used before delete/clear to decide whether to clear the system clipboard.
+ * Clearing is only done when the deleted item IS the thing currently on the
+ * clipboard; deleting an old history entry that the user has since replaced
+ * must never wipe their current clipboard contents.
  */
 function clipboardMatchesItem(data: ItemData): boolean {
-  const sig = clipboardSignature()
-  if (data.kind === 'text') return sig === `text:${data.text}`
-  if (data.kind === 'files') return sig === `files:${data.paths.join('\n')}`
-  if (data.kind === 'image') {
-    // sig format: "image:<W>x<H>:<hash>" — check the dimension prefix to avoid a full pixel read.
-    // If another image with the same dimensions is on the clipboard, we over-clear, which is
-    // acceptable (user loses clipboard content they were about to paste from a deleted item anyway).
-    return sig.startsWith(`image:${data.width}x${data.height}:`)
-  }
-  // image-collection: clear if any image is on the clipboard (conservative but safe)
-  if (data.kind === 'image-collection') return sig.startsWith('image:')
-  return false
+  return signatureMatchesItem(clipboardSignature(), data)
 }
 
 /** Fire a transient toast to the renderer (best-effort; renderer may be closed). */
@@ -250,22 +243,14 @@ export function registerIpc(): void {
     const item = getStore().get(id)
     // Resolve clipboard ownership BEFORE mutating the store: if this exact
     // content still sits on the system clipboard it must be cleared first so
-    // the staged-temp cleanup that runs inside delete() can never yank a
-    // file out from under a live OS clipboard reference.
+    // (a) the staged-temp cleanup inside delete() can never yank a file from
+    // under a live OS clipboard reference, and (b) resyncSignature() below
+    // locks onto an EMPTY clipboard, making an immediate re-copy of the same
+    // content a detectable change instead of an invisible no-op.
     if (item && clipboardMatchesItem(item.data)) {
       clipboard.clear()
     }
     getStore().delete(id)
-    // If the deleted item is still on the system clipboard, clear the clipboard.
-    // This is the fix for the copy→delete→copy cycle bug:
-    //   Without this, resyncSignature() would lock lastSig to the current
-    //   clipboard state. When the user immediately re-copies the same image the
-    //   clipboard never changes, so the watcher never fires and the item stays
-    //   invisible. Clearing makes the clipboard transition to 'empty', so the
-    //   next re-copy IS a detectable change.
-    if (item && clipboardMatchesItem(item.data)) {
-      clipboard.clear()
-    }
     getWatcher().resyncSignature()
     pushState.items()
     return getStore().toDto()
@@ -274,28 +259,22 @@ export function registerIpc(): void {
   handle('item:delete-batch', (ids) => {
     if (!ids || ids.length === 0) return getStore().toDto()
     const items = ids.map((id) => getStore().get(id)).filter(Boolean)
-    // Clear matching clipboard content before the batch removal triggers
-    // staged-temp cleanup (same ownership rule as single delete).
+    // Single ownership pass before removal (same rule as single delete).
     if (items.some((item) => item && clipboardMatchesItem(item.data))) {
       clipboard.clear()
     }
     getStore().deleteBatch(ids)
-    if (items.some((item) => item && clipboardMatchesItem(item.data))) {
-      clipboard.clear()
-    }
     getWatcher().resyncSignature()
     pushState.items()
     return getStore().toDto()
   })
 
   handle('item:clear', () => {
-    // Clear the system clipboard unconditionally: the user wiped their history,
-    // so whatever is on the clipboard should not zombie-reappear, and clearing
-    // ensures any subsequent re-copy of the same content is detectable.
-    // Clear the system clipboard unconditionally and BEFORE the store wipe:
-    // the user wiped their history, so whatever is on the clipboard should
-    // not zombie-reappear, and every removed item's staged temp files become
-    // safe to reap inside clearUnpinned().
+    // Wipe the system clipboard BEFORE the store: nothing the user just
+    // cleared may zombie-reappear, and every removed item's staged temp
+    // files become safe to reap inside clearUnpinned().
+    clipboard.clear()
+    getStore().clearUnpinned()
     getWatcher().resyncSignature()
     pushState.items()
     return getStore().toDto()

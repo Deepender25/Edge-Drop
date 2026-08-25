@@ -541,3 +541,33 @@ export function clipboardSignature(): string {
 export function isUrlText(s: string): boolean {
   return URL_RE.test(s)
 }
+
+/**
+ * Pure matcher: does a clipboard signature (as produced by
+ * `clipboardSignature()`) represent exactly this item's content?
+ *
+ * CRITICAL: signatures carry a Win32 `seq:<n>:` prefix whenever
+ * GetClipboardSequenceNumber() > 0 (i.e., virtually always on Windows). The
+ * comparison MUST strip that prefix first — comparing the raw string against
+ * a bare `text:<content>` made every text/link ownership check silently fail,
+ * so deleting an item whose content still sat on the system clipboard never
+ * cleared it (and the content could then be re-captured later, appearing to
+ * "come back").
+ *
+ * Image matching keeps the dimension-prefix heuristic (avoids a full pixel
+ * read); over-clearing when two same-dimension images are involved is the
+ * documented, acceptable trade-off.
+ */
+export function signatureMatchesItem(sig: string, data: ItemData): boolean {
+  const bare = sig.replace(/^seq:\d+:/, '')
+  switch (data.kind) {
+    case 'text':
+      return bare === `text:${data.text}`
+    case 'files':
+      return bare === `files:${data.paths.join('\n')}`
+    case 'image':
+      return bare.startsWith(`image:${data.width}x${data.height}:`)
+    case 'image-collection':
+      return bare.startsWith('image:')
+  }
+}
