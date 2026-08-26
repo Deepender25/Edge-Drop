@@ -918,9 +918,69 @@ function parseReleaseBodyToCleanText(body: string): { summary: string; highlight
 
 const STATIC_CHANGELOG_FALLBACK = [
   {
+    version: 'v0.3.0',
+    date: 'Aug 26, 2026',
+    isLatest: true,
+    summary: 'Smarter multi-monitor edge activation, cleaner drag-and-drop handling, larger file stack previews with animated GIF support, silky smooth scrolling, and improved startup reliability.',
+    highlights: [
+      {
+        title: 'Smarter Multi-Monitor Edge Opening',
+        description: 'Moving between multiple displays is smooth and natural. Edge-Drop distinguishes passing across screens from intentionally stopping at the edge to open your shelf.'
+      },
+      {
+        title: 'Cleaner Drag & Drop Experience',
+        description: 'Returning items back onto the shelf is a clean no-op without duplicating files, splitting card stacks, or bumping usage counts.'
+      },
+      {
+        title: 'Bigger File Stack Previews & Animated GIFs',
+        description: 'Grouped file cards feature 20% larger preview tiles with folder styling, animated GIF playback, and clean outside-click folding.'
+      },
+      {
+        title: 'Silky Smooth Scrolling & Motion',
+        description: 'Browsing long clipboard histories stays completely fluid and responsive with hardware-accelerated animations for pinning, filtering, and previews.'
+      },
+      {
+        title: 'Original File & Image Names',
+        description: 'Images and files added to Edge-Drop preserve their original filenames when dragged into other applications or saved to disk.'
+      },
+      {
+        title: 'Reliable Startup After Updates',
+        description: 'Launch at Login preferences persist seamlessly across automatic updates without manual re-configuration.'
+      }
+    ]
+  },
+  {
+    version: 'v0.2.9',
+    date: 'Aug 20, 2026',
+    isLatest: false,
+    summary: 'Customizable shortcut, selective history clearing, pastel file icons, and smoother deletion animations.',
+    highlights: [
+      {
+        title: 'Custom Global Shortcut',
+        description: 'Customize the shelf toggle hotkey (defaults to Alt+C) directly in Settings.'
+      },
+      {
+        title: 'Selective History Clearing',
+        description: 'Clear history by time window (1h, 6h, 24h) or clear only the active category (Images, Files, etc.).'
+      },
+      {
+        title: 'Pastel File Icons',
+        description: 'New vector icons for folders, code, spreadsheets, PDFs, documents, and media files.'
+      },
+      {
+        title: 'Smoother Item Removal',
+        description: 'Deleting items now collapses smoothly without leaving empty gaps.'
+      },
+      {
+        title: 'Windows Snipping Tool Integration',
+        description: 'Screenshots taken with Win+Shift+S are automatically captured with clean file names.'
+      }
+    ]
+  },
+  {
     version: 'v0.2.7',
     date: 'Aug 13, 2026',
-    isLatest: true,
+    isLatest: false,
     summary: 'Disk-backed on-demand text payloads, image thumbnailing, RAM footprint stabilization (~130 MB), universal drag-and-drop vault, zero-cost URL previews, and Windows OS integration fixes.',
     highlights: [
       {

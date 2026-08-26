@@ -78,7 +78,21 @@ export function formatScreenshotFilename(capturedAt?: number, ext = 'png', index
 export function resolveDragData(req: DragRequest): { data: ItemData; capturedAt?: number; subIndex?: number } | null {
   if (req.paths && req.paths.length > 0) {
     prefetchFileIcons(req.paths)
-    return { data: { kind: 'files', paths: req.paths } }
+    const parentItem = getStore().get(req.id)
+    let entries: Array<{ name: string; ext: string; size: number; isImage: boolean; isDirectory?: boolean; preview?: string }> | undefined
+    if (parentItem && parentItem.data.kind === 'files') {
+      const parentEntries = parentItem.data.entries
+      entries = req.paths.map((p) => {
+        const found = parentEntries?.find((e) => e.name === p || p.endsWith(e.name) || p === e.name)
+        if (found) return found
+        let isDir = false
+        try {
+          if (existsSync(p)) isDir = statSync(p).isDirectory()
+        } catch {}
+        return { name: p, ext: '', size: 0, isImage: false, isDirectory: isDir }
+      })
+    }
+    return { data: { kind: 'files', paths: req.paths, entries } }
   }
   const item = getStore().get(req.id)
   if (!item) return null
@@ -344,13 +358,13 @@ function dragIcon(data: ItemData): Electron.NativeImage {
       const isCollection = data.kind === 'image-collection'
       const count = isCollection ? data.images.length : 1
       if (count === 0) return getFileDragIcon()
-      return createFileStackDragIcon(Array(count).fill('image.png'))
+      return createFileStackDragIcon(Array(count).fill('image.png'), Array(count).fill({ isDirectory: false }))
     }
 
     if (data.kind === 'files') {
       const count = data.paths.length
       if (count === 0) return getFileDragIcon()
-      return createFileStackDragIcon(data.paths)
+      return createFileStackDragIcon(data.paths, data.entries)
     }
 
     if (data.kind === 'text') {
@@ -363,11 +377,21 @@ function dragIcon(data: ItemData): Electron.NativeImage {
 import { buildFileDragSvg } from './fileSvg'
 
 /** Generate a custom standalone SVG PNG icon representing file kinds with count badge. */
-function createFileStackDragIcon(paths: string[]): Electron.NativeImage {
+function createFileStackDragIcon(paths: string[], entries?: Array<{ isDirectory?: boolean }>): Electron.NativeImage {
   const count = paths.length
   if (count === 0) return getFileDragIcon()
 
-  const kinds = paths.slice(0, 3).map((p) => getFileKind(p).kind)
+  const kinds = paths.slice(0, 3).map((p, idx) => {
+    let isDir = entries?.[idx]?.isDirectory
+    if (isDir === undefined) {
+      try {
+        if (existsSync(p)) {
+          isDir = statSync(p).isDirectory()
+        }
+      } catch {}
+    }
+    return getFileKind(p, isDir).kind
+  })
   const cacheKey = `stack|pastel-svg|${kinds.join('-')}|${count}`
   const cached = iconCache.get(cacheKey)
   if (cached && !cached.isEmpty()) {

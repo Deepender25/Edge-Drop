@@ -17,9 +17,41 @@ interface ChangelogRelease {
 
 const CHANGELOG_DATA: ChangelogRelease[] = [
   {
+    version: 'v0.3.0',
+    date: 'Aug 26, 2026',
+    isLatest: true,
+    summary: 'Smarter multi-monitor edge activation, cleaner drag-and-drop handling, larger file stack previews with animated GIF support, silky smooth scrolling, and improved startup reliability.',
+    highlights: [
+      {
+        title: 'Smarter Multi-Monitor Edge Opening',
+        description: 'Moving between multiple displays is smooth and natural. Edge-Drop distinguishes passing across screens from intentionally stopping at the edge to open your shelf.'
+      },
+      {
+        title: 'Cleaner Drag & Drop Experience',
+        description: 'Returning items back onto the shelf is a clean no-op without duplicating files, splitting card stacks, or bumping usage counts.'
+      },
+      {
+        title: 'Bigger File Stack Previews & Animated GIFs',
+        description: 'Grouped file cards feature 20% larger preview tiles with folder styling, animated GIF playback, and clean outside-click folding.'
+      },
+      {
+        title: 'Silky Smooth Scrolling & Motion',
+        description: 'Browsing long clipboard histories stays completely fluid and responsive with hardware-accelerated animations for pinning, filtering, and previews.'
+      },
+      {
+        title: 'Original File & Image Names',
+        description: 'Images and files added to Edge-Drop preserve their original filenames when dragged into other applications or saved to disk.'
+      },
+      {
+        title: 'Reliable Startup After Updates',
+        description: 'Launch at Login preferences persist seamlessly across automatic updates without manual re-configuration.'
+      }
+    ]
+  },
+  {
     version: 'v0.2.9',
     date: 'Aug 20, 2026',
-    isLatest: true,
+    isLatest: false,
     summary: 'Customizable shortcut, selective history clearing, pastel file icons, and smoother deletion animations.',
     highlights: [
       {

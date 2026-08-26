@@ -29,7 +29,7 @@ export type ItemData =
   | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string }
   | ({ kind: 'image' } & ClipboardImageFields)
   | { kind: 'image-collection'; images: ClipboardImageFields[] }
-  | { kind: 'files'; paths: string[] }
+  | { kind: 'files'; paths: string[]; entries?: FileEntry[] }
 
 export type ItemKind = ItemData['kind']
 

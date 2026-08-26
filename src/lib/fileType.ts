@@ -45,7 +45,8 @@ const EXT_MAP: Record<string, FileKind> = {
   mp4: 'video', mkv: 'video', avi: 'video', mov: 'video', wmv: 'video', flv: 'video', webm: 'video', m4v: 'video',
   png: 'image', jpg: 'image', jpeg: 'image', gif: 'image', webp: 'image', bmp: 'image', svg: 'image', avif: 'image', ico: 'image',
   tif: 'image', tiff: 'image', jfif: 'image', pjpeg: 'image', pjp: 'image',
-  exe: 'executable', msi: 'executable', bat: 'executable', cmd: 'executable', ps1: 'executable', apk: 'executable', app: 'executable', dll: 'executable'
+  exe: 'executable', msi: 'executable', bat: 'executable', cmd: 'executable', ps1: 'executable', apk: 'executable', app: 'executable', dll: 'executable',
+  folder: 'folder'
 }
 
 const KIND_INFO: Record<FileKind, FileKindInfo> = {

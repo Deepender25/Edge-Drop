@@ -207,6 +207,13 @@ describe('buildFileDragSvg — standalone 3D pastel vector drag icons', () => {
     expect(svg).not.toContain('<rect x="16" y="8" width="64" height="72"')
   })
 
+  it('builds a clean single folder drag icon SVG with warm yellow folder colors', () => {
+    const svg = buildFileDragSvg(['folder'], 1)
+    expect(svg).toContain('<svg')
+    expect(svg).toContain('fill="#FBBF24"')
+    expect(svg).toContain('fill="#FDE68A"')
+  })
+
   it('builds a clean multi-file stack SVG with count badge', () => {
     const svg = buildFileDragSvg(['pdf', 'excel', 'image'], 3)
     expect(svg).toContain('<svg')
