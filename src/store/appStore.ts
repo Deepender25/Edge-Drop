@@ -79,7 +79,7 @@ interface AppState {
   setUpdateDownloaded: (info: { version: string }) => void
   dismissUpdate: () => void
   installUpdate: () => Promise<void>
-  setItems: (items: ClipboardItemDto[]) => void
+  setItems: (items: ClipboardItemDto[], meta?: { reason?: 'usage' | 'capture' }) => void
   setSettings: (next: Settings) => void
 
   /* UI */
@@ -107,6 +107,7 @@ interface AppState {
   remove: (id: string) => Promise<void>
   clear: (ids?: string[]) => Promise<void>
   copy: (id: string) => Promise<void>
+  copySubitem: (req: DragRequest) => Promise<void>
   paste: (id: string) => Promise<void>
   pasteSubitem: (req: DragRequest) => Promise<void>
   patchSettings: (patch: Partial<Settings>) => Promise<void>
@@ -252,7 +253,7 @@ export const useStore = create<AppState>((set, get) => ({
     await edge.installUpdate()
   },
 
-  setItems: (items) => {
+  setItems: (items, meta) => {
     const prevItems = get().items
     if (
       prevItems.length === items.length &&
@@ -266,6 +267,10 @@ export const useStore = create<AppState>((set, get) => ({
     if (get().hydrated && newTop) {
       const isDifferentId = !prevTop || newTop.id !== prevTop.id
       const isNewCapturedAt = prevTop && newTop.capturedAt !== prevTop.capturedAt
+      // 'usage' meta = bookkeeping push from a manual drag-out (recency bump
+      // after a successful external drop). The user is moving content, not
+      // capturing it - the copy indicator must stay dark.
+      const isUsageBookkeeping = meta?.reason === 'usage'
       // Suppress the flare while the mutation originated from this renderer
       // session itself:
       //  - isInternalCopying: click copy/paste flows (main rewrites the OS
@@ -276,7 +281,7 @@ export const useStore = create<AppState>((set, get) => ({
       //    window — Panel.tsx only clears internalDragReq 150ms later. Without
       //    this guard the usage bump would masquerade as a fresh capture and
       //    flash the edge copy indicator on every drag-out.
-      if ((isDifferentId || isNewCapturedAt) && !get().isInternalCopying && !get().internalDragReq) {
+      if ((isDifferentId || isNewCapturedAt) && !get().isInternalCopying && !get().internalDragReq && !isUsageBookkeeping) {
         get().triggerCopyFlare()
       }
     }
@@ -418,9 +423,25 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   async copy(id) {
+    // Copy IS a copy action: the indicator SHOULD fire. The flag only blocks
+    // the heuristic double-fire from the promote push that follows.
     set({ isInternalCopying: true })
-    await edge.copyItem(id)
-    setTimeout(() => set({ isInternalCopying: false }), 400)
+    try {
+      const ok = await edge.copyItem(id)
+      if (ok !== false) get().triggerCopyFlare()
+    } finally {
+      setTimeout(() => set({ isInternalCopying: false }), 400)
+    }
+  },
+
+  async copySubitem(req) {
+    set({ isInternalCopying: true })
+    try {
+      const ok = await edge.copySubitem(req)
+      if (ok !== false) get().triggerCopyFlare()
+    } finally {
+      setTimeout(() => set({ isInternalCopying: false }), 400)
+    }
   },
 
   async paste(id) {

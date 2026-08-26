@@ -163,12 +163,12 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
     playButtonClickSound()
     const keys = Array.from(selectedKeys)
     if (item.data.kind === 'files') {
-      window.edge.copySubitem({ id: item.id, paths: keys })
+      useStore.getState().copySubitem({ id: item.id, paths: keys })
     } else if (item.data.kind === 'image-collection') {
       if (keys.length === 1) {
-        window.edge.copySubitem({ id: item.id, imageId: keys[0] })
+        useStore.getState().copySubitem({ id: item.id, imageId: keys[0] })
       } else {
-        window.edge.copyItem(item.id)
+        useStore.getState().copy(item.id)
       }
     }
   }
@@ -771,7 +771,7 @@ function PreviewContent({
           <QuickActionButton
             title={t('flyout.copyText')}
             icon={CopyIcon}
-            onClick={() => window.edge.copyItem(item.id)}
+            onClick={() => useStore.getState().copy(item.id)}
           />
         </div>
         <div style={{
@@ -812,7 +812,7 @@ function PreviewContent({
           <QuickActionButton
             title={t('flyout.copyImage')}
             icon={CopyIcon}
-            onClick={() => window.edge.copyItem(item.id)}
+            onClick={() => useStore.getState().copy(item.id)}
             solidDark={true}
           />
         </div>
@@ -879,7 +879,7 @@ function PreviewContent({
                 <QuickActionButton
                   title={t('flyout.copyImage')}
                   icon={CopyIcon}
-                  onClick={() => window.edge.copySubitem({ id: item.id, imageId: img.imageId })}
+                  onClick={() => useStore.getState().copySubitem({ id: item.id, imageId: img.imageId })}
                   solidDark={true}
                 />
               </div>
@@ -922,7 +922,7 @@ function PreviewContent({
             <QuickActionButton
               title={t('flyout.copyFile')}
               icon={CopyIcon}
-              onClick={() => window.edge.copyItem(item.id)}
+              onClick={() => useStore.getState().copy(item.id)}
               solidDark={true}
               size={28}
             />
@@ -991,7 +991,7 @@ function PreviewContent({
             <QuickActionButton
               title={t('flyout.copyFile')}
               icon={CopyIcon}
-              onClick={() => window.edge.copyItem(item.id)}
+              onClick={() => useStore.getState().copy(item.id)}
               size={28}
             />
             <ExplorerButton
@@ -1103,7 +1103,7 @@ function PreviewContent({
                   <QuickActionButton
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
-                    onClick={() => window.edge.copySubitem({ id: item.id, paths: [p] })}
+                    onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
                     solidDark={true}
                   />
                   <ExplorerButton
@@ -1203,7 +1203,7 @@ function PreviewContent({
                   <QuickActionButton
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
-                    onClick={() => window.edge.copySubitem({ id: item.id, paths: [p] })}
+                    onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
                     size={24}
                   />
                   <ExplorerButton

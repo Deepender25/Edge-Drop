@@ -28,7 +28,7 @@ export default function App() {
   // Hydrate once + subscribe to pushed updates.
   useEffect(() => {
     void hydrate()
-    const offItems = edge.onItems((items) => setItems(items))
+    const offItems = edge.onItems((items, meta) => setItems(items, meta))
     const offSettings = edge.onSettings((next) => setSettings(next))
     const offToast = edge.onToast((t) => pushToast(t))
     const offToggle = edge.onToggle((forceOpen) => {

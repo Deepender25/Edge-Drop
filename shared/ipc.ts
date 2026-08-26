@@ -119,8 +119,11 @@ export interface InvokeMap {
 /* ------------------------------------------------------------------ */
 
 export interface EventMap {
-  /** Full new item list whenever the history changes. */
-  'state:items': [items: ClipboardItemDto[]]
+  /** Full new item list whenever the history changes. `reason` tells the
+   *  renderer WHY: 'usage' pushes come from manual drag gestures (drag-out
+   *  recency bumps and drag-in imports) and must never trigger the capture
+   *  copy-indicator. */
+  'state:items': [items: ClipboardItemDto[], meta?: { reason?: 'usage' | 'capture' }]
   /** Settings changed (e.g. from the tray menu). */
   'state:settings': [settings: Settings]
   /** Toggle the panel open/closed from the main process (e.g. tray). */

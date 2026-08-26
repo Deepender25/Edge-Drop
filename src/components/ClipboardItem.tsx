@@ -743,7 +743,7 @@ function BundleFluidPreview({
                     <button
                       className="act subitem-copy-btn"
                       title={t('item.copyFilePath')}
-                      onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); window.edge.copySubitem({ id: item.id, paths: [filePath] }); }}
+                      onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); useStore.getState().copySubitem({ id: item.id, paths: [filePath] }); }}
                     >
                       <CopyIcon width={12} height={12} />
                     </button>

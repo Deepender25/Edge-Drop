@@ -59,7 +59,7 @@ export interface EdgeApi {
   broadcastTutorialStep: (step: number) => void
 
   /* Main -> Renderer */
-  onItems: (cb: (items: import('./types').ClipboardItemDto[]) => void) => () => void
+  onItems: (cb: (items: import('./types').ClipboardItemDto[], meta?: { reason?: 'usage' | 'capture' }) => void) => () => void
   onSettings: (cb: (settings: Settings) => void) => () => void
   onToggle: (cb: (open?: boolean) => void) => () => void
   onOpenSettings: (cb: () => void) => () => void

@@ -306,9 +306,12 @@ export function registerIpc(): void {
     }
     console.log('[IPC] item:copy wrote to clipboard, kind=', item.data.kind)
 
-    // Promote the copied item to the top of the history stack
-    getStore().add(itemDataWithFullText, loadSettings().historyLimit)
-    pushState.items()
+    // Promote: touch() bumps recency WITHOUT re-interpreting content.
+    // Re-adding here duplicated long texts — their stored 300-char preview
+    // signature differs from the full payload, so add() saw "new content"
+    // and created a second entry.
+    getStore().touch(id)
+    pushState.items({ reason: 'usage' })
 
     // Unpause after a short delay to allow OS clipboard event to settle.
     // Respect the current incognito state when unpausing.
@@ -343,11 +346,11 @@ export function registerIpc(): void {
 
     if (!wrote) return false
 
-    // Promote the parent item to the top of the history stack
-    const parentItem = getStore().get(req.id)
-    if (parentItem) {
-      getStore().add(parentItem.data, loadSettings().historyLimit)
-      pushState.items()
+    // Promote the parent bundle to the top — touch() keeps content/signature
+    // intact (re-add risked duplicate long-text entries, same as item:copy).
+    if (getStore().get(req.id)) {
+      getStore().touch(req.id)
+      pushState.items({ reason: 'usage' })
     }
 
     const watcher = getWatcher()
@@ -554,7 +557,9 @@ export function registerIpc(): void {
     }
 
     getStore().add(data, loadSettings().historyLimit)
-    pushState.items()
+    // Manual drag-in import (text/URL/web image dropped onto the shelf):
+    // bookkeeping, not a capture — suppress the copy indicator.
+    pushState.items({ reason: 'usage' })
     return getStore().toDto()
   })
 
@@ -744,7 +749,9 @@ export function registerSendListeners(): void {
       if (loadSettings().movePastedToTop !== false && getStore().get(req.id)) {
         getStore().touch(req.id)
       }
-      pushState.items()
+      // 'usage' reason: this push is bookkeeping from a manual drag-out, so
+      // the renderer must NOT flash the capture copy-indicator for it.
+      pushState.items({ reason: 'usage' })
     }
   })
 

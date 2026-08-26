@@ -140,9 +140,14 @@ function send(channel: string, ...args: unknown[]): void {
 }
 
 export const pushState = {
-  items(): void {
+  /**
+   * Push the item list. `reason` labels WHY so the renderer can react
+   * appropriately: 'usage' pushes (drag-out/copy recency bumps) must never
+   * trigger the capture copy-indicator flare.
+   */
+  items(meta?: { reason?: 'usage' | 'capture' }): void {
     const dto: ClipboardItemDto[] = store.toDto()
-    send('state:items', dto)
+    send('state:items', dto, meta)
   },
   settings(next: Settings): void {
     send('state:settings', next)
@@ -196,6 +201,6 @@ export function addFiles(paths: string[]): AddFilesResult {
     stacksCreated++
   }
 
-  if (stacksCreated > 0) pushState.items()
+  if (stacksCreated > 0) pushState.items({ reason: 'usage' }) // manual drag-in import: never a capture
   return { stacksCreated }
 }
