@@ -18,7 +18,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { WorkAreaCache } from '../electron/main/workAreaCache'
 import { computeStickBounds } from '../electron/main/geometry'
-import { probeStickEdge, isNearProximity, FAST_POLL_PROXIMITY_PX } from '../electron/main/stickProbe'
+import { probeStickEdge, probeSeamAware, isNearProximity, FAST_POLL_PROXIMITY_PX, REST_FRAMES_REQUIRED, MAX_INTENT_SPEED_PX_PER_MS, type SeamTickState } from '../electron/main/stickProbe'
 
 /* ------------------------------------------------------------------ */
 /* Virtual desktop simulator                                           */
@@ -324,5 +324,159 @@ describe('SIMULATION — adaptive proximity thresholds (unchanged feel)', () => 
     ctl.applyStickDisplay(2)
     expect(isNearProximity(ctl.tick({ x: 1921 + FAST_POLL_PROXIMITY_PX - 1, y: 0 })!.distFromEdge)).toBe(true)
     expect(isNearProximity(ctl.tick({ x: 1921 + FAST_POLL_PROXIMITY_PX + 5, y: 0 })!.distFromEdge)).toBe(false)
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/* THREE-PILLAR SEAM POLICY (probeSeamAware)                           */
+/* Simulated at 16ms production fast-poll cadence                      */
+/* ------------------------------------------------------------------ */
+
+const SEC_X = 1920
+function seamController(stickPosition: 'left' | 'right' = 'left') {
+  const ctl = new StickController(sideBySideDesktop())
+  ctl.stickPosition = stickPosition
+  ctl.applyStickDisplay(2)
+  let state: SeamTickState = {}
+  let t = 1000
+  const wa = ctl.cache.get(ctl.currentStickDisplayId)!
+  return {
+    tick(x: number, y = 500) {
+      t += 16
+      const r = probeSeamAware({ cursor: { x, y }, workArea: wa, stickPosition, hotZoneWidth: 3, now: t }, state)
+      state = r.nextState
+      return r
+    },
+    get time() { return t }
+  }
+}
+
+describe('SEAM POLICY - pillar 1: own-pixel arming', () => {
+  it('neighbor-side hover (even fully stopped) never arms', () => {
+    const c = seamController()
+    let r = c.tick(SEC_X - 5)
+    for (let i = 0; i < 10; i++) r = c.tick(SEC_X - 5) // dwell ~160ms
+    expect(r.armedInEdge).toBe(false)
+    expect(r.probe.inEdge).toBe(true) // legacy band would have armed - policy must not
+  })
+
+  it('own-side pixel inside the band arms once slow', () => {
+    const c = seamController()
+    let r = c.tick(SEC_X + 2) // arrival may be fast
+    for (let i = 0; i < 5; i++) r = c.tick(SEC_X + 2) // settle
+    expect(r.armedInEdge).toBe(true)
+  })
+})
+
+describe('SEAM POLICY - pillar 2: velocity intent', () => {
+  it('fast flick THROUGH the band never arms on any frame', () => {
+    const c = seamController()
+    let anyArmed = false
+    for (let x = 1500; x <= 2400; x += 96) { // ~6 px/ms sweep
+      const r = c.tick(x)
+      if (r.armedInEdge) anyArmed = true
+    }
+    expect(anyArmed).toBe(false)
+  })
+
+  it("arrival then settle arms within a beat, like today's feel", () => {
+    const c = seamController()
+    c.tick(SEC_X + 60)
+    let r = c.tick(SEC_X + 2)
+    r = c.tick(SEC_X + 2)
+    expect(r.slowEnough).toBe(true)
+    r = c.tick(SEC_X + 2)
+    expect(r.armedInEdge).toBe(true)
+  })
+})
+
+describe('SEAM POLICY - pillar 3: rest-as-intent forgiveness', () => {
+  it('slow crossing suppresses until the cursor RESTS on own pixels (~3 frames), then forgives', () => {
+    const c = seamController()
+    // Cross slowly to the neighbor side.
+    c.tick(SEC_X + 1); c.tick(SEC_X - 40); c.tick(SEC_X - 80)
+    // Come back and park on own pixels: arrival frame is pending-rest.
+    let r = c.tick(SEC_X + 1)
+    expect(r.lockedOut).toBe(true)
+    r = c.tick(SEC_X + 1) // rest frame 1
+    r = c.tick(SEC_X + 1) // rest frame 2
+    expect(r.lockedOut).toBe(true)
+    r = c.tick(SEC_X + 1) // rest frame 3 => forgiven, armed same frame
+    expect(r.lockedOut).toBe(false)
+    expect(r.armedInEdge).toBe(true)
+  })
+
+  it('fast movement during the settle window RESETS rest progress', () => {
+    const c = seamController()
+    c.tick(SEC_X + 1); c.tick(SEC_X - 40)
+    c.tick(SEC_X + 1)                    // arrive (crossing) -> streak 0
+    c.tick(SEC_X + 2)                    // rest 1
+    let r = c.tick(SEC_X - 30)           // quick jiggle across the seam: reset + re-cross
+    expect(r.crossedNow).toBe(true)
+    r = c.tick(SEC_X + 2)                // arrival again, streak restarts at 0
+    expect(r.armedInEdge).toBe(false)
+    r = c.tick(SEC_X + 2)                // rest 1
+    r = c.tick(SEC_X + 2)                // rest 2
+    r = c.tick(SEC_X + 2)                // rest 3 -> forgiven
+    expect(r.lockedOut).toBe(false)
+    expect(r.armedInEdge).toBe(true)
+  })
+
+  it('rest policy constants match the documented design', () => {
+    expect(REST_FRAMES_REQUIRED).toBe(3)
+    expect(MAX_INTENT_SPEED_PX_PER_MS).toBeGreaterThan(0)
+  })
+})
+
+describe('SEAM POLICY - outer-edge parity (single display, no neighbor)', () => {
+  it('hardware edge clamps cursor: prompt arming, zero crossings, zero lockouts', () => {
+    const desktop = new VirtualDesktop([display(1, 0, 0, 1920, 1080, true)])
+    const cache = new WorkAreaCache((id) => {
+      const all = desktop.getAllDisplays()
+      const s = all.find(d => d.id === id) ?? desktop.getPrimaryDisplay()
+      return { displayId: s.id, workArea: s.workArea }
+    })
+    const wa = cache.get(1)!
+    let state: SeamTickState = {}
+    let t = 1000
+    let sawCrossing = false
+    let sawLockout = false
+
+    const seq = [400, 120, 30, 4, 0, 0, 0, 0, 0, 0]
+    let armedAtFrame = -1
+    seq.forEach((x, i) => {
+      t += 16
+      const r = probeSeamAware({ cursor: { x, y: 300 }, workArea: wa, stickPosition: 'left', hotZoneWidth: 3, now: t }, state)
+      state = r.nextState
+      if (r.crossedNow) sawCrossing = true
+      if (r.lockedOut) sawLockout = true
+      if (r.armedInEdge && armedAtFrame === -1) armedAtFrame = i
+    })
+    expect(sawCrossing).toBe(false)
+    expect(sawLockout).toBe(false)
+    expect(armedAtFrame).toBeGreaterThanOrEqual(0)
+    expect(armedAtFrame).toBeLessThanOrEqual(5)
+  })
+})
+
+describe('SEAM POLICY - primary interior regression guard while stuck to secondary', () => {
+  it('primary interior never arms; own-side seam strip arms after arriving + settling', () => {
+    const c = seamController()
+    expect(c.tick(960, 540)!.armedInEdge).toBe(false)
+    expect(c.tick(500, 200)!.armedInEdge).toBe(false)
+
+    // Teleporting from primary-center into the seam IS a boundary crossing:
+    // arming stays suppressed until rest forgives it (~3 settled frames).
+    const arrive = c.tick(SEC_X + 1)!
+    expect(arrive.crossedNow).toBe(true)
+    expect(arrive.armedInEdge).toBe(false)
+
+    // Park on own pixels; rest streak builds and forgives without any timer.
+    let r = c.tick(SEC_X + 2)!   // rest 1
+    r = c.tick(SEC_X + 2)!       // rest 2
+    r = c.tick(SEC_X + 2)!       // rest 3 -> forgiven
+    expect(r.lockedOut).toBe(false)
+    expect(r.slowEnough).toBe(true)
+    expect(r.armedInEdge).toBe(true)
   })
 })

@@ -21,7 +21,7 @@ import { PATHS } from '../store/paths'
 import { TRANSLATIONS, en } from '../../src/i18n/translations'
 import { computeStickBounds } from './geometry'
 import { WorkAreaCache } from './workAreaCache'
-import { probeStickEdge, isNearProximity } from './stickProbe'
+import { probeSeamAware, isNearProximity, type SeamTickState } from './stickProbe'
 import { loadSettings, saveSettings } from '../store/settings'
 import { isFullscreenAppActive, registerFullscreenActiveListener } from './fullscreen'
 
@@ -234,6 +234,8 @@ let _lastProximityExitMs = 0
 /** Last sent cursor position — used to suppress duplicate IPC messages. */
 let _lastSentX = -9999
 let _lastSentY = -9999
+/** Seam-policy tracker threaded between ticks (see stickProbe.ts pillars). */
+let _seamState: SeamTickState = {}
 
 /**
  * Temporarily suspend the always-on-top heartbeat.
@@ -286,19 +288,26 @@ function _pollTick(): void {
   const wa = workAreaCache.get(currentStickDisplayId)
   if (!wa) return // no successful enumeration yet; retry next tick
 
-  // Pure edge-probe math (unit-tested against simulated multi-display
-  // topologies in tests/stickProbeScenarios.test.ts).
-  const probe = probeStickEdge({
-    cursor: pt,
-    workArea: wa,
-    stickPosition: settings.stickPosition,
-    hotZoneWidth: currentHotZoneWidth
-  })
-  if (probe.garbage) return
+  // Seam-aware probe (unit-tested against simulated multi-display
+  // topologies in tests/stickProbeScenarios.test.ts). The returned
+  // armedInEdge is what the renderer's dwell consumes: own pixels only,
+  // slow enough to be intent, and outside any post-crossing lockout.
+  const seam = probeSeamAware(
+    {
+      cursor: pt,
+      workArea: wa,
+      stickPosition: settings.stickPosition,
+      hotZoneWidth: currentHotZoneWidth,
+      now: Date.now()
+    },
+    _seamState
+  )
+  _seamState = seam.nextState
+  if (seam.probe.garbage) return
 
-  const clientX = probe.clientX
-  const clientY = probe.clientY
-  const distFromEdge = probe.distFromEdge
+  const clientX = seam.probe.clientX
+  const clientY = seam.probe.clientY
+  const distFromEdge = seam.probe.distFromEdge
 
   // ── Adaptive speed: switch to fast poll when cursor approaches the edge ──
   const nearProximity = isNearProximity(distFromEdge)
@@ -326,7 +335,10 @@ function _pollTick(): void {
     }
   }
 
-  const inEdge = probe.inEdge
+  // Seam-aware verdict replaces the raw band test: fast traversal through a
+  // display boundary never arms the opener, while outer-edge behavior is
+  // preserved (cursor clamps at hardware edges => speed ~0, no crossings).
+  const inEdge = seam.armedInEdge
 
   const newState = inEdge
 
