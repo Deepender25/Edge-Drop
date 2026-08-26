@@ -143,13 +143,8 @@ export function Panel() {
         } else if (targetId === req.id) {
           // Dropped on the SAME item: do nothing, keep it in the collection
         }
-      } else {
-        // Dropped on empty space: split only if dropped inside item-list container
-        const itemListEl = el.closest('.item-list')
-        if (itemListEl && (req.imageId || (req.paths && req.paths.length > 0))) {
-          window.edge.splitItem(req)
-        }
       }
+      // Dropping anywhere else (e.g. empty shelf / list space) is a clean return to shelf (no-op).
     })
 
     return () => {
@@ -191,13 +186,9 @@ export function Panel() {
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    console.log('[Panel] onDrop internalDragReq=', internalDragReq)
     if (internalDragReq) {
-      if (internalDragReq.imageId || (internalDragReq.paths && internalDragReq.paths.length > 0)) {
-        console.log('[Panel] calling splitItem')
-        window.edge.splitItem(internalDragReq)
-      }
       setInternalDragReq(null)
+      window.edge?.setInternalDrag?.(false)
     }
     setDragActive(false)
   }

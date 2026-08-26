@@ -320,7 +320,7 @@ export const useStore = create<AppState>((set, get) => ({
     } else {
       set({ internalDragReq })
     }
-    edge.setInternalDrag(!!internalDragReq)
+    edge.setInternalDrag?.(!!internalDragReq)
   },
   previewFlyoutRect: null,
   setPreviewFlyoutRect: (rect) => set({ previewFlyoutRect: rect }),

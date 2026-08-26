@@ -722,31 +722,29 @@ export function registerSendListeners(): void {
     // Re-enable the heartbeat now that the drag is over.
     setHeartbeatPaused(false)
 
-    if (dragStarted && isWholeItemDrag) {
-      // Usage accounting parity with click-to-paste: a whole-item drag counts
-      // as a use — hitCount bump + optional move to top via the same
-      // movePastedToTop setting paste uses. Sub-item drags never reorder
-      // history (same rule as item:paste-subitem). Applied after the gesture
-      // finishes so nothing extra runs inside the OLE drag loop.
-      if (loadSettings().movePastedToTop !== false && getStore().get(req.id)) {
-        getStore().touch(req.id)
-      }
-      pushState.items()
-    }
-
-    // Workaround for Electron/Windows not firing drop events on the source window:
     // Check if the user dropped the item back onto our window!
     const { screen, BrowserWindow } = require('electron')
     const point = screen.getCursorScreenPoint()
     const win = BrowserWindow.fromWebContents(sender)
-    if (win) {
+    let isInside = false
+    if (win && !win.isDestroyed()) {
       const bounds = win.getBounds()
-      const isInside = point.x >= bounds.x && point.x <= bounds.x + bounds.width &&
-                       point.y >= bounds.y && point.y <= bounds.y + bounds.height
+      isInside = point.x >= bounds.x && point.x <= bounds.x + bounds.width &&
+                 point.y >= bounds.y && point.y <= bounds.y + bounds.height
       if (isInside) {
         console.log(`[IPC] Drag ended inside window! Triggering internal-drop at x=${point.x - bounds.x}, y=${point.y - bounds.y}`)
         sender.send('item:internal-drop', { x: point.x - bounds.x, y: point.y - bounds.y })
       }
+    }
+
+    if (dragStarted && isWholeItemDrag && !isInside) {
+      // Usage accounting parity with click-to-paste: a whole-item drag counts
+      // as a use ONLY when successfully dropped outside into another application.
+      // Dropping back onto the shelf or cancelling does not bump hitCount.
+      if (loadSettings().movePastedToTop !== false && getStore().get(req.id)) {
+        getStore().touch(req.id)
+      }
+      pushState.items()
     }
   })
 

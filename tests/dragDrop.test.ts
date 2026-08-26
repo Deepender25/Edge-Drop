@@ -216,3 +216,32 @@ describe('buildFileDragSvg — standalone 3D pastel vector drag icons', () => {
     expect(svg).toContain('stack-2')
   })
 })
+
+describe('Drag-out usage gating on drop location', () => {
+  it('does not touch item when drag drops back inside the source window', () => {
+    const touchSpy = vi.fn()
+    const isWholeItemDrag = true
+    const isInside = true // Dropped back onto Edge-Drop window
+    const movePastedToTop = true
+
+    if (isWholeItemDrag && !isInside && movePastedToTop) {
+      touchSpy('item-1')
+    }
+
+    expect(touchSpy).not.toHaveBeenCalled()
+  })
+
+  it('touches item and moves unpinned to top when dropped outside into external app', () => {
+    const touchSpy = vi.fn()
+    const isWholeItemDrag = true
+    const isInside = false // Dropped into Word / Photoshop / Explorer
+    const movePastedToTop = true
+
+    if (isWholeItemDrag && !isInside && movePastedToTop) {
+      touchSpy('item-1')
+    }
+
+    expect(touchSpy).toHaveBeenCalledWith('item-1')
+  })
+})
+

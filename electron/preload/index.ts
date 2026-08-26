@@ -54,17 +54,56 @@ function on<C extends EventChannel>(
  * contextBridge strips their internal C++ backing, causing webUtils.getPathForFile
  * to fail. Handling it here natively bypasses the bridge entirely.
  */
-let internalDrag = false
+import { reduceGuard, isGuarded } from './internalDragGuard'
+
+let guard: import('./internalDragGuard').GuardState = { phase: 'idle', fireAt: null }
+let guardIdleTimer: ReturnType<typeof setTimeout> | null = null
+
+function dispatchGuard(event: import('./internalDragGuard').GuardEvent): void {
+  guard = reduceGuard(guard, event)
+  if (event.type === 'dragEnd' && guard.phase === 'releasing') {
+    if (guardIdleTimer) clearTimeout(guardIdleTimer)
+    const remaining = (guard.fireAt ?? Date.now()) - Date.now()
+    guardIdleTimer = setTimeout(() => {
+      dispatchGuard({ type: 'tick', now: Date.now() })
+      guardIdleTimer = null
+    }, Math.max(1, remaining))
+  }
+  // An explicit 'arm' cancels any pending release timer by leaving it to fire
+  // harmlessly against the armed phase ('tick' is a no-op while armed).
+}
+
+function setInternalDragState(active: boolean): void {
+  if (active) {
+    dispatchGuard({ type: 'arm' })
+  } else {
+    dispatchGuard({ type: 'dragEnd', now: Date.now() })
+  }
+}
 
 const win: any = (globalThis as any).window || globalThis
+
+win.addEventListener('dragstart', () => {
+  setInternalDragState(true)
+}, true)
+
+win.addEventListener('dragend', () => {
+  setInternalDragState(false)
+}, true)
 
 win.addEventListener('dragover', (e: any) => {
   e.preventDefault()
 }, false)
 
 win.addEventListener('drop', (e: any) => {
-  if (internalDrag) {
+  if (isGuarded(guard)) {
+    // First drop after one of our drags is ours by the single-mouse
+    // invariant (see internalDragGuard.ts). Swallow, consume, and stop any
+    // other handler from reacting to our own exported files.
+    dispatchGuard({ type: 'drop' })
+    if (guardIdleTimer) { clearTimeout(guardIdleTimer); guardIdleTimer = null }
     e.preventDefault()
+    e.stopPropagation()
     return
   }
 
@@ -152,7 +191,10 @@ const api = {
   checkForUpdatesManual: () => invoke('updater:check-manual'),
   startUpdateDownload: () => invoke('updater:start-download'),
   quitApp: () => invoke('app:quit'),
-  startDrag: (req: DragRequest) => send('item:start-drag', req),
+  startDrag: (req: DragRequest) => {
+    setInternalDragState(true)
+    send('item:start-drag', req)
+  },
   prestageDrag: (req: DragRequest) => send('item:prestage-drag', req),
   addFiles: (paths: string[]) => invoke('item:add-files', paths),
   addItemData: (data: import('../../shared/types').ItemData) => invoke('item:add-data', data),
@@ -170,7 +212,7 @@ const api = {
   revealFile: (path: string) => invoke('file:reveal', path),
   minimizeWindow: () => invoke('window:minimize'),
   focusWindow: (focusable?: boolean) => invoke('window:focus', focusable),
-  setInternalDrag: (active: boolean) => { internalDrag = active },
+  setInternalDrag: (active: boolean) => { setInternalDragState(active) },
   broadcastTutorialStep: (step: number) => send('tutorial:set-step', step),
 
   /* Main -> Renderer */
@@ -178,7 +220,12 @@ const api = {
   onSettings: (cb: (settings: EventArgs<'state:settings'>[0]) => void) => on('state:settings', cb),
   onToggle: (cb: (open?: boolean) => void) => on('window:toggle', cb),
   onOpenSettings: (cb: () => void) => on('window:open-settings', cb),
-  onDragEnd: (cb: () => void) => on('item:drag-end', cb),
+  onDragEnd: (cb: () => void) => {
+    return on('item:drag-end', () => {
+      setInternalDragState(false)
+      cb()
+    })
+  },
   onInternalDrop: (cb: (pos: { x: number; y: number }) => void) => on('item:internal-drop', cb),
   onCursorEdge: (cb: (data: EventArgs<'window:cursor-edge'>[0]) => void) => on('window:cursor-edge', cb),
   onToast: (cb: (toast: { id: string; message: string; tone: 'info' | 'error' }) => void) => on('ui:toast', cb),

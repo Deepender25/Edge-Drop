@@ -19,7 +19,9 @@ export const edge: EdgeApi = new Proxy({} as EdgeApi, {
     if (g.window && g.window.edge) {
       const targetApi = g.window.edge
       const val = targetApi[prop]
-      return typeof val === 'function' ? val.bind(targetApi) : val
+      if (typeof val === 'function') return val.bind(targetApi)
+      if (val !== undefined) return val
+      return () => {}
     }
     return () => {}
   }

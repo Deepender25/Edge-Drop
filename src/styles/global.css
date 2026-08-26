@@ -94,10 +94,17 @@ a {
   -webkit-user-drag: none;
 }
 
-/* Our draggable surfaces opt back into native dragging. */
-.item-main,
+/* Draggable surfaces opt into dragging only when explicitly marked draggable */
+.item-main[draggable="true"],
 .file-row {
   -webkit-user-drag: element;
+}
+
+.item-main[draggable="false"],
+.item-main:not([draggable="true"]) {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 button {

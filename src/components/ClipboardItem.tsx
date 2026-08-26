@@ -14,7 +14,7 @@
  * clamped preview; file items list names or bundle badge. Motion is handled by
  * the parent list (layout/AnimatePresence), so this component stays presentational.
  */
-import { memo, useState, useCallback, useEffect, forwardRef, type ReactNode } from 'react'
+import { memo, useState, useCallback, useEffect, useRef, forwardRef, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import type { ClipboardItemDto } from '../../shared/types'
 import { MAX_STACK } from '../../shared/types'
@@ -150,8 +150,8 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       // drag managed by the OS. Fire the IPC synchronously so main calls
       // event.sender.startDrag(...) on the same tick.
       e.preventDefault()
-      startDrag(req)
       setInternalDragReq(req)
+      startDrag(req)
     }
   }, [item.data, startDrag, setInternalDragReq])
 
@@ -160,6 +160,40 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       window.edge.prestageDrag({ id: item.id })
     }
   }, [item.data.kind, isPreviewing, item.id])
+
+  const pointerStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null)
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button === 0) {
+      pointerStartRef.current = { x: e.clientX, y: e.clientY, moved: false }
+    }
+    handlePrestage()
+  }, [handlePrestage])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!pointerStartRef.current) return
+    const dist = Math.hypot(e.clientX - pointerStartRef.current.x, e.clientY - pointerStartRef.current.y)
+    if (dist > 5) {
+      pointerStartRef.current.moved = true
+    }
+  }, [])
+
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
+    if (pointerStartRef.current?.moved) {
+      // User dragged or attempted to drag — do not execute click/paste!
+      pointerStartRef.current = null
+      e.stopPropagation()
+      return
+    }
+    pointerStartRef.current = null
+
+    if (isPreviewing) return
+    if (isBundle && !expanded) {
+      onExpand(e)
+    } else if (!isBundle) {
+      onPaste(e)
+    }
+  }, [isPreviewing, isBundle, expanded, onExpand, onPaste])
 
   return (
     <motion.div
@@ -193,8 +227,12 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
         data-id={item.id}
         draggable={!isPreviewing && item.data.kind !== 'text' && (!isBundle || !expanded)}
         onMouseEnter={handlePrestage}
-        onPointerDown={handlePrestage}
-        onDragStart={(e) => handleDragStart(e, { id: item.id })}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onDragStart={(e) => {
+          if (pointerStartRef.current) pointerStartRef.current.moved = true
+          handleDragStart(e, { id: item.id })
+        }}
         onDragEnd={() => setInternalDragReq(null)}
         onDragOver={(e) => {
           const activeDrag = useStore.getState().internalDragReq
@@ -221,7 +259,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
             setInternalDragReq(null)
           }
         }}
-        onClick={isPreviewing ? undefined : (isBundle && !expanded ? onExpand : (!isBundle ? onPaste : undefined))}
+        onClick={handleCardClick}
       >
         <div className="body">
           {isBundle ? (

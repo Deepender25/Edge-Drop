@@ -12,10 +12,12 @@
  */
 import { useCallback } from 'react'
 import { edge } from '../lib/edge'
+import { useStore } from '../store/appStore'
 import type { DragRequest } from '../../shared/types'
 
 export function useDragOut() {
   return useCallback((req: DragRequest) => {
+    useStore.getState().setInternalDragReq(req)
     edge.startDrag(req)
   }, [])
 }
