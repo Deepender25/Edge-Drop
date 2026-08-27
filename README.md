@@ -23,7 +23,7 @@
   <a href="https://github.com/Deepender25/Edge-Drop/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=f6c7d6" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=c7e7f6" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=d2f4e8" /></a>
-  <img src="https://img.shields.io/badge/tests-175%20passing-8ca77b?style=flat-square&logo=vitest&logoColor=white&labelColor=23272e" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-269%20passing-8ca77b?style=flat-square&logo=vitest&logoColor=white&labelColor=23272e" alt="Tests" />
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=ffe6b3" /></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-93a4fc?style=flat-square&logo=windows&logoColor=white&labelColor=23272e" alt="Platform" />
 </p>
@@ -55,7 +55,7 @@ It is built for the developer and creative workflow where you constantly juggle 
 <div align="center">
   <h3>Full Overview: Welcome to Edge-Drop</h3>
   <p><em>Zero-click edge-hover activation, fluid spring physics, and seamless drag-and-drop into any desktop app.</em></p>
-  <video src="https://github.com/user-attachments/assets/118d59cc-9821-4da1-9424-ea9bc1b6e548" width="85%" autoplay loop muted playsinline></video>
+  <img src="public/open.gif" alt="Full Overview: Welcome to Edge-Drop" width="85%" style="max-width: 100%; height: auto; border-radius: 8px;" />
 </div>
 
 <br/>
@@ -202,6 +202,8 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Independent Edge Trigger Placement:** Choose exact trigger strip alignment (**Top**, **Center**, or **Bottom**) relative to the shelf, with dynamic CSS `clipPath` calculation matching the exact sensor region.
 - **Edge Location Hint (Proximity Beacon):** Subtle 1.5px hairline gradient pulse that flashes once on the screen edge when cursor touches the edge at a misaligned vertical position, guiding users to the shelf.
 - **Multi-monitor support:** Pick exactly which display the panel sticks to, with options for Left or Right screen edges. Features a single source of truth multi-display engine (`getDisplayListOptions()`) with real-time physical resolution calculation (3840×2160, 2560×1440, 1920×1080) across all High-DPI Windows display scaling factors.
+- **Rest-as-Intent Seam Policy (Multi-Monitor):** Intelligent 140ms dwell threshold for interior monitor boundaries. Moving your cursor between displays passes through smoothly without accidental shelf triggers, while stopping deliberately at the edge opens the shelf instantly.
+- **Versioned Screen Geometry & Probe:** Replaced asynchronous display queries with a pure geometric screen probe (`stickProbe.ts`) backed by versioned display-change caching, eliminating boundary seam jitter across mixed-DPI monitor arrays.
 - **Cross-Reboot Display Persistence:** Edge-Drop remembers your chosen monitor across device restarts. A 4-tier resolution pipeline silently re-identifies the correct physical monitor after Windows re-assigns numeric display IDs on reboot.
 - **Smart Windows Fullscreen Game Detection:** Native Win32 `SHQueryUserNotificationState` OS detection (`fullscreen.ts`) combined with `GetForegroundWindow` + `GetClassNameA` filtering (`Progman`, `WorkerW`, `Shell_TrayWnd`) automatically suppresses edge hover during Direct3D games (*VALORANT*, *Cyberpunk*, *PowerPoint*) while allowing Edge-Drop to open smoothly on the Windows Home Screen / Desktop.
 - **Self-Healing Launch at Login:** Automatic Windows Registry synchronization (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`) ensures autostart entries update cleanly with live binary paths and `--hidden` launch flags after every app update.
@@ -263,13 +265,20 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 
 **Universal Native OS Drag & Drop Vault**
 - **0ms Instant Drag-out (Hover Pre-staging):** Background hover pre-staging (`window.edge.prestageDrag`) loads temp file handles and generates pastel vector drag ghosts before mouse drag begins, yielding 0ms drag latency.
+- **Return-to-Shelf Integrity (Self-Drop Protection):** Returning dragged items back onto the shelf is a clean no-op. The capturing preload drop filter prevents accidental re-ingestion, card duplication, usage count increments, or card splitting.
+- **Click vs. Drag Gesture Discrimination:** Intelligent 5px movement guard prevents mouse drags across text and link cards from triggering accidental click-to-paste actions, while preserving instant single-click copy/paste.
+- **External Usage Accounting:** Item usage counts (`hitCount`) and move-to-top reordering are strictly gated to drops that land in external applications (e.g. Word, Photoshop, Discord, Explorer).
+- **Original Filename Preservation:** Images and files captured or dropped into Edge-Drop preserve their original source filenames across clipboard transfers, drag operations, and disk exports.
 - **Dynamic Z-Band Demotion:** Temporarily demotes window Z-band during active drags (`setAlwaysOnTop(true, 'normal')`) to ensure smooth drag-out into all Windows desktop software.
 - **Universal Drag-in Vault:** Drag text, web images, links, and local files directly into the Edge-Drop shelf.
 
 **Fluid collections & stacks**
-- Auto-group multi-file drag-ins and multi-image copies into 3D card stacks (max 10)
-- **Preview Flyout Drag-to-Stack**: Drag any shelf item directly onto an open Preview Flyout to stack and merge them seamlessly
-- Expand stacks with a single click on the Expand action button or Preview Flyout; drag a sub-item to the screen edge to split it back out
+- **20% Larger 154px Stack Fan Tiles:** Collapsed file bundles feature 154px presentation cards with folder-silhouette masks and category-specific pastel vector badges.
+- **Animated GIF Streaming:** Integrated fallback streaming via the internal protocol (`edgelocal://`), providing full animated playback for GIF files directly within stack tiles.
+- **Fluid Outside-Click Folding:** Expanding and collapsing bundles is completely seamless—clicking anywhere outside an open stack neatly folds it back into place without layout shifting.
+- Auto-group multi-file drag-ins and multi-image copies into 3D card stacks (max 10).
+- **Preview Flyout Drag-to-Stack:** Drag any shelf item directly onto an open Preview Flyout to stack and merge them seamlessly.
+- Expand stacks with a single click on the Expand action button or Preview Flyout; drag a sub-item to the screen edge or click the ungroup button to split it back out.
 
 **Complete 31-Language Internationalization & Smart Selector**
 - **100% Native Localization**: Fully translated dictionaries for 31 global languages with 100% section & key coverage (`en`, `es`, `fr`, `de`, `it`, `pt`, `ru`, `ja`, `ko`, `zh-CN`, `zh-TW`, `hi`, `ar`, `bn`, `tr`, `vi`, `pl`, `nl`, `sv`, `id`, `uk`, `el`, `cs`, `ro`, `hu`, `da`, `fi`, `th`, `he`, `no`, `fa`).
@@ -291,7 +300,9 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 **Adaptive Battery Power Optimization**
 - Battery-aware cursor polling interval (`powerMonitor.isOnBatteryPower()`) reduces CPU draw and conserves laptop battery life.
 
-**UI / UX & Smooth Physics**
+**UI / UX & Hardware Compositor Motion**
+- **Hardware Compositor-Only Transitions**: Converted card pinning, unpinning, and category tab transitions to GPU-accelerated transforms (`transform` & `opacity`), eliminating layout reflows during rapid interactions.
+- **Virtualized Scroll Performance**: Implemented list virtualization with `content-visibility: auto`, `itemRenderKey` value signatures, and a shared 30-second relative-time tick for smooth 60 FPS scrolling across large history databases.
 - **macOS Segmented Control 5-Category Filter Suite**: Integrated 5-type filter bar (**`All`**, **`Text`**, **`Links`**, **`Images`**, **`Files`**) with a single persistent sliding spring indicator pill (`stiffness: 500`, `damping: 35`) and zero shape distortion.
 - **Zero-Gap Layout Exit Animation**: Smooth physical height and margin collapse during item deletion, completely preventing empty phantom gaps or frozen offsets in the list.
 - **Independent Pinned Section State per Filter**: Each filter category tab maintains its own independent pinned section collapse/expand state (`collapsedMap`), persisted across sessions in `localStorage`.
