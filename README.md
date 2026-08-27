@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <a href="#download">Download</a> •
   <a href="#why">Why</a> •
   <a href="#demos">Demos</a> •
   <a href="#features">Features</a> •
@@ -20,6 +21,17 @@
 </p>
 
 <p align="center">
+  <a href="https://apps.microsoft.com/detail/9P3JMHN9M4NR" target="_blank">
+    <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="160" alt="Get it from Microsoft Store" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/Deepender25/Edge-Drop/releases/latest" target="_blank">
+    <img src="https://img.shields.io/badge/Download-.exe%20Installer-52d7a4?style=for-the-badge&logo=windows&logoColor=white" height="38" alt="Download .exe Installer" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://apps.microsoft.com/detail/9P3JMHN9M4NR"><img alt="Microsoft Store" src="https://img.shields.io/badge/Microsoft%20Store-Edge--Drop-0078D4?style=flat-square&logo=microsoft-store&logoColor=white" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=f6c7d6" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=c7e7f6" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=d2f4e8" /></a>
@@ -163,6 +175,17 @@ A huge thank you to the incredible sponsors and products actively sponsoring Edg
 <p align="center">
   <sub>💡 <em>Want your product, startup, or website featured here and seen by developers? <a href="https://ko-fi.com/deepender" target="_blank">Sponsor Edge-Drop on Ko-fi</a> or <a href="https://www.edgedrop.app/supportedgedrop/upi" target="_blank">UPI</a> and share your link!</em></sub>
 </p>
+
+---
+
+## Download
+
+Edge-Drop is available via the **Microsoft Store** (with automatic background updates) and as a standalone **Windows Installer** (`.exe`).
+
+| 🛍️ Microsoft Store (Recommended) | 📦 Windows Installer (.exe) |
+| :---: | :---: |
+| <a href="https://apps.microsoft.com/detail/9P3JMHN9M4NR" target="_blank"><img src="https://get.microsoft.com/images/en-us%20dark.svg" width="160" alt="Get it from Microsoft Store" /></a> | <a href="https://github.com/Deepender25/Edge-Drop/releases/latest" target="_blank"><img src="https://img.shields.io/badge/Download-Edge--Drop--Setup.exe-52d7a4?style=for-the-badge&logo=windows&logoColor=white" height="38" alt="Download .exe Installer" /></a> |
+| *Auto-updating & sandboxed via Microsoft Store* | *Direct installer with built-in auto-updater* |
 
 ---
 
