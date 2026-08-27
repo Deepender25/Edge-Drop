@@ -52,11 +52,11 @@ It is built for the developer and creative workflow where you constantly juggle 
 
 > All demos are fast-loading, silent autoplay loops.
 
-<div align="center">
-  <h3>Full Overview: Welcome to Edge-Drop</h3>
-  <p><em>Zero-click edge-hover activation, fluid spring physics, and seamless drag-and-drop into any desktop app.</em></p>
-  <img src="public/open.gif" alt="Full Overview: Welcome to Edge-Drop" width="85%" style="max-width: 100%; height: auto; border-radius: 8px;" />
-</div>
+<p align="center">
+  <h3 align="center">Full Overview: Welcome to Edge-Drop</h3>
+  <p align="center"><em>Zero-click edge-hover activation, fluid spring physics, and seamless drag-and-drop into any desktop app.</em></p>
+  <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/open.gif" alt="Full Overview: Welcome to Edge-Drop" width="85%" />
+</p>
 
 <br/>
 
