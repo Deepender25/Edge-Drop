@@ -26,7 +26,7 @@
   </a>
   &nbsp;&nbsp;
   <a href="https://github.com/Deepender25/Edge-Drop/releases/latest" target="_blank">
-    <img src="https://img.shields.io/badge/Download-.exe%20Installer-52d7a4?style=for-the-badge&logo=windows&logoColor=white" height="38" alt="Download .exe Installer" />
+    <img src="https://img.shields.io/badge/Download-.exe%20Installer-107C41?style=for-the-badge&logo=windows&logoColor=white" height="48" alt="Download .exe Installer" />
   </a>
 </p>
 
@@ -180,12 +180,40 @@ A huge thank you to the incredible sponsors and products actively sponsoring Edg
 
 ## Download
 
-Edge-Drop is available via the **Microsoft Store** (with automatic background updates) and as a standalone **Windows Installer** (`.exe`).
+<p align="center">
+  <strong>Choose your preferred installation method for Windows 10 & 11:</strong>
+</p>
 
-| 🛍️ Microsoft Store (Recommended) | 📦 Windows Installer (.exe) |
-| :---: | :---: |
-| <a href="https://apps.microsoft.com/detail/9P3JMHN9M4NR" target="_blank"><img src="https://get.microsoft.com/images/en-us%20dark.svg" width="160" alt="Get it from Microsoft Store" /></a> | <a href="https://github.com/Deepender25/Edge-Drop/releases/latest" target="_blank"><img src="https://img.shields.io/badge/Download-Edge--Drop--Setup.exe-52d7a4?style=for-the-badge&logo=windows&logoColor=white" height="38" alt="Download .exe Installer" /></a> |
-| *Auto-updating & sandboxed via Microsoft Store* | *Direct installer with built-in auto-updater* |
+<table align="center" border="0" style="border-collapse: collapse; border: none;">
+  <tr>
+    <th align="center" width="50%" style="border: none; padding: 10px 25px 5px;">
+      <h3>Microsoft Store</h3>
+    </th>
+    <th align="center" width="50%" style="border: none; padding: 10px 25px 5px;">
+      <h3>Windows Installer</h3>
+    </th>
+  </tr>
+  <tr>
+    <td align="center" style="border: none; padding: 10px 25px 12px; vertical-align: middle;">
+      <a href="https://apps.microsoft.com/detail/9P3JMHN9M4NR" target="_blank">
+        <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="175" alt="Download from Microsoft Store" style="border-radius: 8px;" />
+      </a>
+    </td>
+    <td align="center" style="border: none; padding: 10px 25px 12px; vertical-align: middle;">
+      <a href="https://github.com/Deepender25/Edge-Drop/releases/latest" target="_blank">
+        <img src="https://img.shields.io/badge/Download-.exe%20Installer-107C41?style=for-the-badge&logo=windows&logoColor=white" height="52" alt="Download .exe Installer" style="border-radius: 8px;" />
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" style="border: none; padding: 0 25px 15px; vertical-align: top;">
+      <sub>Automatic background updates & native sandbox</sub>
+    </td>
+    <td align="center" style="border: none; padding: 0 25px 15px; vertical-align: top;">
+      <sub>Standalone setup with built-in auto-updater</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
