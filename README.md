@@ -52,9 +52,13 @@ It is built for the developer and creative workflow where you constantly juggle 
 
 > All demos are fast-loading, silent autoplay loops.
 
+<h3 align="center">Full Overview: Welcome to Edge-Drop</h3>
+
 <p align="center">
-  <h3 align="center">Full Overview: Welcome to Edge-Drop</h3>
-  <p align="center"><em>Zero-click edge-hover activation, fluid spring physics, and seamless drag-and-drop into any desktop app.</em></p>
+  <em>Zero-click edge-hover activation, fluid spring physics, and seamless drag-and-drop into any desktop app.</em>
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/open.gif" alt="Full Overview: Welcome to Edge-Drop" width="85%" />
 </p>
 
@@ -63,9 +67,9 @@ It is built for the developer and creative workflow where you constantly juggle 
 <table>
   <tr>
     <td width="50%" align="center">
-      <b>1. Collect Anything Automatically</b><br/>
+      <b>1. Collect Anything</b><br/>
       <sub>Captures text, high-res images, files, and links in real time.</sub><br/><br/>
-      <video src="https://github.com/user-attachments/assets/8daa18a7-d023-4e93-9f17-c30791a7c41c" width="100%" autoplay loop muted playsinline></video>
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/browser-demo.gif" width="100%" alt="Collect Anything" />
     </td>
     <td width="50%" align="center">
       <b>2. Drag & Drop Out Anywhere</b><br/>
@@ -75,9 +79,9 @@ It is built for the developer and creative workflow where you constantly juggle 
   </tr>
   <tr>
     <td width="50%" align="center">
-      <b>3. Explore & Inspect File Stacks</b><br/>
-      <sub>Click file bundles to view child contents without opening Explorer.</sub><br/><br/>
-      <video src="https://github.com/user-attachments/assets/b1e47a2b-41d2-4958-8e42-4fefcaa8b26b" width="100%" autoplay loop muted playsinline></video>
+      <b>3. Copy Multiple Files</b><br/>
+      <sub>Select several files at once and drop them wherever you need.</sub><br/><br/>
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/file-stacks-demo.gif" width="100%" alt="Copy Multiple Files" />
     </td>
     <td width="50%" align="center">
       <b>4. Ungroup & Split Stacks</b><br/>
@@ -89,7 +93,7 @@ It is built for the developer and creative workflow where you constantly juggle 
     <td width="50%" align="center">
       <b>5. Combine & Merge Items</b><br/>
       <sub>Select and merge multiple clipboard items into a single stack.</sub><br/><br/>
-      <video src="https://github.com/user-attachments/assets/cee7d5f7-658b-433a-9fa0-6592a5a75fa4" width="100%" autoplay loop muted playsinline></video>
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/stack.gif" width="100%" alt="Combine & Merge Items" />
     </td>
     <td width="50%" align="center">
       <b>6. Quick Preview Flyout</b><br/>
