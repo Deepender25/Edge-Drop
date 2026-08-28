@@ -110,7 +110,7 @@ It is built for the developer and creative workflow where you constantly juggle 
     <td width="50%" align="center">
       <b>6. Quick Preview Flyout</b><br/>
       <sub>Inspect high-res images, formatted text, and code with zoom.</sub><br/><br/>
-      <video src="https://github.com/user-attachments/assets/fe5a8b47-08c6-4d32-92b6-bb4e0446a82a" width="100%" autoplay loop muted playsinline></video>
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/preview.gif" width="100%" alt="Quick Preview Flyout" />
     </td>
   </tr>
 </table>
