@@ -44,9 +44,11 @@ function matchesType(it: ClipboardItemDto, filter: TypeFilter): boolean {
     case 'links':
       return it.data.kind === 'text' && !!it.data.isUrl
     case 'images':
-      return isImageItem(it)
+      if (it.data.kind === 'image' || it.data.kind === 'image-collection') return true
+      if (it.data.kind === 'files') return it.data.paths.some((p) => isImagePath(p))
+      return false
     case 'files':
-      return it.data.kind === 'files' && !isImageItem(it)
+      return it.data.kind === 'files'
   }
 }
 
