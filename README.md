@@ -84,9 +84,9 @@ It is built for the developer and creative workflow where you constantly juggle 
       <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/browser-demo.gif" width="100%" alt="Collect Anything" />
     </td>
     <td width="50%" align="center">
-      <b>2. Drag & Drop Out Anywhere</b><br/>
-      <sub>Drag items directly into Photoshop, Slack, Explorer, or Word.</sub><br/><br/>
-      <video src="https://github.com/user-attachments/assets/ac8bc411-0827-460c-828c-0799f4cee4d8" width="100%" autoplay loop muted playsinline></video>
+      <b>2. Drag & Drop Anywhere</b><br/>
+      <sub>Drag items directly into any app or workspace.</sub><br/><br/>
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/paste.gif" width="100%" alt="Drag & Drop Anywhere" />
     </td>
   </tr>
   <tr>
