@@ -98,7 +98,7 @@ It is built for the developer and creative workflow where you constantly juggle 
     <td width="50%" align="center">
       <b>4. Ungroup & Split Stacks</b><br/>
       <sub>Break file packages into individual standalone clipboard cards.</sub><br/><br/>
-      <video src="https://github.com/user-attachments/assets/e41eb9f8-62b0-4525-a28a-2bacafd0bb8c" width="100%" autoplay loop muted playsinline></video>
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/ungroup.gif" width="100%" alt="Ungroup & Split Stacks" />
     </td>
   </tr>
   <tr>
