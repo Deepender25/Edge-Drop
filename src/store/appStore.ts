@@ -33,6 +33,11 @@ interface AppState {
   open: boolean
   /** Settings sheet visibility. */
   settingsOpen: boolean
+  /** Emoji library view (replaces the clipboard list). */
+  emojiOpen: boolean
+  setEmojiOpen: (open: boolean) => void
+  emojiCategory: import('../lib/emoji/catalog').EmojiCategoryId
+  setEmojiCategory: (cat: import('../lib/emoji/catalog').EmojiCategoryId) => void
   /** Active view mode within settings ('main' | 'changelog'). */
   settingsSubView: 'main' | 'changelog'
   setSettingsSubView: (subView: 'main' | 'changelog') => void
@@ -110,6 +115,7 @@ interface AppState {
   copySubitem: (req: DragRequest) => Promise<void>
   paste: (id: string) => Promise<void>
   pasteSubitem: (req: DragRequest) => Promise<void>
+  pasteEmoji: (text: string) => Promise<void>
   patchSettings: (patch: Partial<Settings>) => Promise<void>
   refreshLaunchAtLogin: () => Promise<void>
   setTutorialStep: (step: number) => void
@@ -132,6 +138,26 @@ export const useStore = create<AppState>((set, get) => ({
   },
   open: false,
   settingsOpen: false,
+  emojiOpen: false,
+  emojiCategory: 'smileys',
+  setEmojiCategory: (emojiCategory) => set({ emojiCategory }),
+  setEmojiOpen: (emojiOpen) => {
+    if (emojiOpen) {
+      set({
+        emojiOpen: true,
+        settingsOpen: false,
+        settingsSubView: 'main',
+        previewItemId: null,
+        previewItemRect: null,
+        previewFlyoutRect: null,
+        styleFlyoutOpen: false,
+        expandedStackId: null
+      })
+      edge.setPreviewMode(false)
+    } else {
+      set({ emojiOpen: false })
+    }
+  },
   settingsSubView: 'main',
   setSettingsSubView: (subView) => set({ settingsSubView: subView }),
   dragActive: false,
@@ -315,7 +341,8 @@ export const useStore = create<AppState>((set, get) => ({
       previewItemRect: null,
       previewFlyoutRect: null,
       styleFlyoutOpen: false,
-      expandedStackId: null
+      expandedStackId: null,
+      emojiOpen: settingsOpen ? false : get().emojiOpen
     })
   },
   setDragActive: (dragActive) => set({ dragActive }),
@@ -452,6 +479,15 @@ export const useStore = create<AppState>((set, get) => ({
 
   async pasteSubitem(req) {
     await edge.pasteSubitem(req)
+  },
+
+  async pasteEmoji(text) {
+    set({ isInternalCopying: true })
+    try {
+      await edge.pasteEmoji(text)
+    } finally {
+      setTimeout(() => set({ isInternalCopying: false }), 400)
+    }
   },
 
   async patchSettings(patch) {

@@ -13,6 +13,9 @@ import { useStore } from '../store/appStore'
 import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
 import { ItemList } from './ItemList'
+import { EmojiPicker } from './EmojiPicker'
+import { ClipboardIcon, EmojiSmileIcon, ChevronLeftIcon } from './icons'
+import { playButtonClickSound } from '../lib/soundEffects'
 import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { ClearMenu } from './ClearMenu'
@@ -37,6 +40,8 @@ export function Panel() {
   const settingsOpen = useStore((s) => s.settingsOpen)
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const setQuery = useStore((s) => s.setQuery)
+  const emojiOpen = useStore((s) => s.emojiOpen)
+  const setEmojiOpen = useStore((s) => s.setEmojiOpen)
   const edgeHintActive = useStore((s) => s.edgeHintActive)
 
   useEffect(() => {
@@ -47,11 +52,12 @@ export function Panel() {
         if (!useStore.getState().open) {
           setSettingsOpen(false)
           setQuery('')
+          setEmojiOpen(false)
         }
       }, 400)
       return () => window.clearTimeout(timer)
     }
-  }, [open, setSettingsOpen, setQuery])
+  }, [open, setSettingsOpen, setQuery, setEmojiOpen])
 
   const screenH = typeof window !== 'undefined' ? window.innerHeight : 800
   const pFrac = settings.panelHeight || 0.6
@@ -354,19 +360,56 @@ export function Panel() {
                 </motion.div>
               ) : (
                 <motion.div
-                  key="list"
-                  initial={{ opacity: 1, x: isRight ? 8 : -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: isRight ? -8 : 8 }}
+                  key={emojiOpen ? 'emoji' : 'list'}
+                  initial={{ opacity: 0, y: emojiOpen ? 8 : -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: emojiOpen ? -8 : 8 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 32, mass: 0.5 }}
                   style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
                 >
-                  <ItemList />
+                  {emojiOpen ? <EmojiPicker /> : <ItemList />}
                 <div className="footer" style={{ position: 'relative' }}>
-                  <span className="count">
-                    {filteredCount} {t('item.items')}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                    {emojiOpen ? (
+                      <button
+                        type="button"
+                        className="footer-back-pill"
+                        title={t('onboarding.back')}
+                        tabIndex={-1}
+                        onClick={(e) => {
+                          e.currentTarget.blur()
+                          playButtonClickSound()
+                          setEmojiOpen(false)
+                        }}
+                      >
+                        <ChevronLeftIcon width={13} height={13} />
+                        <ClipboardIcon width={13} height={13} />
+                        <span>{t('onboarding.back')}</span>
+                      </button>
+                    ) : (
+                      <div className="footer-capsule">
+                        <span className="footer-capsule-count" title={`${filteredCount}`}>
+                          {filteredCount}
+                        </span>
+                        <div className="footer-capsule-divider" />
+                        <button
+                          type="button"
+                          className="footer-capsule-btn"
+                          title="Emoji"
+                          tabIndex={-1}
+                          onClick={(e) => {
+                            e.currentTarget.blur()
+                            playButtonClickSound()
+                            setEmojiOpen(true)
+                          }}
+                        >
+                          <EmojiSmileIcon width={15} height={15} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <div className="spacer" />
+                  {!emojiOpen && (
                   <ClearMenu
                     items={filteredItems}
                     disabled={recent.length === 0}
@@ -380,6 +423,7 @@ export function Panel() {
                       }
                     }}
                   />
+                  )}
                 </div>
               </motion.div>
             )}

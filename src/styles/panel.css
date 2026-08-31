@@ -335,15 +335,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px var(--pad) 14px;
+  gap: 8px;
+  padding: 8px var(--pad) 12px;
   position: relative;
   z-index: 1;
   background: transparent;
   -webkit-font-smoothing: antialiased;
 }
 .footer .count {
-  font-size: calc(12.5px * var(--font-scale, 1));
+  font-size: calc(12px * var(--font-scale, 1));
   font-weight: 500;
   color: #e4e4e7;
   letter-spacing: 0.01em;
@@ -355,24 +355,114 @@
 .footer .spacer {
   flex: 1;
 }
-.footer .text-btn {
-  font-size: calc(12.5px * var(--font-scale, 1));
-  font-weight: 500;
-  color: #f4f4f5;
+
+/* Glass capsule: item count + emoji button */
+.footer-capsule {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0 3px 0 9px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.footer-capsule:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.footer-capsule-count {
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  padding-right: 7px;
+  user-select: none;
+}
+.footer-capsule-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  margin-right: 3px;
+}
+.footer-capsule-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+.footer-capsule-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+.footer-capsule-btn:active {
+  transform: scale(0.94);
+}
+
+/* Return to clipboard pill */
+.footer-back-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 0 12px 0 8px;
+  color: #f4f4f5;
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.footer-back-pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.footer-back-pill:active {
+  transform: scale(0.96);
+}
+
+/* Clear button */
+.footer .text-btn {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0 11px;
+  border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all var(--dur-fast) var(--ease-out);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .footer .text-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.20);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+.footer .text-btn:active:not(:disabled) {
+  transform: scale(0.96);
 }
 .footer .text-btn:disabled {
   opacity: 0.35;
@@ -381,9 +471,9 @@
   background: rgba(255, 255, 255, 0.03);
 }
 .footer .text-btn.danger:hover:not(:disabled) {
-  color: #ff8080;
-  border-color: rgba(255, 128, 128, 0.3);
-  background: rgba(255, 80, 80, 0.15);
+  color: #ff9494;
+  border-color: rgba(255, 100, 100, 0.35);
+  background: rgba(255, 70, 70, 0.14);
 }
 
 /* ----------------------------------------------------------------- */

@@ -28,14 +28,6 @@ function matches(it: ClipboardItemDto, q: string): boolean {
 
 import { isImagePath } from '../lib/format'
 
-function isImageItem(it: ClipboardItemDto): boolean {
-  if (it.data.kind === 'image' || it.data.kind === 'image-collection') return true
-  if (it.data.kind === 'files' && it.data.paths.length > 0) {
-    return it.data.paths.every((p) => isImagePath(p))
-  }
-  return false
-}
-
 function matchesType(it: ClipboardItemDto, filter: TypeFilter): boolean {
   if (filter === 'all') return true
   switch (filter) {

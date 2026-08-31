@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 import { APP_CONFIG } from './config'
 
@@ -32,6 +32,33 @@ export function thumbnailUrlForStoredImage(imageId: string): string {
 /** URL for a bounded thumbnail of an external image file. */
 export function thumbnailUrlForFile(filePath: string): string {
   return `${APP_CONFIG.imageProtocol}://thumb/file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+}
+
+const EMOJI_FILE_RE = /^[0-9a-f][0-9a-f0-9-]*\.png$/
+
+/** Directory of Twemoji 64px PNGs (dev: node_modules, packaged: extraResources). */
+export function emojiAssetDir(opts: { packaged: boolean; resourcesPath: string; appPath: string; cwd: string }): string {
+  if (opts.packaged) return join(opts.resourcesPath, 'emoji', '64')
+  const candidates = [
+    join(opts.cwd, 'node_modules', 'emoji-datasource-twitter', 'img', 'twitter', '64'),
+    join(opts.appPath, 'node_modules', 'emoji-datasource-twitter', 'img', 'twitter', '64')
+  ]
+  return candidates.find((dir) => existsSync(dir)) ?? candidates[0]
+}
+
+/**
+ * Resolve a picker glyph filename to an on-disk PNG. Rejects anything that
+ * is not a lowercase hex-and-hyphen name so the protocol cannot escape the
+ * emoji asset directory.
+ */
+export function resolveEmojiAsset(assetDir: string, fileName: string): string | null {
+  const name = fileName.toLowerCase()
+  if (!EMOJI_FILE_RE.test(name)) return null
+  const baseDir = resolve(assetDir)
+  const filePath = resolve(join(baseDir, name))
+  if (dirname(filePath) !== baseDir) return null
+  if (!existsSync(filePath)) return null
+  return filePath
 }
 
 /**

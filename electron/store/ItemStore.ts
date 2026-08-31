@@ -142,7 +142,14 @@ export class ItemStore {
 
   private rebuildIndex(): void {
     this.sigToId.clear()
-    for (const it of this.items) this.sigToId.set(contentSignature(it.data), it.id)
+    for (const it of this.items) {
+      if (it.data.kind === 'text' && it.data.hasFullPayload) {
+        const full = this.getFullText(it.id)
+        this.sigToId.set(contentSignature({ ...it.data, text: full }), it.id)
+      } else {
+        this.sigToId.set(contentSignature(it.data), it.id)
+      }
+    }
   }
 
   private persistTimer: ReturnType<typeof setTimeout> | null = null
@@ -176,9 +183,9 @@ export class ItemStore {
           encrypted: true,
           payload: encryptedBuf.toString('base64')
         }
-        writeFileSync(file, JSON.stringify(envelope, null, 2), 'utf8')
+        writeFileSync(file, JSON.stringify(envelope), 'utf8')
       } else {
-        writeFileSync(file, JSON.stringify(indexObj, null, 2), 'utf8')
+        writeFileSync(file, JSON.stringify(indexObj), 'utf8')
       }
     } catch (err) {
       console.error('[ItemStore] Persistence failed:', err)

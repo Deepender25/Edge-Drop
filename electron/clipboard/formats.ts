@@ -558,11 +558,16 @@ export function isUrlText(s: string): boolean {
  * read); over-clearing when two same-dimension images are involved is the
  * documented, acceptable trade-off.
  */
-export function signatureMatchesItem(sig: string, data: ItemData): boolean {
+export function signatureMatchesItem(sig: string, data: ItemData, fullText?: string): boolean {
   const bare = sig.replace(/^seq:\d+:/, '')
   switch (data.kind) {
-    case 'text':
-      return bare === `text:${data.text}`
+    case 'text': {
+      const body = fullText && fullText.length > 0 ? fullText : data.text
+      if (bare === `text:${body}`) return true
+      // Long items store only a 300-char preview; the OS clipboard still has the full string.
+      if (data.hasFullPayload && data.text && bare.startsWith(`text:${data.text}`)) return true
+      return false
+    }
     case 'files':
       return bare === `files:${data.paths.join('\n')}`
     case 'image':

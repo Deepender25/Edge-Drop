@@ -2,7 +2,7 @@
  * Official Lucide React Icon Suite for Edge-Drop.
  * Powered by lucide-react — ultra-crisp 24x24 vector icons.
  */
-import type { SVGProps } from 'react'
+import type { ReactNode, SVGProps } from 'react'
 import {
   Info,
   Sparkles,
@@ -31,7 +31,8 @@ import {
   Coffee,
   Heart,
   Star,
-  RotateCcw
+  RotateCcw,
+  Clipboard
 } from 'lucide-react'
 
 type P = SVGProps<SVGSVGElement>
@@ -85,6 +86,110 @@ export const ExpandIcon = (p: P) => <Maximize2 size={p.width ?? 16} {...(p as an
 export const ContractIcon = (p: P) => <Minimize2 size={p.width ?? 16} {...(p as any)} />
 export const FolderOpenIcon = (p: P) => <FolderOpen size={p.width ?? 16} {...(p as any)} />
 export const CheckIcon = (p: P) => <Check size={p.width ?? 16} {...(p as any)} />
+export const ClipboardIcon = (p: P) => <Clipboard size={p.width ?? 16} strokeWidth={2.1} {...(p as any)} />
+
+/** Category marks — optical 16px line icons, lighter than Lucide at this size. */
+const CAT_STROKE = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.65,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const
+}
+
+function CatSvg({ children, ...p }: P & { children: ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" width={p.width ?? 18} height={p.height ?? 18} fill="none" aria-hidden {...(p as any)}>
+      {children}
+    </svg>
+  )
+}
+
+export const EmojiSmileIcon = (p: P) => (
+  <CatSvg {...p}>
+    <circle cx="12" cy="12" r="8.25" {...CAT_STROKE} />
+    <circle cx="9.15" cy="10.2" r="1.05" fill="currentColor" stroke="none" />
+    <circle cx="14.85" cy="10.2" r="1.05" fill="currentColor" stroke="none" />
+    <path d="M8.6 14.15c.95 1.55 2.05 2.2 3.4 2.2s2.45-.65 3.4-2.2" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiClockIcon = (p: P) => (
+  <CatSvg {...p}>
+    <circle cx="12" cy="12" r="8.25" {...CAT_STROKE} />
+    <path d="M12 7.6v5.05l3.35 1.9" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiUserIcon = (p: P) => (
+  <CatSvg {...p}>
+    <circle cx="9.2" cy="9" r="2.35" {...CAT_STROKE} />
+    <path d="M4.7 17.4c.35-2.45 2.15-3.85 4.5-3.85 2.35 0 4.15 1.4 4.5 3.85" {...CAT_STROKE} />
+    <circle cx="15.35" cy="9.15" r="2.05" {...CAT_STROKE} />
+    <path d="M13.2 13.85c1.55-.7 3.4-.55 4.85.7.95.8 1.5 1.9 1.7 2.85" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiPawIcon = (p: P) => (
+  <CatSvg {...p}>
+    <path d="M7.35 10.4 9.2 5.7l2.15 4.5" {...CAT_STROKE} />
+    <path d="M12.65 10.2 14.8 5.7l1.85 4.7" {...CAT_STROKE} />
+    <circle cx="12" cy="13.55" r="5.05" {...CAT_STROKE} />
+    <circle cx="9.9" cy="13.1" r="0.85" fill="currentColor" stroke="none" />
+    <circle cx="14.1" cy="13.1" r="0.85" fill="currentColor" stroke="none" />
+    <path d="M10.4 15.55c.5.7 1 .95 1.6.95s1.1-.25 1.6-.95" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiFoodIcon = (p: P) => (
+  <CatSvg {...p}>
+    <path d="M7.1 5v3.6M9.3 5v3.6M11.5 5v3.6" {...CAT_STROKE} />
+    <path d="M9.3 8.6v10.6" {...CAT_STROKE} />
+    <path d="M15.6 5.2v14" {...CAT_STROKE} />
+    <path d="M15.6 5.2c2.35.15 2.7 2.55.15 4.15" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiPlaneIcon = (p: P) => (
+  <CatSvg {...p}>
+    <circle cx="12" cy="12" r="8.25" {...CAT_STROKE} />
+    <ellipse cx="12" cy="12" rx="3.4" ry="8.25" {...CAT_STROKE} />
+    <path d="M4 12h16" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiTrophyIcon = (p: P) => (
+  <CatSvg {...p}>
+    <circle cx="12" cy="11.2" r="6.1" {...CAT_STROKE} />
+    <path d="M9.4 14.7 8.2 19.2h7.6L14.6 14.7" {...CAT_STROKE} />
+    <path d="M9.1 19.2h5.8" {...CAT_STROKE} />
+    <path d="M12 7.4v3.7" {...CAT_STROKE} />
+    <path d="M10.35 9.55h3.3" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiBulbIcon = (p: P) => (
+  <CatSvg {...p}>
+    <path d="M12 5.5 19 9.15v7.4L12 20.5 5 16.55V9.15z" {...CAT_STROKE} />
+    <path d="M5 9.15 12 12.85 19 9.15" {...CAT_STROKE} />
+    <path d="M12 12.85V20.5" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiShapesIcon = (p: P) => (
+  <CatSvg {...p}>
+    <circle cx="9.1" cy="9.2" r="3.15" {...CAT_STROKE} />
+    <rect x="12.7" y="12.35" width="6.3" height="6.3" rx="1.15" {...CAT_STROKE} />
+    <path d="M8.35 14.55 5.4 19.6h5.9z" {...CAT_STROKE} />
+  </CatSvg>
+)
+
+export const EmojiFlagIcon = (p: P) => (
+  <CatSvg {...p}>
+    <path d="M7.2 4.6v14.8" {...CAT_STROKE} />
+    <path d="M7.2 5.4h9.3l-1.7 3.35 1.7 3.35H7.2" {...CAT_STROKE} />
+  </CatSvg>
+)
 import { CustomFileIcon, FileStackPhoto } from './CustomFileIcon'
 export { CustomFileIcon, CustomFileIcon as FileKindIcon, FileStackPhoto }
 

@@ -33,6 +33,21 @@ describe('signatureMatchesItem — ownership matching with seq prefixes', () => 
     expect(signatureMatchesItem('seq:9:text:https://example.com/a', data)).toBe(true)
   })
 
+  it('matches a long text whose store preview is a prefix of the live clipboard', () => {
+    const full = 'https://www.amazon.co.jp/' + 'A'.repeat(400)
+    const preview = full.slice(0, 300)
+    const data: ItemData = {
+      kind: 'text',
+      text: preview,
+      isUrl: true,
+      hasFullPayload: true,
+      previewText: preview
+    }
+    expect(signatureMatchesItem(`seq:12:text:${full}`, data, full)).toBe(true)
+    expect(signatureMatchesItem(`seq:12:text:${full}`, data)).toBe(true)
+    expect(signatureMatchesItem('seq:12:text:https://other.example/', data)).toBe(false)
+  })
+
   it('matches FILES by exact path list, ignoring the sequence number', () => {
     const data: ItemData = { kind: 'files', paths: ['C:\\a.pdf', 'C:\\b.txt'] }
     expect(signatureMatchesItem('seq:7:files:C:\\a.pdf\nC:\\b.txt', data)).toBe(true)

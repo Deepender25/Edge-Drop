@@ -150,6 +150,27 @@ export interface TranslationKeys {
     clearAll?: string
     clearAllConfirm?: string
   }
+  emoji?: {
+    open: string
+    backToClipboard: string
+    recents: string
+    smileys: string
+    people: string
+    animals: string
+    food: string
+    travel: string
+    activities: string
+    objects: string
+    symbols: string
+    flags: string
+    categories: string
+    emptyRecents: string
+    skinTone: string
+    loadFailed: string
+    prevCategory?: string
+    nextCategory?: string
+    clearRecents?: string
+  }
   fileKinds: {
     pdf: string
     word: string
@@ -588,6 +609,27 @@ export const en: TranslationKeys = {
     "moreFiles": "+{count} more files",
     "singleFile": "1 file",
     "scrollToTop": "Scroll to top"
+  },
+  "emoji": {
+    "open": "Emoji",
+    "backToClipboard": "Clipboard",
+    "recents": "Recents",
+    "smileys": "Smileys",
+    "people": "People",
+    "animals": "Animals",
+    "food": "Food",
+    "travel": "Travel",
+    "activities": "Activity",
+    "objects": "Objects",
+    "symbols": "Symbols",
+    "flags": "Flags",
+    "categories": "Emoji categories",
+    "emptyRecents": "Pasted emoji will show up here",
+    "skinTone": "Skin tone",
+    "loadFailed": "Could not load emoji",
+    "prevCategory": "Previous category",
+    "nextCategory": "Next category",
+    "clearRecents": "Clear recents"
   },
   "fileKinds": {
     "pdf": "PDF",

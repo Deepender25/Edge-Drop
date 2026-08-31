@@ -35,6 +35,7 @@ export function Header() {
 
   const typeFilter = useStore((s) => s.typeFilter)
   const setTypeFilter = useStore((s) => s.setTypeFilter)
+  const emojiOpen = useStore((s) => s.emojiOpen)
 
   const FILTERS: { id: import('../../shared/types').TypeFilter; label: string }[] = [
     { id: 'all', label: t('filters.all') },
@@ -56,6 +57,10 @@ export function Header() {
         {settingsOpen ? (
           <span style={{ fontSize: 13, fontWeight: 600, color: '#8e8e93', letterSpacing: '0.01em', paddingLeft: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
             {settingsSubView === 'changelog' ? t('header.whatsNew') : t('header.settings')}
+          </span>
+        ) : emojiOpen ? (
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#8e8e93', letterSpacing: '0.01em', paddingLeft: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
+            Emoji
           </span>
         ) : (
           <div 

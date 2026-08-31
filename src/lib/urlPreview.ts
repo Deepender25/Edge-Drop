@@ -40,6 +40,15 @@ const BRAND_PRESETS: Record<string, { serviceName: string; brandColor: string }>
   'drive.google.com': { serviceName: 'Google Drive', brandColor: '#0f9d58' },
 }
 
+/** decodeURIComponent throws URIError on truncated %XX — never throw from render. */
+export function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 export function parseUrlPreview(rawUrl: string): UrlPreviewInfo {
   let urlObj: URL | null = null
   try {
@@ -96,7 +105,7 @@ export function parseUrlPreview(rawUrl: string): UrlPreviewInfo {
     }
   } else if (hostname.includes('wikipedia.org')) {
     if (pathSegments.length >= 2 && pathSegments[0] === 'wiki') {
-      title = decodeURIComponent(pathSegments[1]).replace(/_/g, ' ')
+      title = safeDecodeURIComponent(pathSegments[1]).replace(/_/g, ' ')
     }
   } else if (hostname.includes('reddit.com')) {
     if (pathSegments.length >= 2 && pathSegments[0] === 'r') {
@@ -111,10 +120,10 @@ export function parseUrlPreview(rawUrl: string): UrlPreviewInfo {
     }
   } else if (pathSegments.length > 0) {
     const lastSeg = pathSegments[pathSegments.length - 1]
-    const cleanSeg = decodeURIComponent(lastSeg)
+    const cleanSeg = safeDecodeURIComponent(lastSeg)
       .replace(/[-_]/g, ' ')
       .replace(/\.(html?|php|aspx?)$/i, '')
-    if (cleanSeg.length > 3 && !/^[0-9a-f]{8,}$/i.test(cleanSeg)) {
+    if (cleanSeg.length > 3 && !/^[0-9a-f]{8,}$/i.test(cleanSeg) && !/%[0-9A-Fa-f]{0,1}$/.test(lastSeg)) {
       title = cleanSeg.charAt(0).toUpperCase() + cleanSeg.slice(1)
     }
   }

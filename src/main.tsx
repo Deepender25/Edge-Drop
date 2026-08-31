@@ -9,6 +9,7 @@ import './styles/global.css'
 import './styles/panel.css'
 import './styles/item.css'
 import './styles/settings.css'
+import './styles/emoji.css'
 
 const container = document.getElementById('root')
 if (!container) throw new Error('#root element not found')

@@ -18,12 +18,13 @@ import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData, prestageDrag, stageDragFile } from './drag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
-import type { ItemData, MergeResult } from '../../shared/types'
+import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
 import { createId } from '../store/ids'
 import { isStoreBuild } from './config'
 import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
 import { toUnpackagedFilePath, toUnpackagedFilePaths } from '../store/paths'
+import { isPasteableEmoji } from '../../shared/emoji'
 
 export { isStoreBuild }
 
@@ -39,8 +40,12 @@ export { isStoreBuild }
  * clipboard; deleting an old history entry that the user has since replaced
  * must never wipe their current clipboard contents.
  */
-function clipboardMatchesItem(data: ItemData): boolean {
-  return signatureMatchesItem(clipboardSignature(), data)
+function clipboardMatchesItem(item: ClipboardItem): boolean {
+  const fullText =
+    item.data.kind === 'text' && item.data.hasFullPayload
+      ? getStore().getFullText(item.id)
+      : undefined
+  return signatureMatchesItem(clipboardSignature(), item.data, fullText)
 }
 
 /** Fire a transient toast to the renderer (best-effort; renderer may be closed). */
@@ -241,30 +246,43 @@ export function registerIpc(): void {
 
   handle('item:delete', (id) => {
     const item = getStore().get(id)
-    // Resolve clipboard ownership BEFORE mutating the store: if this exact
-    // content still sits on the system clipboard it must be cleared first so
-    // (a) the staged-temp cleanup inside delete() can never yank a file from
-    // under a live OS clipboard reference, and (b) resyncSignature() below
-    // locks onto an EMPTY clipboard, making an immediate re-copy of the same
-    // content a detectable change instead of an invisible no-op.
-    if (item && clipboardMatchesItem(item.data)) {
-      clipboard.clear()
+    const watcher = getWatcher()
+    // Pause first: an in-flight settle timer from the copy that created this
+    // item would otherwise readClipboard() after we splice and put it back.
+    watcher.setPaused(true)
+    try {
+      // Resolve clipboard ownership BEFORE mutating the store: if this exact
+      // content still sits on the system clipboard it must be cleared first so
+      // (a) the staged-temp cleanup inside delete() can never yank a file from
+      // under a live OS clipboard reference, and (b) resyncSignature() below
+      // locks onto an EMPTY clipboard, making an immediate re-copy of the same
+      // content a detectable change instead of an invisible no-op.
+      if (item && clipboardMatchesItem(item)) {
+        clipboard.clear()
+      }
+      getStore().delete(id)
+    } finally {
+      watcher.resyncSignature()
+      watcher.setPaused(loadSettings().incognito)
     }
-    getStore().delete(id)
-    getWatcher().resyncSignature()
     pushState.items()
     return getStore().toDto()
   })
 
   handle('item:delete-batch', (ids) => {
     if (!ids || ids.length === 0) return getStore().toDto()
-    const items = ids.map((id) => getStore().get(id)).filter(Boolean)
-    // Single ownership pass before removal (same rule as single delete).
-    if (items.some((item) => item && clipboardMatchesItem(item.data))) {
-      clipboard.clear()
+    const items = ids.map((id) => getStore().get(id)).filter((item): item is ClipboardItem => !!item)
+    const watcher = getWatcher()
+    watcher.setPaused(true)
+    try {
+      if (items.some((item) => clipboardMatchesItem(item))) {
+        clipboard.clear()
+      }
+      getStore().deleteBatch(ids)
+    } finally {
+      watcher.resyncSignature()
+      watcher.setPaused(loadSettings().incognito)
     }
-    getStore().deleteBatch(ids)
-    getWatcher().resyncSignature()
     pushState.items()
     return getStore().toDto()
   })
@@ -369,6 +387,8 @@ export function registerIpc(): void {
   // ---------------------------------------------------------------------------
   let _lastPasteTime = 0
   const PASTE_GUARD_MS = 600
+  let _lastEmojiPasteTime = 0
+  const EMOJI_PASTE_GUARD_MS = 180
 
   handle('item:paste', async (id) => {
     const now = Date.now()
@@ -489,6 +509,33 @@ export function registerIpc(): void {
       }, 350)
     }
 
+    return true
+  })
+
+  handle('emoji:paste', async (text) => {
+    if (!isPasteableEmoji(text)) return false
+    const now = Date.now()
+    if (now - _lastEmojiPasteTime < EMOJI_PASTE_GUARD_MS) return false
+    _lastEmojiPasteTime = now
+
+    const watcher = getWatcher()
+    watcher.setPaused(true)
+    try {
+      // Write + Ctrl+V only. Do NOT add() to history — picker inserts are a
+      // paste tool, not a capture. resyncSignature() so this write is not
+      // seen as a new capture when the watcher resumes. A later copy of the
+      // same emoji from another app still lands: signatures include the Win32
+      // sequence number, so an outside Ctrl+C is a new seq and is recorded.
+      clipboard.writeText(text.trim())
+      setTimeout(() => {
+        simulatePaste()
+      }, 40)
+    } finally {
+      setTimeout(() => {
+        watcher.resyncSignature()
+        watcher.setPaused(loadSettings().incognito)
+      }, 350)
+    }
     return true
   })
 

@@ -25,7 +25,7 @@ import { flushStagedTempRegistry } from './stagedTemp'
 import { extname, normalize } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { resolveStoredImage } from './imageProtocol'
+import { resolveStoredImage, resolveEmojiAsset, emojiAssetDir } from './imageProtocol'
 import { getThumbnailPayload, thumbnailCacheControl } from './thumbnailCache'
 
 // Edge-Drop renders a small, mostly static transparent panel. Chromium's GPU
@@ -161,6 +161,27 @@ app.on('activate', () => {
 function registerImageProtocol(): void {
   protocol.handle(APP_CONFIG.imageProtocol, async (request) => {
     try {
+      if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://emoji/`)) {
+        const fileName = decodeURIComponent(request.url.slice(`${APP_CONFIG.imageProtocol}://emoji/`.length).split('?')[0] ?? '')
+        const dir = emojiAssetDir({
+          packaged: app.isPackaged,
+          resourcesPath: process.resourcesPath,
+          appPath: app.getAppPath(),
+          cwd: process.cwd()
+        })
+        const filePath = resolveEmojiAsset(dir, fileName)
+        if (!filePath) return new Response('Not found', { status: 404 })
+        const stream = createReadStream(filePath)
+        const body = new Response(stream as unknown as ReadableStream<Uint8Array>).body
+        return new Response(body, {
+          status: 200,
+          headers: new Headers({
+            'Content-Type': 'image/png',
+            'Cache-Control': 'public, max-age=31536000, immutable'
+          })
+        })
+      }
+
       // List cards request bounded raster thumbnails.  Do not hand an original
       // multi-megapixel file to Chromium merely to paint a 50–240px card.
       if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://thumb/`)) {

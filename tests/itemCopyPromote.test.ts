@@ -46,30 +46,23 @@ describe('copy-promotion correctness (self-duplication regression)', () => {
     try { rmSync(fsRoots.home, { recursive: true, force: true }) } catch { /* ignore */ }
   })
 
-  it('LONG TEXT HAZARD: re-adding the full payload creates a DUPLICATE (why touch() is mandatory)', () => {
-    // Documents the exact defect: item:copy used to promote via add(fullText).
-    // The trap springs AFTER an index rebuild (restart/merge/split): stored
-    // items carry 300-char preview signatures, so the full payload re-add
-    // misses and creates a SECOND entry.
+  it('after restart, re-adding the full payload matches the stored preview (no duplicate)', () => {
     const store = makeStore()
     store.add({ kind: 'text', text: LONG_TEXT, isUrl: false }, 10)
     const id = store.list()[0].id
-    store.persistSync() // flush the debounced write before "restarting"
+    store.persistSync()
 
-    // Force the rebuild path a restart takes: fresh instance -> load.
     const reopened = makeStore()
     reopened.load()
     expect(reopened.list()).toHaveLength(1)
-    expect(reopened.list()[0].data.text.length).toBe(300) // preview stored
+    expect(reopened.list()[0].data.text.length).toBe(300)
 
     const fullPayload = reopened.getFullText(id)
     expect(fullPayload).toBe(LONG_TEXT)
 
     reopened.add({ kind: 'text', text: fullPayload, isUrl: false }, 10)
-
-    // This assertion PINS the hazard: if anyone reintroduces add()-promotion,
-    // this expectation fails and explains why.
-    expect(reopened.list()).toHaveLength(2)
+    expect(reopened.list()).toHaveLength(1)
+    expect(reopened.list()[0].hitCount).toBe(2)
   })
 
   it('SAFE PATH: touch() promotes without changing count, content, or signature', () => {
