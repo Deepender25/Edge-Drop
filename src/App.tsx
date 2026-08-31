@@ -80,6 +80,9 @@ export default function App() {
     const offUpdateDownloaded = edge.onUpdateDownloaded((info) => {
       useStore.getState().setUpdateDownloaded(info)
     })
+    const offCopyFlare = edge.onCopyFlare(() => {
+      useStore.getState().triggerCopyFlare()
+    })
     return () => {
       offItems()
       offSettings()
@@ -89,6 +92,7 @@ export default function App() {
       offTutorialStep()
       offUpdateAvailable()
       offUpdateDownloaded()
+      offCopyFlare()
     }
   }, [hydrate, setItems, setSettings, pushToast])
 

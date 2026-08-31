@@ -365,9 +365,13 @@ export const useStore = create<AppState>((set, get) => ({
   triggerCopyFlare: () => {
     if (get().settings.showCopyIndicator === false) return
     if (flareTimer) clearTimeout(flareTimer)
-    set({ copyFlareActive: true, flareKey: Date.now() })
-    if (!get().open) {
-      edge.setPreviewMode(true)
+    // Already showing: only extend the hold. Restarting flareKey mid-flight
+    // is what made the indicator look late (hint, then items-push retrigger).
+    if (!get().copyFlareActive) {
+      set({ copyFlareActive: true, flareKey: Date.now() })
+      if (!get().open) {
+        edge.setPreviewMode(true)
+      }
     }
     flareTimer = setTimeout(() => {
       set({ copyFlareActive: false })
@@ -375,7 +379,7 @@ export const useStore = create<AppState>((set, get) => ({
         edge.setPreviewMode(false)
       }
       flareTimer = null
-    }, 1400)
+    }, 780)
   },
 
   pushToast: (toast) => {

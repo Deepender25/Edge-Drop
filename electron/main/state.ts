@@ -15,7 +15,7 @@ import { isStagedTempPath } from '../store/paths'
 import { prefetchFileIcons } from './drag'
 import { forgetStagedItems, reconcileTempOnStartup } from './stagedTemp'
 import { runtime } from './config'
-import { getMainWindow } from './window'
+import { getMainWindow, registerClipboardUpdateListener } from './window'
 
 const store = new ItemStore((removed) => forgetStagedItems(removed))
 const watcher = new ClipboardWatcher(600)
@@ -80,11 +80,14 @@ export function initState(): void {
     }
     store.add(data, loadSettings().historyLimit)
     pushState.items()
+  }, () => {
+    if (loadSettings().incognito) return
     const win = getMainWindow()
     if (win && !win.isDestroyed()) {
       win.webContents.send('ui:copy-flare')
     }
   })
+  registerClipboardUpdateListener(() => watcher.nudge())
   watcher.setPaused(loadSettings().incognito)
 
   powerMonitor.removeAllListeners('suspend')

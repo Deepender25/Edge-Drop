@@ -28,10 +28,13 @@ import { isFullscreenAppActive, registerFullscreenActiveListener } from './fulls
 type RegisterWindowMessageFn = (lpString: string) => number
 type SetWindowLongPtrFn = (hWnd: number | bigint, nIndex: number, dwNewLong: number | bigint) => number | bigint
 type GetWindowLongPtrFn = (hWnd: number | bigint, nIndex: number) => number | bigint
+type ClipboardListenerFn = (hWnd: number | bigint) => number
 
 let registerWindowMessageFn: RegisterWindowMessageFn | null = null
 let setWindowLongPtrFn: SetWindowLongPtrFn | null = null
 let getWindowLongPtrFn: GetWindowLongPtrFn | null = null
+let addClipboardFormatListenerFn: ClipboardListenerFn | null = null
+let removeClipboardFormatListenerFn: ClipboardListenerFn | null = null
 
 if (process.platform === 'win32') {
   try {
@@ -46,6 +49,12 @@ if (process.platform === 'win32') {
       getWindowLongPtrFn = user32.func('intptr_t GetWindowLongPtrW(uintptr_t hWnd, int nIndex)') as GetWindowLongPtrFn
     } catch {
       getWindowLongPtrFn = user32.func('intptr_t GetWindowLongW(uintptr_t hWnd, int nIndex)') as GetWindowLongPtrFn
+    }
+    try {
+      addClipboardFormatListenerFn = user32.func('bool AddClipboardFormatListener(uintptr_t hWnd)') as ClipboardListenerFn
+      removeClipboardFormatListenerFn = user32.func('bool RemoveClipboardFormatListener(uintptr_t hWnd)') as ClipboardListenerFn
+    } catch (err) {
+      console.error('[Window] Failed to load clipboard listener APIs:', err)
     }
   } catch (err) {
     console.error('[Window] Failed to load user32 functions via koffi:', err)
@@ -86,6 +95,13 @@ const onTaskbarCreatedListeners: Array<() => void> = []
 export function registerTaskbarCreatedListener(fn: () => void): void {
   onTaskbarCreatedListeners.push(fn)
 }
+
+const onClipboardUpdateListeners: Array<() => void> = []
+export function registerClipboardUpdateListener(fn: () => void): void {
+  onClipboardUpdateListeners.push(fn)
+}
+
+const WM_CLIPBOARDUPDATE = 0x031D
 
 export const PANEL_WIDTH = 384
 /** Visual width of the blade when collapsed (only used by the renderer). */
@@ -540,6 +556,27 @@ export function createWindow(): BrowserWindow {
 
   // Apply WS_EX_NOACTIVATE so clicking the panel never steals OS focus from the active application.
   applyNoActivateStyle(mainWindow, true)
+
+  if (process.platform === 'win32' && addClipboardFormatListenerFn) {
+    try {
+      const hwnd = getHwnd(mainWindow)
+      if (hwnd) {
+        addClipboardFormatListenerFn(hwnd)
+        mainWindow.hookWindowMessage(WM_CLIPBOARDUPDATE, () => {
+          for (const listener of onClipboardUpdateListeners) {
+            try { listener() } catch (err) {
+              console.error('[Main] Error in clipboard-update listener:', err)
+            }
+          }
+        })
+        mainWindow.on('closed', () => {
+          try { removeClipboardFormatListenerFn?.(hwnd) } catch { /* ignore */ }
+        })
+      }
+    } catch (err) {
+      console.error('[Main] Failed to register clipboard format listener:', err)
+    }
+  }
 
   // Listen for Windows Explorer restart/crash to purge ghost taskbar icons and restore tray.
   if (process.platform === 'win32' && registerWindowMessageFn) {

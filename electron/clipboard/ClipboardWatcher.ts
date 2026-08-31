@@ -28,67 +28,77 @@ export class ClipboardWatcher {
   private lastSig = 'empty'
   private paused = false
   private readonly intervalMs: number
+  private readonly settleMs: number
+  private onNew: NewItemHandler | null = null
+  private onHint: (() => void) | null = null
 
-  constructor(intervalMs = 300) {
+  constructor(intervalMs = 300, settleMs = 50) {
     this.intervalMs = intervalMs
+    this.settleMs = settleMs
   }
 
-  /** Start watching. `onNew` fires for every genuinely new piece of content. */
-  start(onNew: NewItemHandler): void {
+  /**
+   * Start watching. `onNew` fires once content is stable.
+   * `onHint` fires on the same tick the OS sequence number changes so the
+   * copy indicator can appear without waiting for settle + persist.
+   */
+  start(onNew: NewItemHandler, onHint?: () => void): void {
     if (this.timer) return
+    this.onNew = onNew
+    this.onHint = onHint ?? null
     // Seed the signature so we don't re-fire for whatever is already on the
     // clipboard at startup (the user didn't "just" copy it).
     this.lastSig = clipboardSignature()
 
-    this.timer = setInterval(() => {
-      if (this.paused) return
-      const sig = clipboardSignature()
-      // If the full signature (including sequence number) has not changed, do nothing.
-      if (sig === this.lastSig) {
+    this.timer = setInterval(() => this.pollTick(), this.intervalMs)
+  }
+
+  /** Run one poll immediately (WM_CLIPBOARDUPDATE). Safe if not started. */
+  nudge(): void {
+    if (!this.onNew || this.paused) return
+    this.pollTick()
+  }
+
+  private pollTick(): void {
+    if (this.paused || !this.onNew) return
+    const sig = clipboardSignature()
+    if (sig === this.lastSig) return
+
+    this.lastSig = sig
+    try {
+      this.onHint?.()
+    } catch (err) {
+      console.error('[ClipboardWatcher] onHint failed:', err)
+    }
+
+    if (this.settleTimer) clearTimeout(this.settleTimer)
+
+    const capturedSig = sig
+    this.settleTimer = setTimeout(async () => {
+      this.settleTimer = null
+      if (this.paused || !this.onNew) return
+      const stableSig = clipboardSignature()
+
+      if (getContentSignature(stableSig) !== getContentSignature(capturedSig) && stableSig !== capturedSig) {
         return
       }
 
-      // We detected a change (new content OR OS sequence number incremented from a re-copy of identical content).
-      // Update lastSig immediately so subsequent poll intervals don't spawn duplicate settling timers.
-      this.lastSig = sig
+      this.lastSig = stableSig
 
-      if (this.settleTimer) {
-        clearTimeout(this.settleTimer)
+      const data = await readClipboard()
+      if (!data) return
+
+      if (data.kind === 'image') {
+        const img = clipboard.readImage()
+        const png = img.toPNG()
+        data.imageId = createId()
+        data.bytes = png.length
+        data.ext = 'png'
+        this.onNew(data, png)
+      } else {
+        this.onNew(data)
       }
-
-      // Wait a short moment to ensure multi-format streams (e.g. text + html + bitmaps) have finished writing.
-      this.settleTimer = setTimeout(async () => {
-        this.settleTimer = null
-        if (this.paused) return
-        const stableSig = clipboardSignature()
-        
-        // Ensure content is stable (not transient injection by an app that immediately reverted)
-        if (getContentSignature(stableSig) !== getContentSignature(sig) && stableSig !== sig) {
-          return
-        }
-
-        this.lastSig = stableSig
-
-        // readClipboard is async: on Windows it awaits a PowerShell
-        // GetFileDropList() call to retrieve ALL selected files.
-        const data = await readClipboard()
-        if (!data) {
-          return
-        }
-
-        // Images need their bytes persisted + an id assigned before publishing.
-        if (data.kind === 'image') {
-          const img = clipboard.readImage()
-          const png = img.toPNG()       // encode once — reuse for both bytes count and file write
-          data.imageId = createId()
-          data.bytes = png.length
-          data.ext = 'png'              // always set so cache key is 'id.png', never 'id.undefined'
-          onNew(data, png)
-        } else {
-          onNew(data)
-        }
-      }, 150)
-    }, this.intervalMs)
+    }, this.settleMs)
   }
 
   /** Temporarily stop recording (incognito mode or self-copy) without tearing down the timer. */

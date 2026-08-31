@@ -74,6 +74,30 @@ describe('ClipboardWatcher Re-Copy Detection & Flare Flow', () => {
     expect(onNew).toHaveBeenCalledWith({ kind: 'text', text: 'Second Item' })
   })
 
+  it('fires onHint immediately when the sequence number changes, before settle', async () => {
+    let mockSeq = 400
+    let mockText = 'Hint First'
+
+    vi.spyOn(formats, 'clipboardSignature').mockImplementation(() => `seq:${mockSeq}:text:${mockText}`)
+    vi.spyOn(formats, 'readClipboard').mockImplementation(async () => ({ kind: 'text', text: mockText }))
+
+    const onNew = vi.fn()
+    const onHint = vi.fn()
+    watcher = new ClipboardWatcher(50, 150)
+    watcher.start(onNew, onHint)
+
+    await vi.advanceTimersByTimeAsync(60)
+    expect(onHint).not.toHaveBeenCalled()
+
+    mockSeq = 401
+    await vi.advanceTimersByTimeAsync(60)
+    expect(onHint).toHaveBeenCalledTimes(1)
+    expect(onNew).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(160)
+    expect(onNew).toHaveBeenCalledTimes(1)
+  })
+
   it('respects paused state during self-copy and incognito mode', async () => {
     let mockSeq = 300
     let mockText = 'Initial'

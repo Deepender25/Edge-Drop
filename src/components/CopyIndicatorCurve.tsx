@@ -1,17 +1,20 @@
 /**
- * CopyIndicatorCurve — Fluid Sine-Curve SVG Morph with customizable indicator icons (Logo / Tick).
+ * Copy confirmation at the stick edge.
  *
- * Morphing SVG sine-wave arc (`sin(θ)`) that extends smoothly out from the screen
- * edge whenever content is copied to the clipboard, displaying the selected icon
- * animation (GSAP Liquid Octopus Logo or Animated Tick Icon) inside the curve peak.
+ * Apple-like: one purposeful enter, a still hold, a matching exit.
+ * No looping bob, no glow bloom. Reduce Motion fades only.
  */
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
 import { LiquidOctopusLoader } from './LiquidOctopusLoader'
 
+/** System confirmation ease — fast settle, no bounce. */
+const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1]
+const ENTER_MS = 0.3
+const ICON_FILTER = 'drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35))'
+
 export function TickIndicatorIcon({
   fillColor = '#ffffff',
-  glowColor = 'rgba(255, 255, 255, 0.85)',
   size = 36
 }: {
   color?: string
@@ -28,51 +31,35 @@ export function TickIndicatorIcon({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        filter: `drop-shadow(0 0 12px ${glowColor}) drop-shadow(0 0 4px ${glowColor})`
+        filter: ICON_FILTER
       }}
     >
-      {/* Floating & Breathing Motion Wrapper */}
-      <motion.div
-        animate={{
-          y: [-2, 2, -2],
-          scale: [0.98, 1.03, 0.98]
-        }}
-        transition={{
-          duration: 2.4,
-          ease: 'easeInOut',
-          repeat: Infinity,
-          repeatType: 'mirror'
-        }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        shapeRendering="geometricPrecision"
+        style={{ display: 'block', overflow: 'visible' }}
       >
-        <svg
-          width={size}
-          height={size}
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          shapeRendering="geometricPrecision"
-          style={{ display: 'block', overflow: 'visible' }}
-        >
-          <motion.path
-            d="M 5.0 12.5 L 9.5 17.0 L 22.8 2.8"
-            stroke={fillColor}
-            strokeWidth="3.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          />
-        </svg>
-      </motion.div>
+        <motion.path
+          d="M 5.0 12.5 L 9.5 17.0 L 22.8 2.8"
+          stroke={fillColor}
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.28, ease: EASE_OUT }}
+        />
+      </svg>
     </div>
   )
 }
 
 export function CopyIndicatorIcon({
   fillColor = '#ffffff',
-  glowColor = 'rgba(255, 255, 255, 0.85)',
   size = 36
 }: {
   fillColor?: string
@@ -90,76 +77,53 @@ export function CopyIndicatorIcon({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        filter: `drop-shadow(0 0 10px ${glowColor})`
+        filter: ICON_FILTER
       }}
     >
-      {/* Floating & Breathing Motion Wrapper */}
-      <motion.div
-        animate={{
-          y: [-2.5, 2.5, -2.5],
-          rotate: [-4, 4, -4],
-          scale: [0.98, 1.04, 0.98]
-        }}
-        transition={{
-          duration: 2.4,
-          ease: 'easeInOut',
-          repeat: Infinity,
-          repeatType: 'mirror'
-        }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        shapeRendering="geometricPrecision"
+        style={{ display: 'block', overflow: 'visible' }}
       >
-        <svg
-          width={size}
-          height={size}
-          viewBox="0 0 24 24"
-          fill="none"
-          shapeRendering="geometricPrecision"
-          style={{ display: 'block', overflow: 'visible' }}
-        >
-          <defs>
-            <mask id={maskId}>
-              {/* Base mask: keep everything */}
-              <rect x="0" y="0" width="24" height="24" fill="#ffffff" />
-              {/* Cutout gap around top-right sheet */}
-              <rect x="6.8" y="0.8" width="16.4" height="16.4" rx="5.8" fill="#000000" />
-            </mask>
-          </defs>
-
-          {/* Back Sheet (Bottom-Left) — masked to cut out a clean gap behind front sheet */}
-          <motion.rect
-            x="2.5"
-            y="8.5"
-            width="13"
-            height="13"
-            rx="4.2"
-            fill={fillColor}
-            mask={`url(#${maskId})`}
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-          />
-
-          {/* Front Sheet (Top-Right) — pure solid fill with ZERO top/right borders */}
-          <motion.rect
-            x="8.5"
-            y="2.5"
-            width="13"
-            height="13"
-            rx="4.2"
-            fill={fillColor}
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 450, damping: 24, delay: 0.05 }}
-          />
-        </svg>
-      </motion.div>
+        <defs>
+          <mask id={maskId}>
+            <rect x="0" y="0" width="24" height="24" fill="#ffffff" />
+            <rect x="6.8" y="0.8" width="16.4" height="16.4" rx="5.8" fill="#000000" />
+          </mask>
+        </defs>
+        <motion.rect
+          x="2.5"
+          y="8.5"
+          width="13"
+          height="13"
+          rx="4.2"
+          fill={fillColor}
+          mask={`url(#${maskId})`}
+          initial={{ scale: 0.92, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.28, ease: EASE_OUT }}
+        />
+        <motion.rect
+          x="8.5"
+          y="2.5"
+          width="13"
+          height="13"
+          rx="4.2"
+          fill={fillColor}
+          initial={{ scale: 0.92, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.28, ease: EASE_OUT, delay: 0.04 }}
+        />
+      </svg>
     </div>
   )
 }
 
 export function SparkleIndicatorIcon({
   fillColor = '#ffffff',
-  glowColor = 'rgba(255, 255, 255, 0.85)',
   size = 36
 }: {
   fillColor?: string
@@ -175,51 +139,32 @@ export function SparkleIndicatorIcon({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        filter: `drop-shadow(0 0 10px ${glowColor})`
+        filter: ICON_FILTER
       }}
     >
-      {/* Floating & Breathing Motion Wrapper */}
-      <motion.div
-        animate={{
-          y: [-2.5, 2.5, -2.5],
-          rotate: [-4, 4, -4],
-          scale: [0.98, 1.04, 0.98]
-        }}
-        transition={{
-          duration: 2.4,
-          ease: 'easeInOut',
-          repeat: Infinity,
-          repeatType: 'mirror'
-        }}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        shapeRendering="geometricPrecision"
+        style={{ display: 'block', overflow: 'visible' }}
       >
-        <svg
-          width={size}
-          height={size}
-          viewBox="0 0 24 24"
-          fill="none"
-          shapeRendering="geometricPrecision"
-          style={{ display: 'block', overflow: 'visible' }}
-        >
-          {/* Main Sparkle (Top-Left) */}
-          <motion.path
-            d="M 9.5 1.5 C 9.5 5.8 5.8 9.5 1.5 9.5 C 5.8 9.5 9.5 13.2 9.5 17.5 C 9.5 13.2 13.2 9.5 17.5 9.5 C 13.2 9.5 9.5 5.8 9.5 1.5 Z"
-            fill={fillColor}
-            initial={{ scale: 0.3, rotate: -20, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 24 }}
-          />
-
-          {/* Secondary Sparkle (Bottom-Right) */}
-          <motion.path
-            d="M 18.5 12.5 C 18.5 15.2 16.2 17.5 13.5 17.5 C 16.2 17.5 18.5 19.8 18.5 22.5 C 18.5 19.8 20.8 17.5 23.5 17.5 C 20.8 17.5 18.5 15.2 18.5 12.5 Z"
-            fill={fillColor}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 450, damping: 22, delay: 0.08 }}
-          />
-        </svg>
-      </motion.div>
+        <motion.path
+          d="M 9.5 1.5 C 9.5 5.8 5.8 9.5 1.5 9.5 C 5.8 9.5 9.5 13.2 9.5 17.5 C 9.5 13.2 13.2 9.5 17.5 9.5 C 13.2 9.5 9.5 5.8 9.5 1.5 Z"
+          fill={fillColor}
+          initial={{ scale: 0.86, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.28, ease: EASE_OUT }}
+        />
+        <motion.path
+          d="M 18.5 12.5 C 18.5 15.2 16.2 17.5 13.5 17.5 C 16.2 17.5 18.5 19.8 18.5 22.5 C 18.5 19.8 20.8 17.5 23.5 17.5 C 20.8 17.5 18.5 15.2 18.5 12.5 Z"
+          fill={fillColor}
+          initial={{ scale: 0.86, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.28, ease: EASE_OUT, delay: 0.05 }}
+        />
+      </svg>
     </div>
   )
 }
@@ -231,6 +176,7 @@ export function CopyIndicatorCurve() {
   const settings = useStore((s) => s.settings)
   const isRight = settings.stickPosition === 'right'
   const indicatorStyle = settings.copyIndicatorStyle || 'logo'
+  const reduceMotion = !!settings.reduceMotion
 
   // Spans the full height of the hover bar trigger zone
   const triggerHeightPx = window.innerHeight * (settings.hotZoneHeight || 0.25)
@@ -263,8 +209,10 @@ export function CopyIndicatorCurve() {
   const topOffset = `${midY}px`
   const yOffset = '-50%'
 
+  const fade = { duration: reduceMotion ? 0.12 : ENTER_MS, ease: reduceMotion ? 'linear' : EASE_OUT }
+
   return (
-    <AnimatePresence mode="popLayout">
+    <AnimatePresence>
       {showCurve && (
         <motion.div
           key={`copy-sine-curve-${flareKey}`}
@@ -272,7 +220,7 @@ export function CopyIndicatorCurve() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+          transition={fade}
           style={{
             position: 'absolute',
             top: topOffset,
@@ -284,7 +232,6 @@ export function CopyIndicatorCurve() {
             zIndex: 9999
           }}
         >
-          {/* SVG Sine-Curve Morph with Subpixel Geometric Precision Antialiasing */}
           <svg
             width={boxW}
             height={H}
@@ -292,39 +239,25 @@ export function CopyIndicatorCurve() {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             shapeRendering="geometricPrecision"
-            style={{
-              overflow: 'visible',
-              shapeRendering: 'geometricPrecision',
-              textRendering: 'geometricPrecision'
-            }}
+            style={{ overflow: 'visible' }}
           >
             <motion.path
               d={activePath}
               fill="#000000"
               stroke="none"
-              strokeWidth="0"
               shapeRendering="geometricPrecision"
-              initial={{ d: flatPath }}
+              initial={{ d: reduceMotion ? activePath : flatPath }}
               animate={{ d: activePath }}
-              exit={{ d: flatPath }}
-              transition={{
-                duration: 0.38,
-                ease: [0.16, 1, 0.3, 1]
-              }}
+              exit={{ d: reduceMotion ? activePath : flatPath }}
+              transition={fade}
             />
           </svg>
 
-          {/* Selected Copy Indicator Icon (Logo / Tick / Copy) centered inside the Curve Bulge */}
           <motion.div
-            initial={{ scale: 0.3, opacity: 0, x: isRight ? 10 : -10 }}
-            animate={{ scale: 1, opacity: 1, x: 0 }}
-            exit={{ scale: 0.3, opacity: 0, x: isRight ? 10 : -10 }}
-            transition={{
-              type: 'spring',
-              stiffness: 420,
-              damping: 24,
-              delay: 0.05
-            }}
+            initial={reduceMotion ? { opacity: 0 } : { scale: 0.92, opacity: 0 }}
+            animate={reduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { scale: 0.92, opacity: 0 }}
+            transition={{ ...fade, delay: reduceMotion ? 0 : 0.04 }}
             style={{
               position: 'absolute',
               top: '50%',
@@ -339,13 +272,13 @@ export function CopyIndicatorCurve() {
             }}
           >
             {indicatorStyle === 'check' ? (
-              <TickIndicatorIcon fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" />
+              <TickIndicatorIcon fillColor="#ffffff" />
             ) : indicatorStyle === 'copy' ? (
-              <CopyIndicatorIcon fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" />
+              <CopyIndicatorIcon fillColor="#ffffff" />
             ) : indicatorStyle === 'sparkle' ? (
-              <SparkleIndicatorIcon fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" />
+              <SparkleIndicatorIcon fillColor="#ffffff" />
             ) : (
-              <LiquidOctopusLoader fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" speed={1.2} />
+              <LiquidOctopusLoader fillColor="#ffffff" glowColor="transparent" active={false} />
             )}
           </motion.div>
         </motion.div>
