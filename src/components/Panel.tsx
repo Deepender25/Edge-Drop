@@ -204,11 +204,19 @@ export function Panel() {
   let containerClass = 'blade-container'
   if (isRight) containerClass += ' blade-right'
 
+  const reduceMotion = !!settings.reduceMotion
+  const bounceOpen = !!settings.bounceAnimation
+  const clipTransition = reduceMotion
+    ? 'clip-path 0.01s linear'
+    : bounceOpen
+      ? 'clip-path 0.44s cubic-bezier(0.175, 0.885, 0.32, 1.08)'
+      : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
+
   const containerStyle: Record<string, unknown> = {
     position: 'absolute',
     zIndex: 10,
     pointerEvents: open ? 'auto' : 'none',
-    transition: 'clip-path 0.44s cubic-bezier(0.175, 0.885, 0.32, 1.08)'
+    transition: clipTransition
   }
 
   let originX = 0
@@ -260,29 +268,25 @@ export function Panel() {
       <CopyIndicatorCurve />
       <motion.div
         className={containerClass}
-        initial={{ scaleX: 0.93, scaleY: 0.96, opacity: 0.98 }}
+        initial={false}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         style={containerStyle}
         animate={
-          open
-            ? { scaleX: 1, scaleY: 1, opacity: 1 }
-            : { scaleX: 0.96, scaleY: 0.97, opacity: 0.98 }
+          bounceOpen && !reduceMotion
+            ? open
+              ? { scaleX: 1, scaleY: 1, opacity: 1 }
+              : { scaleX: 0.97, scaleY: 0.98, opacity: 1 }
+            : { scaleX: 1, scaleY: 1, opacity: 1 }
         }
         transition={
-          open
-            ? {
-                scaleX: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
-                scaleY: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
-                opacity: { duration: 0.16, ease: 'easeOut' }
-              }
-            : {
-                scaleX: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
-                scaleY: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
-                opacity: { duration: 0.24, ease: [0.22, 1, 0.36, 1] }
-              }
+          reduceMotion
+            ? { duration: 0.01 }
+            : bounceOpen
+              ? { duration: 0.32, ease: [0.16, 1, 0.3, 1] }
+              : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }
         }
       >
         {/* Edge Location Hint Beacon (Ultra-subtle fast hairline pulse when touching edge at wrong position) */}
