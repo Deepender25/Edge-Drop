@@ -81,6 +81,7 @@ export default function App() {
       useStore.getState().setUpdateDownloaded(info)
     })
     const offCopyFlare = edge.onCopyFlare(() => {
+      if (useStore.getState().isInternalCopying) return
       useStore.getState().triggerCopyFlare()
     })
     return () => {

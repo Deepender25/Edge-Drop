@@ -206,12 +206,6 @@ export const useStore = create<AppState>((set, get) => ({
       isStoreBuild: isStoreBuild ?? false,
       hydrated: true
     })
-    edge.onCopyFlare(() => {
-      if (!get().isInternalCopying) {
-        console.log('[appStore] OS copy event detected! Triggering copy flare indicator')
-        get().triggerCopyFlare()
-      }
-    })
   },
 
   manualCheckState: { status: 'idle' },
@@ -279,7 +273,7 @@ export const useStore = create<AppState>((set, get) => ({
     await edge.installUpdate()
   },
 
-  setItems: (items, meta) => {
+  setItems: (items, _meta) => {
     const prevItems = get().items
     if (
       prevItems.length === items.length &&
@@ -287,30 +281,9 @@ export const useStore = create<AppState>((set, get) => ({
     ) {
       return
     }
-    const prevTop = prevItems.length > 0 ? prevItems[0] : null
-    const newTop = items.length > 0 ? items[0] : null
-
-    if (get().hydrated && newTop) {
-      const isDifferentId = !prevTop || newTop.id !== prevTop.id
-      const isNewCapturedAt = prevTop && newTop.capturedAt !== prevTop.capturedAt
-      // 'usage' meta = bookkeeping push from a manual drag-out (recency bump
-      // after a successful external drop). The user is moving content, not
-      // capturing it - the copy indicator must stay dark.
-      const isUsageBookkeeping = meta?.reason === 'usage'
-      // Suppress the flare while the mutation originated from this renderer
-      // session itself:
-      //  - isInternalCopying: click copy/paste flows (main rewrites the OS
-      //    clipboard, which is NOT a fresh capture).
-      //  - internalDragReq: a native drag-out that just ended. Main bumps the
-      //    item's usage (hitCount/capturedAt, move-to-top) and pushes the list
-      //    immediately after 'item:drag-end', which is still inside this
-      //    window — Panel.tsx only clears internalDragReq 150ms later. Without
-      //    this guard the usage bump would masquerade as a fresh capture and
-      //    flash the edge copy indicator on every drag-out.
-      if ((isDifferentId || isNewCapturedAt) && !get().isInternalCopying && !get().internalDragReq && !isUsageBookkeeping) {
-        get().triggerCopyFlare()
-      }
-    }
+    // Copy confirmation is owned by `ui:copy-flare` (App.tsx). Firing it again
+    // here replayed the indicator after a slow capture (large spreadsheet)
+    // finished — the hint already showed it ~780ms earlier.
     set({ items })
   },
   setSettings: (next) => set({ settings: next }),

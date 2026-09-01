@@ -1,38 +1,62 @@
 /**
- * Polls the system clipboard and reports genuinely new content.
+ * Reports genuinely new clipboard content.
  *
- * Electron has no native clipboard-changed event, so we sample on an interval.
- * To avoid creating duplicate items (and to avoid re-reading the expensive
- * image bytes every tick) we keep a cheap signature of the last seen state and
- * only do the full `readClipboard()` work when it changes.
+ * Windows Explorer delay-renders formats after a copy (paths, then bitmap,
+ * then extra shell data). Each render bumps the sequence number. Reading the
+ * clipboard inside WM_CLIPBOARDUPDATE forces the next render and looks like
+ * many copies of the same files. We therefore:
+ *   1. Detect change via GetClipboardSequenceNumber only (no OpenClipboard).
+ *   2. Reset a settle window on every bump and capture once it is quiet.
+ *   3. Ignore a second capture of the same content for a short coalescing
+ *      window so late Explorer thumbnails do not bump hitCount.
+ *   4. Never re-read a just-captured file list during that window — another
+ *      OpenClipboard restarts Explorer's delay-render and hitCount climbs.
+ *   5. If the path list is unchanged, ignore later sequence bumps entirely.
+ *      Closing Explorer flushes delayed formats (WM_RENDERALLFORMATS) seconds
+ *      later and would otherwise look like a second copy.
+ * A slow interval remains as a fallback if the OS message is missed.
  */
 import { clipboard } from 'electron'
 import { createId } from '../store/ids'
-import { readClipboard, clipboardSignature } from './formats'
+import {
+  readClipboard,
+  clipboardSignature,
+  getClipboardSequenceNumber,
+  clipboardHasFileNameW,
+  clipboardTextContent,
+  clipboardFilesContentKey
+} from './formats'
+import { contentSignature } from '../store/signature'
 import type { ItemData } from '../../shared/types'
 
 /**
- * Fired when genuinely new content lands on the clipboard. For image captures
+ * Fired when genuinely new clipboard content lands on the clipboard. For image captures
  * the raw PNG bytes are handed over as the second argument so the store can
  * persist them without re-reading the clipboard.
  */
 export type NewItemHandler = (data: ItemData, imagePng?: Buffer) => void
 
-function getContentSignature(sig: string): string {
-  return sig.replace(/^seq:\d+:/, '')
-}
+/** Ignore a second capture of identical content this soon (Explorer late formats). */
+const COALESCE_MS = 500
+/** Extra settles to wait when Explorer advertised files that are not readable yet. */
+const MAX_INCOMPLETE_RETRIES = 4
 
 export class ClipboardWatcher {
   private timer: NodeJS.Timeout | null = null
   private settleTimer: NodeJS.Timeout | null = null
   private lastSig = 'empty'
+  private lastSeq = 0
+  private lastCapturedKey = ''
+  private lastCapturedAt = 0
   private paused = false
+  private reading = false
+  private incompleteTries = 0
   private readonly intervalMs: number
   private readonly settleMs: number
   private onNew: NewItemHandler | null = null
   private onHint: (() => void) | null = null
 
-  constructor(intervalMs = 300, settleMs = 50) {
+  constructor(intervalMs = 300, settleMs = 220) {
     this.intervalMs = intervalMs
     this.settleMs = settleMs
   }
@@ -48,57 +72,158 @@ export class ClipboardWatcher {
     this.onHint = onHint ?? null
     // Seed the signature so we don't re-fire for whatever is already on the
     // clipboard at startup (the user didn't "just" copy it).
-    this.lastSig = clipboardSignature()
+    this.lastSeq = getClipboardSequenceNumber()
+    this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
 
     this.timer = setInterval(() => this.pollTick(), this.intervalMs)
   }
 
   /** Run one poll immediately (WM_CLIPBOARDUPDATE). Safe if not started. */
   nudge(): void {
-    if (!this.onNew || this.paused) return
+    if (!this.onNew || this.paused || this.reading) return
     this.pollTick()
   }
 
-  private pollTick(): void {
-    if (this.paused || !this.onNew) return
-    const sig = clipboardSignature()
-    if (sig === this.lastSig) return
+  private inCoalesceWindow(now = Date.now()): boolean {
+    return this.lastCapturedKey !== '' && now - this.lastCapturedAt < COALESCE_MS
+  }
 
-    this.lastSig = sig
-    try {
-      this.onHint?.()
-    } catch (err) {
-      console.error('[ClipboardWatcher] onHint failed:', err)
+  /**
+   * Explorer keeps bumping the sequence number as delayed formats appear,
+   * and again when the source window closes (WM_RENDERALLFORMATS).
+   * Reading the clipboard to inspect them retriggers that pipeline.
+   *
+   * Same file list: absorb with no time limit — closing Explorer is not a copy.
+   * Text/image: absorb only inside the short coalesce window so a real re-copy
+   * of the same text still counts.
+   */
+  private absorbLateExplorerFormats(now: number): boolean {
+    if (!this.lastCapturedKey) return false
+    if (this.lastCapturedKey.startsWith('files|')) {
+      const next = clipboardFilesContentKey()
+      if (next === null) return false
+      if (next === this.lastCapturedKey) return true
+      // FileNameW is first-file-only when CF_UNICODETEXT is missing. Explorer
+      // close still has that first path; a different drop does not.
+      const lastPaths = this.lastCapturedKey.slice('files|'.length).split('\n')
+      const nextPaths = next.slice('files|'.length).split('\n')
+      return nextPaths.length === 1 && lastPaths.includes(nextPaths[0])
+    }
+    if (!this.inCoalesceWindow(now)) return false
+    if (this.lastCapturedKey.startsWith('image|')) return !clipboardHasFileNameW()
+    if (this.lastCapturedKey.startsWith('text|')) {
+      const t = clipboardTextContent()
+      return t !== null && this.lastCapturedKey === `text|${t}`
+    }
+    return false
+  }
+
+  private pollTick(): void {
+    if (this.paused || !this.onNew || this.reading) return
+
+    const seq = getClipboardSequenceNumber()
+    if (seq > 0) {
+      if (seq === this.lastSeq) return
+      this.lastSeq = seq
+    } else {
+      const sig = clipboardSignature()
+      if (sig === this.lastSig) return
+      this.lastSig = sig
     }
 
+    const now = Date.now()
+    if (this.absorbLateExplorerFormats(now)) {
+      this.lastCapturedAt = now
+      if (this.settleTimer) {
+        clearTimeout(this.settleTimer)
+        this.settleTimer = null
+      }
+      return
+    }
+
+    const alreadySettling = this.settleTimer !== null
     if (this.settleTimer) clearTimeout(this.settleTimer)
+    if (!alreadySettling && !this.inCoalesceWindow(now)) {
+      try {
+        this.onHint?.()
+      } catch (err) {
+        console.error('[ClipboardWatcher] onHint failed:', err)
+      }
+    }
 
-    const capturedSig = sig
-    this.settleTimer = setTimeout(async () => {
-      this.settleTimer = null
-      if (this.paused || !this.onNew) return
-      const stableSig = clipboardSignature()
+    this.settleTimer = setTimeout(() => {
+      void this.commitCapture()
+    }, this.settleMs)
+  }
 
-      if (getContentSignature(stableSig) !== getContentSignature(capturedSig) && stableSig !== capturedSig) {
+  private async commitCapture(): Promise<void> {
+    this.settleTimer = null
+    if (this.paused || !this.onNew) return
+
+    const seqWhenSettled = this.lastSeq
+    this.reading = true
+    try {
+      const data = await readClipboard()
+      // Absorb sequence bumps caused by our own OpenClipboard / format requests.
+      this.lastSeq = getClipboardSequenceNumber()
+      this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
+      if (!data) {
+        if (this.incompleteTries < MAX_INCOMPLETE_RETRIES) {
+          this.incompleteTries++
+          this.settleTimer = setTimeout(() => {
+            void this.commitCapture()
+          }, this.settleMs)
+        } else {
+          this.incompleteTries = 0
+        }
         return
       }
+      this.incompleteTries = 0
 
-      this.lastSig = stableSig
-
-      const data = await readClipboard()
-      if (!data) return
-
+      let png: Buffer | undefined
       if (data.kind === 'image') {
         const img = clipboard.readImage()
-        const png = img.toPNG()
+        png = img.toPNG()
         data.imageId = createId()
         data.bytes = png.length
         data.ext = 'png'
-        this.onNew(data, png)
-      } else {
-        this.onNew(data)
+        this.lastSeq = getClipboardSequenceNumber()
       }
-    }, this.settleMs)
+
+      const key = contentSignature(data)
+      const now = Date.now()
+      const sameAsLast = key === this.lastCapturedKey
+      const filesUnchanged = sameAsLast && data.kind === 'files'
+      if (sameAsLast && (filesUnchanged || now - this.lastCapturedAt < COALESCE_MS)) {
+        // Same payload. Files stay absorbed for as long as the path list is
+        // unchanged (Explorer window close is not a copy). Other kinds only
+        // coalesce briefly so a real re-copy of the same text still counts.
+        this.lastCapturedAt = now
+        return
+      }
+      this.lastCapturedKey = key
+      this.lastCapturedAt = now
+
+      if (data.kind === 'image') this.onNew(data, png)
+      else this.onNew(data)
+    } finally {
+      this.reading = false
+      const seqNow = getClipboardSequenceNumber()
+      if (this.settleTimer) {
+        // Incomplete file list: retry is already scheduled. Only restart if
+        // a newer copy landed after that read.
+        if (seqNow !== this.lastSeq) this.pollTick()
+        return
+      }
+      if (seqNow !== this.lastSeq) {
+        this.pollTick()
+      } else if (seqNow !== seqWhenSettled) {
+        // Seq moved during our read. Explorer delay-renders of a file list
+        // are absorbed without another OpenClipboard; a real new copy is not.
+        this.lastSeq = seqWhenSettled
+        this.pollTick()
+      }
+    }
   }
 
   /** Temporarily stop recording (incognito mode or self-copy) without tearing down the timer. */
@@ -111,7 +236,8 @@ export class ClipboardWatcher {
     // When resuming, refresh the signature so we ignore whatever was copied
     // during the paused state (e.g. self-copies or incognito copies).
     if (!paused) {
-      this.lastSig = clipboardSignature()
+      this.lastSeq = getClipboardSequenceNumber()
+      this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
     }
   }
 
@@ -142,7 +268,9 @@ export class ClipboardWatcher {
       clearTimeout(this.settleTimer)
       this.settleTimer = null
     }
-    this.lastSig = clipboardSignature()
+    this.incompleteTries = 0
+    this.lastSeq = getClipboardSequenceNumber()
+    this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
   }
 
   /**
@@ -162,7 +290,11 @@ export class ClipboardWatcher {
       clearTimeout(this.settleTimer)
       this.settleTimer = null
     }
+    this.incompleteTries = 0
     this.lastSig = '__post-paste__'
+    this.lastSeq = -1
+    this.lastCapturedKey = ''
+    this.lastCapturedAt = 0
   }
 
   stop(): void {

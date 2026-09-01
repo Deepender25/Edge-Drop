@@ -108,6 +108,84 @@ function readFileListFast(): string[] | null {
 }
 
 /**
+ * True when FileNameW currently holds at least one path.
+ *
+ * Cheap peek used by the watcher during the post-capture coalesce window.
+ * Reads only FileNameW (not CF_BITMAP / FileContents), so it does not
+ * retrigger Explorer's delayed-render pipeline.
+ */
+export function clipboardHasFileNameW(): boolean {
+  try {
+    const buf = clipboard.readBuffer(CF_FILE_LIST)
+    return !!(buf && buf.length >= 4)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Content key for the file drop currently on the clipboard, matching
+ * `contentSignature` for `kind: 'files'`.
+ *
+ * Uses FileNameW plus CF_UNICODETEXT (Explorer writes every selected path as
+ * plain text). Does not request CF_BITMAP / FileContents, so it will not
+ * retrigger delayed rendering.
+ *
+ * Closing an Explorer window sends WM_RENDERALLFORMATS and bumps the sequence
+ * number without changing the path list — the watcher compares this key to
+ * the last capture and ignores that flush.
+ */
+export function clipboardFilesContentKey(): string | null {
+  try {
+    const buf = clipboard.readBuffer(CF_FILE_LIST)
+    if (!buf || buf.length < 4) return null
+    const fromName = buf
+      .toString('utf16le')
+      .split('\u0000')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (!fromName.length) return null
+
+    let paths = fromName
+    try {
+      const raw = clipboard.readText()
+      if (raw) {
+        const lines = raw
+          .split(/\r?\n/)
+          .map((s) => s.trim().replace(/^"(.*)"$/, '$1'))
+          .filter(Boolean)
+        if (lines.length >= fromName.length && lines.includes(fromName[0])) {
+          paths = lines
+        }
+      }
+    } catch {
+      /* FileNameW only */
+    }
+
+    return `files|${paths.join('\n')}`
+  } catch {
+    return null
+  }
+}
+
+/**
+ * True when the clipboard is advertising a real file drop (Explorer, desktop,
+ * etc.) even if the path list is not readable yet. FileGroupDescriptor alone
+ * is NOT enough — browsers use that for "Copy Image" virtual files.
+ */
+function clipboardAdvertisesFileList(): boolean {
+  if (clipboardHasFileNameW()) return true
+  try {
+    return clipboard.availableFormats().some((f) => {
+      const l = f.toLowerCase()
+      return l === 'filenamew' || l === 'filename' || l.includes('shell idlist')
+    })
+  } catch {
+    return false
+  }
+}
+
+/**
  * Build a `FileNameW` buffer suitable for `clipboard.writeBuffer()`.
  *
  * This is the reverse of `readFileList()`: UTF-16LE paths separated by NUL
@@ -289,6 +367,52 @@ export function isClipboardExcluded(): boolean {
  * Async snapshot of the current clipboard into a single ItemData, or null.
  *
  * Order matters: a file copy should win over its text fallback, an image wins
+/** HTML kept on an item for rich paste. Larger blobs stall persist, IPC, and React. */
+export const MAX_ITEM_HTML_CHARS = 32_768
+const HEAVY_TEXT_CHARS = 8_192
+const HEAVY_TEXT_LINES = 40
+
+function countNewlines(s: string, limit: number): number {
+  let n = 0
+  for (let i = 0; i < s.length && n < limit; i++) {
+    if (s.charCodeAt(i) === 10) n++
+  }
+  return n
+}
+
+function isHeavyTabularText(text: string): boolean {
+  if (!text.includes('\t')) return false
+  return text.length > HEAVY_TEXT_CHARS || countNewlines(text, HEAVY_TEXT_LINES) >= HEAVY_TEXT_LINES
+}
+
+/** Scan a short prefix only — Excel HTML for a large range can be many MB. */
+function htmlLooksLikeRichDocument(html: string): boolean {
+  if (!html) return false
+  const head = html.length > 4096 ? html.slice(0, 4096) : html
+  return /<table\b|<tr\b|<td\b|<th\b|google-sheets|data-sheets|urn:schemas-microsoft-com:office:spreadsheet|excel|<html\b|<body\b|<p\b|<pre\b|<code\b|<ul\b|<ol\b|<li\b/i.test(head)
+}
+
+/**
+ * Normalize clipboard text the same way `readClipboard` stores it, so the
+ * watcher can cheap-compare a late Explorer/Excel format against the last capture
+ * without decoding HTML or bitmaps.
+ */
+export function normalizeClipboardText(rawText: string): string {
+  return rawText.includes('\t') ? rawText.replace(/\r?\n+$/, '') : rawText.trim()
+}
+
+/** Plain-text snapshot for coalesce checks. Does not read HTML or images. */
+export function clipboardTextContent(): string | null {
+  try {
+    const raw = clipboard.readText()
+    if (!raw) return null
+    const n = normalizeClipboardText(raw)
+    return n || null
+  } catch {
+    return null
+  }
+}
+
 /**
  * Helper to determine whether a clipboard payload containing an image and text
  * is intended as an image (e.g. Snipping Tool window capture, browser "Copy Image",
@@ -313,28 +437,8 @@ export function isScreenshotOrImageIntent(hasImage: boolean, rawText: string, ra
   const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
   if (lines.length > 1) return false
 
-  // 3. Spreadsheet HTML markup tags & rich office metadata
-  const lowerHtml = rawHtml.toLowerCase()
-  if (
-    lowerHtml.includes('<table') ||
-    lowerHtml.includes('<tr') ||
-    lowerHtml.includes('<td') ||
-    lowerHtml.includes('<th') ||
-    lowerHtml.includes('google-sheets') ||
-    lowerHtml.includes('data-sheets') ||
-    lowerHtml.includes('urn:schemas-microsoft-com:office:spreadsheet') ||
-    lowerHtml.includes('excel') ||
-    lowerHtml.includes('<html') ||
-    lowerHtml.includes('<body') ||
-    lowerHtml.includes('<p') ||
-    lowerHtml.includes('<pre') ||
-    lowerHtml.includes('<code') ||
-    lowerHtml.includes('<ul') ||
-    lowerHtml.includes('<ol') ||
-    lowerHtml.includes('<li')
-  ) {
-    return false
-  }
+  // 3. Spreadsheet HTML markup tags & rich office metadata (prefix only)
+  if (htmlLooksLikeRichDocument(rawHtml)) return false
 
   // 4. If text is long (> 200 chars), it is a text document, not a window title
   if (rawText.length > 200) return false
@@ -358,16 +462,22 @@ export function isScreenshotOrImageIntent(hasImage: boolean, rawText: string, ra
  *    distribute rows and columns across the cell grid rather than dumping text into one cell.
  */
 export function formatTabularDataForClipboard(text: string, rawHtml?: string): { text: string; html?: string } {
-  if (!text) return { text: '', html: rawHtml }
+  if (!text) return { text: '', html: rawHtml && rawHtml.length <= MAX_ITEM_HTML_CHARS ? rawHtml : undefined }
 
   // Normalize all line breaks to CRLF (\r\n) for Windows
   const crlfText = text.replace(/\r?\n/g, '\r\n')
+  const htmlIfSmall = rawHtml && rawHtml.length <= MAX_ITEM_HTML_CHARS ? rawHtml : undefined
 
   // Check if content has tab characters indicating column separators
   if (text.includes('\t')) {
-    // If rawHtml already contains a standard table tag, use it
-    if (rawHtml && /<table\b[^>]*>/i.test(rawHtml)) {
-      return { text: crlfText, html: rawHtml }
+    // If rawHtml already contains a standard table tag, use it — but never
+    // paste megabytes of Excel CF_HTML back; TSV+CRLF is enough for the grid.
+    if (htmlIfSmall && /<table\b[^>]*>/i.test(htmlIfSmall)) {
+      return { text: crlfText, html: htmlIfSmall }
+    }
+
+    if (isHeavyTabularText(text)) {
+      return { text: crlfText }
     }
 
     // Otherwise, generate a clean, standard HTML table from the TSV content
@@ -389,7 +499,7 @@ export function formatTabularDataForClipboard(text: string, rawHtml?: string): {
     return { text: crlfText, html: htmlTable }
   }
 
-  return { text: crlfText, html: rawHtml }
+  return { text: crlfText, html: htmlIfSmall }
 }
 
 /**
@@ -410,18 +520,37 @@ export async function readClipboard(): Promise<ItemData | null> {
   const files = await readFileListAsync()
   if (files && files.length) return { kind: 'files', paths: files }
 
-  const img = clipboard.readImage()
-  const hasImage = !img.isEmpty()
+  // Explorer advertises FileNameW / Shell IDList before the path list is
+  // readable. Falling through to the preview bitmap would record a screenshot
+  // of the first file, then a second files card when the paths arrive.
+  if (clipboardAdvertisesFileList()) return null
+
+  // Text first. Excel/Sheets copies of a large range put a huge CF_BITMAP of
+  // the selection plus megabytes of CF_HTML. Decoding those on the UI thread
+  // stalls the window; shipping the HTML through persist/IPC makes it jitter.
   const rawText = clipboard.readText()
-  const rawHtml = clipboard.readHTML()
   const trimmedText = rawText.trim()
+  const heavyTable = isHeavyTabularText(rawText)
+  const skipBitmap = rawText.includes('\t') || countNewlines(rawText, 2) >= 2
+
+  let rawHtml = ''
+  if (!heavyTable) {
+    rawHtml = clipboard.readHTML()
+  }
   const trimmedHtml = rawHtml.trim()
 
   const localFromHtml = localPathFromClipboardFileUrl(trimmedHtml) || localPathFromClipboardFileUrl(trimmedText)
   if (localFromHtml) return { kind: 'files', paths: [localFromHtml] }
 
+  let hasImage = false
+  let img: ReturnType<typeof clipboard.readImage> | null = null
+  if (!skipBitmap) {
+    img = clipboard.readImage()
+    hasImage = !img.isEmpty()
+  }
+
   // Snipping Tool (Window mode, Freeform, Rectangular) or browser images:
-  if (isScreenshotOrImageIntent(hasImage, trimmedText, trimmedHtml)) {
+  if (img && isScreenshotOrImageIntent(hasImage, trimmedText, trimmedHtml)) {
     const size = img.getSize()
     return {
       kind: 'image',
@@ -437,10 +566,11 @@ export async function readClipboard(): Promise<ItemData | null> {
   // Text intent (Notepad, Word, VS Code text copy, Excel/Google Sheets tabular copy, rich HTML copy)
   if (trimmedText) {
     let html: string | undefined
-    if (trimmedHtml && trimmedHtml !== trimmedText) html = rawHtml
+    if (trimmedHtml && trimmedHtml !== trimmedText && rawHtml.length <= MAX_ITEM_HTML_CHARS) {
+      html = rawHtml
+    }
 
-    // When text contains tabs (\t), preserve the exact TSV representation (including leading/trailing tabs for empty columns)
-    const textToStore = rawText.includes('\t') ? rawText.replace(/\r?\n+$/, '') : trimmedText
+    const textToStore = normalizeClipboardText(rawText)
 
     const isUrl = URL_RE.test(trimmedText)
     const isColor = COLOR_HEX_RE.test(trimmedText)
@@ -449,7 +579,7 @@ export async function readClipboard(): Promise<ItemData | null> {
   }
 
   // Fallback to image if no text
-  if (hasImage) {
+  if (hasImage && img) {
     const size = img.getSize()
     return {
       kind: 'image',
@@ -496,9 +626,16 @@ export function clipboardSignature(): string {
     return `${seqPrefix}files:${files.join('\n')}`
   }
 
+  const rawUntrimmed = clipboard.readText()
+  // Spreadsheet copies carry a huge selection bitmap. Fingerprint the TSV
+  // only — toBitmap() of a 1500-row range stalls the window.
+  if (rawUntrimmed.includes('\t') || countNewlines(rawUntrimmed, 2) >= 2) {
+    return `${seqPrefix}text:${normalizeClipboardText(rawUntrimmed)}`
+  }
+
   const img = clipboard.readImage()
   const hasImage = !img.isEmpty()
-  const rawText = clipboard.readText().trim()
+  const rawText = rawUntrimmed.trim()
   const rawHtml = clipboard.readHTML().trim()
 
   if (isScreenshotOrImageIntent(hasImage, rawText, rawHtml)) {

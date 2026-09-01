@@ -25,6 +25,7 @@ import {
 import { PATHS } from './paths'
 import { createId } from './ids'
 import { contentSignature } from './signature'
+import { MAX_ITEM_HTML_CHARS } from '../clipboard/formats'
 
 /** Maps a signature -> item id so dedup is O(1). */
 interface Index {
@@ -108,6 +109,10 @@ export class ItemStore {
               it.data.hasFullPayload = true
               it.data.previewText = it.data.text.slice(0, 300)
               it.data.text = it.data.previewText
+              migratedAnyPayloads = true
+            }
+            if (it.data.html && it.data.html.length > MAX_ITEM_HTML_CHARS) {
+              delete it.data.html
               migratedAnyPayloads = true
             }
           }
@@ -248,13 +253,18 @@ export class ItemStore {
 
     const id = createId()
     let finalData = data
-    if (data.kind === 'text' && data.text.length > 300) {
-      this.writeTextPayload(id, data.text)
-      finalData = {
-        ...data,
-        hasFullPayload: true,
-        previewText: data.text.slice(0, 300),
-        text: data.text.slice(0, 300)
+    if (data.kind === 'text') {
+      if (data.html && data.html.length > MAX_ITEM_HTML_CHARS) {
+        delete data.html
+      }
+      if (data.text.length > 300) {
+        this.writeTextPayload(id, data.text)
+        finalData = {
+          ...data,
+          hasFullPayload: true,
+          previewText: data.text.slice(0, 300),
+          text: data.text.slice(0, 300)
+        }
       }
     }
 
@@ -785,6 +795,20 @@ export class ItemStore {
         return {
           ...it,
           data: { ...it.data, entries }
+        }
+      }
+      if (it.data.kind === 'text') {
+        const d = it.data
+        return {
+          ...it,
+          data: {
+            kind: 'text',
+            text: d.text,
+            isUrl: d.isUrl,
+            isColor: d.isColor,
+            hasFullPayload: d.hasFullPayload,
+            previewText: d.previewText
+          }
         }
       }
       return { ...it, data: it.data }

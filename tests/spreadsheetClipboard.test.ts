@@ -119,4 +119,39 @@ describe('Spreadsheet Tabular Clipboard Formatting', () => {
       expect(item.html).toContain('<table>')
     }
   })
+
+  it('does not decode the selection bitmap or keep megabyte HTML for a large spreadsheet copy', async () => {
+    const rows = Array.from({ length: 1500 }, (_, i) => `r${i}\tc${i}\tval${i}`).join('\n')
+    const hugeHtml = `<table>${'<tr><td>x</td></tr>'.repeat(1500)}</table>`
+    const mockImage = {
+      isEmpty: () => false,
+      getSize: () => ({ width: 4000, height: 40000 }),
+      toBitmap: () => Buffer.alloc(4000 * 40000 * 4),
+      toPNG: () => Buffer.from('should-not-run')
+    }
+
+    ;(clipboard as any).__setMockState({
+      formats: ['CF_UNICODETEXT', 'HTML Format', 'CF_DIB', 'CF_BITMAP'],
+      text: rows,
+      html: hugeHtml,
+      image: mockImage
+    })
+
+    const item = await readClipboard()
+    expect(item).not.toBeNull()
+    expect(item?.kind).toBe('text')
+    if (item?.kind === 'text') {
+      expect(item.text.startsWith('r0\tc0\tval0')).toBe(true)
+      expect(item.html).toBeUndefined()
+    }
+    expect(clipboard.readImage).not.toHaveBeenCalled()
+    expect(clipboard.readHTML).not.toHaveBeenCalled()
+  })
+
+  it('does not synthesize a giant HTML table when pasting a large TSV', () => {
+    const rows = Array.from({ length: 1500 }, (_, i) => `r${i}\tc${i}`).join('\n')
+    const result = formatTabularDataForClipboard(rows)
+    expect(result.text.includes('\r\n')).toBe(true)
+    expect(result.html).toBeUndefined()
+  })
 })

@@ -18,7 +18,7 @@ import { runtime } from './config'
 import { getMainWindow, registerClipboardUpdateListener } from './window'
 
 const store = new ItemStore((removed) => forgetStagedItems(removed))
-const watcher = new ClipboardWatcher(600)
+const watcher = new ClipboardWatcher(600, 220)
 let pruneTimer: ReturnType<typeof setInterval> | null = null
 let wakeTimer: ReturnType<typeof setTimeout> | null = null
 

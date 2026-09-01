@@ -244,4 +244,24 @@ describe('Windows Snipping Tool & Clipboard Image Detection (#41)', () => {
     const sig = clipboardSignature()
     expect(sig).toContain('text:Name\tScore')
   })
+
+  it('does not treat an Explorer file copy as an image while FileNameW is advertised but unread', async () => {
+    const mockBgra = Buffer.alloc(64 * 64 * 4, 32)
+    const mockImage = {
+      isEmpty: () => false,
+      getSize: () => ({ width: 64, height: 64 }),
+      toBitmap: () => mockBgra,
+      toPNG: () => Buffer.from('mock-png-bytes')
+    }
+
+    ;(clipboard as any).__setMockState({
+      formats: ['FileNameW', 'CF_HDROP', 'CF_DIB', 'CF_BITMAP'],
+      text: '',
+      html: '',
+      image: mockImage
+    })
+
+    const result = await readClipboard()
+    expect(result).toBeNull()
+  })
 })
