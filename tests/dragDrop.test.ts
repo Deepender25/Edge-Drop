@@ -202,7 +202,7 @@ describe('buildFileDragSvg — standalone 3D pastel vector drag icons', () => {
     const svg = buildFileDragSvg(['pdf'], 1)
     expect(svg).toContain('<svg')
     expect(svg).toContain('viewBox="0 0 512 512"')
-    expect(svg).toContain('PDF')
+    expect(svg).toContain('#FF7C8E')
     expect(svg).not.toContain('fill="#000000"')
     expect(svg).not.toContain('<rect x="16" y="8" width="64" height="72"')
   })
