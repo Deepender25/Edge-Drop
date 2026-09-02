@@ -28,14 +28,24 @@ export function relativeTime(ts: number): string {
   const lang = getResolvedLanguage()
 
   try {
-    const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'always', style: 'long' })
-    if (s < 60) return rtf.format(-s, 'second')
-    const m = Math.round(s / 60)
-    if (m < 60) return rtf.format(-m, 'minute')
-    const h = Math.round(m / 60)
-    if (h < 24) return rtf.format(-h, 'hour')
-    const d = Math.round(h / 24)
-    if (d < 7) return rtf.format(-d, 'day')
+    const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'always', style: 'narrow' })
+    let res: string
+    if (s < 60) res = rtf.format(-s, 'second')
+    else if (s < 3600) res = rtf.format(-Math.round(s / 60), 'minute')
+    else if (s < 86400) res = rtf.format(-Math.round(s / 3600), 'hour')
+    else if (s < 604800) res = rtf.format(-Math.round(s / 86400), 'day')
+    else return new Date(ts).toLocaleDateString(lang)
+
+    // In locales where narrow style outputs leading '-' without past indicator (e.g. French "-30 s", Russian "-30 с"),
+    // fallback to short style which provides abbreviated units with proper past tense ("il y a 30 s", "30 сек. назад").
+    if (res.startsWith('-')) {
+      const rtfShort = new Intl.RelativeTimeFormat(lang, { numeric: 'always', style: 'short' })
+      if (s < 60) return rtfShort.format(-s, 'second')
+      if (s < 3600) return rtfShort.format(-Math.round(s / 60), 'minute')
+      if (s < 86400) return rtfShort.format(-Math.round(s / 3600), 'hour')
+      return rtfShort.format(-Math.round(s / 86400), 'day')
+    }
+    return res
   } catch {
     const agoStr = t('item.ago')
     if (s < 60) return `${s}s ${agoStr}`.trim()

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { parseUrlPreview, type UrlPreviewInfo } from '../lib/urlPreview'
-import { GlobeIcon } from './icons'
+import { LinkIcon } from './icons'
 
 interface LinkPreviewCardProps {
   url: string
@@ -15,29 +15,25 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({
 }) => {
   const info: UrlPreviewInfo = useMemo(() => parseUrlPreview(url), [url])
 
+  // Clean, professional display:
+  // Top: Link SVG + Domain (e.g. 🔗 github.com)
+  const domain = info.domain || 'link'
+
+  // Main: Clean, human-readable link target or title
+  const displayTitle = info.title || info.cleanUrl.replace(/^https?:\/\//, '')
+
   return (
     <div
-      className={`link-preview-apple${compact ? ' compact' : ''}`}
+      className={`link-card${compact ? ' compact' : ''}`}
       onClick={onClick}
     >
-      <div className="link-apple-icon-box" aria-hidden>
-        <GlobeIcon width={18} height={18} className="link-apple-icon" />
+      <div className="link-card-top">
+        <LinkIcon width={12} height={12} className="link-card-icon" />
+        <span className="link-card-domain">{domain}</span>
       </div>
 
-      <div className="link-apple-content">
-        <div className="link-apple-header">
-          <span className="link-apple-service">{info.serviceName}</span>
-          <span className="link-apple-dot">·</span>
-          <span className="link-apple-domain">{info.domain}</span>
-        </div>
-
-        <div className="link-apple-title" title={info.title || info.cleanUrl}>
-          {info.title || info.cleanUrl}
-        </div>
-
-        <div className="link-apple-path" title={info.cleanUrl}>
-          {info.cleanUrl.replace(/^https?:\/\//, '')}
-        </div>
+      <div className="link-card-body" title={info.cleanUrl}>
+        {displayTitle}
       </div>
     </div>
   )

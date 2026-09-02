@@ -582,8 +582,8 @@ function looksLikeCode(text: string): boolean {
   )
 }
 
-const SYS_FONT = "'Segoe UI', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif"
-const CODE_FONT = "'Cascadia Code', 'Cascadia Mono', Consolas, 'Fira Code', 'Courier New', monospace"
+const SYS_FONT = 'var(--font-ui)'
+const CODE_FONT = 'var(--font-ui)'
 
 function SelectionBadge({
   isSelected,
@@ -754,7 +754,7 @@ function PreviewContent({
               borderRadius: 10,
               fontSize: 12,
               color: 'rgba(255, 255, 255, 0.80)',
-              fontFamily: 'monospace',
+              fontFamily: 'var(--font-ui)',
               wordBreak: 'break-all',
               lineHeight: 1.45,
               cursor: 'pointer',
@@ -797,11 +797,11 @@ function PreviewContent({
           color: 'rgba(255,255,255,0.88)',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          fontSize: isCode ? 12 : 13.5,
-          lineHeight: isCode ? 1.65 : 1.7,
-          fontFamily: isCode ? CODE_FONT : SYS_FONT,
+          fontSize: 13.5,
+          lineHeight: 1.65,
+          fontFamily: 'var(--font-ui)',
           fontWeight: 400,
-          letterSpacing: isCode ? 0 : '0.01em'
+          letterSpacing: '0.01em'
         }}>
           {text}
         </div>

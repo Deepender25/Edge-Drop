@@ -262,30 +262,36 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
         onClick={handleCardClick}
       >
         <div className="body">
-          {isBundle ? (
-              <BundleFluidPreview 
-                item={item} 
-                expanded={expanded} 
-                onDragStart={handleDragStart} 
-                onCopy={onCopy} 
-                onRemove={() => remove(item.id)} 
-                onCollapse={onCollapse}
-              />
-          ) : (
-            <Preview item={item} />
-          )}
-          <div className="meta">
-            <KindBadge item={item} />
-            <span>{relativeTime(item.capturedAt)}</span>
-            {item.hitCount > 1 && <span>· ×{item.hitCount}</span>}
-            {item.data.kind === 'image' && (
-              <span>
-                · {item.data.width}×{item.data.height}
-              </span>
+          <div className="item-content">
+            {isBundle ? (
+                <BundleFluidPreview 
+                  item={item} 
+                  expanded={expanded} 
+                  onDragStart={handleDragStart} 
+                  onCopy={onCopy} 
+                  onRemove={() => remove(item.id)} 
+                  onCollapse={onCollapse}
+                />
+            ) : (
+              <Preview item={item} />
             )}
-            {item.data.kind === 'image' && <span>· {formatBytes(item.data.bytes)}</span>}
-            {copied && <span style={{ color: '#fff' }}>· copied</span>}
           </div>
+          {(!isBundle || !expanded) && (
+            <div className="item-footer">
+              <div className="meta">
+                <KindBadge item={item} />
+                <span>{relativeTime(item.capturedAt)}</span>
+                {item.hitCount > 1 && <span>· ×{item.hitCount}</span>}
+                {item.data.kind === 'image' && (
+                  <span>
+                    · {item.data.width}×{item.data.height}
+                  </span>
+                )}
+                {item.data.kind === 'image' && <span>· {formatBytes(item.data.bytes)}</span>}
+                {copied && <span style={{ color: '#fff' }}>· copied</span>}
+              </div>
+            </div>
+          )}
         </div>
 
         <div 

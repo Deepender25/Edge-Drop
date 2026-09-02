@@ -53,6 +53,7 @@ export function Header() {
 
   const activeId: (typeof FILTERS)[number]['id'] = emojiOpen ? 'emoji' : typeFilter
   const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.id === activeId))
+  const ActiveIcon = FILTERS[activeIndex]?.Icon || FILTERS[0].Icon
   const filterChipWidth = 28
 
   return (
@@ -76,14 +77,19 @@ export function Header() {
               gap: 4, 
               marginLeft: 0,
               maxWidth: '100%',
-              overflow: 'hidden'
+              overflow: 'visible'
             }}
           >
-            {/* Single Persistent Sliding Pill Indicator */}
+            {/* Single Persistent Sliding Pill Indicator (ABOVE the buttons) */}
             <motion.div
               initial={false}
               animate={{ x: activeIndex * (filterChipWidth + 4) }}
-              transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                type: 'spring',
+                stiffness: 440,
+                damping: 34,
+                mass: 0.7
+              }}
               style={{
                 position: 'absolute',
                 left: 0,
@@ -93,11 +99,18 @@ export function Header() {
                 borderRadius: 999,
                 background: '#ffffff',
                 border: 'none',
-                boxShadow: 'none',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
                 pointerEvents: 'none',
-                zIndex: 0
+                zIndex: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#000000',
+                willChange: 'transform'
               }}
-            />
+            >
+              <ActiveIcon width={14} height={14} />
+            </motion.div>
 
             {FILTERS.map((f) => {
               const active = activeId === f.id
@@ -123,13 +136,13 @@ export function Header() {
                     width: filterChipWidth,
                     height: 28,
                     padding: 0,
-                    color: active ? '#000000' : 'rgba(255, 255, 255, 0.82)',
-                    background: active ? 'transparent' : '#141414',
+                    color: 'rgba(255, 255, 255, 0.75)',
+                    background: '#141414',
                     border: 'none',
                     borderRadius: 999,
                     cursor: 'pointer',
                     userSelect: 'none',
-                    transition: 'color 0.18s ease',
+                    transition: 'color 0.18s ease, background-color 0.15s ease',
                     zIndex: 1,
                     flexShrink: 0
                   }}
