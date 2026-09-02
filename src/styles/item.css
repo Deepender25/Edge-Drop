@@ -210,76 +210,105 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* Smart Link Preview Card */
-.link-preview-card {
+/* Apple Design Language Link Preview Card */
+.link-preview-apple {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.link-apple-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.15s ease,
+              border-color 0.15s ease;
+}
+
+.item-card:hover .link-apple-icon-box {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.link-apple-icon {
+  display: block;
+}
+
+.link-apple-content {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
+  gap: 2.5px;
 }
-.link-preview-header {
+
+.link-apple-header {
   display: flex;
   align-items: center;
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
-}
-.link-brand-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  padding: 3px 10px;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.link-service {
-  font-size: calc(11.5px * var(--font-scale, 1));
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.link-dot {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.35);
-  flex-shrink: 0;
-}
-.link-domain {
+  gap: 5px;
   font-size: calc(11px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.65);
-  font-weight: 450;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.link-apple-service {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.link-apple-dot {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.link-apple-domain {
+  color: rgba(255, 255, 255, 0.5);
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
   flex-shrink: 1;
 }
-.link-title {
-  font-size: calc(13px * var(--font-scale, 1));
-  font-weight: 550;
-  color: rgba(255, 255, 255, 0.95);
+
+.link-apple-title {
+  font-size: calc(13.5px * var(--font-scale, 1));
+  font-weight: 600;
+  color: #ffffff;
   line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  letter-spacing: -0.01em;
 }
-.link-url {
+
+.link-apple-path {
   font-size: calc(11.5px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.70);
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   min-width: 0;
+  line-height: 1.3;
 }
 
 /* Image thumbnails */

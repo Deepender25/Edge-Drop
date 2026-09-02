@@ -705,21 +705,40 @@ function PreviewContent({
               <QuickActionButton
                 title={t('flyout.copyText')}
                 icon={CopyIcon}
-                onClick={() => navigator.clipboard.writeText(activeText)}
+                onClick={() => navigator.clipboard.writeText(info.cleanUrl || activeText)}
               />
             </div>
           </div>
 
           {info.title && (
-            <div style={{
-              fontSize: 16,
-              fontWeight: 600,
-              color: '#ffffff',
-              lineHeight: 1.35,
-              fontFamily: SYS_FONT,
-              wordBreak: 'break-word'
-            }}>
-              {info.title}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{
+                fontSize: 16,
+                fontWeight: 600,
+                color: '#ffffff',
+                lineHeight: 1.35,
+                fontFamily: SYS_FONT,
+                wordBreak: 'break-word'
+              }}>
+                {info.title}
+              </div>
+              {info.subtitle && (
+                <div>
+                  <span style={{
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    padding: '2px 7px',
+                    borderRadius: 4,
+                    display: 'inline-block'
+                  }}>
+                    {info.subtitle}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -730,12 +749,12 @@ function PreviewContent({
             }}
             style={{
               padding: '10px 12px',
-              background: 'rgba(255, 255, 255, 0.04)',
+              background: 'rgba(0, 0, 0, 0.25)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: 10,
-              fontSize: 12.5,
+              fontSize: 12,
               color: 'rgba(255, 255, 255, 0.80)',
-              fontFamily: SYS_FONT,
+              fontFamily: 'monospace',
               wordBreak: 'break-all',
               lineHeight: 1.45,
               cursor: 'pointer',
@@ -746,11 +765,11 @@ function PreviewContent({
               e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'
+              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.25)'
               e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'
             }}
           >
-            {activeText}
+            {info.cleanUrl || activeText}
           </div>
         </div>
       )

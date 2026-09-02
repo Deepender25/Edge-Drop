@@ -19,4 +19,6 @@ edge-drop-icons-v0.2.9.png
 icons-showcase.html
 icons-showcase.svg
 scripts/generate_showcase.mjs
+electron-clipboard-search-implementation/
+scratch/verify-*.cjs
 

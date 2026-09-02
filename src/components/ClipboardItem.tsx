@@ -28,6 +28,7 @@ import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
 import { CopyIcon, FileKindIcon, FileStackPhoto, GlobeIcon, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { parseUrlPreview } from '../lib/urlPreview'
+import { LinkPreviewCard } from './LinkPreviewCard'
 import '../styles/item.css'
 
 import { tryPaste } from '../lib/tryPaste'
@@ -774,21 +775,7 @@ function Preview({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
     case 'text':
       if (item.data.isUrl) {
-        const info = parseUrlPreview(item.data.text)
-        return (
-          <div className="link-preview-card">
-            <div className="link-preview-header">
-              <div className="link-brand-pill">
-                <GlobeIcon width={12} height={12} style={{ color: 'rgba(255, 255, 255, 0.75)', flexShrink: 0 }} />
-                <span className="link-service">{info.serviceName}</span>
-                <span className="link-dot">·</span>
-                <span className="link-domain">{info.domain}</span>
-              </div>
-            </div>
-            {info.title && <div className="link-title">{info.title}</div>}
-            <div className="preview single link-url">{item.data.text}</div>
-          </div>
-        )
+        return <LinkPreviewCard url={item.data.text} />
       }
       return <div className="preview">{previewText(item.data.text)}</div>
 
