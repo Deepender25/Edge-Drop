@@ -231,9 +231,9 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
-              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#000000',
-              borderRadius: 16,
-              border: dragOver ? '2px dashed #4caf50' : '1px solid rgba(255,255,255,0.06)',
+              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#141414',
+              borderRadius: 20,
+              border: dragOver ? '2px dashed #4caf50' : 'none',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
@@ -626,7 +626,7 @@ function SelectionBadge({
         }}
       >
         {isSelected && (
-          <CheckIcon width={14} height={14} strokeWidth={3} style={{ shapeRendering: 'geometricPrecision' }} />
+          <CheckIcon width={14} height={14} />
         )}
       </div>
     </div>

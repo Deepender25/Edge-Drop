@@ -9,38 +9,44 @@
 :root {
   /* Base blacks — stacked for depth, never a flat #000. */
   --bg-0: #000000; /* deepest core */
-  --bg-1: #060608; /* blade body */
-  --bg-2: #0c0c10; /* raised surface */
-  --bg-3: #141418; /* hover surface */
+  --bg-1: #000000; /* blade body */
+  --bg-2: #141414; /* raised surface / card */
+  --bg-3: #1c1c1c; /* hover */
   --bg-glass: rgba(12, 12, 16, 0.72); /* frosted backdrop */
+  --bg-card: #141414;
+  --bg-card-hover: #1c1c1c;
+  --bg-chip: #141414;
 
-  /* Hairlines & inner light edge */
+  /* Hairlines — used only where a divider is needed, not as box outlines */
   --edge-light: rgba(255, 255, 255, 0.06);
   --edge-strong: rgba(255, 255, 255, 0.12);
-  --divider: rgba(255, 255, 255, 0.07);
+  --divider: rgba(255, 255, 255, 0.08);
 
   /* Text — High Contrast & Ultra-Legible */
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.88);
-  --text-tertiary: rgba(255, 255, 255, 0.68);
+  --text-secondary: rgba(255, 255, 255, 0.78);
+  --text-tertiary: rgba(255, 255, 255, 0.48);
 
   /* Accent (overridden at runtime by theme.ts) */
   --accent: #8b5cf6;
   --accent-glow: rgba(139, 92, 246, 0.55);
 
-  /* Shape & depth */
-  --radius-blade: 22px;
-  --radius-card: 14px;
+  /* Shape & depth — large radii, no hairline boxes */
+  --radius-blade: 24px;
+  --radius-card: 18px;
   --radius-pill: 999px;
-  --shadow-blade: 0 0 0 1px var(--edge-light), 0 30px 80px rgba(0, 0, 0, 0.65),
-    0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-card: 0 1px 0 var(--edge-light) inset, 0 6px 18px rgba(0, 0, 0, 0.4);
+  --shadow-blade: none;
+  --shadow-card: none;
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --dur-fast: 140ms;
   --dur-base: 240ms;
+
+  /* Typography — bundled OFL faces, not system fallbacks. */
+  --font-ui: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Mono', ui-monospace, monospace;
 
   /* Typography scale */
   --font-scale: 1;

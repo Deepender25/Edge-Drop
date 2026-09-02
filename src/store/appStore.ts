@@ -128,13 +128,11 @@ export const useStore = create<AppState>((set, get) => ({
   query: '',
   typeFilter: 'all',
   setTypeFilter: (typeFilter) => {
-    if (get().typeFilter === typeFilter) return
-    set({ typeFilter })
+    if (get().typeFilter === typeFilter && !get().emojiOpen) return
+    set({ typeFilter, emojiOpen: false, expandedStackId: null })
     // The list remounts on filter change; leave the flyout open and it
     // would float over a tab that no longer contains the source card.
     if (get().previewItemId) get().setPreviewItemId(null)
-    // Same for an expanded stack: its card may not exist in the new tab.
-    set({ expandedStackId: null })
   },
   open: false,
   settingsOpen: false,

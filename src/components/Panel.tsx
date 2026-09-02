@@ -14,8 +14,6 @@ import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
 import { ItemList } from './ItemList'
 import { EmojiPicker } from './EmojiPicker'
-import { ClipboardIcon, EmojiSmileIcon, ChevronLeftIcon } from './icons'
-import { playButtonClickSound } from '../lib/soundEffects'
 import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { ClearMenu } from './ClearMenu'
@@ -27,7 +25,6 @@ import { useFilteredItems } from '../hooks/useFilteredItems'
 import { useTranslation } from '../i18n'
 
 export function Panel() {
-  const { t } = useTranslation()
   const open = useStore((s) => s.open)
   const { pinned, recent } = useFilteredItems()
   const filteredItems = useMemo(() => [...pinned, ...recent], [pinned, recent])
@@ -373,60 +370,28 @@ export function Panel() {
                 >
                   {emojiOpen ? <EmojiPicker /> : <ItemList />}
                 <div className="footer" style={{ position: 'relative' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    {emojiOpen ? (
-                      <button
-                        type="button"
-                        className="footer-back-pill"
-                        title={t('onboarding.back')}
-                        tabIndex={-1}
-                        onClick={(e) => {
-                          e.currentTarget.blur()
-                          playButtonClickSound()
-                          setEmojiOpen(false)
-                        }}
-                      >
-                        <ChevronLeftIcon width={13} height={13} />
-                        <ClipboardIcon width={13} height={13} />
-                        <span>{t('onboarding.back')}</span>
-                      </button>
-                    ) : (
+                  {!emojiOpen && (
+                    <>
                       <div className="footer-capsule">
                         <span className="footer-capsule-count" title={`${filteredCount}`}>
                           {filteredCount}
                         </span>
-                        <div className="footer-capsule-divider" />
-                        <button
-                          type="button"
-                          className="footer-capsule-btn"
-                          title="Emoji"
-                          tabIndex={-1}
-                          onClick={(e) => {
-                            e.currentTarget.blur()
-                            playButtonClickSound()
-                            setEmojiOpen(true)
-                          }}
-                        >
-                          <EmojiSmileIcon width={15} height={15} />
-                        </button>
                       </div>
-                    )}
-                  </div>
-                  <div className="spacer" />
-                  {!emojiOpen && (
-                  <ClearMenu
-                    items={filteredItems}
-                    disabled={recent.length === 0}
-                    panelOpen={open}
-                    onClear={(ids) => clear(ids)}
-                    onClearAll={() => {
-                      if (typeFilter === 'all' && !query.trim()) {
-                        clear()
-                      } else {
-                        clear(recent.map((it) => it.id))
-                      }
-                    }}
-                  />
+                      <div className="spacer" />
+                      <ClearMenu
+                        items={filteredItems}
+                        disabled={recent.length === 0}
+                        panelOpen={open}
+                        onClear={(ids) => clear(ids)}
+                        onClearAll={() => {
+                          if (typeFilter === 'all' && !query.trim()) {
+                            clear()
+                          } else {
+                            clear(recent.map((it) => it.id))
+                          }
+                        }}
+                      />
+                    </>
                   )}
                 </div>
               </motion.div>

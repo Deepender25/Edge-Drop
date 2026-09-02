@@ -117,11 +117,11 @@ export function ClearMenu({ items, disabled, panelOpen, onClear, onClearAll }: C
               bottom: 'calc(100% + 6px)',
               right: 0,
               minWidth: 190,
-              background: '#121214',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
-              borderRadius: 10,
+              background: '#141414',
+              border: 'none',
+              borderRadius: 16,
               padding: 4,
-              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6)',
               zIndex: 100
             }}
           >

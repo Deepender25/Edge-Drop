@@ -108,6 +108,8 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@iconify-json/cuida": "^1.2.5",
     "@iconify/react": "^6.0.2",
     "@radix-ui/react-scroll-area": "^1.2.13",

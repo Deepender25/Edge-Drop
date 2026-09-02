@@ -1,7 +1,7 @@
 /** Panel header: title + settings toggle. */
 import { motion } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import { GearIcon, CloseIcon, InfoIcon } from './icons'
+import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, EmojiSmileIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 
 import { useTranslation } from '../i18n'
@@ -36,31 +36,31 @@ export function Header() {
   const typeFilter = useStore((s) => s.typeFilter)
   const setTypeFilter = useStore((s) => s.setTypeFilter)
   const emojiOpen = useStore((s) => s.emojiOpen)
+  const setEmojiOpen = useStore((s) => s.setEmojiOpen)
 
-  const FILTERS: { id: import('../../shared/types').TypeFilter; label: string }[] = [
-    { id: 'all', label: t('filters.all') },
-    { id: 'text', label: t('filters.text') },
-    { id: 'links', label: t('filters.links') },
-    { id: 'images', label: t('filters.images') },
-    { id: 'files', label: t('filters.files') }
+  const FILTERS: {
+    id: import('../../shared/types').TypeFilter | 'emoji'
+    label: string
+    Icon: typeof ClockIcon
+  }[] = [
+    { id: 'all', label: t('filters.all'), Icon: ClockIcon },
+    { id: 'text', label: t('filters.text'), Icon: TypeIcon },
+    { id: 'links', label: t('filters.links'), Icon: LinkIcon },
+    { id: 'images', label: t('filters.images'), Icon: ImageIcon },
+    { id: 'files', label: t('filters.files'), Icon: FilesIcon },
+    { id: 'emoji', label: t('emoji.open'), Icon: EmojiSmileIcon }
   ]
 
-  const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.id === typeFilter))
-  const maxFilterLen = Math.max(...FILTERS.map((f) => f.label.length))
-  const filterChipWidth = 37
-  const filterFontSize = maxFilterLen >= 8 ? 7.8 : maxFilterLen >= 6 ? 8.5 : maxFilterLen >= 5 ? 9.2 : 10.2
-  const filterLetterSpacing = maxFilterLen >= 7 ? '-0.025em' : maxFilterLen >= 5 ? '-0.015em' : '0'
+  const activeId: (typeof FILTERS)[number]['id'] = emojiOpen ? 'emoji' : typeFilter
+  const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.id === activeId))
+  const filterChipWidth = 28
 
   return (
-    <div className="header" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', height: 40, padding: '0 10px 0 4px', boxSizing: 'border-box' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 2, minWidth: 0, flex: 1, overflow: 'hidden' }}>
+    <div className="header" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', height: 40, padding: '0 14px', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 0, minWidth: 0, flex: 1, overflow: 'hidden' }}>
         {settingsOpen ? (
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#8e8e93', letterSpacing: '0.01em', paddingLeft: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#8e8e93', letterSpacing: '0.01em', paddingLeft: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
             {settingsSubView === 'changelog' ? t('header.whatsNew') : t('header.settings')}
-          </span>
-        ) : emojiOpen ? (
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#8e8e93', letterSpacing: '0.01em', paddingLeft: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 170 }}>
-            Emoji
           </span>
         ) : (
           <div 
@@ -69,12 +69,12 @@ export function Header() {
               position: 'relative',
               display: 'flex', 
               alignItems: 'center', 
-              background: 'rgba(255, 255, 255, 0.05)', 
-              border: '1px solid rgba(255, 255, 255, 0.10)', 
+              background: 'transparent', 
+              border: 'none', 
               borderRadius: 999, 
-              padding: '2px 3px', 
-              gap: 2, 
-              marginLeft: 2,
+              padding: 0, 
+              gap: 4, 
+              marginLeft: 0,
               maxWidth: '100%',
               overflow: 'hidden'
             }}
@@ -82,33 +82,38 @@ export function Header() {
             {/* Single Persistent Sliding Pill Indicator */}
             <motion.div
               initial={false}
-              animate={{ x: activeIndex * (filterChipWidth + 2) }}
+              animate={{ x: activeIndex * (filterChipWidth + 4) }}
               transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 position: 'absolute',
-                left: 3,
-                top: 2,
+                left: 0,
+                top: 0,
                 width: filterChipWidth,
-                height: 22,
+                height: 28,
                 borderRadius: 999,
-                background: 'rgba(255, 255, 255, 0.16)',
-                border: '1px solid rgba(255, 255, 255, 0.24)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+                background: '#ffffff',
+                border: 'none',
+                boxShadow: 'none',
                 pointerEvents: 'none',
                 zIndex: 0
               }}
             />
 
             {FILTERS.map((f) => {
-              const active = typeFilter === f.id
+              const active = activeId === f.id
+              const Icon = f.Icon
               return (
                 <button
                   key={f.id}
                   type="button"
                   className={`filter-chip${active ? ' active' : ''}`}
+                  title={f.label}
+                  aria-label={f.label}
+                  aria-pressed={active}
                   onClick={() => {
                     playButtonClickSound()
-                    setTypeFilter(f.id)
+                    if (f.id === 'emoji') setEmojiOpen(true)
+                    else setTypeFilter(f.id)
                   }}
                   style={{
                     position: 'relative',
@@ -116,24 +121,20 @@ export function Header() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     width: filterChipWidth,
-                    height: 22,
-                    padding: '0 1px',
-                    fontSize: filterFontSize,
-                    letterSpacing: filterLetterSpacing,
-                    fontWeight: active ? 600 : 500,
-                    color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.85)',
-                    background: 'transparent',
+                    height: 28,
+                    padding: 0,
+                    color: active ? '#000000' : 'rgba(255, 255, 255, 0.82)',
+                    background: active ? 'transparent' : '#141414',
                     border: 'none',
                     borderRadius: 999,
                     cursor: 'pointer',
                     userSelect: 'none',
                     transition: 'color 0.18s ease',
                     zIndex: 1,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden'
+                    flexShrink: 0
                   }}
                 >
-                  <span>{f.label}</span>
+                  <Icon width={14} height={14} />
                 </button>
               )
             })}

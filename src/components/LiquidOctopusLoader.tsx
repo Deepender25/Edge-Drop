@@ -103,24 +103,18 @@ export function LiquidOctopusLoader({
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
       <svg
         viewBox="140 10 320 310"
-        shapeRendering="geometricPrecision"
         style={{
           width: 41.1,
           height: 41.1,
           overflow: 'visible',
-          filter: `drop-shadow(0 0 10px ${glowColor})`,
-          shapeRendering: 'geometricPrecision',
-          textRendering: 'geometricPrecision',
-          imageRendering: 'crisp-edges'
+          filter: `drop-shadow(0 0 10px ${glowColor})`
         }}
       >
-        {/* Central Octopus Logo Path — 100% Crisp Native Vector Path (Smooth Left/Right Pendulum Rotation) */}
         <path
           ref={octoRef}
           d={OCTO_PATH}
           fill={fillColor}
           fillRule="evenodd"
-          shapeRendering="geometricPrecision"
         />
       </svg>
     </div>

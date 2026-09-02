@@ -122,7 +122,7 @@ export function getFileKindSvgContent(kind: FileKind, uid = 'drag'): string {
           <g filter="url(#${sheetShadowId})">
             <path d="M 204 200 C 195 200 188 207 188 216 L 188 364 C 188 373 195 380 204 380 L 308 380 C 317 380 324 373 324 364 L 324 244 C 324 240 322 236 319 233 L 291 205 C 288 202 284 200 280 200 Z" fill="#F2F7FE" />
             <path d="M 281 201 L 281 232 C 281 238 286 243 292 243 L 323 243" fill="none" stroke="#7BAFF8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
-            <text x="210" y="278" fill="#7BAFF8" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="800" letter-spacing="-0.5" text-anchor="start">W</text>
+            <path d="M214 252 L226 282 L238 260 L250 282 L262 252" fill="none" stroke="#7BAFF8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
             <line x1="210" y1="306" x2="302" y2="306" stroke="#7BAFF8" stroke-width="7" stroke-linecap="round" />
             <line x1="210" y1="328" x2="302" y2="328" stroke="#7BAFF8" stroke-width="7" stroke-linecap="round" />
             <line x1="210" y1="350" x2="258" y2="350" stroke="#7BAFF8" stroke-width="7" stroke-linecap="round" />
@@ -171,7 +171,11 @@ export function getFileKindSvgContent(kind: FileKind, uid = 'drag'): string {
           <g filter="url(#${sheetShadowId})">
             <path d="M 204 200 C 195 200 188 207 188 216 L 188 364 C 188 373 195 380 204 380 L 308 380 C 317 380 324 373 324 364 L 324 244 C 324 240 322 236 319 233 L 291 205 C 288 202 284 200 280 200 Z" fill="#FFF0F2" />
             <path d="M 281 201 L 281 232 C 281 238 286 243 292 243 L 323 243" fill="none" stroke="#FF7C8E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
-            <text x="256" y="302" fill="#FF7C8E" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-size="38" font-weight="800" letter-spacing="0.5" text-anchor="middle">PDF</text>
+            <g fill="none" stroke="#FF7C8E" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M216 288 V258 H230 C238 258 242 262 242 268 S238 278 230 278 H216" />
+              <path d="M252 258 V288 H264 C274 288 280 280 280 273 V273 C280 266 274 258 264 258 H252" />
+              <path d="M292 288 V258 H308 M292 273 H304" />
+            </g>
             <line x1="208" y1="330" x2="304" y2="330" stroke="#FF7C8E" stroke-width="7" stroke-linecap="round" />
             <line x1="208" y1="352" x2="304" y2="352" stroke="#FF7C8E" stroke-width="7" stroke-linecap="round" />
           </g>

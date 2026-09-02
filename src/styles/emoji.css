@@ -14,16 +14,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  gap: 2px;
+  background: transparent;
+  border: none;
   border-radius: 999px;
-  padding: 3px 4px;
+  padding: 0;
   margin: 2px var(--pad) 8px;
   height: 36px;
   box-sizing: border-box;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 }
 
 .emoji-cat-btn {
@@ -33,23 +33,21 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: transparent;
-  border: 1px solid transparent;
+  background: #141414;
+  border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.60);
+  color: rgba(255, 255, 255, 0.70);
   padding: 0;
-  transition: all 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background 0.16s cubic-bezier(0.22, 1, 0.36, 1), color 0.16s ease;
 }
 .emoji-cat-btn:hover {
-  background: rgba(255, 255, 255, 0.10);
+  background: #1c1c1c;
   color: #ffffff;
-  transform: scale(1.08);
 }
 .emoji-cat-btn.active {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  background: #ffffff;
+  color: #000000;
+  box-shadow: none;
 }
 .emoji-cat-btn:active {
   transform: scale(0.94);
@@ -126,10 +124,8 @@
   z-index: 10;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(18, 18, 24, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #141414;
+  border: none;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
   transform: translateX(-50%);
   pointer-events: none;
@@ -167,20 +163,18 @@
   gap: 5px;
   padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 11.5px;
-  font-weight: 500;
+  background: #141414;
+  border: none;
+  color: #ff6b6b;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.22, 1, 0.36, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s ease;
+  box-shadow: none;
 }
 .emoji-recents-clear-btn:hover {
   background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #ff6b6b;
-  transform: scale(1.04);
+  color: #ff8585;
 }
 .emoji-recents-clear-btn:active {
   transform: scale(0.96);
@@ -194,8 +188,8 @@
   gap: 2px;
   padding: 4px;
   border-radius: 14px;
-  background: #141418;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #141414;
+  border: none;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
   transform: translate(-50%, calc(-100% - 8px));
   pointer-events: auto;

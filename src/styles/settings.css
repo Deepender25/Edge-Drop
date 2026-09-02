@@ -13,8 +13,6 @@
   overflow-x: hidden;
   padding: 4px var(--pad) 28px;
   scrollbar-width: none;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 .settings-scroll-list::-webkit-scrollbar {
@@ -26,13 +24,13 @@
   display: flex;
   position: relative;
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: transparent;
+  border: none;
   border-radius: 12px;
-  padding: 4px;
+  padding: 0;
   gap: 4px;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: none;
 }
 
 .settings-tab-btn {
@@ -44,17 +42,16 @@
   justify-content: center;
   padding: 7px 2px;
   min-height: 34px;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: calc(11.5px * var(--font-scale, 1));
   font-weight: 500;
   line-height: 1.25;
-  color: rgba(255, 255, 255, 0.65);
-  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  background: #141414;
   border: none;
   cursor: pointer;
   outline: none;
   transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
-  -webkit-font-smoothing: antialiased;
   letter-spacing: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -62,21 +59,22 @@
 
 .settings-tab-btn:hover:not(.active) {
   color: #ffffff;
+  background: #141414;
 }
 
 .settings-tab-btn.active {
   color: #000000;
   font-weight: 600;
   background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.40);
+  box-shadow: none;
 }
 
 .settings-tab-indicator {
   position: absolute;
   inset: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.40);
+  box-shadow: none;
   z-index: 0;
   pointer-events: none;
 }
@@ -177,10 +175,10 @@
 .setting-pills {
   display: flex;
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border: none;
   border-radius: 8px;
-  padding: 3px;
+  padding: 0;
   gap: 4px;
 }
 
@@ -203,7 +201,7 @@
 .setting-slider-val {
   font-size: calc(11px * var(--font-scale, 1));
   font-weight: 600;
-  font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, monospace;
+  font-family: var(--font-mono);
   color: #ffffff;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -297,7 +295,7 @@
 .slider-label-btn {
   font-size: 10.5px;
   font-weight: 500;
-  font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, monospace;
+  font-family: var(--font-mono);
   color: rgba(255, 255, 255, 0.45);
   background: transparent;
   border: none;
@@ -320,15 +318,14 @@
   flex: 1;
   min-width: 0;
   padding: 6px 2px;
-  border-radius: 6px;
-  font-size: calc(11.5px * var(--font-scale, 1));
+  border-radius: 999px;
+  font-size: calc(12px * var(--font-scale, 1));
   font-weight: 500;
-  color: #a1a1aa;
-  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  background: #141414;
   border: none;
   cursor: pointer;
   transition: all 0.15s ease;
-  -webkit-font-smoothing: antialiased;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -337,14 +334,14 @@
 
 .pill:hover:not(.active) {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
+  background: #1c1c1c;
 }
 
 .pill.active {
   background: #ffffff;
   color: #000000;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: none;
 }
 
 .display-pill {
@@ -643,7 +640,7 @@
 .app-version-footer {
   font-size: 11.5px;
   color: rgba(255, 255, 255, 0.55);
-  font-family: 'Consolas', 'Cascadia Code', monospace;
+  font-family: var(--font-mono);
   margin-top: 2px;
 }
 
@@ -697,24 +694,24 @@
   align-items: center;
   gap: 6px;
   padding: 10px 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: var(--bg-card);
+  border: none;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   overflow: hidden;
 }
 
 .indicator-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.22);
+  background: var(--bg-card-hover);
 }
 
 .indicator-card.active {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #ffffff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.12);
+  background: #141414;
+  box-shadow: none;
+  outline: 2px solid #ffffff;
+  outline-offset: 0;
 }
 
 .indicator-card-stage {
@@ -727,7 +724,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: none;
 }
 
 .indicator-card-title {

@@ -110,7 +110,7 @@ export function Onboarding() {
       display: 'flex',
       flexDirection: 'column',
       userSelect: 'none',
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      fontFamily: 'Plus Jakarta Sans, Segoe UI, sans-serif'
     }}>
       {/* Header Bar */}
       <div style={{

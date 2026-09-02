@@ -104,9 +104,9 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
-              background: '#000000',
-              borderRadius: 16,
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: '#141414',
+              borderRadius: 20,
+              border: 'none',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
@@ -131,8 +131,8 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
                     width: 26,
                     height: 26,
                     borderRadius: 6,
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: '#141414',
+                    border: 'none',
                     color: 'rgba(255,255,255,0.7)',
                     cursor: 'pointer',
                     display: 'flex',
@@ -233,9 +233,10 @@ function StyleCard({
         justifyContent: 'center',
         gap: 8,
         padding: '12px 10px 10px',
-        background: active ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
-        border: `1px solid ${active ? '#ffffff' : 'rgba(255, 255, 255, 0.08)'}`,
-        borderRadius: 12,
+        background: active ? '#141414' : '#141414',
+        border: 'none',
+        outline: active ? '2px solid #ffffff' : 'none',
+        borderRadius: 16,
         position: 'relative',
         cursor: 'pointer',
         transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -262,7 +263,7 @@ function StyleCard({
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.06)'
+          border: 'none'
         }}
       >
         {preview}

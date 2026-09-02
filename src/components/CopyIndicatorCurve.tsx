@@ -40,7 +40,6 @@ export function TickIndicatorIcon({
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        shapeRendering="geometricPrecision"
         style={{ display: 'block', overflow: 'visible' }}
       >
         <motion.path
@@ -85,7 +84,6 @@ export function CopyIndicatorIcon({
         height={size}
         viewBox="0 0 24 24"
         fill="none"
-        shapeRendering="geometricPrecision"
         style={{ display: 'block', overflow: 'visible' }}
       >
         <defs>
@@ -147,7 +145,6 @@ export function SparkleIndicatorIcon({
         height={size}
         viewBox="0 0 24 24"
         fill="none"
-        shapeRendering="geometricPrecision"
         style={{ display: 'block', overflow: 'visible' }}
       >
         <motion.path
@@ -238,14 +235,12 @@ export function CopyIndicatorCurve() {
             viewBox={`0 0 ${boxW} ${H}`}
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            shapeRendering="geometricPrecision"
             style={{ overflow: 'visible' }}
           >
             <motion.path
               d={activePath}
               fill="#000000"
               stroke="none"
-              shapeRendering="geometricPrecision"
               initial={{ d: reduceMotion ? activePath : flatPath }}
               animate={{ d: activePath }}
               exit={{ d: reduceMotion ? activePath : flatPath }}
