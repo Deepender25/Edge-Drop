@@ -9,6 +9,7 @@
  * getStatus / enable (RequestEnableAsync) / disable. Same API as
  * electron-winstore-auto-launch. Electron setLoginItemSettings is not used.
  */
+import { execFileSync } from 'node:child_process'
 import { app } from 'electron'
 import { isStoreBuild } from './config'
 import { loadSettings, saveSettings } from '../store/settings'
@@ -47,6 +48,40 @@ export function normalizeLoginPath(p: string): string {
 export function isOurLoginExe(candidate: string | undefined, exePath: string): boolean {
   if (!candidate) return false
   return normalizeLoginPath(candidate) === normalizeLoginPath(exePath)
+}
+
+/**
+ * HKCU Run command. The exe path MUST be quoted so Windows does not split on
+ * spaces in the user profile (`C:\Users\Renato Souza\...`). `--hidden` stays
+ * outside the quotes. Electron's setLoginItemSettings writes the path bare,
+ * which is a 0.3.0 regression vs 0.2.9.
+ */
+export function formatGithubRunCommand(exePath: string): string {
+  const bare = exePath.trim().replace(/^"(.*)"$/, '$1')
+  return `"${bare}" --hidden`
+}
+
+function writeQuotedGithubRunCommand(exePath: string): void {
+  if (process.platform !== 'win32') return
+  try {
+    execFileSync(
+      'reg',
+      [
+        'add',
+        'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+        '/v',
+        CANONICAL_LOGIN_ITEM_NAME,
+        '/t',
+        'REG_SZ',
+        '/d',
+        formatGithubRunCommand(exePath),
+        '/f'
+      ],
+      { windowsHide: true, stdio: 'ignore' }
+    )
+  } catch (err) {
+    console.error('[LoginItems] Failed to quote Run-key command:', err)
+  }
 }
 
 function resultFromState(state: number | null, wantEnabled?: boolean): LaunchAtLoginResult {
@@ -116,6 +151,8 @@ function applyGithubLaunchAtLogin(wantLaunch: boolean): LaunchAtLoginResult {
       name: CANONICAL_LOGIN_ITEM_NAME,
       enabled: true
     })
+    // Electron writes an unquoted path. Re-write so usernames with spaces launch.
+    writeQuotedGithubRunCommand(exePath)
     const read = readGithubLaunchAtLogin()
     if (read.blockedByUser) return { ...read, ok: false }
     return { enabled: true, blockedByUser: false, ok: true }

@@ -6,6 +6,10 @@ const store = vi.hoisted(() => ({
   disable: vi.fn(async () => 0 as number | null)
 }))
 
+const child = vi.hoisted(() => ({
+  execFileSync: vi.fn()
+}))
+
 const mocks = vi.hoisted(() => ({
   isPackaged: true,
   exePath: 'C:\\Program Files\\WindowsApps\\Deepender.EdgeDrop_0.3.0.0_x64__aqnvcnjbf5ns8\\app\\Edge-Drop.exe',
@@ -43,7 +47,16 @@ vi.mock('../electron/main/storeStartup', () => ({
   }
 }))
 
-import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from '../electron/main/loginItems'
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:child_process')>()
+  return {
+    ...actual,
+    execFileSync: (...args: unknown[]) => child.execFileSync(...args)
+  }
+})
+
+import { app } from 'electron'
+import { applyLaunchAtLogin, reconcileLaunchAtLoginOnStartup, refreshLaunchAtLoginFromOs } from '../electron/main/loginItems'
 
 describe('Store applyLaunchAtLogin uses only enable / disable / getStatus', () => {
   beforeEach(() => {
@@ -57,6 +70,8 @@ describe('Store applyLaunchAtLogin uses only enable / disable / getStatus', () =
     store.enable.mockResolvedValue(2)
     store.disable.mockResolvedValue(0)
     mocks.saveSettings.mockClear()
+    child.execFileSync.mockReset()
+    vi.mocked(app.setLoginItemSettings).mockClear()
   })
 
   afterEach(() => {
@@ -92,5 +107,22 @@ describe('Store applyLaunchAtLogin uses only enable / disable / getStatus', () =
     expect(mid.launchAtLogin).toBe(false)
     release!(2)
     expect((await pending).ok).toBe(true)
+  })
+
+  it('Store enable / disable never writes HKCU Run keys', async () => {
+    await applyLaunchAtLogin(true)
+    await applyLaunchAtLogin(false)
+    expect(child.execFileSync).not.toHaveBeenCalled()
+    expect(app.setLoginItemSettings).not.toHaveBeenCalled()
+  })
+
+  it('Store startup reconcile never heals via Run keys even when launch-at-login is on', async () => {
+    mocks.loadSettings.mockReturnValue({ launchAtLogin: true })
+    store.get.mockResolvedValue(2)
+    await reconcileLaunchAtLoginOnStartup()
+    expect(child.execFileSync).not.toHaveBeenCalled()
+    expect(app.setLoginItemSettings).not.toHaveBeenCalled()
+    expect(store.enable).not.toHaveBeenCalled()
+    expect(store.disable).not.toHaveBeenCalled()
   })
 })

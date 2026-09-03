@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/Logo.gif" alt="Edge-Drop Logo" width="220" style="max-width: 100%; height: auto;" />
+  <img src=".github/readme/Logo.gif" alt="Edge-Drop Logo" width="220" style="max-width: 100%; height: auto;" />
 </p>
 
 <h1 align="center">Edge-Drop</h1>
@@ -71,7 +71,7 @@ It is built for the developer and creative workflow where you constantly juggle 
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/open.gif" alt="Full Overview: Welcome to Edge-Drop" width="85%" />
+  <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/.github/readme/open.gif" alt="Full Overview: Welcome to Edge-Drop" width="85%" />
 </p>
 
 <br/>
@@ -81,36 +81,36 @@ It is built for the developer and creative workflow where you constantly juggle 
     <td width="50%" align="center">
       <b>1. Collect Anything</b><br/>
       <sub>Captures text, high-res images, files, and links in real time.</sub><br/><br/>
-      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/browser-demo.gif" width="100%" alt="Collect Anything" />
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/.github/readme/browser-demo.gif" width="100%" alt="Collect Anything" />
     </td>
     <td width="50%" align="center">
       <b>2. Drag & Drop Anywhere</b><br/>
       <sub>Drag items directly into any app or workspace.</sub><br/><br/>
-      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/paste.gif" width="100%" alt="Drag & Drop Anywhere" />
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/.github/readme/paste.gif" width="100%" alt="Drag & Drop Anywhere" />
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
       <b>3. Copy Multiple Files</b><br/>
       <sub>Select several files at once and drop them wherever you need.</sub><br/><br/>
-      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/file-stacks-demo.gif" width="100%" alt="Copy Multiple Files" />
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/.github/readme/file-stacks-demo.gif" width="100%" alt="Copy Multiple Files" />
     </td>
     <td width="50%" align="center">
       <b>4. Ungroup & Split Stacks</b><br/>
       <sub>Break file packages into individual standalone clipboard cards.</sub><br/><br/>
-      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/ungroup.gif" width="100%" alt="Ungroup & Split Stacks" />
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/.github/readme/ungroup.gif" width="100%" alt="Ungroup & Split Stacks" />
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
       <b>5. Combine & Merge Items</b><br/>
       <sub>Select and merge multiple clipboard items into a single stack.</sub><br/><br/>
-      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/stack.gif" width="100%" alt="Combine & Merge Items" />
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/.github/readme/stack.gif" width="100%" alt="Combine & Merge Items" />
     </td>
     <td width="50%" align="center">
       <b>6. Quick Preview Flyout</b><br/>
       <sub>Inspect high-res images, formatted text, and code with zoom.</sub><br/><br/>
-      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/public/preview.gif" width="100%" alt="Quick Preview Flyout" />
+      <img src="https://raw.githubusercontent.com/Deepender25/Edge-Drop/main/.github/readme/preview.gif" width="100%" alt="Quick Preview Flyout" />
     </td>
   </tr>
 </table>
@@ -136,12 +136,12 @@ It is built for the developer and creative workflow where you constantly juggle 
   <tr>
     <td align="center" style="border: none; padding: 5px 15px 15px; vertical-align: middle;">
       <a href="https://ko-fi.com/deepender" target="_blank">
-        <img src="public/kofi-qr.png" alt="Scan or Click for Ko-fi Support" width="160" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+        <img src=".github/readme/kofi-qr.png" alt="Scan or Click for Ko-fi Support" width="160" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
       </a>
     </td>
     <td align="center" style="border: none; padding: 5px 15px 15px; vertical-align: middle;">
       <a href="https://www.edgedrop.app/supportedgedrop/upi" target="_blank">
-        <img src="public/upi-sponsor-qr.png" alt="Scan or Click for UPI Donation Page" width="160" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+        <img src=".github/readme/upi-sponsor-qr.png" alt="Scan or Click for UPI Donation Page" width="160" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
       </a>
     </td>
   </tr>

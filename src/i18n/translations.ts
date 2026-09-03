@@ -2080,7 +2080,7 @@ export const ru: TranslationKeys = {
   "filters": {
     "all": "Все",
     "text": "Текст",
-    "links": "Лінки",
+    "links": "Ссылки",
     "images": "Фото",
     "files": "Файлы"
   },

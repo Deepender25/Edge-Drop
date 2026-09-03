@@ -117,6 +117,10 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   const onPaste = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
+    // Safety guard: NEVER paste if this card is currently previewing (blurred)
+    if (useStore.getState().previewItemId === item.id) {
+      return
+    }
     tryPaste(() => paste(item.id))
   }, [paste, item.id])
 
@@ -162,13 +166,16 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   }, [item.data.kind, isPreviewing, item.id])
 
   const pointerStartRef = useRef<{ x: number; y: number; moved: boolean } | null>(null)
+  const wasPreviewingRef = useRef(false)
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Track if THIS card was the actively previewed (blurred) card when pointer clicked
+    wasPreviewingRef.current = (useStore.getState().previewItemId === item.id) || isPreviewing
     if (e.button === 0) {
       pointerStartRef.current = { x: e.clientX, y: e.clientY, moved: false }
     }
     handlePrestage()
-  }, [handlePrestage])
+  }, [isPreviewing, item.id, handlePrestage])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!pointerStartRef.current) return
@@ -187,13 +194,32 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     }
     pointerStartRef.current = null
 
-    if (isPreviewing) return
+    // In that particular scenario only:
+    // When this card is open in preview flyout (blurred), clicking it only
+    // minimizes the preview flyout and does NOT paste
+    const currentPreviewId = useStore.getState().previewItemId
+    if (currentPreviewId === item.id || isPreviewing || wasPreviewingRef.current) {
+      wasPreviewingRef.current = false
+      e.stopPropagation()
+      e.preventDefault()
+      playCardExpandSound(false)
+      useStore.getState().setPreviewItemId(null)
+      return
+    }
+    wasPreviewingRef.current = false
+
+    // If another card was previewing and user clicked this card to paste:
+    // Dismiss the other card's preview and proceed with pasting this card
+    if (currentPreviewId && currentPreviewId !== item.id) {
+      useStore.getState().setPreviewItemId(null)
+    }
+
     if (isBundle && !expanded) {
       onExpand(e)
     } else if (!isBundle) {
       onPaste(e)
     }
-  }, [isPreviewing, isBundle, expanded, onExpand, onPaste])
+  }, [isPreviewing, isBundle, expanded, onExpand, onPaste, item.id])
 
   return (
     <motion.div

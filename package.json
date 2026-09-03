@@ -30,9 +30,23 @@
     },
     "files": [
       "out/**/*",
+      "!out/renderer/**/*.gif",
       "resources/**/*",
       "!resources/startup/**/*.exe",
-      "package.json"
+      "!resources/startup/**/*.cs",
+      "!resources/appx/**",
+      "package.json",
+      "!**/node_modules/emoji-datasource-twitter/**",
+      "!**/node_modules/lucide-react/**",
+      "!**/node_modules/gsap/**",
+      "!**/node_modules/framer-motion/**",
+      "!**/node_modules/@fontsource/**",
+      "!**/node_modules/@iconify-json/**",
+      "!**/node_modules/@iconify/react/**",
+      "!**/node_modules/@radix-ui/**",
+      "!**/node_modules/svg-path-bbox/**",
+      "!**/node_modules/react-dom/**",
+      "!**/node_modules/koffi/doc/**"
     ],
     "extraResources": [
       {
@@ -95,6 +109,12 @@
     }
   },
   "devDependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
+    "@iconify-json/cuida": "^1.2.5",
+    "@iconify/react": "^6.0.2",
+    "@radix-ui/react-scroll-area": "^1.2.13",
+    "@radix-ui/react-separator": "^1.1.11",
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.73",
     "@types/react-dom": "^18.2.22",
@@ -103,27 +123,21 @@
     "electron": "^34.2.0",
     "electron-builder": "^26.15.3",
     "electron-vite": "^2.1.0",
+    "emoji-datasource-twitter": "^16.0.0",
+    "framer-motion": "^11.0.24",
+    "gsap": "^3.15.0",
+    "lucide-react": "^1.26.0",
+    "react-dom": "^18.2.0",
+    "svg-path-bbox": "^2.1.0",
     "typescript": "^5.4.3",
     "vite": "^5.2.6",
     "vitest": "^4.1.10"
   },
   "dependencies": {
-    "@fontsource/jetbrains-mono": "^5.3.0",
-    "@fontsource/plus-jakarta-sans": "^5.3.0",
-    "@iconify-json/cuida": "^1.2.5",
-    "@iconify/react": "^6.0.2",
-    "@radix-ui/react-scroll-area": "^1.2.13",
-    "@radix-ui/react-separator": "^1.1.11",
     "@resvg/resvg-js": "^2.6.2",
     "electron-updater": "^6.8.9",
-    "emoji-datasource-twitter": "^16.0.0",
-    "framer-motion": "^11.0.24",
-    "gsap": "^3.15.0",
     "koffi": "^3.1.2",
-    "lucide-react": "^1.26.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "svg-path-bbox": "^2.1.0",
     "zustand": "^4.5.2"
   }
 }

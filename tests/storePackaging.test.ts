@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { STORE_STARTUP_TASK_ID } from '../electron/main/config'
 
@@ -13,6 +13,7 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
   const pkg = JSON.parse(read('package.json')) as {
     scripts: Record<string, string>
     dependencies: Record<string, string>
+    devDependencies: Record<string, string>
     build: {
       asarUnpack: string[]
       extraResources?: Array<{ from: string; to: string }>
@@ -68,6 +69,75 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     ]))
     expect(existsSync(join(root, 'resources/startup/EdgeDropStartup.exe'))).toBe(true)
     expect(existsSync(join(root, 'resources/startup/EdgeDropStartup.cs'))).toBe(true)
+  })
+
+  it('keeps only runtime packages as production dependencies', () => {
+    expect(Object.keys(pkg.dependencies).sort()).toEqual([
+      '@resvg/resvg-js',
+      'electron-updater',
+      'koffi',
+      'react',
+      'zustand'
+    ])
+  })
+
+  it('does not pack README media, Store tiles, or the full Twemoji npm tree into the asar', () => {
+    expect(pkg.build.files).toEqual(expect.arrayContaining([
+      '!out/renderer/**/*.gif',
+      '!resources/appx/**',
+      '!resources/startup/**/*.cs',
+      '!**/node_modules/emoji-datasource-twitter/**',
+      '!**/node_modules/lucide-react/**',
+      '!**/node_modules/gsap/**',
+      '!**/node_modules/framer-motion/**',
+      '!**/node_modules/@fontsource/**',
+      '!**/node_modules/react-dom/**'
+    ]))
+    expect(pkg.build.appx.customExtensionsPath).toBe('resources/appx/startup-extensions.xml')
+    expect(existsSync(join(root, 'resources/appx/startup-extensions.xml'))).toBe(true)
+  })
+
+  it('ships Twemoji 64px as extraResources for GitHub and Store builds', () => {
+    expect(pkg.build.extraResources).toEqual(expect.arrayContaining([
+      { from: 'node_modules/emoji-datasource-twitter/img/twitter/64', to: 'emoji/64' }
+    ]))
+    expect(existsSync(join(root, 'node_modules/emoji-datasource-twitter/img/twitter/64'))).toBe(true)
+    expect(pkg.devDependencies['emoji-datasource-twitter']).toBeTruthy()
+  })
+
+  it('keeps onboarding videos in public/ and README images out of the pack', () => {
+    const publicFiles = readdirSync(join(root, 'public'))
+    expect(publicFiles.sort()).toEqual([
+      'copy.webm',
+      'drag.webm',
+      'merge.webm',
+      'preview.webm',
+      'stack.webm',
+      'ungroup.webm',
+      'welcome.webm'
+    ])
+    const readmeDir = join(root, '.github/readme')
+    for (const name of [
+      'Logo.gif',
+      'open.gif',
+      'browser-demo.gif',
+      'paste.gif',
+      'file-stacks-demo.gif',
+      'ungroup.gif',
+      'stack.gif',
+      'preview.gif',
+      'kofi-qr.png',
+      'upi-sponsor-qr.png'
+    ]) {
+      expect(existsSync(join(readmeDir, name))).toBe(true)
+    }
+    const readme = read('README.md')
+    expect(readme).toContain('.github/readme/Logo.gif')
+    expect(readme).toContain('.github/readme/open.gif')
+    expect(readme).toContain('.github/readme/kofi-qr.png')
+    expect(readme).toContain('.github/readme/upi-sponsor-qr.png')
+    expect(readme).not.toMatch(/src="public\/[^"]+\.(gif|png)"/)
+    expect(readme).not.toContain('/main/public/')
   })
 
   it('unpacks native addons the Store package must load from disk', () => {

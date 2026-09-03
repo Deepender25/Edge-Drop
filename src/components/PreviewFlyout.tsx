@@ -99,6 +99,37 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
     }
   }, [item?.id, panelTop, panelH])
 
+  // Dismiss preview flyout when user clicks inside the clipboard shelf (outside the flyout)
+  useEffect(() => {
+    if (!previewItemId) return
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as Element | null
+      if (!target || typeof target.closest !== 'function') return
+
+      // Keep open if interaction is inside the preview flyout itself
+      if (target.closest('[data-preview-flyout], .preview-flyout')) {
+        return
+      }
+
+      // If clicked on any item card: let the card's handleCardClick handle it cleanly without race conditions
+      if (target.closest('.item-main, .item-card')) {
+        return
+      }
+
+      // Clicked inside the clipboard shelf (.blade, .root, .header, empty list space, footer, etc.)
+      const inClipboard = Boolean(target.closest('.blade') || target.closest('.root'))
+      if (inClipboard) {
+        useStore.getState().setPreviewItemId(null)
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown, true)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true)
+    }
+  }, [previewItemId])
+
   const handleDragOver = (e: React.DragEvent) => {
     const activeDrag = useStore.getState().internalDragReq
     if (item && activeDrag && activeDrag.id !== item.id) {
