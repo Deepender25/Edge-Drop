@@ -202,9 +202,16 @@ export function Panel() {
   }
 
   const isRight = settings.stickPosition === 'right'
+  const isTop = settings.stickPosition === 'top'
+  const isBottom = settings.stickPosition === 'bottom'
+  const isHorizontal = isTop || isBottom
 
   let containerClass = 'blade-container'
   if (isRight) containerClass += ' blade-right'
+  else if (isTop) containerClass += ' blade-top'
+  else if (isBottom) containerClass += ' blade-bottom'
+  else containerClass += ' blade-left'
+  if (isHorizontal) containerClass += ' horizontal-dock'
 
   const reduceMotion = !!settings.reduceMotion
   const bounceOpen = !!settings.bounceAnimation
@@ -228,15 +235,30 @@ export function Panel() {
     containerStyle.y = '-50%'
     containerStyle.right = 0
     originX = 1
+    originY = 0.5
+  } else if (isTop) {
+    containerStyle.top = 0
+    containerStyle.left = '50%'
+    containerStyle.x = '-50%'
+    containerStyle.y = 0
+    originX = 0.5
+    originY = 0
+  } else if (isBottom) {
+    containerStyle.bottom = 0
+    containerStyle.left = '50%'
+    containerStyle.x = '-50%'
+    containerStyle.y = 0
+    originX = 0.5
+    originY = 1
   } else {
     containerStyle.top = topOffset
     containerStyle.y = '-50%'
     containerStyle.left = 0
+    originX = 0
+    originY = 0.5
   }
   containerStyle.originX = originX
   containerStyle.originY = originY
-
-
 
   const alignment = settings.triggerAlignment || 'center'
   let insetTop = `calc(50% - ${halfTrigger}px)`
@@ -250,6 +272,11 @@ export function Panel() {
     insetBottom = '0px'
   }
 
+  const triggerWidthPx = 297 // 220 * 1.35 (+35% increase, centered)
+  const halfTriggerW = triggerWidthPx / 2
+  const insetLeft = `calc(50% - ${halfTriggerW}px)`
+  const insetRight = `calc(50% - ${halfTriggerW}px)`
+
   // Set clipPath via style (not animate) to avoid Framer Motion's broken
   // calc() interpolation — CSS transitions handle it correctly.
   let clipPath: string
@@ -258,6 +285,14 @@ export function Panel() {
     clipPath = open
       ? 'inset(calc(0% - 100px) 0px calc(0% - 100px) calc(0% - 800px) round 24px 0px 0px 24px)'
       : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round 24px 0px 0px 24px)`
+  } else if (isTop) {
+    clipPath = open
+      ? 'inset(0px calc(0% - 100px) calc(0% - 600px) calc(0% - 100px) round 0px 0px 24px 24px)'
+      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 999px 999px)`
+  } else if (isBottom) {
+    clipPath = open
+      ? 'inset(calc(0% - 600px) calc(0% - 100px) 0px calc(0% - 100px) round 24px 24px 0px 0px)'
+      : `inset(calc(100% - ${hotWidth}px) ${insetRight} 0px ${insetLeft} round 999px 999px 0px 0px)`
   } else {
     clipPath = open
       ? 'inset(calc(0% - 100px) calc(0% - 800px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
@@ -300,23 +335,67 @@ export function Panel() {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              style={{
-                position: 'absolute',
-                top: insetTop,
-                bottom: insetBottom,
-                [isRight ? 'right' : 'left']: 0,
-                width: 2,
-                boxSizing: 'border-box',
-                background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
-                boxShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
-                borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
-                pointerEvents: 'none',
-                zIndex: 99
-              }}
+              style={
+                isHorizontal
+                  ? {
+                      position: 'absolute',
+                      left: insetLeft,
+                      right: insetRight,
+                      [isTop ? 'top' : 'bottom']: 0,
+                      height: 2,
+                      boxSizing: 'border-box',
+                      background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
+                      boxShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
+                      borderRadius: '999px',
+                      pointerEvents: 'none',
+                      zIndex: 99
+                    }
+                  : {
+                      position: 'absolute',
+                      top: insetTop,
+                      bottom: insetBottom,
+                      [isRight ? 'right' : 'left']: 0,
+                      width: 2,
+                      boxSizing: 'border-box',
+                      background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
+                      boxShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
+                      borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
+                      pointerEvents: 'none',
+                      zIndex: 99
+                    }
+              }
             />
           )}
         </AnimatePresence>
-        {isRight ? (
+        {isTop && (
+          <>
+            <div className="flare-horizontal flare-top-left">
+              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
+                <path d="M 0 0 C 13.43 0 30 16.57 30 30 L 32 30 L 32 0 Z" fill="#000000" />
+              </svg>
+            </div>
+            <div className="flare-horizontal flare-top-right">
+              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
+                <path d="M 2 30 C 2 16.57 18.57 0 32 0 L 0 0 L 0 30 Z" fill="#000000" />
+              </svg>
+            </div>
+          </>
+        )}
+        {isBottom && (
+          <>
+            <div className="flare-horizontal flare-bottom-left">
+              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
+                <path d="M 0 30 C 13.43 30 30 13.43 30 0 L 32 0 L 32 30 Z" fill="#000000" />
+              </svg>
+            </div>
+            <div className="flare-horizontal flare-bottom-right">
+              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
+                <path d="M 2 0 C 2 13.43 18.57 30 32 30 L 0 30 L 0 0 Z" fill="#000000" />
+              </svg>
+            </div>
+          </>
+        )}
+        {!isHorizontal && (isRight ? (
           <>
             <div className="flare-top flare-right">
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -342,13 +421,29 @@ export function Panel() {
               </svg>
             </div>
           </>
-        )}
+        ))}
         <div
           ref={bladeRef}
           className="blade"
-          style={{ height: panelHeightStr }}
+          style={isHorizontal ? { width: 'min(calc(100vw - 60px), 1080px)', height: 210 } : { height: panelHeightStr }}
         >
-          <Header />
+          <Header
+            isHorizontal={isHorizontal}
+            itemCount={filteredCount}
+            clearProps={{
+              items: filteredItems,
+              disabled: recent.length === 0,
+              panelOpen: open,
+              onClear: (ids) => clear(ids),
+              onClearAll: () => {
+                if (typeFilter === 'all' && !query.trim()) {
+                  clear()
+                } else {
+                  clear(recent.map((it) => it.id))
+                }
+              }
+            }}
+          />
 
           <ToastStack />
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
@@ -395,31 +490,33 @@ export function Panel() {
                   {emojiMounted ? <EmojiPicker active={emojiOpen} /> : null}
                 </div>
               </div>
-              <div className="footer" style={{ position: 'relative' }}>
-                {!emojiOpen && (
-                  <>
-                    <div className="footer-capsule">
-                      <span className="footer-capsule-count" title={`${filteredCount}`}>
-                        {filteredCount}
-                      </span>
-                    </div>
-                    <div className="spacer" />
-                    <ClearMenu
-                      items={filteredItems}
-                      disabled={recent.length === 0}
-                      panelOpen={open}
-                      onClear={(ids) => clear(ids)}
-                      onClearAll={() => {
-                        if (typeFilter === 'all' && !query.trim()) {
-                          clear()
-                        } else {
-                          clear(recent.map((it) => it.id))
-                        }
-                      }}
-                    />
-                  </>
-                )}
-              </div>
+              {!isHorizontal && (
+                <div className="footer" style={{ position: 'relative' }}>
+                  {!emojiOpen && (
+                    <>
+                      <div className="footer-capsule">
+                        <span className="footer-capsule-count" title={`${filteredCount}`}>
+                          {filteredCount}
+                        </span>
+                      </div>
+                      <div className="spacer" />
+                      <ClearMenu
+                        items={filteredItems}
+                        disabled={recent.length === 0}
+                        panelOpen={open}
+                        onClear={(ids) => clear(ids)}
+                        onClearAll={() => {
+                          if (typeFilter === 'all' && !query.trim()) {
+                            clear()
+                          } else {
+                            clear(recent.map((it) => it.id))
+                          }
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Settings view */}
@@ -427,13 +524,13 @@ export function Panel() {
               {settingsOpen && (
                 <motion.div
                   key="settings"
-                  initial={{ opacity: 0, x: isRight ? -8 : 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: isRight ? 8 : -8 }}
+                  initial={{ opacity: 0, x: isHorizontal ? 0 : (isRight ? -8 : 8), y: isHorizontal ? (isTop ? -8 : 8) : 0 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  exit={{ opacity: 0, x: isHorizontal ? 0 : (isRight ? 8 : -8), y: isHorizontal ? (isTop ? -8 : 8) : 0 }}
                   transition={settings.reduceMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 500, damping: 32, mass: 0.5 }}
                   style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
                 >
-                  <Settings />
+                  <Settings isHorizontal={isHorizontal} />
                 </motion.div>
               )}
             </AnimatePresence>

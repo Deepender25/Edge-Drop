@@ -69,7 +69,7 @@ interface AppState {
   } | null
   /** Item ID currently being previewed in the flyout. */
   previewItemId: string | null
-  previewItemRect: { y: number; height: number } | null
+  previewItemRect: { x?: number; y?: number; width?: number; height?: number } | null
 
   sliderActive: boolean
   sliderReleasedTime: number
@@ -101,13 +101,15 @@ interface AppState {
   setQuery: (q: string) => void
   setOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean) => void
+  settingsTab: 'all' | 'behaviour' | 'position' | 'appearance'
+  setSettingsTab: (tab: 'all' | 'behaviour' | 'position' | 'appearance') => void
   setDragActive: (active: boolean) => void
   setInternalDragReq: (req: import('../../shared/types').DragRequest | null) => void
-  setPreviewItemId: (id: string | null, rect?: { y: number; height: number }) => void
+  setPreviewItemId: (id: string | null, rect?: { x?: number; y?: number; width?: number; height?: number }) => void
   styleFlyoutOpen: boolean
   setStyleFlyoutOpen: (open: boolean) => void
-  previewFlyoutRect: { top: number; bottom: number } | null
-  setPreviewFlyoutRect: (rect: { top: number; bottom: number } | null) => void
+  previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number } | null
+  setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number } | null) => void
   isInternalCopying: boolean
   copyFlareActive: boolean
   flareKey: number
@@ -146,6 +148,8 @@ export const useStore = create<AppState>((set, get) => ({
   },
   open: false,
   settingsOpen: false,
+  settingsTab: 'all',
+  setSettingsTab: (settingsTab) => set({ settingsTab }),
   emojiOpen: false,
   emojiCategory: 'smileys',
   setEmojiCategory: (emojiCategory) => set({ emojiCategory }),

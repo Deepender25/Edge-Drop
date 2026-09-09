@@ -1,4 +1,4 @@
-export type StickPosition = 'left' | 'right'
+export type StickPosition = 'left' | 'right' | 'top' | 'bottom'
 
 export interface DisplayInfo {
   id: number
@@ -20,7 +20,10 @@ export interface StickBoundsParams {
   /** Persisted scale factor — secondary discriminator for identical-geometry monitors. */
   savedScaleFactor?: number
   windowWidth: number
+  windowHeight?: number
+  horizontalOffset?: number
   currentBounds?: { x: number; y: number }
+  previewActive?: boolean
 }
 
 export interface StickBoundsResult {
@@ -106,19 +109,54 @@ export function computeStickBounds(params: StickBoundsParams): StickBoundsResult
 
   let x: number
   let y: number
-  const width = windowWidth
-  // Use the resolved display's own height — NOT always the primary's.
-  const height = wa.height
+  let width: number
+  let height: number
 
   switch (position) {
     case 'left':
       x = wa.x
       y = wa.y
+      width = windowWidth
+      height = wa.height
       break
     case 'right':
       x = wa.x + wa.width - windowWidth
       y = wa.y
+      width = windowWidth
+      height = wa.height
       break
+    case 'top': {
+      const dockWidth = Math.min(wa.width - 60, 1080)
+      const previewHeight = Math.min(wa.height - 20, 720)
+      const dockHeight = params.previewActive ? previewHeight : (params.windowHeight ?? 480)
+      const hOffset = Math.min(1, Math.max(0, params.horizontalOffset ?? 0.5))
+      const pad = wa.width >= dockWidth + 60 ? 30 : 0
+      const minX = wa.x + pad
+      const maxX = wa.x + wa.width - dockWidth - pad
+      const dockX = minX + Math.round(Math.max(0, maxX - minX) * hOffset)
+      // Allocate 30px transparent gutters on left and right for curved connector arcs (flares)
+      x = dockX - 30
+      y = wa.y
+      width = dockWidth + 60
+      height = dockHeight
+      break
+    }
+    case 'bottom': {
+      const dockWidth = Math.min(wa.width - 60, 1080)
+      const previewHeight = Math.min(wa.height - 20, 720)
+      const dockHeight = params.previewActive ? previewHeight : (params.windowHeight ?? 480)
+      const hOffset = Math.min(1, Math.max(0, params.horizontalOffset ?? 0.5))
+      const pad = wa.width >= dockWidth + 60 ? 30 : 0
+      const minX = wa.x + pad
+      const maxX = wa.x + wa.width - dockWidth - pad
+      const dockX = minX + Math.round(Math.max(0, maxX - minX) * hOffset)
+      // Allocate 30px transparent gutters on left and right for curved connector arcs (flares)
+      x = dockX - 30
+      y = wa.y + wa.height - dockHeight
+      width = dockWidth + 60
+      height = dockHeight
+      break
+    }
   }
 
   return { x, y, width, height, displayId: display.id, resolvedDisplay: display }

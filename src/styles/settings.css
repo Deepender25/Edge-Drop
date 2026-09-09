@@ -1282,3 +1282,279 @@
 .floating-update-pill:hover .floating-update-arrow {
   transform: translateY(1px);
 }
+
+/* ==========================================================================
+   Horizontal Settings Layout (Top / Bottom Dock Position)
+   Fixed 210px Height Shelf with Horizontal Scrolling Cards
+   ========================================================================== */
+
+/* Header category pills for horizontal mode */
+.settings-header-pills {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.settings-header-pill {
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+  outline: none;
+}
+
+.settings-header-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.settings-header-pill.active {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Horizontal Shelf Container */
+.settings-horizontal-shelf {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+/* Single Horizontal Scrolling Row of Cards */
+.settings-shelf-track {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 8px 16px 14px 16px;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.settings-shelf-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual Shelf Card (~146px height) */
+.settings-shelf-card {
+  height: 146px;
+  min-width: 240px;
+  max-width: 280px;
+  flex-shrink: 0;
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  position: relative;
+}
+
+.settings-shelf-card:hover {
+  background: #18181c;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.settings-shelf-card.update-card {
+  border-color: rgba(255, 214, 10, 0.25);
+  background: linear-gradient(180deg, rgba(255, 214, 10, 0.05) 0%, #141416 100%);
+}
+
+/* Card Header */
+.shelf-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.shelf-card-category {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.shelf-card-title {
+  font-size: calc(12.5px * var(--font-scale, 1));
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+/* Card Body */
+.shelf-card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  gap: 8px;
+}
+
+/* Shelf Row for Toggle items */
+.shelf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.shelf-row-label {
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* Card Footer */
+.shelf-card-footer {
+  font-size: calc(10.5px * var(--font-scale, 1));
+  color: rgba(255, 255, 255, 0.42);
+  line-height: 1.35;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Miniature 4-tile Indicator Style Grid */
+.shelf-indicator-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+
+.shelf-indicator-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 5px 3px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.shelf-indicator-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.shelf-indicator-item.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+
+.shelf-indicator-icon {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-indicator-name {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+}
+
+/* Danger Quit Button */
+.shelf-quit-btn {
+  width: 100%;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 69, 58, 0.25);
+  background: rgba(255, 69, 58, 0.08);
+  color: #ff453a;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.shelf-quit-btn:hover {
+  background: rgba(255, 69, 58, 0.18);
+  border-color: rgba(255, 69, 58, 0.45);
+}
+
+.shelf-quit-btn:active {
+  transform: scale(0.98);
+}
+
+/* Update Progress inside Shelf */
+.shelf-update-progress-wrap {
+  width: 100%;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(255, 214, 10, 0.4);
+  transition: width 0.2s ease;
+}
+
+.shelf-progress-text {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+}

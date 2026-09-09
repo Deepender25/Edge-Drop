@@ -77,7 +77,7 @@ export interface ClipboardItemDto extends Omit<ClipboardItem, 'data'> {
 /** Section the renderer groups items into. */
 export type ItemSection = 'pinned' | 'shelf'
 
-export type StickPosition = 'left' | 'right'
+export type StickPosition = 'left' | 'right' | 'top' | 'bottom'
 
 export interface DisplayInfo {
   id: number
@@ -166,6 +166,8 @@ export interface Settings {
   copyIndicatorStyle: 'logo' | 'check' | 'copy' | 'sparkle'
   /** Vertical offset fraction along screen edge (0 = top, 0.5 = center, 1 = bottom). Default: 0.5. */
   verticalOffset: number
+  /** Horizontal offset fraction along screen edge when positioned at top/bottom (0 = left, 0.5 = center, 1 = right). Default: 0.5. */
+  horizontalOffset?: number
   /** Vertical alignment of the hover trigger strip relative to shelf ('top' | 'center' | 'bottom'). Default: 'center'. */
   triggerAlignment?: 'top' | 'center' | 'bottom'
   /** When true, subtly illuminates a beacon hint on the screen edge when touching the edge at a different position. Default: true. */
@@ -212,6 +214,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showCopyIndicator: true,
   copyIndicatorStyle: 'logo',
   verticalOffset: 0.5,
+  horizontalOffset: 0.5,
   triggerAlignment: 'center',
   showEdgeLocationHint: false,
   soundEffects: true,

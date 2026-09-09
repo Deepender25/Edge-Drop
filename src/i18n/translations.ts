@@ -74,6 +74,10 @@ export interface TranslationKeys {
     edgePlacementDesc: string
     leftEdge: string
     rightEdge: string
+    topEdge?: string
+    bottomEdge?: string
+    horizontalPositionTitle?: string
+    horizontalPositionDesc?: string
     displayTitle: string
     displayDesc: string
     primaryDisplay: string
@@ -238,6 +242,8 @@ export interface TranslationKeys {
     stickTo: string
     left: string
     right: string
+    top?: string
+    bottom?: string
     display: string
     quit: string
     welcomeTitle: string
@@ -544,6 +550,10 @@ export const en: TranslationKeys = {
     "edgePlacementDesc": "Choose which screen edge Edge-Drop anchors to",
     "leftEdge": "Left Edge",
     "rightEdge": "Right Edge",
+    "topEdge": "Top Edge",
+    "bottomEdge": "Bottom Edge",
+    "horizontalPositionTitle": "Horizontal Position",
+    "horizontalPositionDesc": "Adjust horizontal alignment along screen edge",
     "displayTitle": "Display Screen",
     "displayDesc": "Choose which monitor Edge-Drop attaches to",
     "primaryDisplay": "Primary Display",
@@ -707,6 +717,8 @@ export const en: TranslationKeys = {
     "stickTo": "Stick to",
     "left": "Left",
     "right": "Right",
+    "top": "Top",
+    "bottom": "Bottom",
     "display": "Display",
     "quit": "Quit Edge-Drop",
     "welcomeTitle": "Edge-Drop Clipboard Shelf",

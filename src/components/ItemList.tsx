@@ -31,6 +31,8 @@ export function ItemList() {
   
   const isDraggingAny = useStore((s) => !!s.dragActive || !!s.internalDragReq)
   const open = useStore((s) => s.open)
+  const settings = useStore((s) => s.settings)
+  const isHorizontal = settings.stickPosition === 'top' || settings.stickPosition === 'bottom'
   
   const typeFilter = useStore((s) => s.typeFilter) || 'all'
   const [showScrollTop, setShowScrollTop] = useState(false)
@@ -134,6 +136,19 @@ export function ItemList() {
     }
   }
 
+  useEffect(() => {
+    const el = listRef.current
+    if (!el || !isHorizontal) return
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault()
+        el.scrollLeft += e.deltaY
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [isHorizontal])
+
   const startScrolling = () => {
     if (scrollRaf.current !== null) return
 
@@ -143,8 +158,11 @@ export function ItemList() {
       lastTime = time
 
       if (listRef.current && scrollVelocity.current !== 0) {
-        // Apply velocity, scaled by delta time to keep it consistent across refresh rates
-        listRef.current.scrollTop += scrollVelocity.current * (dt / 16)
+        if (isHorizontal) {
+          listRef.current.scrollLeft += scrollVelocity.current * (dt / 16)
+        } else {
+          listRef.current.scrollTop += scrollVelocity.current * (dt / 16)
+        }
         scrollRaf.current = requestAnimationFrame(loop)
       } else {
         scrollRaf.current = null
@@ -164,6 +182,24 @@ export function ItemList() {
   const handleDragOver = (e: React.DragEvent) => {
     if (!listRef.current) return
     const rect = listRef.current.getBoundingClientRect()
+
+    if (isHorizontal) {
+      const x = e.clientX - rect.left
+      const edgeSize = 80
+      if (x < edgeSize) {
+        const intensity = Math.max(0, 1 - (x / edgeSize))
+        scrollVelocity.current = -(intensity * 20 + 2)
+        startScrolling()
+      } else if (x > rect.width - edgeSize) {
+        const intensity = Math.max(0, 1 - ((rect.width - x) / edgeSize))
+        scrollVelocity.current = (intensity * 20 + 2)
+        startScrolling()
+      } else {
+        stopScrolling()
+      }
+      return
+    }
+
     const y = e.clientY - rect.top
     const edgeSize = 80 // slightly larger comfortable trigger zone
 
@@ -189,7 +225,7 @@ export function ItemList() {
 
   return (
     <div
-      className="list"
+      className={`list${isHorizontal ? ' horizontal' : ''}`}
       ref={listRef}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeaveOrDrop}
@@ -233,7 +269,7 @@ export function ItemList() {
                   </button>
                 </div>
               </div>
-              {!pinnedCollapsed && pinned.map((it) => (
+              {(isHorizontal || !pinnedCollapsed) && pinned.map((it) => (
                 <ClipboardItemCard key={it.id} item={it} timeTick={timeTick} />
               ))}
             </section>

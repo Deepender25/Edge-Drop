@@ -12,9 +12,16 @@ import '../styles/settings.css'
 
 type SettingsTab = 'behaviour' | 'position' | 'appearance'
 
-export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: boolean }) {
+export function Settings({
+  inlineIndicatorStyle,
+  isHorizontal: propIsHorizontal
+}: {
+  inlineIndicatorStyle?: boolean
+  isHorizontal?: boolean
+}) {
   const { t } = useTranslation()
   const settings = useStore((s) => s.settings)
+  const isHorizontal = propIsHorizontal ?? (settings.stickPosition === 'top' || settings.stickPosition === 'bottom')
 
   const TABS: { id: SettingsTab; label: string }[] = [
     { id: 'behaviour',  label: t('tabs.behaviour') },
@@ -31,6 +38,8 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
   const setSliderActive = useStore((s) => s.setSliderActive)
 
   const lastTickVal = useRef<number>(settings.verticalOffset ?? 0.5)
+  const horizontalTab = useStore((s) => s.settingsTab)
+  const shelfTrackRef = useRef<HTMLDivElement>(null)
 
   const handleSliderInput = (rawVal: number) => {
     const clamped = Math.min(1.0, Math.max(0.0, rawVal))
@@ -316,6 +325,810 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
     </>
   )
 
+  // ── Manual update card renderer shared between vertical and horizontal views ──
+  const renderManualUpdateCard = (withRef = false) => {
+    if (!hasUpdatePrompt) return null
+    return (
+      <div className="manual-update-section" ref={withRef ? updateBannerRef : undefined} style={{ width: '100%' }}>
+        <div className="manual-update-card">
+          {updateDownloaded ? (
+            <>
+              <div className="manual-update-info">
+                <div className="manual-update-title">
+                  <span className="manual-update-dot ready" />
+                  <span>{t('behaviour.updateReadyTitle', { version: updateDownloaded.version })}</span>
+                </div>
+                <div className="manual-update-desc">
+                  {t('behaviour.updateReadyDesc')}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="manual-update-pill primary"
+                onClick={() => {
+                  playButtonClickSound()
+                  void window.edge.installUpdate()
+                }}
+              >
+                {t('behaviour.restartToUpdate')}
+              </button>
+            </>
+          ) : isDownloading ? (
+            <>
+              <div className="manual-update-info">
+                <div className="manual-update-title">
+                  <span className="manual-update-dot ready" />
+                  <span>
+                    {updateInfo?.latestVersion
+                      ? `Update v${updateInfo.latestVersion} Available`
+                      : t('behaviour.updateAvailableTitle', { version: '' })}
+                  </span>
+                </div>
+                <div className="manual-update-desc">
+                  {t('behaviour.downloadingUpdate')}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="manual-update-pill primary"
+                disabled
+              >
+                {downloadPercent > 0
+                  ? `Downloading... (${downloadPercent}%)`
+                  : 'Downloading update...'}
+              </button>
+            </>
+          ) : checkState.status === 'available' ? (
+            <>
+              <div className="manual-update-info">
+                <div className="manual-update-title">
+                  <span className="manual-update-dot ready" />
+                  <span>{t('behaviour.updateAvailableTitle', { version: checkState.version || '' })}</span>
+                </div>
+                <div className="manual-update-desc">
+                  {t('behaviour.updateAvailableDesc')}
+                </div>
+              </div>
+              <div className="manual-update-actions">
+                <button
+                  type="button"
+                  className="manual-update-pill primary"
+                  onClick={() => {
+                    playButtonClickSound()
+                    handleStartDownload()
+                  }}
+                >
+                  {t('behaviour.downloadAndUpdate')}
+                </button>
+                <button
+                  type="button"
+                  className="manual-update-pill outline"
+                  onClick={() => {
+                    playButtonClickSound()
+                    useStore.getState().dismissUpdate()
+                  }}
+                >
+                  {t('behaviour.skip')}
+                </button>
+              </div>
+            </>
+          ) : checkState.status === 'checking' ? (
+            <>
+              <div className="manual-update-info">
+                <div className="manual-update-title">{t('behaviour.checkForUpdates')}</div>
+                <div className="manual-update-desc">{t('behaviour.checkingForUpdates')}</div>
+              </div>
+              <button
+                type="button"
+                className="manual-update-pill outline"
+                disabled
+              >
+                <span className="manual-update-dot checking" />
+                <span>{t('behaviour.checkingForUpdates')}</span>
+              </button>
+            </>
+          ) : checkState.status === 'up-to-date' ? (
+            <>
+              <div className="manual-update-info">
+                <div className="manual-update-title">
+                  <span className="manual-update-dot ready" />
+                  <span>{t('behaviour.isUpToDate')}</span>
+                </div>
+                <div className="manual-update-desc">
+                  {t('footer.version')} {currentVersion || '0.3.1'}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="manual-update-pill outline"
+                onClick={() => {
+                  playButtonClickSound()
+                  handleManualCheck()
+                }}
+              >
+                {t('behaviour.checkAgain')}
+              </button>
+            </>
+          ) : checkState.status === 'error' ? (
+            <>
+              <div className="manual-update-info">
+                <div className="manual-update-title error">
+                  {t('behaviour.updateCheckFailed')}
+                </div>
+                <div className="manual-update-desc error">
+                  {checkState.error || t('behaviour.updateCheckFailed')}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="manual-update-pill outline"
+                onClick={() => {
+                  playButtonClickSound()
+                  handleManualCheck()
+                }}
+              >
+                {t('behaviour.tryAgain')}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="manual-update-info">
+                <div className="manual-update-title">{t('behaviour.checkForUpdates')}</div>
+                <div className="manual-update-desc">
+                  {t('footer.version')} {currentVersion || '0.3.1'}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="manual-update-pill outline"
+                onClick={() => {
+                  playButtonClickSound()
+                  handleManualCheck()
+                }}
+              >
+                {t('behaviour.checkForUpdates')}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Horizontal Layout (Top / Bottom Dock Position) ────────────────────────
+  if (isHorizontal) {
+    const handleShelfWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+      if (e.deltaY !== 0) {
+        e.currentTarget.scrollLeft += e.deltaY
+      }
+    }
+
+    const showCard = (category: 'behaviour' | 'position' | 'appearance') => {
+      return horizontalTab === 'all' || horizontalTab === category
+    }
+
+    return (
+      <div className="settings-horizontal-shelf">
+        <div
+          className="settings-shelf-track"
+          ref={shelfTrackRef}
+          onWheel={handleShelfWheel}
+        >
+          {/* ── CARD 0: Update Banner (if applicable) ── */}
+          {hasUpdatePrompt && (horizontalTab === 'all' || horizontalTab === 'behaviour') && (
+            <div className="settings-shelf-card update-card">
+              <div className="shelf-card-header">
+                <span className="shelf-card-category" style={{ color: '#ffd60a' }}>UPDATE</span>
+                <span className="shelf-card-title">
+                  {updateDownloaded
+                    ? t('behaviour.updateReadyTitle', { version: updateDownloaded.version })
+                    : isDownloading
+                    ? 'Downloading Update...'
+                    : checkState.status === 'available'
+                    ? t('behaviour.updateAvailableTitle', { version: checkState.version || '' })
+                    : t('behaviour.checkForUpdates')}
+                </span>
+              </div>
+              <div className="shelf-card-body">
+                {updateDownloaded ? (
+                  <button
+                    type="button"
+                    className="pill primary-pill"
+                    style={{ width: '100%', justifyContent: 'center', background: '#ffd60a', color: '#000000', fontWeight: 600 }}
+                    onClick={() => {
+                      playButtonClickSound()
+                      void window.edge.installUpdate()
+                    }}
+                  >
+                    {t('behaviour.restartToUpdate')}
+                  </button>
+                ) : isDownloading ? (
+                  <div className="shelf-update-progress-wrap">
+                    <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
+                    <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
+                  </div>
+                ) : checkState.status === 'available' ? (
+                  <button
+                    type="button"
+                    className="pill primary-pill"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={() => {
+                      playButtonClickSound()
+                      handleStartDownload()
+                    }}
+                  >
+                    {t('behaviour.downloadAndUpdate')}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="pill display-pill"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={() => {
+                      playButtonClickSound()
+                      handleManualCheck()
+                    }}
+                  >
+                    {t('behaviour.checkForUpdates')}
+                  </button>
+                )}
+              </div>
+              <div className="shelf-card-footer">
+                {updateDownloaded ? t('behaviour.updateReadyDesc') : `Current version: v${currentVersion || '0.3.1'}`}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 1: Language & Global Hotkey (BEHAVIOUR) ── */}
+          {showCard('behaviour') && (
+            <div className="settings-shelf-card">
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.behaviour')}</span>
+                <span className="shelf-card-title">{t('behaviour.languageTitle')} & Hotkey</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 8 }}>
+                <LanguageDropdown />
+                <HotkeyRecorder
+                  hotkey={settings.toggleHotkey || 'Alt+C'}
+                  onChange={(nextHotkey) => {
+                    patch({ toggleHotkey: nextHotkey })
+                    pushToast({
+                      id: Date.now().toString(),
+                      message: t('toast.shortcutUpdated', { shortcut: nextHotkey }),
+                      tone: 'info'
+                    })
+                  }}
+                />
+              </div>
+              <div className="shelf-card-footer">
+                {t('behaviour.toggleHotkeyDesc')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 2: Edge Activation & Protection (BEHAVIOUR) ── */}
+          {showCard('behaviour') && (
+            <div className="settings-shelf-card">
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.behaviour')}</span>
+                <span className="shelf-card-title">{t('behaviour.hoverActivationTitle')}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 10 }}>
+                <div className="shelf-row">
+                  <span className="shelf-row-label">{t('behaviour.hoverActivationTitle')}</span>
+                  <Toggle
+                    checked={settings.hoverActivation ?? true}
+                    onChange={(v) => {
+                      if (!v) {
+                        patch({ hoverActivation: false, suppressInFullscreen: false })
+                      } else {
+                        patch({ hoverActivation: true, suppressInFullscreen: true })
+                      }
+                    }}
+                  />
+                </div>
+                <div className="shelf-row" style={{ opacity: (settings.hoverActivation ?? true) ? 1 : 0.45 }}>
+                  <span className="shelf-row-label">{t('behaviour.fullscreenProtectionTitle')}</span>
+                  <Toggle
+                    checked={(settings.hoverActivation ?? true) ? settings.suppressInFullscreen : false}
+                    onChange={(v) => (settings.hoverActivation ?? true) && patch({ suppressInFullscreen: v })}
+                    disabled={!(settings.hoverActivation ?? true)}
+                  />
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {(settings.hoverActivation ?? true) ? t('behaviour.hoverActivationDescOn') : t('behaviour.disabledHoverOff')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 3: System & Incognito (BEHAVIOUR) ── */}
+          {showCard('behaviour') && (
+            <div className="settings-shelf-card">
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.behaviour')}</span>
+                <span className="shelf-card-title">{t('behaviour.launchAtLoginTitle')}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 10 }}>
+                <div className="shelf-row">
+                  <span className="shelf-row-label">{t('behaviour.launchAtLoginTitle')}</span>
+                  <Toggle
+                    checked={settings.launchAtLogin}
+                    onChange={(v) => {
+                      useStore.setState((s) => ({
+                        settings: { ...s.settings, launchAtLogin: v }
+                      }))
+                      void patch({ launchAtLogin: v })
+                    }}
+                  />
+                </div>
+                <div className="shelf-row">
+                  <span className="shelf-row-label">{t('behaviour.incognitoTitle')}</span>
+                  <Toggle
+                    checked={settings.incognito}
+                    onChange={(v) => patch({ incognito: v })}
+                  />
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {settings.incognito ? t('behaviour.incognitoDesc') : t('behaviour.launchAtLoginDesc')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 4: History Capacity & Auto-Delete (BEHAVIOUR) ── */}
+          {showCard('behaviour') && (
+            <div className="settings-shelf-card" style={{ minWidth: 260 }}>
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.behaviour')}</span>
+                <span className="shelf-card-title">{t('behaviour.capacityTitle')} & Retention</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {t('behaviour.capacityTitle')}
+                  </div>
+                  <div className="setting-pills" style={{ gap: 4 }}>
+                    {[
+                      { label: '100', val: 100 },
+                      { label: '250', val: 250 },
+                      { label: '500', val: 500 },
+                      { label: '1000', val: 1000 }
+                    ].map((opt) => (
+                      <button
+                        key={opt.val}
+                        type="button"
+                        className={`pill ${settings.historyLimit === opt.val ? 'active' : ''}`}
+                        onClick={() => { playButtonClickSound(); patch({ historyLimit: opt.val }) }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {t('behaviour.autoDeleteTitle')}
+                  </div>
+                  <div className="setting-pills" style={{ gap: 4 }}>
+                    {[
+                      { label: t('behaviour.never'), val: 0 },
+                      { label: '1h', val: 1 },
+                      { label: '6h', val: 6 },
+                      { label: '24h', val: 24 },
+                      { label: '7d', val: 168 }
+                    ].map((opt) => (
+                      <button
+                        key={opt.val}
+                        type="button"
+                        className={`pill ${settings.autoDeleteHours === opt.val ? 'active' : ''}`}
+                        onClick={() => { playButtonClickSound(); patch({ autoDeleteHours: opt.val }) }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {t('behaviour.capacityDesc')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 5: Updates & Ordering (BEHAVIOUR) ── */}
+          {showCard('behaviour') && (
+            <div className="settings-shelf-card">
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.behaviour')}</span>
+                <span className="shelf-card-title">{t('behaviour.movePastedToTopTitle')}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 10 }}>
+                <div className="shelf-row">
+                  <span className="shelf-row-label">{t('behaviour.movePastedToTopTitle')}</span>
+                  <Toggle
+                    checked={settings.movePastedToTop ?? true}
+                    onChange={(v) => patch({ movePastedToTop: v })}
+                  />
+                </div>
+                {!isStoreBuild && (
+                  <div className="shelf-row">
+                    <span className="shelf-row-label">{t('behaviour.autoUpdatesTitle')}</span>
+                    <Toggle
+                      checked={settings.autoUpdates ?? true}
+                      onChange={(v) => patch({ autoUpdates: v })}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="shelf-card-footer">
+                <button
+                  type="button"
+                  className="pill display-pill"
+                  style={{ width: '100%', justifyContent: 'center', padding: '4px 8px', fontSize: 11 }}
+                  onClick={() => {
+                    playButtonClickSound()
+                    handleManualCheck()
+                  }}
+                >
+                  {checkState.status === 'checking'
+                    ? t('behaviour.checkingForUpdates')
+                    : checkState.status === 'up-to-date'
+                    ? `${t('behaviour.isUpToDate')} (v${currentVersion || '0.3.1'})`
+                    : t('behaviour.checkForUpdates')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 6: Edge Placement (POSITION) ── */}
+          {showCard('position') && (
+            <div className="settings-shelf-card" style={{ minWidth: 260 }}>
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.position')}</span>
+                <span className="shelf-card-title">{t('position.edgePlacementTitle')}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 8 }}>
+                <div className="setting-pills" style={{ gap: 4 }}>
+                  {[
+                    { label: t('position.leftEdge'), val: 'left' as const },
+                    { label: t('position.rightEdge'), val: 'right' as const },
+                    { label: t('position.topEdge') || 'Top Edge', val: 'top' as const },
+                    { label: t('position.bottomEdge') || 'Bottom Edge', val: 'bottom' as const }
+                  ].map((opt) => (
+                    <button
+                      key={opt.val}
+                      type="button"
+                      className={`pill ${settings.stickPosition === opt.val ? 'active' : ''}`}
+                      onClick={() => {
+                        playButtonClickSound()
+                        patch({ stickPosition: opt.val })
+                        useStore.getState().notifyPositionChanged()
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="shelf-row" style={{ marginTop: 2 }}>
+                  <span className="shelf-row-label">{t('position.edgeLocationHintTitle')}</span>
+                  <Toggle
+                    checked={settings.showEdgeLocationHint ?? false}
+                    onChange={(v) => patch({ showEdgeLocationHint: v })}
+                  />
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {t('position.edgePlacementDesc')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 7: Horizontal Position Offset (POSITION) ── */}
+          {showCard('position') && (
+            <div className="settings-shelf-card" style={{ minWidth: 270 }}>
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.position')}</span>
+                <span className="shelf-card-title">{t('position.horizontalPositionTitle') || 'Horizontal Position'}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 8 }}>
+                <div className="setting-slider-wrap">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.002"
+                    className="setting-range-input"
+                    value={settings.horizontalOffset ?? 0.5}
+                    style={{
+                      background: `linear-gradient(to right, #ffffff 0%, #ffffff ${(settings.horizontalOffset ?? 0.5) * 100}%, rgba(255, 255, 255, 0.12) ${(settings.horizontalOffset ?? 0.5) * 100}%, rgba(255, 255, 255, 0.12) 100%)`
+                    }}
+                    onChange={(e) => patch({ horizontalOffset: parseFloat(e.target.value) })}
+                  />
+                  <div className="setting-slider-labels">
+                    {[
+                      { label: 'Left', val: 0 },
+                      { label: 'Center', val: 0.5 },
+                      { label: 'Right', val: 1.0 }
+                    ].map((pos) => {
+                      const active = Math.abs((settings.horizontalOffset ?? 0.5) - pos.val) < 0.04
+                      return (
+                        <button
+                          key={pos.val}
+                          type="button"
+                          className={`slider-label-btn${active ? ' active' : ''}`}
+                          onClick={() => patch({ horizontalOffset: pos.val })}
+                        >
+                          {pos.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {`Offset: ${Math.round((settings.horizontalOffset ?? 0.5) * 100)}%`}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 8: Trigger Zone & Thickness (POSITION) ── */}
+          {showCard('position') && (
+            <div className="settings-shelf-card" style={{ minWidth: 260 }}>
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.position')}</span>
+                <span className="shelf-card-title">{t('position.triggerZone')}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 8 }}>
+                <div className="setting-pills" style={{ gap: 4 }}>
+                  {[
+                    { label: t('position.top'), val: 'top' as const },
+                    { label: t('position.center'), val: 'center' as const },
+                    { label: t('position.bottom'), val: 'bottom' as const }
+                  ].map((opt) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      className={`pill ${(settings.triggerAlignment || 'center') === opt.val ? 'active' : ''}`}
+                      onClick={() => {
+                        playButtonClickSound()
+                        patch({ triggerAlignment: opt.val })
+                        useStore.getState().notifyPositionChanged()
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                  <input
+                    type="range"
+                    min="1"
+                    max="7"
+                    step="1"
+                    className="setting-range-input"
+                    value={settings.hotZoneWidth ?? 3}
+                    style={{
+                      flex: 1,
+                      background: `linear-gradient(to right, #ffffff 0%, #ffffff ${(((settings.hotZoneWidth ?? 3) - 1) / 6) * 100}%, rgba(255, 255, 255, 0.12) ${(((settings.hotZoneWidth ?? 3) - 1) / 6) * 100}%, rgba(255, 255, 255, 0.12) 100%)`
+                    }}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10)
+                      if (val !== settings.hotZoneWidth) {
+                        playDialTickSound()
+                        patch({ hotZoneWidth: val })
+                      }
+                    }}
+                  />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#ffffff', minWidth: 28, textAlign: 'right' }}>
+                    {`${settings.hotZoneWidth ?? 3}px`}
+                  </span>
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {t('position.edgeTriggerThicknessDesc')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 9: Target Monitor (POSITION) ── */}
+          {showCard('position') && (
+            <div className="settings-shelf-card" style={{ minWidth: 250 }}>
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.position')}</span>
+                <span className="shelf-card-title">{t('position.displayTitle')}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 6 }}>
+                <div className="setting-pills" style={{ gap: 4 }}>
+                  {displays.length === 0 && <div className="pill disabled">{t('position.loadingDisplays')}</div>}
+                  {displays.map((d) => {
+                    const currentDisplay = displays.find((disp) => disp.isCurrent)
+                    const activeDisplayId = currentDisplay
+                      ? currentDisplay.id
+                      : (settings.stickDisplayId ?? displays.find((disp) => disp.isPrimary)?.id ?? displays[0]?.id)
+                    const isActive = activeDisplayId === d.id
+                    const displayName = d.isPrimary ? t('position.primaryDisplay') : d.name
+                    return (
+                      <button
+                        key={d.id}
+                        type="button"
+                        className={`pill display-pill ${isActive ? 'active' : ''}`}
+                        onClick={() => {
+                          playButtonClickSound()
+                          patch({ stickDisplayId: d.id })
+                          useStore.getState().notifyPositionChanged()
+                        }}
+                      >
+                        <div className="pill-name">{displayName}</div>
+                        <div className="pill-res">{d.resolution}</div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {t('position.displayDesc')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 10: Copy Indicator Style (APPEARANCE) ── */}
+          {showCard('appearance') && (
+            <div className="settings-shelf-card" style={{ minWidth: 280 }}>
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.appearance')}</span>
+                <span className="shelf-card-title">{t('appearance.copyIndicatorTitle')}</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 6 }}>
+                <div className="shelf-row">
+                  <span className="shelf-row-label">{t('appearance.copyIndicatorTitle')}</span>
+                  <Toggle
+                    checked={settings.showCopyIndicator ?? true}
+                    onChange={(v) => patch({ showCopyIndicator: v })}
+                  />
+                </div>
+                {(settings.showCopyIndicator ?? true) && (
+                  <div className="shelf-indicator-grid">
+                    {[
+                      {
+                        id: 'logo' as const,
+                        label: t('appearance.logoStyle'),
+                        Icon: () => <LiquidOctopusLoader fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" speed={1.2} active={true} />
+                      },
+                      {
+                        id: 'check' as const,
+                        label: t('appearance.tickStyle'),
+                        Icon: () => <TickIndicatorIcon fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" size={20} />
+                      },
+                      {
+                        id: 'copy' as const,
+                        label: t('appearance.copyStyle'),
+                        Icon: () => <CopyIndicatorIcon fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" size={20} />
+                      },
+                      {
+                        id: 'sparkle' as const,
+                        label: t('appearance.sparkleStyle'),
+                        Icon: () => <SparkleIndicatorIcon fillColor="#ffffff" glowColor="rgba(255, 255, 255, 0.85)" size={20} />
+                      }
+                    ].map((item) => {
+                      const active = (settings.copyIndicatorStyle || 'logo') === item.id
+                      return (
+                        <div
+                          key={item.id}
+                          className={`shelf-indicator-item${active ? ' active' : ''}`}
+                          onClick={() => {
+                            playButtonClickSound()
+                            patch({ copyIndicatorStyle: item.id })
+                          }}
+                        >
+                          <div className="shelf-indicator-icon"><item.Icon /></div>
+                          <span className="shelf-indicator-name">{item.label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="shelf-card-footer">
+                {t('appearance.copyIndicatorDesc')}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 11: Typography & Audio (APPEARANCE) ── */}
+          {showCard('appearance') && (
+            <div className="settings-shelf-card">
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.appearance')}</span>
+                <span className="shelf-card-title">{t('appearance.textSizeTitle')} & Sound</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 8 }}>
+                <div className="setting-pills" style={{ gap: 4 }}>
+                  {[
+                    { label: t('appearance.small'), val: 0.85 },
+                    { label: t('appearance.normal'), val: 1.0 },
+                    { label: t('appearance.large'), val: 1.15 }
+                  ].map((opt) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      className={`pill ${Math.abs((settings.fontSizeScale ?? 1.0) - opt.val) < 0.05 ? 'active' : ''}`}
+                      onClick={() => {
+                        playButtonClickSound()
+                        patch({ fontSizeScale: opt.val })
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="shelf-row">
+                  <span className="shelf-row-label">{t('behaviour.soundEffectsTitle')}</span>
+                  <Toggle
+                    checked={settings.soundEffects ?? true}
+                    onChange={(v) => {
+                      if (v) playToggleSound(true)
+                      patch({ soundEffects: v })
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="shelf-card-footer">
+                {(settings.soundEffects ?? true) ? 'Sound feedback active' : 'Audio muted'}
+              </div>
+            </div>
+          )}
+
+          {/* ── CARD 12: About & Quit (APPEARANCE) ── */}
+          {showCard('appearance') && (
+            <div className="settings-shelf-card">
+              <div className="shelf-card-header">
+                <span className="shelf-card-category">{t('tabs.appearance')}</span>
+                <span className="shelf-card-title">About Edge-Drop</span>
+              </div>
+              <div className="shelf-card-body" style={{ gap: 6 }}>
+                <button
+                  type="button"
+                  className="pill display-pill"
+                  style={{ width: '100%', justifyContent: 'center', padding: '5px 10px', fontSize: 11 }}
+                  onClick={() => {
+                    playButtonClickSound()
+                    window.open('https://www.edgedrop.app/supportedgedrop', '_blank')
+                  }}
+                >
+                  ☕ {t('footer.supportDev')}
+                </button>
+                <button
+                  type="button"
+                  className="pill display-pill"
+                  style={{ width: '100%', justifyContent: 'center', padding: '5px 10px', fontSize: 11 }}
+                  onClick={() => {
+                    playButtonClickSound()
+                    window.open('https://github.com/Deepender25/Edge-Drop/issues/new/choose', '_blank')
+                  }}
+                >
+                  💬 {t('footer.submitFeedback')}
+                </button>
+              </div>
+              <div className="shelf-card-footer">
+                <button
+                  type="button"
+                  className="shelf-quit-btn"
+                  onClick={() => {
+                    playButtonClickSound()
+                    void window.edge.quitApp()
+                  }}
+                >
+                  <span>Quit Edge-Drop (v{currentVersion || '0.3.1'})</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   const maxTabLen = Math.max(...TABS.map((tab) => tab.label.length))
   const tabFontSize = maxTabLen > 15 ? '9px' : maxTabLen > 13 ? '9.5px' : maxTabLen > 11 ? '10px' : maxTabLen > 9 ? '10.8px' : '11.5px'
   const tabLetterSpacing = maxTabLen > 13 ? '-0.03em' : maxTabLen > 10 ? '-0.015em' : '0'
@@ -579,169 +1392,7 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                   {hasUpdatePrompt && (
                     <>
                       <div className="setting-divider" style={{ marginTop: 20 }} />
-                      <div className="manual-update-section" ref={updateBannerRef}>
-                        <div className="manual-update-card">
-                          {updateDownloaded ? (
-                            <>
-                              <div className="manual-update-info">
-                                <div className="manual-update-title">
-                                  <span className="manual-update-dot ready" />
-                                  <span>{t('behaviour.updateReadyTitle', { version: updateDownloaded.version })}</span>
-                                </div>
-                                <div className="manual-update-desc">
-                                  {t('behaviour.updateReadyDesc')}
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                className="manual-update-pill primary"
-                                onClick={() => {
-                                  playButtonClickSound()
-                                  void window.edge.installUpdate()
-                                }}
-                              >
-                                {t('behaviour.restartToUpdate')}
-                              </button>
-                            </>
-                          ) : isDownloading ? (
-                            <>
-                              <div className="manual-update-info">
-                                <div className="manual-update-title">
-                                  <span className="manual-update-dot ready" />
-                                  <span>
-                                    {updateInfo?.latestVersion
-                                      ? `Update v${updateInfo.latestVersion} Available`
-                                      : t('behaviour.updateAvailableTitle', { version: '' })}
-                                  </span>
-                                </div>
-                                <div className="manual-update-desc">
-                                  {t('behaviour.downloadingUpdate')}
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                className="manual-update-pill primary"
-                                disabled
-                              >
-                                {downloadPercent > 0
-                                  ? `Downloading... (${downloadPercent}%)`
-                                  : 'Downloading update...'}
-                              </button>
-                            </>
-                          ) : checkState.status === 'available' ? (
-                            <>
-                              <div className="manual-update-info">
-                                <div className="manual-update-title">
-                                  <span className="manual-update-dot ready" />
-                                  <span>{t('behaviour.updateAvailableTitle', { version: checkState.version || '' })}</span>
-                                </div>
-                                <div className="manual-update-desc">
-                                  {t('behaviour.updateAvailableDesc')}
-                                </div>
-                              </div>
-                              <div className="manual-update-actions">
-                                <button
-                                  type="button"
-                                  className="manual-update-pill primary"
-                                  onClick={() => {
-                                    playButtonClickSound()
-                                    handleStartDownload()
-                                  }}
-                                >
-                                  {t('behaviour.downloadAndUpdate')}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="manual-update-pill outline"
-                                  onClick={() => {
-                                    playButtonClickSound()
-                                    useStore.getState().dismissUpdate()
-                                  }}
-                                >
-                                  {t('behaviour.skip')}
-                                </button>
-                              </div>
-                            </>
-                          ) : checkState.status === 'checking' ? (
-                            <>
-                              <div className="manual-update-info">
-                                <div className="manual-update-title">{t('behaviour.checkForUpdates')}</div>
-                                <div className="manual-update-desc">{t('behaviour.checkingForUpdates')}</div>
-                              </div>
-                              <button
-                                type="button"
-                                className="manual-update-pill outline"
-                                disabled
-                              >
-                                <span className="manual-update-dot checking" />
-                                <span>{t('behaviour.checkingForUpdates')}</span>
-                              </button>
-                            </>
-                          ) : checkState.status === 'up-to-date' ? (
-                            <>
-                              <div className="manual-update-info">
-                                <div className="manual-update-title">
-                                  <span className="manual-update-dot ready" />
-                                  <span>{t('behaviour.isUpToDate')}</span>
-                                </div>
-                                <div className="manual-update-desc">
-                                  {t('footer.version')} {currentVersion || '0.3.1'}
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                className="manual-update-pill outline"
-                                onClick={() => {
-                                  playButtonClickSound()
-                                  handleManualCheck()
-                                }}
-                              >
-                                {t('behaviour.checkAgain')}
-                              </button>
-                            </>
-                          ) : checkState.status === 'error' ? (
-                            <>
-                              <div className="manual-update-info">
-                                <div className="manual-update-title error">
-                                  {t('behaviour.updateCheckFailed')}
-                                </div>
-                                <div className="manual-update-desc error">
-                                  {checkState.error || t('behaviour.updateCheckFailed')}
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                className="manual-update-pill outline"
-                                onClick={() => {
-                                  playButtonClickSound()
-                                  handleManualCheck()
-                                }}
-                              >
-                                {t('behaviour.tryAgain')}
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <div className="manual-update-info">
-                                <div className="manual-update-title">{t('behaviour.checkForUpdates')}</div>
-                                <div className="manual-update-desc">
-                                  {t('footer.version')} {currentVersion || '0.3.1'}
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                className="manual-update-pill outline"
-                                onClick={() => {
-                                  playButtonClickSound()
-                                  handleManualCheck()
-                                }}
-                              >
-                                {t('behaviour.checkForUpdates')}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      {renderManualUpdateCard(true)}
                     </>
                   )}
 
@@ -769,7 +1420,9 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
                     <div className="setting-pills">
                       {[
                         { label: t('position.leftEdge'), val: 'left' as const },
-                        { label: t('position.rightEdge'), val: 'right' as const }
+                        { label: t('position.rightEdge'), val: 'right' as const },
+                        { label: t('position.topEdge') || 'Top Edge', val: 'top' as const },
+                        { label: t('position.bottomEdge') || 'Bottom Edge', val: 'bottom' as const }
                       ].map((opt) => (
                         <button
                           key={opt.val}
@@ -788,91 +1441,120 @@ export function Settings({ inlineIndicatorStyle }: { inlineIndicatorStyle?: bool
 
                   <div className="setting-divider" />
 
-                  {/* Vertical Position Range Slider */}
-                  <div className="setting-row vertical" style={{ gap: 10 }}>
-                    <div className="setting-slider-header">
-                      <div className="setting-info">
-                        <div className="setting-title">{t('position.verticalPositionTitle')}</div>
-                        <div className="setting-desc">{t('position.verticalPositionDesc')}</div>
-                      </div>
-                      <div className="setting-slider-val">
-                        {`${Math.round((settings.verticalOffset ?? 0.5) * 100)}%`}
-                      </div>
-                    </div>
+                  {/* Position Range Slider (Vertical for left/right, Horizontal for top/bottom) */}
+                  {(() => {
+                    const isHorizontal = settings.stickPosition === 'top' || settings.stickPosition === 'bottom'
+                    const offsetVal = isHorizontal ? (settings.horizontalOffset ?? 0.5) : (settings.verticalOffset ?? 0.5)
+                    const sliderTitle = isHorizontal ? (t('position.horizontalPositionTitle') || 'Horizontal Position') : t('position.verticalPositionTitle')
+                    const sliderDesc = isHorizontal ? (t('position.horizontalPositionDesc') || 'Adjust horizontal alignment along screen edge') : t('position.verticalPositionDesc')
 
-                    <div className="setting-slider-wrap">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.002"
-                        className="setting-range-input"
-                        value={settings.verticalOffset ?? 0.5}
-                        style={{
-                          background: `linear-gradient(to right, #ffffff 0%, #ffffff ${(settings.verticalOffset ?? 0.5) * 100}%, rgba(255, 255, 255, 0.12) ${(settings.verticalOffset ?? 0.5) * 100}%, rgba(255, 255, 255, 0.12) 100%)`
-                        }}
-                        onPointerDown={() => {
-                          void window.edge.setInteractive(true)
-                          setSliderActive(true)
-                        }}
-                        onPointerUp={(e) => {
-                          setSliderActive(false)
-                          const val = parseFloat((e.target as HTMLInputElement).value)
-                          handleSliderRelease(val)
-                        }}
-                        onPointerCancel={(e) => {
-                          setSliderActive(false)
-                          const val = parseFloat((e.target as HTMLInputElement).value)
-                          handleSliderRelease(val)
-                        }}
-                        onLostPointerCapture={(e) => {
-                          setSliderActive(false)
-                          const val = parseFloat((e.target as HTMLInputElement).value)
-                          handleSliderRelease(val)
-                        }}
-                        onChange={(e) => {
-                          const raw = parseFloat(e.target.value)
-                          handleSliderInput(raw)
-                        }}
-                      />
+                    return (
+                      <div className="setting-row vertical" style={{ gap: 10 }}>
+                        <div className="setting-slider-header">
+                          <div className="setting-info">
+                            <div className="setting-title">{sliderTitle}</div>
+                            <div className="setting-desc">{sliderDesc}</div>
+                          </div>
+                          <div className="setting-slider-val">
+                            {`${Math.round(offsetVal * 100)}%`}
+                          </div>
+                        </div>
 
-                      <div className="setting-slider-ticks">
-                        {Array.from({ length: 21 }, (_, i) => {
-                          const tickVal = i * 0.05
-                          const currentVal = settings.verticalOffset ?? 0.5
-                          const isMajor = i === 0 || i === 10 || i === 20
-                          const isActive = Math.abs(currentVal - tickVal) < 0.025
-                          return (
-                            <span
-                              key={i}
-                              className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
-                            />
-                          )
-                        })}
-                      </div>
+                        <div className="setting-slider-wrap">
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.002"
+                            className="setting-range-input"
+                            value={offsetVal}
+                            style={{
+                              background: `linear-gradient(to right, #ffffff 0%, #ffffff ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) 100%)`
+                            }}
+                            onPointerDown={() => {
+                              void window.edge.setInteractive(true)
+                              setSliderActive(true)
+                            }}
+                            onPointerUp={(e) => {
+                              setSliderActive(false)
+                              const val = parseFloat((e.target as HTMLInputElement).value)
+                              if (isHorizontal) {
+                                patch({ horizontalOffset: val })
+                              } else {
+                                handleSliderRelease(val)
+                              }
+                            }}
+                            onPointerCancel={(e) => {
+                              setSliderActive(false)
+                              const val = parseFloat((e.target as HTMLInputElement).value)
+                              if (isHorizontal) {
+                                patch({ horizontalOffset: val })
+                              } else {
+                                handleSliderRelease(val)
+                              }
+                            }}
+                            onLostPointerCapture={(e) => {
+                              setSliderActive(false)
+                              const val = parseFloat((e.target as HTMLInputElement).value)
+                              if (isHorizontal) {
+                                patch({ horizontalOffset: val })
+                              } else {
+                                handleSliderRelease(val)
+                              }
+                            }}
+                            onChange={(e) => {
+                              const raw = parseFloat(e.target.value)
+                              if (isHorizontal) {
+                                patch({ horizontalOffset: raw })
+                              } else {
+                                handleSliderInput(raw)
+                              }
+                            }}
+                          />
 
-                      <div className="setting-slider-labels">
-                        {[
-                          { label: '0%', val: 0 },
-                          { label: '50%', val: 0.5 },
-                          { label: '100%', val: 1.0 }
-                        ].map((pos) => {
-                          const currentVal = settings.verticalOffset ?? 0.5
-                          const active = Math.abs(currentVal - pos.val) < 0.04
-                          return (
-                            <button
-                              key={pos.val}
-                              type="button"
-                              className={`slider-label-btn${active ? ' active' : ''}`}
-                              onClick={() => handleSliderRelease(pos.val)}
-                            >
-                              {pos.label}
-                            </button>
-                          )
-                        })}
+                          <div className="setting-slider-ticks">
+                            {Array.from({ length: 21 }, (_, i) => {
+                              const tickVal = i / 20
+                              const isMajor = i % 5 === 0
+                              const isActive = tickVal <= offsetVal
+                              return (
+                                <span
+                                  key={i}
+                                  className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
+                                />
+                              )
+                            })}
+                          </div>
+
+                          <div className="setting-slider-labels">
+                            {[
+                              { label: isHorizontal ? 'Left' : '0%', val: 0 },
+                              { label: 'Center', val: 0.5 },
+                              { label: isHorizontal ? 'Right' : '100%', val: 1.0 }
+                            ].map((pos) => {
+                              const active = Math.abs(offsetVal - pos.val) < 0.04
+                              return (
+                                <button
+                                  key={pos.val}
+                                  type="button"
+                                  className={`slider-label-btn${active ? ' active' : ''}`}
+                                  onClick={() => {
+                                    if (isHorizontal) {
+                                      patch({ horizontalOffset: pos.val })
+                                    } else {
+                                      handleSliderRelease(pos.val)
+                                    }
+                                  }}
+                                >
+                                  {pos.label}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    )
+                  })()}
 
                   <div className="setting-divider" />
 

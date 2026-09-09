@@ -428,7 +428,9 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
     savedWorkArea: settings.stickDisplayWorkArea,
     savedScaleFactor: settings.stickDisplayScaleFactor,
     windowWidth: currentWindowWidth,
-    currentBounds: getMainWindow()?.getBounds()
+    horizontalOffset: settings.horizontalOffset,
+    currentBounds: getMainWindow()?.getBounds(),
+    previewActive
   })
 
   const resolved = result.resolvedDisplay
@@ -519,20 +521,20 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
 }
 
 export function createWindow(): BrowserWindow {
-  const { x, y, height } = getStickGeometry()
+  const { x, y, width, height } = getStickGeometry()
 
   mainWindow = new BrowserWindow({
     icon: PATHS.icon(),
     x,
     y,
-    width: PANEL_WIDTH,
+    width,
     height,
     show: false,
     frame: false,
     fullscreenable: false,
     maximizable: false,
-    minWidth: PANEL_WIDTH,
-    minHeight: 320,
+    minWidth: 320,
+    minHeight: 240,
     movable: false,
     resizable: false,
     transparent: true,

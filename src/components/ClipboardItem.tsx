@@ -347,7 +347,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
               e.currentTarget.blur()
               playCardExpandSound(!isPreviewing)
               const rect = e.currentTarget.closest('.item-main')?.getBoundingClientRect()
-              const rectData = rect ? { y: rect.y, height: rect.height } : undefined
+              const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
               useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
             }}
           >

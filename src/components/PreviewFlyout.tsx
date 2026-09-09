@@ -18,27 +18,32 @@ const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
 const flyoutEaseClose = [0.3, 0, 0.2, 1] as const
 
 const flyoutVariants = {
-  hidden: (isRight: boolean) => ({
+  hidden: (dir: 'left' | 'right' | 'top' | 'bottom') => ({
     opacity: 0,
-    x: isRight ? 14 : -14,
+    x: dir === 'right' ? 14 : dir === 'left' ? -14 : 0,
+    y: dir === 'top' ? -14 : dir === 'bottom' ? 14 : 0,
     scale: 0.97,
   }),
   shown: {
     opacity: 1,
     x: 0,
+    y: 0,
     scale: 1,
     transition: {
       x: { duration: 0.26, ease: flyoutEaseOpen },
+      y: { duration: 0.26, ease: flyoutEaseOpen },
       scale: { duration: 0.26, ease: flyoutEaseOpen },
       opacity: { duration: 0.18, ease: 'easeOut' as const },
     },
   },
-  exit: (isRight: boolean) => ({
+  exit: (dir: 'left' | 'right' | 'top' | 'bottom') => ({
     opacity: 0,
-    x: isRight ? 10 : -10,
+    x: dir === 'right' ? 10 : dir === 'left' ? -10 : 0,
+    y: dir === 'top' ? -10 : dir === 'bottom' ? 10 : 0,
     scale: 0.98,
     transition: {
       x: { duration: 0.18, ease: flyoutEaseClose },
+      y: { duration: 0.18, ease: flyoutEaseClose },
       scale: { duration: 0.18, ease: flyoutEaseClose },
       opacity: { duration: 0.14, ease: 'easeIn' as const },
     },
@@ -56,7 +61,13 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   
   const item = previewItemId ? items.find((i) => i.id === previewItemId) : null
 
+  const stickPosition = (settings.stickPosition || (isRight ? 'right' : 'left')) as 'left' | 'right' | 'top' | 'bottom'
+  const isTop = stickPosition === 'top'
+  const isBottom = stickPosition === 'bottom'
+  const isHorizontal = isTop || isBottom
+
   const screenH = typeof window !== 'undefined' ? window.innerHeight : 800
+  const screenW = typeof window !== 'undefined' ? window.innerWidth : 1140
   const pFrac = settings.panelHeight || 0.6
   const panelH = screenH * pFrac
   const minY = panelH / 2
@@ -67,7 +78,18 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
 
   const reduceMotion = settings.reduceMotion || adaptiveSpring.type === 'tween'
 
-  const maxFlyoutHeight = Math.max(100, panelH - 24)
+  const dockWidth = Math.min(screenW - 60, 1080)
+  const flyoutWidth = 440
+  const maxFlyoutHeight = isHorizontal ? Math.min(460, Math.max(200, screenH - 240)) : Math.max(100, panelH - 24)
+
+  const dockLeft = Math.round((screenW - dockWidth) / 2)
+  const previewItemRect = useStore((s) => s.previewItemRect)
+  const cardCenterXInBlade = previewItemRect?.x !== undefined
+    ? (previewItemRect.x + (previewItemRect.width || 210) / 2) - dockLeft
+    : dockWidth / 2
+  const minLeft = 12
+  const maxLeft = Math.max(minLeft, dockWidth - flyoutWidth - 12)
+  const flyoutLeft = Math.max(minLeft, Math.min(maxLeft, Math.round(cardCenterXInBlade - flyoutWidth / 2)))
 
   const [dragOver, setDragOver] = useState(false)
   const flyoutRef = useRef<HTMLDivElement | null>(null)
@@ -83,8 +105,17 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
       // offsetHeight ignores the wrapper transform, so the hover
       // keep-alive zone stays full-size while the open/close motion plays.
       const h = flyoutRef.current.offsetHeight
-      const top = panelTop + (panelH - h) / 2
-      useStore.getState().setPreviewFlyoutRect({ top, bottom: top + h })
+      if (isHorizontal) {
+        useStore.getState().setPreviewFlyoutRect({
+          top: 210,
+          bottom: 222 + h,
+          left: flyoutLeft,
+          right: flyoutLeft + flyoutWidth
+        })
+      } else {
+        const top = panelTop + (panelH - h) / 2
+        useStore.getState().setPreviewFlyoutRect({ top, bottom: top + h })
+      }
     }
 
     updateRect()
@@ -97,7 +128,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
       window.removeEventListener('resize', updateRect)
       useStore.getState().setPreviewFlyoutRect(null)
     }
-  }, [item?.id, panelTop, panelH])
+  }, [item?.id, panelTop, panelH, isHorizontal, isTop, dockLeft, flyoutLeft, flyoutWidth])
 
   // Dismiss preview flyout when user clicks inside the clipboard shelf (outside the flyout)
   useEffect(() => {
@@ -228,29 +259,46 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
       {item && (
         <motion.div
           key={item.id}
-          custom={isRight}
+          custom={stickPosition}
           variants={flyoutVariants}
           initial={reduceMotion ? 'reducedHidden' : 'hidden'}
           animate={reduceMotion ? 'reducedShown' : 'shown'}
           exit={reduceMotion ? 'reducedHidden' : 'exit'}
           transition={reduceMotion ? { duration: 0.12, ease: 'linear' } : undefined}
-          style={{
-            position: 'absolute',
-            top: panelTop,
-            height: panelH,
-            [isRight ? 'right' : 'left']: 'var(--panel-width)',
-            marginLeft: isRight ? 0 : 12,
-            marginRight: isRight ? 12 : 0,
-            width: 440,
-            display: 'flex',
-            alignItems: 'center',
-            pointerEvents: 'none',
-            zIndex: 5,
-            originX: isRight ? 1 : 0,
-            originY: 0.5,
-            willChange: 'transform, opacity',
-            backfaceVisibility: 'hidden',
-          }}
+          style={
+            isHorizontal
+              ? {
+                  position: 'absolute',
+                  left: dockLeft + flyoutLeft,
+                  width: flyoutWidth,
+                  [isTop ? 'top' : 'bottom']: 222,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  pointerEvents: 'none',
+                  zIndex: 5,
+                  originX: 0.5,
+                  originY: isTop ? 0 : 1,
+                  willChange: 'transform, opacity',
+                  backfaceVisibility: 'hidden',
+                }
+              : {
+                  position: 'absolute',
+                  top: panelTop,
+                  height: panelH,
+                  [isRight ? 'right' : 'left']: 'var(--panel-width)',
+                  marginLeft: isRight ? 0 : 12,
+                  marginRight: isRight ? 12 : 0,
+                  width: 440,
+                  display: 'flex',
+                  alignItems: 'center',
+                  pointerEvents: 'none',
+                  zIndex: 5,
+                  originX: isRight ? 1 : 0,
+                  originY: 0.5,
+                  willChange: 'transform, opacity',
+                  backfaceVisibility: 'hidden',
+                }
+          }
         >
           <div
             ref={flyoutRef}
@@ -264,11 +312,11 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
               maxHeight: maxFlyoutHeight,
               background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#141414',
               borderRadius: 20,
-              border: dragOver ? '2px dashed #4caf50' : 'none',
+              border: dragOver ? '2px dashed #4caf50' : '1px solid rgba(255, 255, 255, 0.08)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: dragOver ? '0 0 35px rgba(76, 175, 80, 0.3)' : '0 20px 40px rgba(0,0,0,0.5)',
+              boxShadow: dragOver ? '0 0 35px rgba(76, 175, 80, 0.3)' : '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.5)',
               pointerEvents: 'auto',
               transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
               position: 'relative'

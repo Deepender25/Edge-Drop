@@ -43,15 +43,26 @@
 
 /* Top-position blade: centered at top, bottom-rounded corners */
 .blade-container.blade-top {
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: auto !important;
-  y: 0 !important;
+  top: 0;
+  left: 50%;
+  right: auto;
+  bottom: auto;
 }
 .blade-container.blade-top .blade {
   margin: 0 auto;
   border-radius: 0 0 24px 24px;
+}
+
+/* Bottom-position blade: centered at bottom, top-rounded corners */
+.blade-container.blade-bottom {
+  top: auto;
+  left: 50%;
+  right: auto;
+  bottom: 0;
+}
+.blade-container.blade-bottom .blade {
+  margin: 0 auto;
+  border-radius: 24px 24px 0 0;
 }
 
 /* Reverse curves (flares) connecting blade to screen edge */
@@ -84,6 +95,36 @@
   display: block;
 }
 
+/* Horizontal reverse curves (flares) connecting horizontal blade to screen edge */
+.flare-horizontal {
+  position: absolute;
+  width: 32px;
+  height: 30px;
+  pointer-events: none;
+  z-index: -1;
+}
+.flare-horizontal svg {
+  width: 32px;
+  height: 30px;
+  display: block;
+}
+.flare-top-left {
+  left: -30px;
+  top: 0;
+}
+.flare-top-right {
+  right: -30px;
+  top: 0;
+}
+.flare-bottom-left {
+  left: -30px;
+  bottom: 0;
+}
+.flare-bottom-right {
+  right: -30px;
+  bottom: 0;
+}
+
 /* CSS transition for clip-path (Framer Motion can't interpolate calc() properly).
    cubic-bezier(0.22, 1, 0.36, 1) is an exponential ease-out — fast initial
    velocity that decelerates to zero, giving the panel a crisp "snapping open"
@@ -109,7 +150,32 @@
   right: -30px;
 }
 .blade-container.blade-top::before {
-  display: none;
+  content: '';
+  position: absolute;
+  top: -30px;
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 30px;
+  background: #000000;
+  pointer-events: none;
+  z-index: -2;
+  display: block;
+}
+.blade-container.blade-bottom::before {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  top: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 30px;
+  background: #000000;
+  pointer-events: none;
+  z-index: -2;
+  display: block;
 }
 
 
@@ -203,6 +269,32 @@
 }
 .list::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
+}
+
+/* Horizontal dock list styles */
+.list.horizontal {
+  flex-direction: row;
+  overflow-y: hidden;
+  overflow-x: auto;
+  padding: 6px 14px 8px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0px, #000 12px, #000 calc(100% - 12px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0px, #000 12px, #000 calc(100% - 12px), transparent 100%);
+}
+.list.horizontal .list-stack {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 10px;
+  height: 100%;
+}
+.list.horizontal .pinned-section,
+.list.horizontal .recent-section {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 10px;
+  margin: 0;
+}
+.list.horizontal .section-label {
+  display: none;
 }
 
 .section-label {
@@ -432,7 +524,7 @@
 }
 
 /* Clear button */
-.footer .text-btn {
+.text-btn {
   height: 28px;
   display: inline-flex;
   align-items: center;
@@ -450,40 +542,40 @@
   box-shadow: none;
   transition: background 0.18s cubic-bezier(0.22, 1, 0.36, 1), color 0.18s ease;
 }
-.footer .text-btn .clear-btn-icon {
+.text-btn .clear-btn-icon {
   color: rgba(255, 255, 255, 0.75);
   transition: color 0.18s ease;
 }
-.footer .text-btn:hover:not(:disabled) {
+.text-btn:hover:not(:disabled) {
   background: #1c1c1c;
   color: #ffffff;
 }
-.footer .text-btn:hover:not(:disabled) .clear-btn-icon {
+.text-btn:hover:not(:disabled) .clear-btn-icon {
   color: #ff6b6b;
 }
-.footer .text-btn.active:not(:disabled) {
+.text-btn.active:not(:disabled) {
   background: #1c1c1c;
   color: #ffffff;
 }
-.footer .text-btn.active:not(:disabled) .clear-btn-icon {
+.text-btn.active:not(:disabled) .clear-btn-icon {
   color: #ff6b6b;
 }
-.footer .text-btn:active:not(:disabled) {
+.text-btn:active:not(:disabled) {
   transform: scale(0.96);
 }
-.footer .text-btn:disabled {
+.text-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
   background: #141414;
 }
-.footer .text-btn.danger {
+.text-btn.danger {
   color: rgba(255, 255, 255, 0.75);
 }
-.footer .text-btn.danger:hover:not(:disabled) {
+.text-btn.danger:hover:not(:disabled) {
   background: #1c1c1c;
   color: #ffffff;
 }
-.footer .text-btn.danger:hover:not(:disabled) .clear-btn-icon {
+.text-btn.danger:hover:not(:disabled) .clear-btn-icon {
   color: #ff6b6b;
 }
 
