@@ -9,6 +9,8 @@ interface HotkeyRecorderProps {
   onChange: (nextHotkey: string) => void
 }
 
+const isMac = edge.platform === 'darwin'
+
 /** Formats an Electron accelerator string (e.g. "Alt+Shift+C") into individual display keys. */
 function parseKeyBadges(accelerator: string): string[] {
   if (!accelerator) return ['Alt', 'C']
@@ -16,8 +18,10 @@ function parseKeyBadges(accelerator: string): string[] {
     .split('+')
     .map((k) => {
       const trimmed = k.trim()
-      if (trimmed === 'CommandOrControl' || trimmed === 'Ctrl') return 'Ctrl'
-      if (trimmed === 'Meta' || trimmed === 'Super' || trimmed === 'Command') return 'Win'
+      if (trimmed === 'CommandOrControl') return isMac ? 'Command' : 'Ctrl'
+      if (trimmed === 'Ctrl') return isMac ? 'Control' : 'Ctrl'
+      if (trimmed === 'Alt') return isMac ? 'Option' : 'Alt'
+      if (trimmed === 'Meta' || trimmed === 'Super' || trimmed === 'Command') return isMac ? 'Command' : 'Win'
       return trimmed.length === 1 ? trimmed.toUpperCase() : trimmed
     })
 }
@@ -29,7 +33,7 @@ function eventToAccelerator(e: KeyboardEvent): { accelerator: string; isValid: b
   if (e.ctrlKey) modifiers.push('Ctrl')
   if (e.altKey) modifiers.push('Alt')
   if (e.shiftKey) modifiers.push('Shift')
-  if (e.metaKey) modifiers.push('Super')
+  if (e.metaKey) modifiers.push(isMac ? 'Command' : 'Super')
 
   // Identify main non-modifier key
   let keyName = ''
@@ -80,7 +84,13 @@ function eventToAccelerator(e: KeyboardEvent): { accelerator: string; isValid: b
   return {
     accelerator: allParts.join('+'),
     isValid,
-    partialBadges: allParts.map(p => (p === 'Super' ? 'Win' : p))
+    partialBadges: allParts.map((p) => {
+      if (p === 'Super') return 'Win'
+      if (isMac && p === 'Command') return 'Command'
+      if (isMac && p === 'Alt') return 'Option'
+      if (isMac && p === 'Ctrl') return 'Control'
+      return p
+    })
   }
 }
 

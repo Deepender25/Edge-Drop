@@ -1,0 +1,31 @@
+name: macOS
+
+on:
+  push:
+    branches: [main, macos-port]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: edge-drop-macos-arm64
+          path: |
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: error

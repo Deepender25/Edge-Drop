@@ -233,16 +233,16 @@ function StyleCard({
         justifyContent: 'center',
         gap: 8,
         padding: '12px 10px 10px',
-        background: active ? '#141414' : '#141414',
+        background: active ? 'rgba(255, 255, 255, 0.055)' : 'transparent',
         border: 'none',
-        outline: active ? '2px solid #ffffff' : 'none',
+        outline: 'none',
         borderRadius: 16,
         position: 'relative',
         cursor: 'pointer',
         transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         userSelect: 'none',
         overflow: 'hidden',
-        boxShadow: active ? '0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.12)' : 'none',
+        boxShadow: 'none',
         ...style
       }}
     >

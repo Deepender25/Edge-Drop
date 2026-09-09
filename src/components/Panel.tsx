@@ -21,6 +21,7 @@ import { PreviewFlyout } from './PreviewFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
+import { hasExternalDragPayload } from '../../shared/dropPayload'
 
 import { useTranslation } from '../i18n'
 
@@ -162,14 +163,7 @@ export function Panel() {
   }, [internalDragReq, setInternalDragReq, setDragActive])
 
   const hasDragContent = (e: React.DragEvent) => {
-    const types = Array.from(e.dataTransfer?.types || [])
-    return (
-      types.includes('Files') ||
-      types.includes('text/uri-list') ||
-      types.includes('text/plain') ||
-      types.includes('text/html') ||
-      types.includes('URL')
-    )
+    return hasExternalDragPayload(e.dataTransfer?.types || [])
   }
 
   const onDragEnter = (e: React.DragEvent) => {

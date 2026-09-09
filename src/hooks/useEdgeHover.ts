@@ -23,6 +23,7 @@
 import { useEffect, useRef } from 'react'
 import { edge } from '../lib/edge'
 import { useStore } from '../store/appStore'
+import { hasExternalDragPayload } from '../../shared/dropPayload'
 
 const TRIGGER_PX = 3    // leftmost px that count as "the edge"
 const DWELL_MS = 40      // cursor must linger this long to open
@@ -473,14 +474,14 @@ export function useEdgeHover(): void {
 
     // ── OS file drag awareness ─────────────────────────────────────────────
     const onDocDragEnter = (e: DragEvent) => {
-      if (e.dataTransfer?.types.includes('Files')) {
+      if (e.dataTransfer && hasExternalDragPayload(e.dataTransfer.types)) {
         e.preventDefault()
         useStore.getState().setDragActive(true)
         openPanel()
       }
     }
     const onDocDragOver = (e: DragEvent) => {
-      if (e.dataTransfer?.types.includes('Files')) {
+      if (e.dataTransfer && hasExternalDragPayload(e.dataTransfer.types)) {
         e.preventDefault()
         cancelClose()
       }

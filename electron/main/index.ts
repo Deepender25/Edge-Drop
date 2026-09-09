@@ -35,6 +35,12 @@ import { getThumbnailPayload, thumbnailCacheControl } from './thumbnailCache'
 // Electron requires this call before the ready event.
 app.disableHardwareAcceleration()
 
+// Edge-Drop is a menu-bar utility on macOS. Keep it out of the Dock and app
+// switcher while its edge panel remains available across Spaces.
+if (process.platform === 'darwin' && typeof app.setActivationPolicy === 'function') {
+  app.setActivationPolicy('accessory')
+}
+
 // Restrict the renderer to a single webContents and forbid remote module usage.
 app.enableSandbox()
 
@@ -93,7 +99,7 @@ app.on('before-quit', () => {
 app.whenReady().then(() => {
   // GitHub NSIS needs an explicit AUMID. Store packages already have one from
   // the AppX identity; overriding it breaks toasts and taskbar grouping.
-  if (!isStoreBuild()) {
+  if (process.platform === 'win32' && !isStoreBuild()) {
     app.setAppUserModelId('com.edgedrop.app')
   }
 

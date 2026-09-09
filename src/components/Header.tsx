@@ -9,6 +9,7 @@ import { useTranslation } from '../i18n'
 
 export function Header() {
   const { t } = useTranslation()
+  const isMac = window.edge?.platform === 'darwin'
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const updateInfo = useStore((s) => s.updateInfo)
@@ -49,7 +50,10 @@ export function Header() {
   const activeId: (typeof FILTERS)[number]['id'] = emojiOpen ? 'emoji' : typeFilter
   const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.id === activeId))
   const ActiveIcon = FILTERS[activeIndex]?.Icon || FILTERS[0].Icon
-  const filterChipWidth = 28
+  const filterChipWidth = isMac ? 26 : 28
+  const filterGap = isMac ? 3 : 4
+  const filterIconSize = isMac ? 13 : 14
+  const headerButtonSize = isMac ? 28 : 32
   const reduceMotion = !!settings.reduceMotion
   const headerFade = `opacity ${reduceMotion ? '0.01s' : '0.16s'} ease`
 
@@ -78,7 +82,7 @@ export function Header() {
             border: 'none',
             borderRadius: 999,
             padding: 0,
-            gap: 4,
+            gap: filterGap,
             marginLeft: 0,
             maxWidth: '100%',
             overflow: 'visible',
@@ -90,7 +94,7 @@ export function Header() {
             {/* Single Persistent Sliding Pill Indicator (ABOVE the buttons) */}
             <motion.div
               initial={false}
-              animate={{ x: activeIndex * (filterChipWidth + 4) }}
+              animate={{ x: activeIndex * (filterChipWidth + filterGap) }}
               transition={{
                 type: 'spring',
                 stiffness: 440,
@@ -102,11 +106,11 @@ export function Header() {
                 left: 0,
                 top: 0,
                 width: filterChipWidth,
-                height: 28,
+                height: filterChipWidth,
                 borderRadius: 999,
                 background: 'linear-gradient(180deg, #ffffff 0%, #ebebeb 100%)',
                 border: 'none',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 #ffffff',
+                boxShadow: isMac ? '0 1px 4px rgba(0, 0, 0, 0.28)' : '0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 #ffffff',
                 pointerEvents: 'none',
                 zIndex: 2,
                 display: 'flex',
@@ -116,7 +120,7 @@ export function Header() {
                 willChange: 'transform'
               }}
             >
-              <ActiveIcon width={14} height={14} />
+              <ActiveIcon width={filterIconSize} height={filterIconSize} />
             </motion.div>
 
             {FILTERS.map((f) => {
@@ -140,7 +144,7 @@ export function Header() {
                     else setTypeFilter(f.id)
                   }}
                 >
-                  <Icon width={14} height={14} />
+                  <Icon width={filterIconSize} height={filterIconSize} />
                 </button>
               )
             })}
@@ -180,13 +184,10 @@ export function Header() {
             }}
             style={{
               color: 'rgba(255, 255, 255, 0.75)',
-              background: 'transparent',
-              border: 'none',
-              boxShadow: 'none',
               flexShrink: 0,
               cursor: 'pointer',
-              width: 32,
-              height: 32,
+              width: headerButtonSize,
+              height: headerButtonSize,
               display: 'grid',
               placeItems: 'center',
               position: 'relative',
@@ -194,7 +195,7 @@ export function Header() {
               transition: 'all 0.15s ease'
             }}
           >
-            <InfoIcon width={16} height={16} />
+            <InfoIcon width={isMac ? 15 : 16} height={isMac ? 15 : 16} />
             {isChangelogUnread && (
               <span
                 style={{
@@ -238,13 +239,10 @@ export function Header() {
           }}
           style={{
             color: '#ffffff',
-            background: 'transparent',
-            border: 'none',
-            boxShadow: 'none',
             flexShrink: 0,
             cursor: 'pointer',
-            width: 32,
-            height: 32,
+            width: headerButtonSize,
+            height: headerButtonSize,
             display: 'grid',
             placeItems: 'center',
             position: 'relative'
@@ -262,7 +260,7 @@ export function Header() {
               pointerEvents: 'none'
             }}
           >
-            <GearIcon />
+            <GearIcon width={isMac ? 15 : 16} height={isMac ? 15 : 16} />
           </span>
           <span
             aria-hidden={!settingsOpen}
@@ -276,7 +274,7 @@ export function Header() {
               pointerEvents: 'none'
             }}
           >
-            <CloseIcon />
+            <CloseIcon width={isMac ? 15 : 16} height={isMac ? 15 : 16} />
           </span>
           {!settingsOpen && (updateInfo?.downloaded || ((settings.autoUpdates ?? true) && updateInfo?.hasUpdate)) && (
             <span

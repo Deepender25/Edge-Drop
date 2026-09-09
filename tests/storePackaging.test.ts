@@ -18,6 +18,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
       asarUnpack: string[]
       extraResources?: Array<{ from: string; to: string }>
       files?: string[]
+      win: { extraResources?: Array<{ from: string; to: string }> }
+      mac: { extraResources?: Array<{ from: string; to: string }>; extendInfo?: { LSUIElement?: boolean } }
       appx: {
         identityName: string
         publisher: string
@@ -64,7 +66,10 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
 
   it('ships the windowless StartupTask helper outside the asar', () => {
     expect(pkg.build.files).toEqual(expect.arrayContaining(['!resources/startup/**/*.exe']))
-    expect(pkg.build.extraResources).toEqual(expect.arrayContaining([
+    expect(pkg.build.win.extraResources).toEqual(expect.arrayContaining([
+      { from: 'resources/startup/EdgeDropStartup.exe', to: 'startup/EdgeDropStartup.exe' }
+    ]))
+    expect(pkg.build.mac.extraResources).not.toEqual(expect.arrayContaining([
       { from: 'resources/startup/EdgeDropStartup.exe', to: 'startup/EdgeDropStartup.exe' }
     ]))
     expect(existsSync(join(root, 'resources/startup/EdgeDropStartup.exe'))).toBe(true)
@@ -177,7 +182,7 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
 
   it('main process only sets the custom AUMID on the GitHub build', () => {
     const src = read('electron/main/index.ts')
-    expect(src).toMatch(/if\s*\(\s*!isStoreBuild\(\)\s*\)\s*\{[\s\S]*setAppUserModelId\('com\.edgedrop\.app'\)/)
+    expect(src).toMatch(/if\s*\(\s*process\.platform\s*===\s*'win32'\s*&&\s*!isStoreBuild\(\)\s*\)\s*\{[\s\S]*setAppUserModelId\('com\.edgedrop\.app'\)/)
     expect(src).not.toMatch(/setAppUserModelId\([\s\S]*isStoreBuild\(\)/)
   })
 

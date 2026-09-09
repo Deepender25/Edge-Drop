@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeStickBounds, type DisplayInfo } from '../electron/main/geometry'
+import { computeCollapsedWindowBounds, computeStickBounds, type DisplayInfo } from '../electron/main/geometry'
 
 function makeDisplay(
   id: number, x: number, y: number, w: number, h: number,
@@ -10,6 +10,24 @@ function makeDisplay(
 
 const PRIMARY = makeDisplay(1, 0, 0, 1920, 1040, { isPrimary: true, scaleFactor: 1 })
 const SECONDARY = makeDisplay(2, 1920, 0, 1920, 1040, { isPrimary: false, scaleFactor: 1 })
+
+describe('computeCollapsedWindowBounds', () => {
+  const full = { x: 100, y: 24, width: 384, height: 1056 }
+
+  it('keeps the narrow target on the left edge', () => {
+    expect(computeCollapsedWindowBounds(full, 'left', 3)).toEqual({ x: 100, y: 24, width: 3, height: 1056 })
+  })
+
+  it('keeps the narrow target on the right edge', () => {
+    expect(computeCollapsedWindowBounds(full, 'right', 3)).toEqual({ x: 481, y: 24, width: 3, height: 1056 })
+  })
+
+  it('clamps invalid and oversized hot zones', () => {
+    expect(computeCollapsedWindowBounds(full, 'left', 0).width).toBe(1)
+    expect(computeCollapsedWindowBounds(full, 'left', Number.NaN).width).toBe(1)
+    expect(computeCollapsedWindowBounds(full, 'right', 999).width).toBe(384)
+  })
+})
 
 describe('computeStickBounds � original tests', () => {
   it('sticks to left edge of primary display', () => {
@@ -122,4 +140,3 @@ describe('TV mirror regression � combined scenario', () => {
     expect(r.displayId).toBe(11)
   })
 })
-

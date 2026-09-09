@@ -1,14 +1,11 @@
 /**
  * The edge panel BrowserWindow.
  *
- * The window is the full *expanded* size and sits at the edge of the stick
- * display's work area. It is transparent and frameless, and is normally
- * click-through (`setIgnoreMouseEvents(true, { forward: false })`) so the
- * desktop stays fully usable. Edge detection does NOT rely on DOM pointer
- * events: the main-process cursor poll (startCursorPoll) reads the OS cursor
- * position directly every tick, which also keeps working during OS file
- * drags — the edge dwell opens the panel and makes the main window
- * interactive, and the drop then lands on the main window.
+ * The transparent, frameless window sits at the stick display's edge. Windows
+ * keeps the expanded window click-through while collapsed. macOS instead keeps
+ * a hot-zone-width native strip alive so Finder can register it as a drop
+ * destination before the shelf expands. Edge detection itself comes from the
+ * main-process cursor poll and does not depend on DOM pointer events.
  *
  * NOTE: this module must NOT import from state.ts to avoid circular dependencies.
  */
@@ -19,7 +16,7 @@ import { APP_CONFIG } from './config'
 import { runtime } from './config'
 import { PATHS } from '../store/paths'
 import { TRANSLATIONS, en } from '../../src/i18n/translations'
-import { computeStickBounds } from './geometry'
+import { computeCollapsedWindowBounds, computeStickBounds } from './geometry'
 import { WorkAreaCache } from './workAreaCache'
 import { probeSeamAware, isNearProximity, type SeamTickState } from './stickProbe'
 import { loadSettings, saveSettings } from '../store/settings'
@@ -63,6 +60,11 @@ if (process.platform === 'win32') {
 
 const GWL_EXSTYLE = -20
 const WS_EX_NOACTIVATE = 0x08000000
+const SHELF_WINDOW_LEVEL = process.platform === 'darwin' ? 'floating' : 'screen-saver'
+
+function keepShelfOnTop(win: BrowserWindow): void {
+  win.setAlwaysOnTop(true, SHELF_WINDOW_LEVEL)
+}
 
 function getHwnd(win: BrowserWindow | null): number | bigint {
   if (!win || win.isDestroyed()) return 0
@@ -135,6 +137,7 @@ export function updateCachedWorkArea(): void {
 
 export function setHotZoneWidth(width: number): void {
   currentHotZoneWidth = width
+  if (process.platform === 'darwin' && !interactive) repositionWindow()
 }
 
 export function setStickDisplayId(id: number | undefined): void {
@@ -169,10 +172,9 @@ export function isInteractive(): boolean {
 /**
  * Toggle whether the panel swallows pointer events.
  *
- * - interactive=false (collapsed) -> click-through: Windows passes ALL mouse
- *   clicks to apps beneath. Edge detection is done by the main-process cursor
- *   poll (startCursorPoll), which reads screen.getCursorScreenPoint() directly,
- *   so no mouse-event forwarding is needed.
+ * - interactive=false (collapsed) -> Windows is click-through; macOS shrinks
+ *   to the configured edge hot zone so Finder still sees a native drop target.
+ *   Edge detection remains driven by the main-process cursor poll.
  * - interactive=true  (expanded) -> normal interactive window: the black blade
  *   captures all clicks.
  */
@@ -180,17 +182,28 @@ export function setInteractive(value: boolean): void {
   if (!mainWindow || value === interactive) return
   interactive = value
   if (value) {
+    // On macOS the collapsed window is a narrow, live native drop target.
+    // Expand that same window before the Finder drag crosses into the shelf.
+    if (process.platform === 'darwin') mainWindow.setBounds(getStickGeometry())
     // Panel is open: disable click-through so user can interact.
     mainWindow.setIgnoreMouseEvents(false)
-    // Use 'screen-saver' level to stay above fullscreen apps (YouTube fullscreen, games, etc.)
-    // 'floating' (HWND_TOPMOST) can be pushed behind by fullscreen D3D/browser windows.
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    // Windows uses screen-saver level for fullscreen apps. macOS uses floating:
+    // it stays above ordinary windows without covering Finder's drag layer.
+    keepShelfOnTop(mainWindow)
     mainWindow.setSkipTaskbar(true)
     applyNoActivateStyle(mainWindow, true)
   } else {
-    // Panel is closed: full click-through, no forwarding needed.
-    mainWindow.setIgnoreMouseEvents(true, { forward: false })
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    if (process.platform === 'darwin') {
+      // Finder locks onto native destination windows during a drag. Keep a
+      // hot-zone-width strip interactive so a drag that began while collapsed
+      // can enter the renderer, then expand it when the edge dwell opens.
+      mainWindow.setIgnoreMouseEvents(false)
+      mainWindow.setBounds(getNativeWindowGeometry())
+    } else {
+      // Panel is closed: full click-through, no forwarding needed.
+      mainWindow.setIgnoreMouseEvents(true, { forward: false })
+    }
+    keepShelfOnTop(mainWindow)
     mainWindow.setSkipTaskbar(true)
     applyNoActivateStyle(mainWindow, true)
 
@@ -270,14 +283,14 @@ let _seamState: SeamTickState = {}
 export function setHeartbeatPaused(paused: boolean): void {
   heartbeatPaused = paused
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
-    if (paused) {
+    if (paused && process.platform === 'win32') {
       // Temporarily lower window z-band from 'screen-saver' to 'normal' during active drag
       // so the Windows DWM drag-ghost image renders ON TOP of our window.
       mainWindow.setAlwaysOnTop(true, 'normal')
     } else {
       // Re-assert z-order immediately when drag ends so the window snaps back
       // to the correct level without waiting for the next heartbeat tick.
-      mainWindow.setAlwaysOnTop(true, 'screen-saver')
+      keepShelfOnTop(mainWindow)
     }
   }
 }
@@ -518,20 +531,26 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
   return { x: result.x, y: result.y, width: result.width, height: result.height }
 }
 
+function getNativeWindowGeometry(): { x: number; y: number; width: number; height: number } {
+  const fullBounds = getStickGeometry()
+  if (process.platform !== 'darwin' || interactive || previewActive) return fullBounds
+  return computeCollapsedWindowBounds(fullBounds, loadSettings().stickPosition, currentHotZoneWidth)
+}
+
 export function createWindow(): BrowserWindow {
-  const { x, y, height } = getStickGeometry()
+  const initialBounds = getNativeWindowGeometry()
 
   mainWindow = new BrowserWindow({
     icon: PATHS.icon(),
-    x,
-    y,
-    width: PANEL_WIDTH,
-    height,
+    x: initialBounds.x,
+    y: initialBounds.y,
+    width: initialBounds.width,
+    height: initialBounds.height,
     show: false,
     frame: false,
     fullscreenable: false,
     maximizable: false,
-    minWidth: PANEL_WIDTH,
+    minWidth: process.platform === 'darwin' ? 1 : PANEL_WIDTH,
     minHeight: 320,
     movable: false,
     resizable: false,
@@ -539,7 +558,9 @@ export function createWindow(): BrowserWindow {
     hasShadow: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    focusable: false,
+    // A non-focusable NSPanel is not a reliable Finder drag destination.
+    // showInactive() still prevents activation when the shelf merely appears.
+    focusable: process.platform === 'darwin',
     backgroundColor: '#00000000',
     roundedCorners: false,
     webPreferences: {
@@ -551,8 +572,18 @@ export function createWindow(): BrowserWindow {
     }
   })
 
-  // Start click-through with no forwarding — edge detection is done via cursor poll.
-  mainWindow.setIgnoreMouseEvents(true, { forward: false })
+  // macOS needs a real edge strip registered as a Finder drop destination.
+  // Other platforms retain the original full-size click-through behavior.
+  if (process.platform === 'darwin') mainWindow.setIgnoreMouseEvents(false)
+  else mainWindow.setIgnoreMouseEvents(true, { forward: false })
+
+  if (process.platform === 'darwin') {
+    mainWindow.setVisibleOnAllWorkspaces(true, {
+      visibleOnFullScreen: true,
+      skipTransformProcessType: true
+    })
+    mainWindow.setHiddenInMissionControl(true)
+  }
 
   // Apply WS_EX_NOACTIVATE so clicking the panel never steals OS focus from the active application.
   applyNoActivateStyle(mainWindow, true)
@@ -648,7 +679,7 @@ export function createWindow(): BrowserWindow {
 
   // Respect OS-level always-on-top reordering.
   mainWindow.on('focus', () => {
-    mainWindow?.setAlwaysOnTop(true, 'screen-saver')
+    if (mainWindow) keepShelfOnTop(mainWindow)
   })
 
   // Open external links in the default browser.
@@ -667,8 +698,8 @@ export function createWindow(): BrowserWindow {
   mainWindow.once('ready-to-show', () => {
     if (!mainWindow) return
     mainWindow.showInactive()
-    // 'screen-saver' level stays above fullscreen browser windows and games.
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    // On macOS, floating stays above apps but below Finder's drag image.
+    keepShelfOnTop(mainWindow)
     applyNoActivateStyle(mainWindow, true)
   })
 
@@ -695,7 +726,7 @@ export function createWindow(): BrowserWindow {
   heartbeatTimer = setInterval(() => {
     if (runtime.quitting || heartbeatPaused || interactive) return
     if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
-      mainWindow.setAlwaysOnTop(true, 'screen-saver')
+      keepShelfOnTop(mainWindow)
     }
   }, 2000)
 
@@ -834,7 +865,7 @@ export function popUpAndRetract(durationMs = 1500): void {
   if (!mainWindow || mainWindow.isDestroyed() || !mainWindow.webContents || mainWindow.webContents.isDestroyed()) return
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.showInactive()
-  mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  keepShelfOnTop(mainWindow)
   mainWindow.setSkipTaskbar(true)
 
   const wasAlreadyOpen = interactive
@@ -857,9 +888,9 @@ export function repositionWindow(): void {
   if (!mainWindow || mainWindow.isDestroyed()) return
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.showInactive()
-  mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  keepShelfOnTop(mainWindow)
   mainWindow.setSkipTaskbar(true)
-  const g = getStickGeometry()
+  const g = getNativeWindowGeometry()
   mainWindow.setBounds({ ...g })
   onWindowRepositioned?.()
 }
@@ -869,7 +900,7 @@ export function setVisible(visible: boolean): void {
   if (!mainWindow) return
   if (visible) {
     mainWindow.showInactive()
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    keepShelfOnTop(mainWindow)
     mainWindow.setSkipTaskbar(true)
   } else {
     mainWindow.hide()

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const describeWindows = process.platform === 'win32' ? describe : describe.skip
+
 const mocks = vi.hoisted(() => ({
   isPackaged: true,
   setLoginItemSettings: vi.fn(),
@@ -95,7 +97,7 @@ function parseWindowsRunCommand(cmd: string): { exe: string; args: string[] } {
   return { exe: t.slice(0, space), args: t.slice(space + 1).split(/\s+/) }
 }
 
-describe('GitHub exe launch-at-login (orphan Run keys)', () => {
+describeWindows('GitHub exe launch-at-login (orphan Run keys)', () => {
   beforeEach(() => {
     delete process.env.APP_BUILD_TARGET
     mocks.isPackaged = true
@@ -285,7 +287,7 @@ describe('GitHub exe launch-at-login (orphan Run keys)', () => {
   })
 })
 
-describe('GitHub Run-key quoting and update heal', () => {
+describeWindows('GitHub Run-key quoting and update heal', () => {
   const spacedExe = 'C:\\Users\\Renato Souza\\AppData\\Local\\Programs\\Edge-Drop\\Edge-Drop.exe'
   const plainExe = 'C:\\Users\\yadav\\AppData\\Local\\Programs\\Edge-Drop\\Edge-Drop.exe'
   const programFilesExe = 'C:\\Program Files\\Edge-Drop\\Edge-Drop.exe'

@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const describeWindows = process.platform === 'win32' ? describe : describe.skip
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -43,7 +45,7 @@ function sha10(filePath: string): string {
   return createHash('sha1').update(filePath).digest('hex').slice(0, 10)
 }
 
-describe('Store vs exe filesystem interop', () => {
+describeWindows('Store vs exe filesystem interop', () => {
   beforeEach(() => {
     delete process.env.APP_BUILD_TARGET
     fsRoots.home = join(tmpdir(), `ed-home-${Date.now()}-${Math.random().toString(16).slice(2)}`)

@@ -34,6 +34,28 @@ export interface StickBoundsResult {
 }
 
 /**
+ * Keep a real native drop target on the screen edge while the macOS panel is
+ * visually collapsed. macOS chooses a destination window during a Finder drag;
+ * a full-size click-through window cannot reliably become that destination
+ * halfway through the drag. The narrow strip stays registered without blocking
+ * the desktop beyond the configured hot zone.
+ */
+export function computeCollapsedWindowBounds(
+  bounds: { x: number; y: number; width: number; height: number },
+  position: StickPosition,
+  hotZoneWidth: number
+): { x: number; y: number; width: number; height: number } {
+  const requestedWidth = Number.isFinite(hotZoneWidth) ? Math.round(hotZoneWidth) : 1
+  const width = Math.max(1, Math.min(requestedWidth, bounds.width))
+  return {
+    x: position === 'right' ? bounds.x + bounds.width - width : bounds.x,
+    y: bounds.y,
+    width,
+    height: bounds.height
+  }
+}
+
+/**
  * Tolerance (pixels) for workArea fuzzy-match.
  *
  * Windows sometimes shifts a display's workArea origin by a few pixels after

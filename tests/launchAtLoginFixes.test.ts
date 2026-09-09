@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const describeWindows = process.platform === 'win32' ? describe : describe.skip
+
 const mocks = vi.hoisted(() => ({
   isPackaged: true,
   exePath: 'C:\\Users\\Test User\\AppData\\Local\\Programs\\Edge-Drop\\Edge-Drop.exe',
@@ -103,7 +105,7 @@ describe('GitHub Run-key health (quoted, current path, --hidden)', () => {
   })
 })
 
-describe('raw registry read (reg query)', () => {
+describeWindows('raw registry read (reg query)', () => {
   beforeEach(() => {
     delete process.env.APP_BUILD_TARGET
     mocks.isPackaged = true
@@ -149,7 +151,7 @@ describe('raw registry read (reg query)', () => {
   })
 })
 
-describe('reconcile never silently loses ON after update', () => {
+describeWindows('reconcile never silently loses ON after update', () => {
   beforeEach(() => {
     delete process.env.APP_BUILD_TARGET
     mocks.isPackaged = true
@@ -220,7 +222,7 @@ describe('reconcile never silently loses ON after update', () => {
   })
 })
 
-describe('Store detection is redundant (env + package + path)', () => {
+describeWindows('Store detection is redundant (env + package + path)', () => {
   beforeEach(() => {
     delete process.env.APP_BUILD_TARGET
     delete (process as unknown as { windowsStore?: boolean }).windowsStore

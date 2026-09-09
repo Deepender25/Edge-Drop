@@ -9,11 +9,15 @@
   "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:mac": "npm run build:mac-helper && electron-vite dev",
     "build": "electron-vite build",
     "build:github": "npm run build && electron-builder --win nsis -c.extraMetadata.buildTarget=github",
     "build:store": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:msix": "npm run build && electron-builder --win appx -c.extraMetadata.buildTarget=store",
     "build:win": "npm run build:github",
+    "build:mac-helper": "bash resources/macos/build-helper.sh",
+    "build:mac": "npm run build:mac-helper && npm run build && electron-builder --mac dmg zip --publish never -c.mac.identity=null -c.mac.hardenedRuntime=false",
+    "build:mac:release": "npm run build:mac-helper && npm run build && electron-builder --mac dmg zip --publish never",
     "package": "npm run build:github",
     "preview": "electron-vite preview",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
@@ -50,10 +54,6 @@
     ],
     "extraResources": [
       {
-        "from": "resources/startup/EdgeDropStartup.exe",
-        "to": "startup/EdgeDropStartup.exe"
-      },
-      {
         "from": "node_modules/emoji-datasource-twitter/img/twitter/64",
         "to": "emoji/64"
       }
@@ -84,7 +84,31 @@
           ]
         }
       ],
-      "icon": "resources/icon.ico"
+      "icon": "resources/icon.ico",
+      "extraResources": [
+        {
+          "from": "resources/startup/EdgeDropStartup.exe",
+          "to": "startup/EdgeDropStartup.exe"
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "resources/icon-mac.png",
+      "artifactName": "Edge-Drop-${version}-${arch}.${ext}",
+      "extendInfo": {
+        "LSUIElement": true
+      },
+      "extraResources": [
+        {
+          "from": "resources/macos/bin/EdgeDropMacHelper",
+          "to": "macos/EdgeDropMacHelper"
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,

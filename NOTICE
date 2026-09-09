@@ -1,0 +1,14 @@
+Edge-Drop macOS port
+Copyright 2026 the macOS fork contributors
+
+This product is derived from Edge-Drop by Deepender25:
+https://github.com/Deepender25/Edge-Drop
+
+The upstream project and this derivative are licensed under the Apache
+License, Version 2.0. See LICENSE. Files changed on the macos-port branch
+include platform adapters, packaging, tests, documentation, and build
+configuration for macOS.
+
+Third-party artwork:
+Twemoji graphics copyright Twitter, Inc. and other contributors, licensed
+under CC-BY 4.0: https://github.com/twitter/twemoji

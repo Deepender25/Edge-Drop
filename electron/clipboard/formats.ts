@@ -36,11 +36,24 @@ export function getClipboardSequenceNumber(): number {
 import { getSystemPowerShellPath, getWritableCwd } from '../main/powershell'
 import { filterValidPaths } from '../main/pathValidation'
 import { isStoreBuild } from '../main/config'
+import { readMacClipboardFiles } from '../main/macos'
 
 const execFileAsync = promisify(execFile)
 
 /** Windows clipboard format name for a copied-file list. */
 export const CF_FILE_LIST = 'FileNameW'
+
+/**
+ * Electron normalizes Finder's native `public.file-url` pasteboard type to
+ * `text/uri-list` on macOS. Keep the native spellings too for compatibility
+ * with other producers and older Electron releases.
+ */
+export function isMacFileListFormat(format: string): boolean {
+  const lower = format.toLowerCase()
+  return lower === 'text/uri-list' ||
+    lower === 'public.file-url' ||
+    lower === 'nsfilenamespboardtype'
+}
 
 /**
  * Async version: reads the full list of copied file paths via PowerShell
@@ -53,6 +66,14 @@ export const CF_FILE_LIST = 'FileNameW'
  */
 async function readFileListAsync(): Promise<string[] | null> {
   try {
+    const advertisedFormats = clipboard.availableFormats().map((format) => format.toLowerCase())
+    const hasMacFileUrls = advertisedFormats.some(isMacFileListFormat)
+    if (process.platform === 'darwin' && hasMacFileUrls) {
+      const paths = await readMacClipboardFiles()
+      const valid = filterValidPaths(paths ?? [])
+      return valid.length ? valid : null
+    }
+
     // First, confirm there is actually a file list on the clipboard before
     // spawning a process.  FileNameW being present is sufficient signal.
     const buf = clipboard.readBuffer(CF_FILE_LIST)
@@ -97,6 +118,24 @@ async function readFileListAsync(): Promise<string[] | null> {
 /** Fast, non-blocking check of FileNameW contents for clipboard signatures. */
 function readFileListFast(): string[] | null {
   try {
+    if (process.platform === 'darwin') {
+      for (const format of ['text/uri-list', 'public.file-url', 'NSFilenamesPboardType']) {
+        const buf = clipboard.readBuffer(format)
+        if (!buf || buf.length === 0) continue
+        const raw = buf.toString('utf8').replace(/\0/g, '')
+        const urls = raw.match(/file:\/\/[^\s<>'"]+/g) ?? []
+        const paths = filterValidPaths(urls.flatMap((url) => {
+          try {
+            return [decodeURIComponent(new URL(url).pathname)]
+          } catch {
+            return []
+          }
+        }))
+        if (paths.length) return paths
+      }
+      return null
+    }
+
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     if (!buf || buf.length < 4) return null
     const wide = buf.toString('utf16le')
@@ -116,6 +155,9 @@ function readFileListFast(): string[] | null {
  */
 export function clipboardHasFileNameW(): boolean {
   try {
+    if (process.platform === 'darwin') {
+      return clipboard.availableFormats().some(isMacFileListFormat)
+    }
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     return !!(buf && buf.length >= 4)
   } catch {
@@ -137,6 +179,10 @@ export function clipboardHasFileNameW(): boolean {
  */
 export function clipboardFilesContentKey(): string | null {
   try {
+    if (process.platform === 'darwin') {
+      const paths = readFileListFast()
+      return paths?.length ? `files|${paths.join('\n')}` : null
+    }
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     if (!buf || buf.length < 4) return null
     const fromName = buf
@@ -178,7 +224,8 @@ function clipboardAdvertisesFileList(): boolean {
   try {
     return clipboard.availableFormats().some((f) => {
       const l = f.toLowerCase()
-      return l === 'filenamew' || l === 'filename' || l.includes('shell idlist')
+      return l === 'filenamew' || l === 'filename' || l.includes('shell idlist') ||
+        isMacFileListFormat(l)
     })
   } catch {
     return false

@@ -19,6 +19,7 @@ import type {
 } from '../../shared/ipc'
 import type { EdgeApi } from '../../shared/bridge'
 import type { DragRequest } from '../../shared/types'
+import { filePathsFromUriList } from '../../shared/dropPayload'
 
 /** Typed invoke wrapper derived from the shared contracts. */
 function invoke<C extends InvokeChannel>(
@@ -134,6 +135,15 @@ win.addEventListener('drop', (e: any) => {
   const plainText = dt.getData('text/plain')?.trim()
   const htmlText = dt.getData('text/html')?.trim()
 
+  // Finder can expose only text/uri-list on macOS, leaving DataTransfer.files
+  // empty. Decode those file URLs before treating the payload as a web URL.
+  const uriFilePaths = filePathsFromUriList(uriList, process.platform)
+  if (uriFilePaths.length > 0) {
+    e.preventDefault()
+    invoke('item:add-files', uriFilePaths).catch(console.error)
+    return
+  }
+
   if (uriList) {
     const urls = uriList.split(/\r?\n/).map((u: string) => u.trim()).filter((u: string) => u && !u.startsWith('#'))
     if (urls.length > 0) {
@@ -176,6 +186,8 @@ win.addEventListener('drop', (e: any) => {
 }, true)
 
 const api = {
+  platform: process.platform,
+
   /* Renderer -> Main */
   loadState: () => invoke('state:load'),
   setPinned: (id: string, pinned: boolean) => invoke('item:set-pinned', id, pinned),
