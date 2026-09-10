@@ -74,7 +74,13 @@ function Glyph({ file, size = 22 }: { file: string; size?: number }) {
   )
 }
 
-export function EmojiPicker({ active = true }: { active?: boolean }) {
+export function EmojiPicker({
+  active = true,
+  isHorizontal = false
+}: {
+  active?: boolean
+  isHorizontal?: boolean
+}) {
   const { t } = useTranslation()
   const pasteEmoji = useStore((s) => s.pasteEmoji)
   const category = useStore((s) => s.emojiCategory)
@@ -83,6 +89,7 @@ export function EmojiPicker({ active = true }: { active?: boolean }) {
   const [failed, setFailed] = useState(false)
   const [recents, setRecents] = useState<string[]>(loadRecents)
   const [scrollTop, setScrollTop] = useState(0)
+  const [viewW, setViewW] = useState(0)
   const [viewH, setViewH] = useState(320)
   const [tonePop, setTonePop] = useState<TonePopup | null>(null)
   const [hoveredCat, setHoveredCat] = useState<{
@@ -137,7 +144,9 @@ export function EmojiPicker({ active = true }: { active?: boolean }) {
     if (!el) return
     const apply = () => {
       const h = el.clientHeight
+      const w = el.clientWidth
       if (h > 0) setViewH(h)
+      if (w > 0) setViewW(w)
     }
     const ro = new ResizeObserver(apply)
     ro.observe(el)
@@ -167,10 +176,19 @@ export function EmojiPicker({ active = true }: { active?: boolean }) {
     return out
   }, [catalog, category, recents])
 
-  const rows = Math.ceil(items.length / COLS)
+  const cols = useMemo(() => {
+    if (!isHorizontal) return COLS
+    if (viewW <= 0) return 24
+    return Math.max(8, Math.floor((viewW - 16) / 36))
+  }, [isHorizontal, viewW])
+
+  const rowH = isHorizontal ? 32 : ROW_H
+  const glyphSize = isHorizontal ? 22 : 26
+
+  const rows = Math.ceil(items.length / cols)
   const overscan = 3
-  const startRow = Math.max(0, Math.floor(scrollTop / ROW_H) - overscan)
-  const visibleRows = Math.ceil(viewH / ROW_H) + overscan * 2
+  const startRow = Math.max(0, Math.floor(scrollTop / rowH) - overscan)
+  const visibleRows = Math.ceil(viewH / rowH) + overscan * 2
   const endRow = Math.min(rows, startRow + visibleRows)
 
   const onPaste = useCallback(
@@ -204,7 +222,7 @@ export function EmojiPicker({ active = true }: { active?: boolean }) {
 
   return (
     <div
-      className="emoji-picker"
+      className={`emoji-picker${isHorizontal ? ' horizontal' : ''}`}
       ref={pickerRef}
       onPointerDown={(e) => {
         const t = e.target as HTMLElement
@@ -263,8 +281,12 @@ export function EmojiPicker({ active = true }: { active?: boolean }) {
       {failed ? (
         <div className="emoji-status">{t('emoji.loadFailed')}</div>
       ) : !catalog ? (
-        <div className="emoji-skel" aria-hidden>
-          {Array.from({ length: 28 }, (_, i) => (
+        <div
+          className="emoji-skel"
+          style={isHorizontal ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : undefined}
+          aria-hidden
+        >
+          {Array.from({ length: isHorizontal ? cols * 4 : 28 }, (_, i) => (
             <i key={i} />
           ))}
         </div>
@@ -280,12 +302,16 @@ export function EmojiPicker({ active = true }: { active?: boolean }) {
             setHoveredCat(null)
           }}
         >
-          <div style={{ height: startRow * ROW_H }} />
+          <div style={{ height: startRow * rowH }} />
           {Array.from({ length: endRow - startRow }, (_, i) => {
             const row = startRow + i
-            const slice = items.slice(row * COLS, row * COLS + COLS)
+            const slice = items.slice(row * cols, row * cols + cols)
             return (
-              <div key={row} className="emoji-row">
+              <div
+                key={row}
+                className="emoji-row"
+                style={isHorizontal ? { gridTemplateColumns: `repeat(${cols}, 1fr)`, height: rowH } : undefined}
+              >
                 {slice.map((item) => {
                   const skinnable = hasSkinTones(item.entry)
                   return (
@@ -310,14 +336,14 @@ export function EmojiPicker({ active = true }: { active?: boolean }) {
                         onPaste(item.key)
                       }}
                     >
-                      <Glyph file={item.file} size={26} />
+                      <Glyph file={item.file} size={glyphSize} />
                     </button>
                   )
                 })}
               </div>
             )
           })}
-          <div style={{ height: Math.max(0, (rows - endRow) * ROW_H) }} />
+          <div style={{ height: Math.max(0, (rows - endRow) * rowH) }} />
         </div>
       )}
 

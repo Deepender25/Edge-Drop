@@ -487,7 +487,7 @@ export function Panel() {
                   }}
                   aria-hidden={!emojiOpen}
                 >
-                  {emojiMounted ? <EmojiPicker active={emojiOpen} /> : null}
+                  {emojiMounted ? <EmojiPicker active={emojiOpen} isHorizontal={isHorizontal} /> : null}
                 </div>
               </div>
               {!isHorizontal && (
@@ -536,7 +536,7 @@ export function Panel() {
             </AnimatePresence>
           </div>
           <DropOverlay />
-          <SplitDropZone isRight={isRight} />
+          <SplitDropZone stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')} />
         </div>
         <PreviewFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
@@ -625,7 +625,7 @@ function DropOverlay() {
   )
 }
 
-function SplitDropZone({ isRight = false }: { isRight?: boolean }) {
+function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'right' | 'top' | 'bottom' }) {
   const internalDragReq = useStore((s) => s.internalDragReq)
   const isSubitemDragging = !!(
     internalDragReq &&
@@ -643,23 +643,86 @@ function SplitDropZone({ isRight = false }: { isRight?: boolean }) {
     setIsOver(false)
   }
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsOver(false)
+    const req = useStore.getState().internalDragReq
+    if (req && (req.imageId || (req.paths && req.paths.length > 0))) {
+      window.edge.splitItem(req)
+      useStore.getState().setInternalDragReq(null)
+    }
+  }
+
+  const isTop = stickPosition === 'top'
+  const isBottom = stickPosition === 'bottom'
+  const isRight = stickPosition === 'right'
+
+  const initialMotion = isTop
+    ? { opacity: 0, y: -15 }
+    : isBottom
+      ? { opacity: 0, y: 15 }
+      : isRight
+        ? { opacity: 0, x: 15 }
+        : { opacity: 0, x: -15 }
+
+  const exitMotion = initialMotion
+
+  const styleByPos: React.CSSProperties = isTop
+    ? {
+        top: 0,
+        left: 0,
+        right: 0,
+        height: isOver ? 68 : 52,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start'
+      }
+    : isBottom
+      ? {
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: isOver ? 68 : 52,
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-end'
+        }
+      : isRight
+        ? {
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: isOver ? 100 : 80,
+            justifyContent: 'flex-end',
+            alignItems: 'center'
+          }
+        : {
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: isOver ? 100 : 80,
+            justifyContent: 'flex-start',
+            alignItems: 'center'
+          }
+
   return (
     <AnimatePresence>
       {isSubitemDragging && (
         <motion.div
-          className={`split-dropzone${isOver ? ' active' : ''}`}
-          onDragOver={(e) => e.preventDefault()}
+          className={`split-dropzone pos-${stickPosition}${isOver ? ' active' : ''}`}
+          onDragOver={(e) => {
+            e.preventDefault()
+            if (!isOver) setIsOver(true)
+          }}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          initial={{ opacity: 0, x: isRight ? 15 : -15 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: isRight ? 15 : -15 }}
+          onDrop={handleDrop}
+          initial={initialMotion}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          exit={exitMotion}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          style={{
-            left: isRight ? 'auto' : 0,
-            right: isRight ? 0 : 'auto',
-            justifyContent: isRight ? 'flex-end' : 'flex-start'
-          }}
+          style={styleByPos}
         >
           <div className="glow-line" />
         </motion.div>

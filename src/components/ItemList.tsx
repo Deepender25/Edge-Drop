@@ -35,6 +35,9 @@ export function ItemList() {
   const isHorizontal = settings.stickPosition === 'top' || settings.stickPosition === 'bottom'
   
   const typeFilter = useStore((s) => s.typeFilter) || 'all'
+  const filterScrollMap = useRef<Record<string, { top: number; left: number }>>({})
+  const prevFilterRef = useRef(typeFilter)
+
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(() => {
     try {
@@ -93,13 +96,15 @@ export function ItemList() {
         topPinnedTime !== lastClosedTopPinnedTime.current
 
       if (timeSinceClosed >= 60000 || hasNewCopyWhileClosed) {
+        filterScrollMap.current = {}
         if (listRef.current) {
-          listRef.current.scrollTop = 0
+          if (isHorizontal) listRef.current.scrollLeft = 0
+          else listRef.current.scrollTop = 0
         }
       }
     }
     prevOpen.current = open
-  }, [open, topRecentId, topRecentTime, topPinnedTime])
+  }, [open, topRecentId, topRecentTime, topPinnedTime, isHorizontal])
 
   useLayoutEffect(() => {
     // If a brand new or freshly updated item was added while panel is open, jump to top
@@ -108,8 +113,10 @@ export function ItemList() {
       const isNewPinned = !!topPinnedTime && (!prevTopPinnedTime.current || topPinnedTime > prevTopPinnedTime.current)
 
       if (isNewRecent || isNewPinned) {
+        filterScrollMap.current[typeFilter] = { top: 0, left: 0 }
         if (listRef.current) {
-          listRef.current.scrollTop = 0
+          if (isHorizontal) listRef.current.scrollLeft = 0
+          else listRef.current.scrollTop = 0
         }
       }
     }
@@ -117,7 +124,55 @@ export function ItemList() {
     prevTopRecentId.current = topRecentId
     prevTopRecentTime.current = topRecentTime
     prevTopPinnedTime.current = topPinnedTime
-  }, [open, topRecentId, topRecentTime, topPinnedTime])
+  }, [open, topRecentId, topRecentTime, topPinnedTime, isHorizontal, typeFilter])
+
+  // Independent scroll position per filter page (unsynchronized across tabs)
+  useLayoutEffect(() => {
+    const el = listRef.current
+    if (!el) return
+
+    if (prevFilterRef.current !== typeFilter) {
+      // Save outgoing filter's scroll position before applying new filter's position
+      filterScrollMap.current[prevFilterRef.current] = {
+        top: el.scrollTop,
+        left: el.scrollLeft
+      }
+      prevFilterRef.current = typeFilter
+
+      // Restore incoming filter's saved scroll position (defaulting to 0)
+      const saved = filterScrollMap.current[typeFilter]
+      if (isHorizontal) {
+        el.scrollLeft = saved?.left ?? 0
+      } else {
+        el.scrollTop = saved?.top ?? 0
+      }
+    }
+  }, [typeFilter, isHorizontal])
+
+  // Reset scroll on search query change
+  const prevQueryRef = useRef(query)
+  useLayoutEffect(() => {
+    if (prevQueryRef.current !== query) {
+      prevQueryRef.current = query
+      if (listRef.current) {
+        if (isHorizontal) listRef.current.scrollLeft = 0
+        else listRef.current.scrollTop = 0
+      }
+    }
+  }, [query, isHorizontal])
+
+  // Reset scroll map when switching dock position
+  const prevStickPos = useRef(settings.stickPosition)
+  useLayoutEffect(() => {
+    if (prevStickPos.current !== settings.stickPosition) {
+      prevStickPos.current = settings.stickPosition
+      filterScrollMap.current = {}
+      if (listRef.current) {
+        listRef.current.scrollTop = 0
+        listRef.current.scrollLeft = 0
+      }
+    }
+  }, [settings.stickPosition])
 
   useEffect(() => {
     if (!isDraggingAny) {
@@ -126,13 +181,24 @@ export function ItemList() {
   }, [isDraggingAny])
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const next = e.currentTarget.scrollTop > 50
+    const el = e.currentTarget
+    filterScrollMap.current[typeFilter] = {
+      top: el.scrollTop,
+      left: el.scrollLeft
+    }
+    const scrollPos = isHorizontal ? el.scrollLeft : el.scrollTop
+    const next = scrollPos > 50
     setShowScrollTop((prev) => (prev === next ? prev : next))
   }
 
   const scrollToTop = () => {
     if (listRef.current) {
-      listRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+      filterScrollMap.current[typeFilter] = { top: 0, left: 0 }
+      if (isHorizontal) {
+        listRef.current.scrollTo({ left: 0, behavior: 'smooth' })
+      } else {
+        listRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+      }
     }
   }
 
@@ -292,7 +358,7 @@ export function ItemList() {
       )}
 
       <AnimatePresence>
-        {showScrollTop && (
+        {!isHorizontal && showScrollTop && (
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

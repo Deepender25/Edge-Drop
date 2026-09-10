@@ -136,3 +136,20 @@ describe('emoji asset protocol', () => {
     expect(dir.replace(/\\/g, '/')).toBe('C:/res/emoji/64')
   })
 })
+
+describe('horizontal emoji picker layout calculations', () => {
+  it('calculates responsive columns matching horizontal viewport width', () => {
+    const calcCols = (viewW: number, isHorizontal: boolean) => {
+      if (!isHorizontal) return 7
+      if (viewW <= 0) return 24
+      return Math.max(8, Math.floor((viewW - 16) / 36))
+    }
+
+    expect(calcCols(0, false)).toBe(7)
+    expect(calcCols(300, false)).toBe(7)
+    expect(calcCols(0, true)).toBe(24)
+    expect(calcCols(1000, true)).toBe(27)
+    expect(calcCols(720, true)).toBe(19)
+    expect(calcCols(1440, true)).toBe(39)
+  })
+})
