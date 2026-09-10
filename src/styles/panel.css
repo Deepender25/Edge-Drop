@@ -664,6 +664,11 @@
   color: #ffffff;
 }
 
+.header:not(.header-horizontal) .filter-chip {
+  width: 25px;
+  height: 25px;
+}
+
 /* Copy Indicator Sine Curve Morph Styles */
 .copy-curve-container {
   pointer-events: none;

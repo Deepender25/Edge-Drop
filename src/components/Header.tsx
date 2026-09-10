@@ -1,7 +1,7 @@
 /** Panel header: title + settings toggle. */
 import { motion } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, EmojiSmileIcon } from './icons'
+import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon, EmojiSmileIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { loadEmojiCatalog } from '../lib/emoji/load'
 
@@ -59,13 +59,17 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
     { id: 'links', label: t('filters.links'), Icon: LinkIcon },
     { id: 'images', label: t('filters.images'), Icon: ImageIcon },
     { id: 'files', label: t('filters.files'), Icon: FilesIcon },
+    { id: 'colors', label: t('filters.colors') || 'Colors', Icon: PaletteIcon },
     { id: 'emoji', label: t('emoji.open'), Icon: EmojiSmileIcon }
   ]
 
   const activeId: (typeof FILTERS)[number]['id'] = emojiOpen ? 'emoji' : typeFilter
   const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.id === activeId))
   const ActiveIcon = FILTERS[activeIndex]?.Icon || FILTERS[0].Icon
-  const filterChipWidth = 28
+  const filterChipWidth = isHorizontal ? 28 : 25
+  const filterChipHeight = isHorizontal ? 28 : 25
+  const filterChipGap = isHorizontal ? 4 : 3
+  const filterIconSize = isHorizontal ? 14 : 13
   const reduceMotion = !!settings.reduceMotion
   const headerFade = `opacity ${reduceMotion ? '0.01s' : '0.16s'} ease`
 
@@ -78,7 +82,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
           alignItems: 'center',
           minWidth: 0,
           flex: 1,
-          height: 28,
+          height: filterChipHeight,
           overflow: 'hidden'
         }}
       >
@@ -94,7 +98,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             border: 'none',
             borderRadius: 999,
             padding: 0,
-            gap: 4,
+            gap: filterChipGap,
             marginLeft: 0,
             maxWidth: '100%',
             overflow: 'visible',
@@ -106,7 +110,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
           {/* Single Persistent Sliding Pill Indicator (ABOVE the buttons) */}
           <motion.div
             initial={false}
-            animate={{ x: activeIndex * (filterChipWidth + 4) }}
+            animate={{ x: activeIndex * (filterChipWidth + filterChipGap) }}
             transition={{
               type: 'spring',
               stiffness: 440,
@@ -118,7 +122,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
               left: 0,
               top: 0,
               width: filterChipWidth,
-              height: 28,
+              height: filterChipHeight,
               borderRadius: 999,
               background: 'linear-gradient(180deg, #ffffff 0%, #ebebeb 100%)',
               border: 'none',
@@ -132,7 +136,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
               willChange: 'transform'
             }}
           >
-            <ActiveIcon width={14} height={14} />
+            <ActiveIcon width={filterIconSize} height={filterIconSize} />
           </motion.div>
 
           {FILTERS.map((f) => {
@@ -147,6 +151,10 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
                 aria-label={f.label}
                 aria-pressed={active}
                 tabIndex={settingsOpen ? -1 : 0}
+                style={{
+                  width: filterChipWidth,
+                  height: filterChipHeight
+                }}
                 onPointerEnter={() => {
                   if (f.id === 'emoji') void loadEmojiCatalog()
                 }}
@@ -156,7 +164,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
                   else setTypeFilter(f.id)
                 }}
               >
-                <Icon width={14} height={14} />
+                <Icon width={filterIconSize} height={filterIconSize} />
               </button>
             )
           })}

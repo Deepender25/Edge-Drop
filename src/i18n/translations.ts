@@ -5,6 +5,7 @@ export interface TranslationKeys {
     links: string
     images: string
     files: string
+    colors?: string
   }
   tabs: {
     behaviour: string
@@ -480,7 +481,8 @@ export const en: TranslationKeys = {
     "text": "Text",
     "links": "Links",
     "images": "Images",
-    "files": "Files"
+    "files": "Files",
+    "colors": "Colors"
   },
   "tabs": {
     "behaviour": "Behaviour",
