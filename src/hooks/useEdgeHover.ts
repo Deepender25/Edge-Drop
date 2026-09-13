@@ -66,7 +66,12 @@ export function notifyPreviewClosedByUser(): void {
   }, PREVIEW_CLOSE_STAY_MS)
 }
 
-export function getHorizontalDockMetrics(displayWidth: number, horizontalOffset = 0.5, hotZoneHeight = 0.25) {
+export function getHorizontalDockMetrics(
+  displayWidth: number,
+  horizontalOffset = 0.5,
+  hotZoneHeight = 0.25,
+  triggerAlignment: 'top' | 'center' | 'bottom' | 'left' | 'right' = 'center'
+) {
   const dockWidth = Math.min(displayWidth - 60, 1080)
   const pad = displayWidth >= dockWidth + 60 ? 30 : 0
   const minX = pad
@@ -79,8 +84,16 @@ export function getHorizontalDockMetrics(displayWidth: number, horizontalOffset 
   const triggerWidth = Math.round(
     hotZoneHeight >= 0.55 ? 460 : hotZoneHeight >= 0.35 ? 320 : 220
   )
-  const triggerLeft = dockCenterX - triggerWidth / 2
-  const triggerRight = dockCenterX + triggerWidth / 2
+  let triggerLeft = dockCenterX - triggerWidth / 2
+  let triggerRight = dockCenterX + triggerWidth / 2
+
+  if (triggerAlignment === 'top' || triggerAlignment === 'left') {
+    triggerLeft = dockX
+    triggerRight = dockX + triggerWidth
+  } else if (triggerAlignment === 'bottom' || triggerAlignment === 'right') {
+    triggerLeft = dockX + dockWidth - triggerWidth
+    triggerRight = dockX + dockWidth
+  }
 
   return {
     dockWidth,
@@ -153,7 +166,7 @@ export function useEdgeHover(): void {
 
       // Horizontal dock bounds (for top/bottom) — calculated in DISPLAY coordinates
       const dispW = displaySize.current.width
-      const dockMetrics = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25)
+      const dockMetrics = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
       const left = dockMetrics.triggerLeft
       const right = dockMetrics.triggerRight
       const midX = dockMetrics.dockCenterX
@@ -325,8 +338,8 @@ export function useEdgeHover(): void {
 
       if (s.stickPosition === 'top') {
         const dispW = displaySize.current.width
-        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25)
-        const bladeHeight = state.settingsOpen ? 480 : 218
+        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
+        const bladeHeight = 218
         const inBlade = y >= -BUFFER_PX && y <= bladeHeight && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
         if (inBlade) return true
         if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
@@ -342,9 +355,9 @@ export function useEdgeHover(): void {
       } else if (s.stickPosition === 'bottom') {
         const dispW = displaySize.current.width
         const dispH = displaySize.current.height
-        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25)
+        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
         const distFromBottom = dispH - y
-        const bladeHeight = state.settingsOpen ? 480 : 218
+        const bladeHeight = 218
         const inBlade = distFromBottom >= -BUFFER_PX && distFromBottom <= bladeHeight && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
         if (inBlade) return true
         if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
@@ -425,10 +438,10 @@ export function useEdgeHover(): void {
       switch (stickPosition) {
         case 'top': {
           const distFromTop = data.y
-          const triggerDepth = Math.max(state.settings.hotZoneWidth || 3, TRIGGER_PX)
+          const triggerDepth = Math.max(state.settings.hotZoneWidth ?? 3, 1)
           const inEdgeNear = distFromTop >= -BUFFER_PX && distFromTop <= (triggerDepth + 25)
           const dispW = displayWidth || displaySize.current.width
-          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25)
+          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25, state.settings.triggerAlignment || 'center')
           const inZone = data.x >= triggerLeft && data.x <= triggerRight
 
           if (!inEdgeNear) {
@@ -467,7 +480,7 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const baseBladeH = state.settingsOpen ? 480 : 218
+          const baseBladeH = 218
           const keepOpenDepth = baseBladeH
           const startCloseDepth = baseBladeH + 40
           const insideX = data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
@@ -497,10 +510,10 @@ export function useEdgeHover(): void {
         case 'bottom': {
           const dispH = displayHeight || displaySize.current.height
           const distFromBottom = dispH - data.y
-          const triggerDepth = Math.max(state.settings.hotZoneWidth || 3, TRIGGER_PX)
+          const triggerDepth = Math.max(state.settings.hotZoneWidth ?? 3, 1)
           const inEdgeNear = distFromBottom >= -BUFFER_PX && distFromBottom <= (triggerDepth + 25)
           const dispW = displayWidth || displaySize.current.width
-          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25)
+          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25, state.settings.triggerAlignment || 'center')
           const inZone = data.x >= triggerLeft && data.x <= triggerRight
 
           if (!inEdgeNear) {
@@ -539,7 +552,7 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const baseBladeH = state.settingsOpen ? 480 : 218
+          const baseBladeH = 218
           const keepOpenDepth = baseBladeH
           const startCloseDepth = baseBladeH + 40
           const insideX = data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX

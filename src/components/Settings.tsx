@@ -1271,9 +1271,9 @@ export function Settings({
                 <div className="shelf-card-bottom">
                   <div className="setting-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
                     {[
-                      { label: t('position.top'), val: 'top' as const },
+                      { label: t('position.left') || 'Left', val: 'top' as const },
                       { label: t('position.center'), val: 'center' as const },
-                      { label: t('position.bottom'), val: 'bottom' as const }
+                      { label: t('position.right') || 'Right', val: 'bottom' as const }
                     ].map((opt) => (
                       <button
                         key={opt.val}
@@ -2072,12 +2072,12 @@ export function Settings({
                     </div>
                     <div className="setting-pills">
                       {[
-                        { label: t('position.top'), val: 'top' as const },
+                        { label: isHorizontal ? (t('position.left') || 'Left') : t('position.top'), val: 'top' as const },
                         { label: t('position.center'), val: 'center' as const },
-                        { label: t('position.bottom'), val: 'bottom' as const }
+                        { label: isHorizontal ? (t('position.right') || 'Right') : t('position.bottom'), val: 'bottom' as const }
                       ].map((opt) => (
                         <button
-                          key={opt.label}
+                          key={opt.val}
                           className={`pill ${(settings.triggerAlignment || 'center') === opt.val ? 'active' : ''}`}
                           onClick={() => {
                             playButtonClickSound()

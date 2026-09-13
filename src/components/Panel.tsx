@@ -307,8 +307,16 @@ export function Panel() {
     settings.hotZoneHeight >= 0.55 ? 460 : settings.hotZoneHeight >= 0.35 ? 320 : 220
   )
   const halfTriggerW = triggerWidthPx / 2
-  const insetLeft = `calc(50% - ${halfTriggerW}px)`
-  const insetRight = `calc(50% - ${halfTriggerW}px)`
+  let insetLeft = `calc(50% - ${halfTriggerW}px)`
+  let insetRight = `calc(50% - ${halfTriggerW}px)`
+
+  if (alignment === 'top' || alignment === 'left') {
+    insetLeft = '0px'
+    insetRight = `calc(100% - ${triggerWidthPx}px)`
+  } else if (alignment === 'bottom' || alignment === 'right') {
+    insetLeft = `calc(100% - ${triggerWidthPx}px)`
+    insetRight = '0px'
+  }
 
   // Set clipPath via style (not animate) to avoid Framer Motion's broken
   // calc() interpolation — CSS transitions handle it correctly.

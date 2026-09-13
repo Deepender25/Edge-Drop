@@ -128,6 +128,44 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(large.triggerWidth).toBe(460)
   })
 
+  it('getHorizontalDockMetrics accurately positions triggerLeft and triggerRight based on triggerAlignment', async () => {
+    const { getHorizontalDockMetrics } = await import('../src/hooks/useEdgeHover')
+    const dispW = 1920
+
+    // Center alignment
+    const centerMetrics = getHorizontalDockMetrics(dispW, 0.5, 0.25, 'center')
+    expect(centerMetrics.triggerLeft).toBe(centerMetrics.dockCenterX - centerMetrics.triggerWidth / 2)
+    expect(centerMetrics.triggerRight).toBe(centerMetrics.dockCenterX + centerMetrics.triggerWidth / 2)
+
+    // Left alignment ('left' and legacy 'top')
+    const leftMetrics = getHorizontalDockMetrics(dispW, 0.5, 0.25, 'left')
+    expect(leftMetrics.triggerLeft).toBe(leftMetrics.dockX)
+    expect(leftMetrics.triggerRight).toBe(leftMetrics.dockX + leftMetrics.triggerWidth)
+
+    const topMetrics = getHorizontalDockMetrics(dispW, 0.5, 0.25, 'top')
+    expect(topMetrics.triggerLeft).toBe(topMetrics.dockX)
+    expect(topMetrics.triggerRight).toBe(topMetrics.dockX + topMetrics.triggerWidth)
+
+    // Right alignment ('right' and legacy 'bottom')
+    const rightMetrics = getHorizontalDockMetrics(dispW, 0.5, 0.25, 'right')
+    expect(rightMetrics.triggerLeft).toBe(rightMetrics.dockX + rightMetrics.dockWidth - rightMetrics.triggerWidth)
+    expect(rightMetrics.triggerRight).toBe(rightMetrics.dockX + rightMetrics.dockWidth)
+
+    const bottomMetrics = getHorizontalDockMetrics(dispW, 0.5, 0.25, 'bottom')
+    expect(bottomMetrics.triggerLeft).toBe(bottomMetrics.dockX + bottomMetrics.dockWidth - bottomMetrics.triggerWidth)
+    expect(bottomMetrics.triggerRight).toBe(bottomMetrics.dockX + bottomMetrics.dockWidth)
+  })
+
+  it('Panel.tsx calculates insetLeft and insetRight dynamically matching trigger alignment', () => {
+    const panelSrc = read('src/components/Panel.tsx')
+    expect(panelSrc).toContain("if (alignment === 'top' || alignment === 'left')")
+    expect(panelSrc).toContain("insetLeft = '0px'")
+    expect(panelSrc).toContain('insetRight = `calc(100% - ${triggerWidthPx}px)`')
+    expect(panelSrc).toContain("else if (alignment === 'bottom' || alignment === 'right')")
+    expect(panelSrc).toContain('insetLeft = `calc(100% - ${triggerWidthPx}px)`')
+    expect(panelSrc).toContain("insetRight = '0px'")
+  })
+
   it('Horizontal shelf includes position offset slider, trigger alignment, panel height, and auto-updates', () => {
     const src = read('src/components/Settings.tsx')
     // Find the isHorizontal branch

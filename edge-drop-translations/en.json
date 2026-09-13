@@ -81,6 +81,8 @@
     "top": "Top",
     "center": "Center",
     "bottom": "Bottom",
+    "left": "Left",
+    "right": "Right",
     "triggerZone": "Trigger Zone",
     "edgeLocationHintTitle": "Edge location hint",
     "edgeLocationHintDesc": "Subtly illuminate beacon on screen edge when touching edge at wrong position",

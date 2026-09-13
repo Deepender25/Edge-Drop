@@ -168,8 +168,8 @@ export interface Settings {
   verticalOffset: number
   /** Horizontal offset fraction along screen edge when positioned at top/bottom (0 = left, 0.5 = center, 1 = right). Default: 0.5. */
   horizontalOffset?: number
-  /** Vertical alignment of the hover trigger strip relative to shelf ('top' | 'center' | 'bottom'). Default: 'center'. */
-  triggerAlignment?: 'top' | 'center' | 'bottom'
+  /** Vertical or horizontal alignment of the hover trigger strip relative to shelf ('top' | 'center' | 'bottom' | 'left' | 'right'). Default: 'center'. */
+  triggerAlignment?: 'top' | 'center' | 'bottom' | 'left' | 'right'
   /** When true, subtly illuminates a beacon hint on the screen edge when touching the edge at a different position. Default: true. */
   showEdgeLocationHint?: boolean
   /** When true, plays tactile audio sound effects for sliders, buttons, and switches. Default: true. */
