@@ -48,29 +48,55 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     const headerSrc = read('src/components/Header.tsx')
     expect(headerSrc).toContain('settings-header-pills')
     expect(headerSrc).toContain('settings-header-pill')
-    expect(headerSrc).toContain("id: 'all'")
-    expect(headerSrc).toContain("id: 'behaviour'")
-    expect(headerSrc).toContain("id: 'position'")
-    expect(headerSrc).toContain("id: 'appearance'")
+    const idx = headerSrc.indexOf('settings-header-pills')
+    const pillsSection = headerSrc.slice(idx, idx + 400)
+    expect(pillsSection).not.toContain("'all'")
+    expect(pillsSection).toContain("id: 'behaviour'")
+    expect(pillsSection).toContain("id: 'position'")
+    expect(pillsSection).toContain("id: 'appearance'")
   })
 
-  it('Horizontal Position card renders horizontal alignment slider and presets', () => {
+  it('Trigger bar card renders length presets and thickness slider in horizontal settings', () => {
     const src = read('src/components/Settings.tsx')
-    expect(src).toContain('horizontalPositionTitle')
-    expect(src).toContain('settings.horizontalOffset')
-    expect(src).toContain("{ label: 'Left', val: 0 }")
-    expect(src).toContain("{ label: 'Center', val: 0.5 }")
-    expect(src).toContain("{ label: 'Right', val: 1.0 }")
+    expect(src).toContain("t('position.hoverAreaSizeTitle')")
+    expect(src).toContain("t('position.edgeTriggerThicknessTitle')")
+    expect(src).toContain('settings.hotZoneHeight')
+    expect(src).toContain('settings.hotZoneWidth')
+    const panelSrc = read('src/components/Panel.tsx')
+    expect(panelSrc).toContain('settings.hotZoneHeight >= 0.55 ? 460 : settings.hotZoneHeight >= 0.35 ? 320 : 220')
   })
 
-  it('Appearance card renders 4 interactive indicator style preview tiles', () => {
+  it('Appearance card triggers popup indicator style selector matching left/right alignment', () => {
     const src = read('src/components/Settings.tsx')
-    expect(src).toContain('shelf-indicator-grid')
-    expect(src).toContain('shelf-indicator-item')
-    expect(src).toContain("patch({ copyIndicatorStyle: 'logo' })")
-    expect(src).toContain("patch({ copyIndicatorStyle: 'check' })")
-    expect(src).toContain("patch({ copyIndicatorStyle: 'copy' })")
-    expect(src).toContain("patch({ copyIndicatorStyle: 'sparkle' })")
+    expect(src).toContain('style-preview-toggle-btn')
+    expect(src).toContain('handleToggleFlyout')
+    expect(src).toContain('copyIndicatorStyle')
+
+    const flyoutSrc = read('src/components/IndicatorStyleFlyout.tsx')
+    expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'logo' })")
+    expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'check' })")
+    expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'copy' })")
+    expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'sparkle' })")
+    expect(flyoutSrc).toContain("stickPosition === 'top' || stickPosition === 'bottom'")
+    expect(flyoutSrc).toContain("border: active ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.08)'")
+    expect(flyoutSrc).not.toContain("outline: active ? '2px solid #ffffff' : 'none'")
+  })
+
+  it('Appearance shelf renders Show Copy Indicator toggle card first, followed by Indicator Style card matching Left/Right', () => {
+    const src = read('src/components/Settings.tsx')
+    const appearanceSection = src.slice(src.indexOf("horizontalTab === 'appearance'"), src.indexOf("horizontalTab === 'appearance'") + 4000)
+    const toggleCardIdx = appearanceSection.indexOf('beacon-toggle-card')
+    const styleCardIdx = appearanceSection.indexOf('copy-card')
+
+    expect(toggleCardIdx).toBeGreaterThan(-1)
+    expect(styleCardIdx).toBeGreaterThan(-1)
+    // Card 1 (beacon-toggle-card) must appear BEFORE Card 2 (copy-card)
+    expect(toggleCardIdx).toBeLessThan(styleCardIdx)
+    // Indicator style card is only shown when showCopyIndicator is enabled
+    expect(appearanceSection).toContain('{(settings.showCopyIndicator ?? true) && (')
+    // Indicator style card uses standard style-preview-toggle-btn with Close/Chevron icons, matching Left/Right
+    expect(appearanceSection).toContain('className={`icon-btn style-preview-toggle-btn ${isFlyoutActive ? \'active\' : \'\'}`}')
+    expect(appearanceSection).toContain('{isFlyoutActive ? <CloseIcon /> : <ChevronRightIcon />}')
   })
 
   it('Panel.tsx passes isHorizontal to Settings component', () => {
@@ -89,4 +115,147 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(css).toContain('.shelf-indicator-item')
     expect(css).toContain('.shelf-quit-btn')
   })
-})
+
+  it('getHorizontalDockMetrics scales trigger bar length based on hotZoneHeight', async () => {
+    const { getHorizontalDockMetrics } = await import('../src/hooks/useEdgeHover')
+    const small = getHorizontalDockMetrics(1920, 0.5, 0.25)
+    expect(small.triggerWidth).toBe(220)
+
+    const medium = getHorizontalDockMetrics(1920, 0.5, 0.4)
+    expect(medium.triggerWidth).toBe(320)
+
+    const large = getHorizontalDockMetrics(1920, 0.5, 0.6)
+    expect(large.triggerWidth).toBe(460)
+  })
+
+  it('Horizontal shelf includes position offset slider, trigger alignment, panel height, and auto-updates', () => {
+    const src = read('src/components/Settings.tsx')
+    // Find the isHorizontal branch
+    const horizontalBlock = src.slice(src.indexOf('if (isHorizontal) {'), src.indexOf('const maxTabLen ='))
+    // Should contain horizontal position offset slider and presets
+    expect(horizontalBlock).toContain('horizontalPositionTitle')
+    expect(horizontalBlock).toContain('horizontalOffset')
+    expect(horizontalBlock).toContain('handleHorizontalPreset')
+    // Should contain trigger alignment pills
+    expect(horizontalBlock).toContain('edgeTriggerPositionTitle')
+    expect(horizontalBlock).toContain('triggerAlignment: opt.val')
+    // Should contain panel height pills
+    expect(horizontalBlock).toContain('panelHeightTitle')
+    expect(horizontalBlock).toContain('panelHeight: opt.val')
+    // Should contain auto-updates toggle
+    expect(horizontalBlock).toContain('autoUpdatesTitle')
+    expect(horizontalBlock).toContain('autoUpdates: v')
+    // Should contain clearUnpinnedOnRestart
+    expect(horizontalBlock).toContain('clearUnpinnedTitle')
+    expect(horizontalBlock).toContain('clearUnpinnedOnRestart')
+    // Should contain support links
+    expect(horizontalBlock).toContain('supportOnKofi')
+    expect(horizontalBlock).toContain('starOnGithub')
+  })
+
+  it('Vertical left/right settings remain untouched with position slider and vertical controls intact', () => {
+    const src = read('src/components/Settings.tsx')
+    const verticalBlock = src.slice(src.indexOf('const maxTabLen ='))
+    expect(verticalBlock).toContain('verticalPositionTitle')
+    expect(verticalBlock).toContain('edgeTriggerPositionTitle')
+    expect(verticalBlock).toContain('panelHeightTitle')
+  })
+
+  it('Vertical settings arranges edge placement buttons in diamond layout (top, left/right, bottom)', () => {
+    const src = read('src/components/Settings.tsx')
+    const verticalBlock = src.slice(src.indexOf('const maxTabLen ='))
+    expect(verticalBlock).toContain('placement-diamond-wrap')
+    expect(verticalBlock).toContain('diamond-top')
+    expect(verticalBlock).toContain('diamond-mid')
+    expect(verticalBlock).toContain('diamond-bottom')
+
+    const css = read('src/styles/settings.css')
+    expect(css).toContain('.placement-diamond-wrap')
+    expect(css).toContain('.placement-diamond-wrap .diamond-row')
+    expect(css).toContain('.placement-diamond-wrap .diamond-top')
+    expect(css).toContain('.placement-diamond-wrap .diamond-mid')
+    expect(css).toContain('.placement-diamond-wrap .diamond-bottom')
+  })
+
+  it('Horizontal dashboard uses correct translations, multi-column classes, and explicit pixel values', () => {
+    const src = read('src/components/Settings.tsx')
+    const horizontalBlock = src.slice(src.indexOf('if (isHorizontal) {'), src.indexOf('const maxTabLen ='))
+
+    // Translation fix: supportOnKofi instead of supportDev
+    expect(horizontalBlock).toContain("t('footer.supportOnKofi')")
+    expect(horizontalBlock).not.toContain("t('footer.supportDev')")
+
+    // Multi-column dashboard structure
+    expect(horizontalBlock).toContain('tab-view')
+    expect(horizontalBlock).toContain('behaviour-col')
+    expect(horizontalBlock).toContain('position-col')
+    expect(horizontalBlock).toContain('appearance-col')
+
+    // Edge placement diamond layout for horizontal card shelf
+    expect(horizontalBlock).toContain('placement-diamond-wrap')
+    expect(horizontalBlock).toContain('shelf-diamond')
+    expect(horizontalBlock).toContain('diamond-top')
+    expect(horizontalBlock).toContain('diamond-mid')
+    expect(horizontalBlock).toContain('diamond-bottom')
+
+    // Explicit pixel labels on length presets & live thickness badge
+    expect(horizontalBlock).toContain('(220px)')
+    expect(horizontalBlock).toContain('(320px)')
+    expect(horizontalBlock).toContain('(460px)')
+    expect(horizontalBlock).toContain('${settings.hotZoneWidth ?? 3}px')
+  })
+
+  it('settings.css contains tab-view full-width obsidian rules', () => {
+    const css = read('src/styles/settings.css')
+    expect(css).toContain('.settings-shelf-track.tab-view')
+    expect(css).toContain('.settings-shelf-track.tab-view .settings-shelf-card')
+  })
+
+  it('useEdgeHover maintains identical invisible hover window for settings menu and clipboard without 480px expansion', () => {
+    const hoverSrc = read('src/hooks/useEdgeHover.ts')
+    expect(hoverSrc).not.toContain('state.settingsOpen && y <= 480')
+    expect(hoverSrc).not.toContain('state.settingsOpen && distFromBottom <= 480')
+    expect(hoverSrc).not.toContain('distFromTop <= 480 + BUFFER_PX')
+    expect(hoverSrc).not.toContain('distFromBottom <= 480 + BUFFER_PX')
+    expect(hoverSrc).not.toContain('inSettings')
+  })
+
+  it('Horizontal settings maintains independent scroll positions per section and resets to behaviour tab on open/close', () => {
+    const storeSrc = read('src/store/appStore.ts')
+    // setSettingsOpen should reset settingsTab to behaviour so reopening starts on first tab
+    expect(storeSrc).toContain("settingsTab: 'behaviour'")
+
+    const settingsSrc = read('src/components/Settings.tsx')
+    // Independent scroll memory per tab
+    expect(settingsSrc).toContain('horizontalTabScrollPositions')
+    expect(settingsSrc).toContain('handleShelfScroll')
+    expect(settingsSrc).toContain('onScroll={handleShelfScroll}')
+    // Reset to behaviour tab on mount
+    expect(settingsSrc).toContain("useStore.getState().setSettingsTab('behaviour')")
+  })
+it('Appearance shelf renders Card 1 Copy Indicator toggle first, then Card 2 Indicator Style flyout trigger second', () => {
+    const src = read('src/components/Settings.tsx')
+    const appearanceIndex = src.indexOf("horizontalTab === 'appearance'")
+    expect(appearanceIndex).toBeGreaterThan(-1)
+    const appearanceBlock = src.slice(appearanceIndex)
+
+    const toggleCardIndex = appearanceBlock.indexOf('beacon-toggle-card')
+    const styleCardIndex = appearanceBlock.indexOf('copy-card')
+
+    expect(toggleCardIndex).toBeGreaterThan(-1)
+    expect(styleCardIndex).toBeGreaterThan(-1)
+    // Toggle card must come before Indicator style card
+    expect(toggleCardIndex).toBeLessThan(styleCardIndex)
+
+    // Indicator style button uses style-preview-toggle-btn with Chevron/Close
+    expect(appearanceBlock).toContain('style-preview-toggle-btn')
+    expect(appearanceBlock).toContain('handleToggleFlyout(e.currentTarget)')
+  })
+
+  it('IndicatorStyleFlyout anchors horizontally relative to styleFlyoutAnchorRect', () => {
+    const flyoutSrc = read('src/components/IndicatorStyleFlyout.tsx')
+    expect(flyoutSrc).toContain('styleFlyoutAnchorRect')
+    expect(flyoutSrc).toContain('styleFlyoutAnchorRect.x')
+    expect(flyoutSrc).toContain('anchorCenterX - flyoutWidth / 2')
+  })
+});

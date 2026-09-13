@@ -100,7 +100,7 @@ export function ClearMenu({
   const isMenuDown = menuDirection === 'down'
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative', zIndex: open ? 350 : 'auto' }}>
       <button
         className={`text-btn${open ? ' active' : ''}`}
         onClick={() => {
@@ -133,8 +133,8 @@ export function ClearMenu({
               border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: 16,
               padding: 4,
-              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.75)',
-              zIndex: 100
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(0, 0, 0, 0.5)',
+              zIndex: 350
             }}
           >
             {WINDOWS.map((w) => (

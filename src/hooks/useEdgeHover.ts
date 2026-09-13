@@ -66,7 +66,7 @@ export function notifyPreviewClosedByUser(): void {
   }, PREVIEW_CLOSE_STAY_MS)
 }
 
-export function getHorizontalDockMetrics(displayWidth: number, horizontalOffset = 0.5) {
+export function getHorizontalDockMetrics(displayWidth: number, horizontalOffset = 0.5, hotZoneHeight = 0.25) {
   const dockWidth = Math.min(displayWidth - 60, 1080)
   const pad = displayWidth >= dockWidth + 60 ? 30 : 0
   const minX = pad
@@ -74,7 +74,11 @@ export function getHorizontalDockMetrics(displayWidth: number, horizontalOffset 
   const hOffset = Math.min(1, Math.max(0, horizontalOffset))
   const dockX = minX + Math.round(Math.max(0, maxX - minX) * hOffset)
   const dockCenterX = dockX + dockWidth / 2
-  const triggerWidth = 297 // 220 * 1.35 (+35% increase, centered)
+  // Trigger bar length scales with hotZoneHeight:
+  // Small (0.25) => 220px, Medium (0.40) => 320px, Large (0.60) => 460px
+  const triggerWidth = Math.round(
+    hotZoneHeight >= 0.55 ? 460 : hotZoneHeight >= 0.35 ? 320 : 220
+  )
   const triggerLeft = dockCenterX - triggerWidth / 2
   const triggerRight = dockCenterX + triggerWidth / 2
 
@@ -149,7 +153,7 @@ export function useEdgeHover(): void {
 
       // Horizontal dock bounds (for top/bottom) — calculated in DISPLAY coordinates
       const dispW = displaySize.current.width
-      const dockMetrics = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5)
+      const dockMetrics = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25)
       const left = dockMetrics.triggerLeft
       const right = dockMetrics.triggerRight
       const midX = dockMetrics.dockCenterX
@@ -209,7 +213,7 @@ export function useEdgeHover(): void {
     const closePanel = () => {
       const state = useStore.getState()
       if (!state.open) return
-      if (state.sliderActive) return
+      if (state.sliderActive || state.edgeTransition?.active) return
       if (state.dragActive && !state.internalDragReq) return
 
       // If the indicator style flyout is open, let it play its exit spring first.
@@ -244,7 +248,7 @@ export function useEdgeHover(): void {
 
     const scheduleClose = (delay = GRACE_MS) => {
       const state = useStore.getState()
-      if (state.sliderActive) return
+      if (state.sliderActive || state.edgeTransition?.active) return
       if (state.dragActive && !state.internalDragReq) return
       if (graceTimer !== undefined) return // already closing
 
@@ -270,9 +274,14 @@ export function useEdgeHover(): void {
         window.clearTimeout(interactiveTimer)
         interactiveTimer = undefined
       }
-      // User re-entered the clipboard — clear the preview grace period flags so the
-      // next time they leave, the panel retracts at normal speed (250ms)
-      useStore.getState().resetPositionChangedTime()
+      // User re-entered the clipboard — clear the preview grace period flags only
+      // after the 1750ms position-changed stay window has completed, so the panel
+      // does not close prematurely during edge or display transitions.
+      const state = useStore.getState()
+      const elapsed = state.sliderReleasedTime > 0 ? Date.now() - state.sliderReleasedTime : Infinity
+      if (elapsed >= 1750) {
+        state.resetPositionChangedTime()
+      }
       if (_previewClosedByUser) {
         _previewClosedByUser = false
         if (_previewClosedTimer !== undefined) {
@@ -304,7 +313,7 @@ export function useEdgeHover(): void {
     // if the last known pointer position is genuinely outside the blade.
     const isInsideBlade = () => {
       const state = useStore.getState()
-      if (state.sliderActive) return true
+      if (state.sliderActive || state.edgeTransition?.active) return true
       const timeSincePositionChange = state.sliderReleasedTime > 0 ? Date.now() - state.sliderReleasedTime : Infinity
       if (timeSincePositionChange < 1750) return true
 
@@ -316,10 +325,10 @@ export function useEdgeHover(): void {
 
       if (s.stickPosition === 'top') {
         const dispW = displaySize.current.width
-        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5)
-        const inBlade = y >= -BUFFER_PX && y <= 218 && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
+        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25)
+        const bladeHeight = state.settingsOpen ? 480 : 218
+        const inBlade = y >= -BUFFER_PX && y <= bladeHeight && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
         if (inBlade) return true
-        if (state.settingsOpen && y <= 480 + BUFFER_PX && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX) return true
         if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
           const FLYOUT_BUFFER = 24
           const flyoutScreenLeft = dockX + state.previewFlyoutRect.left
@@ -333,11 +342,11 @@ export function useEdgeHover(): void {
       } else if (s.stickPosition === 'bottom') {
         const dispW = displaySize.current.width
         const dispH = displaySize.current.height
-        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5)
+        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25)
         const distFromBottom = dispH - y
-        const inBlade = distFromBottom >= -BUFFER_PX && distFromBottom <= 218 && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
+        const bladeHeight = state.settingsOpen ? 480 : 218
+        const inBlade = distFromBottom >= -BUFFER_PX && distFromBottom <= bladeHeight && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
         if (inBlade) return true
-        if (state.settingsOpen && distFromBottom <= 480 + BUFFER_PX && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX) return true
         if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
           const FLYOUT_BUFFER = 24
           const flyoutScreenLeft = dockX + state.previewFlyoutRect.left
@@ -416,9 +425,10 @@ export function useEdgeHover(): void {
       switch (stickPosition) {
         case 'top': {
           const distFromTop = data.y
-          const inEdgeNear = distFromTop >= -BUFFER_PX && distFromTop <= (TRIGGER_PX + 25)
+          const triggerDepth = Math.max(state.settings.hotZoneWidth || 3, TRIGGER_PX)
+          const inEdgeNear = distFromTop >= -BUFFER_PX && distFromTop <= (triggerDepth + 25)
           const dispW = displayWidth || displaySize.current.width
-          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5)
+          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25)
           const inZone = data.x >= triggerLeft && data.x <= triggerRight
 
           if (!inEdgeNear) {
@@ -431,7 +441,7 @@ export function useEdgeHover(): void {
             triggerEdgeHint()
           }
 
-          if (distFromTop >= -BUFFER_PX && distFromTop <= TRIGGER_PX && inZone && !state.open && isHoverEnabled) {
+          if (distFromTop >= -BUFFER_PX && distFromTop <= triggerDepth && inZone && !state.open && isHoverEnabled) {
             if (state.edgeHintActive) state.setEdgeHintActive(false)
             cancelClose()
             if (dwellTimer === undefined) {
@@ -457,8 +467,11 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const inBlade = distFromTop >= -BUFFER_PX && distFromTop <= 218 && data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
-          const inSettings = state.settingsOpen && distFromTop >= -BUFFER_PX && distFromTop <= 480 + BUFFER_PX && data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
+          const baseBladeH = state.settingsOpen ? 480 : 218
+          const keepOpenDepth = baseBladeH
+          const startCloseDepth = baseBladeH + 40
+          const insideX = data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
+          const outsideX = data.x < dockX - (BUFFER_PX + 40) || data.x > dockX + dockWidth + (BUFFER_PX + 40)
 
           let inFlyout = false
           if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
@@ -470,21 +483,24 @@ export function useEdgeHover(): void {
               data.x >= flyoutScreenLeft - FLYOUT_BUFFER && data.x <= flyoutScreenRight + FLYOUT_BUFFER
           }
 
-          if (inBlade || inSettings || inFlyout) {
+          if ((distFromTop >= -BUFFER_PX && distFromTop <= keepOpenDepth && insideX) || inFlyout) {
             cancelClose()
             return
           }
 
-          scheduleClose()
+          if (distFromTop > startCloseDepth || distFromTop < -BUFFER_PX || outsideX) {
+            scheduleClose()
+          }
           break
         }
 
         case 'bottom': {
           const dispH = displayHeight || displaySize.current.height
           const distFromBottom = dispH - data.y
-          const inEdgeNear = distFromBottom >= -BUFFER_PX && distFromBottom <= (TRIGGER_PX + 25)
+          const triggerDepth = Math.max(state.settings.hotZoneWidth || 3, TRIGGER_PX)
+          const inEdgeNear = distFromBottom >= -BUFFER_PX && distFromBottom <= (triggerDepth + 25)
           const dispW = displayWidth || displaySize.current.width
-          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5)
+          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25)
           const inZone = data.x >= triggerLeft && data.x <= triggerRight
 
           if (!inEdgeNear) {
@@ -497,7 +513,7 @@ export function useEdgeHover(): void {
             triggerEdgeHint()
           }
 
-          if (distFromBottom >= -BUFFER_PX && distFromBottom <= TRIGGER_PX && inZone && !state.open && isHoverEnabled) {
+          if (distFromBottom >= -BUFFER_PX && distFromBottom <= triggerDepth && inZone && !state.open && isHoverEnabled) {
             if (state.edgeHintActive) state.setEdgeHintActive(false)
             cancelClose()
             if (dwellTimer === undefined) {
@@ -523,8 +539,11 @@ export function useEdgeHover(): void {
             edge.setInteractive(true)
           }
 
-          const inBlade = distFromBottom >= -BUFFER_PX && distFromBottom <= 218 && data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
-          const inSettings = state.settingsOpen && distFromBottom >= -BUFFER_PX && distFromBottom <= 480 + BUFFER_PX && data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
+          const baseBladeH = state.settingsOpen ? 480 : 218
+          const keepOpenDepth = baseBladeH
+          const startCloseDepth = baseBladeH + 40
+          const insideX = data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
+          const outsideX = data.x < dockX - (BUFFER_PX + 40) || data.x > dockX + dockWidth + (BUFFER_PX + 40)
 
           let inFlyout = false
           if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
@@ -536,12 +555,14 @@ export function useEdgeHover(): void {
               data.x >= flyoutScreenLeft - FLYOUT_BUFFER && data.x <= flyoutScreenRight + FLYOUT_BUFFER
           }
 
-          if (inBlade || inSettings || inFlyout) {
+          if ((distFromBottom >= -BUFFER_PX && distFromBottom <= keepOpenDepth && insideX) || inFlyout) {
             cancelClose()
             return
           }
 
-          scheduleClose()
+          if (distFromBottom > startCloseDepth || distFromBottom < -BUFFER_PX || outsideX) {
+            scheduleClose()
+          }
           break
         }
 

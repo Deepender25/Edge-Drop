@@ -74,7 +74,20 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
   const headerFade = `opacity ${reduceMotion ? '0.01s' : '0.16s'} ease`
 
   return (
-    <div className={`header${isHorizontal ? ' header-horizontal' : ''}`} style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', height: 40, padding: isHorizontal ? '0 16px' : '0 14px', boxSizing: 'border-box' }}>
+    <div
+      className={`header${isHorizontal ? ' header-horizontal' : ''}`}
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        width: '100%',
+        alignItems: 'center',
+        height: 40,
+        padding: isHorizontal ? '0 16px' : '0 14px',
+        boxSizing: 'border-box',
+        position: 'relative',
+        zIndex: isHorizontal ? 250 : 100
+      }}
+    >
       <div
         style={{
           display: 'grid',
@@ -196,7 +209,6 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             </span>
             <div className="settings-header-pills" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               {[
-                { id: 'all' as const, label: t('filters.all') || 'All' },
                 { id: 'behaviour' as const, label: t('tabs.behaviour') },
                 { id: 'position' as const, label: t('tabs.position') },
                 { id: 'appearance' as const, label: t('tabs.appearance') }
@@ -243,7 +255,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 2 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 2, position: 'relative', zIndex: 260 }}>
         {isHorizontal && !settingsOpen && itemCount != null && (
           <div className="footer-capsule" style={{ marginRight: 2 }}>
             <span className="footer-capsule-count" title={`${itemCount}`}>

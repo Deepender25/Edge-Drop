@@ -10,8 +10,22 @@ import { create } from 'zustand'
 import { edge } from '../lib/edge'
 import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
+import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 let flareTimer: ReturnType<typeof setTimeout> | null = null
+
+export type EdgeTransitionStage =
+  | 'retracting'
+  | 'bar_fade_out'
+  | 'bar_fade_in'
+  | 'expanding'
+
+export interface EdgeTransitionState {
+  active: boolean
+  from: 'left' | 'right' | 'top' | 'bottom'
+  to: 'left' | 'right' | 'top' | 'bottom'
+  stage: EdgeTransitionStage
+}
 
 /** A transient user-facing notice shown as a toast. */
 export interface ToastMsg {
@@ -101,13 +115,14 @@ interface AppState {
   setQuery: (q: string) => void
   setOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean) => void
-  settingsTab: 'all' | 'behaviour' | 'position' | 'appearance'
-  setSettingsTab: (tab: 'all' | 'behaviour' | 'position' | 'appearance') => void
+  settingsTab: 'behaviour' | 'position' | 'appearance'
+  setSettingsTab: (tab: 'behaviour' | 'position' | 'appearance') => void
   setDragActive: (active: boolean) => void
   setInternalDragReq: (req: import('../../shared/types').DragRequest | null) => void
   setPreviewItemId: (id: string | null, rect?: { x?: number; y?: number; width?: number; height?: number }) => void
   styleFlyoutOpen: boolean
-  setStyleFlyoutOpen: (open: boolean) => void
+  styleFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
+  setStyleFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
   previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number } | null
   setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number } | null) => void
   isInternalCopying: boolean
@@ -131,6 +146,8 @@ interface AppState {
   patchSettings: (patch: Partial<Settings>) => Promise<void>
   refreshLaunchAtLogin: () => Promise<void>
   setTutorialStep: (step: number) => void
+  edgeTransition: EdgeTransitionState | null
+  startEdgeTransition: (to: 'left' | 'right' | 'top' | 'bottom') => Promise<void>
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -148,7 +165,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
   open: false,
   settingsOpen: false,
-  settingsTab: 'all',
+  settingsTab: 'behaviour',
   setSettingsTab: (settingsTab) => set({ settingsTab }),
   emojiOpen: false,
   emojiCategory: 'smileys',
@@ -162,6 +179,7 @@ export const useStore = create<AppState>((set, get) => ({
         previewItemRect: null,
         previewFlyoutRect: null,
         styleFlyoutOpen: false,
+        styleFlyoutAnchorRect: null,
         expandedStackId: null
       })
       edge.setPreviewMode(false)
@@ -191,9 +209,18 @@ export const useStore = create<AppState>((set, get) => ({
   edgeHintActive: false,
   setEdgeHintActive: (active) => set({ edgeHintActive: active }),
   styleFlyoutOpen: false,
-  setStyleFlyoutOpen: (open) => {
-    set({ styleFlyoutOpen: open, ...(open ? {} : { previewFlyoutRect: null }) })
-    if (open) {
+  styleFlyoutAnchorRect: null,
+  setStyleFlyoutOpen: (open, rect) => {
+    const isHorizontal = get().settings.stickPosition === 'top' || get().settings.stickPosition === 'bottom'
+    set({
+      styleFlyoutOpen: open,
+      styleFlyoutAnchorRect: open && rect ? rect : null,
+      ...(open ? {} : { previewFlyoutRect: null })
+    })
+    // In horizontal mode (top/bottom), the flyout fits natively inside the 480px dock bounds.
+    // Resizing the Electron window to 720px across IPC takes ~1s in Windows DWM, which caused
+    // the flyout to mount squeezed vertically at 240px and then expand 1s later when the resize event fired.
+    if (open && !isHorizontal) {
       edge.setPreviewMode(true)
     }
     // NOTE: Do NOT call edge.setPreviewMode(false) here when closing.
@@ -340,10 +367,12 @@ export const useStore = create<AppState>((set, get) => ({
   setSettingsOpen: (settingsOpen) => {
     set({
       settingsOpen,
+      settingsTab: 'behaviour',
       previewItemId: null,
       previewItemRect: null,
       previewFlyoutRect: null,
       styleFlyoutOpen: false,
+      styleFlyoutAnchorRect: null,
       expandedStackId: null,
       emojiOpen: settingsOpen ? false : get().emojiOpen
     })
@@ -517,5 +546,78 @@ export const useStore = create<AppState>((set, get) => ({
   setTutorialStep: (step) => {
     set({ tutorialStep: step })
     edge.broadcastTutorialStep(step)
+  },
+
+  edgeTransition: null,
+  async startEdgeTransition(to) {
+    if (get().edgeTransition?.active) return
+    const current = (get().settings.stickPosition || 'left') as 'left' | 'right' | 'top' | 'bottom'
+    if (current === to) return
+
+    const reduceMotion = get().settings.reduceMotion
+
+    if (reduceMotion) {
+      playButtonClickSound()
+      await get().patchSettings({ stickPosition: to })
+      get().notifyPositionChanged()
+      return
+    }
+
+    // 1. Edge-drop retracts into the bar (260ms)
+    playEdgeRetractSound()
+    set({
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'retracting'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 260))
+
+    // 2. Edge bar instantly fades away (100ms)
+    set({
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'bar_fade_out'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // 3. Reposition window & patch settings to selected edge while invisible
+    await get().patchSettings({ stickPosition: to })
+    get().notifyPositionChanged()
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    // 4. In selected edge, edge bar fades in (120ms)
+    playEdgeBeaconAppearSound()
+    set({
+      settingsTab: 'position',
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'bar_fade_in'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 120))
+
+    // 5. Clipboard expands from the bar (300ms)
+    playEdgeExpandSound()
+    set({
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'expanding'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    // 6. Reset transition state & start stay window from expansion completion
+    set({ edgeTransition: null })
+    get().notifyPositionChanged()
   }
 }))

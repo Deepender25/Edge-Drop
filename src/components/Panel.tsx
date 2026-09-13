@@ -45,6 +45,7 @@ export function Panel() {
   if (emojiOpen) emojiMountedRef.current = true
   const emojiMounted = emojiMountedRef.current
   const edgeHintActive = useStore((s) => s.edgeHintActive)
+  const edgeTransition = useStore((s) => s.edgeTransition)
 
   useEffect(() => {
     if (!open) {
@@ -221,11 +222,41 @@ export function Panel() {
       ? 'clip-path 0.44s cubic-bezier(0.175, 0.885, 0.32, 1.08)'
       : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
 
+  const isTransitioning = !!edgeTransition?.active
+  const isVisuallyOpen = isTransitioning
+    ? edgeTransition.stage === 'expanding'
+    : open
+
+  let currentTransition = clipTransition
+  let currentOpacity = 1
+
+  if (isTransitioning && !reduceMotion) {
+    if (edgeTransition.stage === 'retracting') {
+      currentTransition = 'clip-path 0.26s cubic-bezier(0.22, 1, 0.36, 1)'
+      currentOpacity = 1
+    } else if (edgeTransition.stage === 'bar_fade_out') {
+      currentTransition = 'opacity 0.10s ease-out'
+      currentOpacity = 0
+    } else if (edgeTransition.stage === 'bar_fade_in') {
+      currentTransition = 'opacity 0.12s ease-out'
+      currentOpacity = 1
+    } else if (edgeTransition.stage === 'expanding') {
+      currentTransition = bounceOpen
+        ? 'clip-path 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.08)'
+        : 'clip-path 0.30s cubic-bezier(0.16, 1, 0.3, 1)'
+      currentOpacity = 1
+    }
+  }
+
   const containerStyle: Record<string, unknown> = {
     position: 'absolute',
     zIndex: 10,
-    pointerEvents: open ? 'auto' : 'none',
-    transition: clipTransition
+    pointerEvents: isTransitioning ? 'none' : open ? 'auto' : 'none',
+    transition: currentTransition,
+    opacity: currentOpacity
+  }
+  if (isTransitioning) {
+    containerStyle.willChange = 'clip-path, opacity'
   }
 
   let originX = 0
@@ -272,7 +303,9 @@ export function Panel() {
     insetBottom = '0px'
   }
 
-  const triggerWidthPx = 297 // 220 * 1.35 (+35% increase, centered)
+  const triggerWidthPx = Math.round(
+    settings.hotZoneHeight >= 0.55 ? 460 : settings.hotZoneHeight >= 0.35 ? 320 : 220
+  )
   const halfTriggerW = triggerWidthPx / 2
   const insetLeft = `calc(50% - ${halfTriggerW}px)`
   const insetRight = `calc(50% - ${halfTriggerW}px)`
@@ -282,19 +315,19 @@ export function Panel() {
   let clipPath: string
   const hotWidth = settings.hotZoneWidth || 3
   if (isRight) {
-    clipPath = open
+    clipPath = isVisuallyOpen
       ? 'inset(calc(0% - 100px) 0px calc(0% - 100px) calc(0% - 800px) round 24px 0px 0px 24px)'
       : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round 24px 0px 0px 24px)`
   } else if (isTop) {
-    clipPath = open
+    clipPath = isVisuallyOpen
       ? 'inset(0px calc(0% - 100px) calc(0% - 600px) calc(0% - 100px) round 0px 0px 24px 24px)'
       : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 999px 999px)`
   } else if (isBottom) {
-    clipPath = open
+    clipPath = isVisuallyOpen
       ? 'inset(calc(0% - 600px) calc(0% - 100px) 0px calc(0% - 100px) round 24px 24px 0px 0px)'
       : `inset(calc(100% - ${hotWidth}px) ${insetRight} 0px ${insetLeft} round 999px 999px 0px 0px)`
   } else {
-    clipPath = open
+    clipPath = isVisuallyOpen
       ? 'inset(calc(0% - 100px) calc(0% - 800px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
       : `inset(${insetTop} calc(100% - ${hotWidth}px) ${insetBottom} 0px round 0px 24px 24px 0px)`
   }
@@ -313,10 +346,10 @@ export function Panel() {
         style={containerStyle}
         animate={
           bounceOpen && !reduceMotion
-            ? open
-              ? { scaleX: 1, scaleY: 1, opacity: 1 }
-              : { scaleX: 0.97, scaleY: 0.98, opacity: 1 }
-            : { scaleX: 1, scaleY: 1, opacity: 1 }
+            ? isVisuallyOpen
+              ? { scaleX: 1, scaleY: 1 }
+              : { scaleX: 0.97, scaleY: 0.98 }
+            : { scaleX: 1, scaleY: 1 }
         }
         transition={
           reduceMotion
@@ -326,6 +359,7 @@ export function Panel() {
               : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }
         }
       >
+
         {/* Edge Location Hint Beacon (Ultra-subtle fast hairline pulse when touching edge at wrong position) */}
         <AnimatePresence>
           {!open && edgeHintActive && (settings.showEdgeLocationHint ?? false) && (
@@ -491,7 +525,7 @@ export function Panel() {
                 </div>
               </div>
               {!isHorizontal && (
-                <div className="footer" style={{ position: 'relative' }}>
+                <div className="footer" style={{ position: 'relative', zIndex: 100 }}>
                   {!emojiOpen && (
                     <>
                       <div className="footer-capsule">

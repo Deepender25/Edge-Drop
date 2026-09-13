@@ -182,6 +182,104 @@
   gap: 4px;
 }
 
+/* Diamond Edge Placement (Vertical Settings) */
+.placement-diamond-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 0 2px;
+}
+
+.placement-diamond-wrap .diamond-row {
+  display: flex;
+  width: 100%;
+}
+
+.placement-diamond-wrap .diamond-top,
+.placement-diamond-wrap .diamond-bottom {
+  justify-content: center;
+}
+
+.placement-diamond-wrap .diamond-mid {
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.placement-diamond-wrap .pill {
+  width: 100px;
+  height: 32px;
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 500;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 999px;
+  flex: none;
+  box-sizing: border-box;
+}
+
+/* Horizontal Shelf Compact Diamond (Side-by-side card) */
+.placement-diamond-wrap.shelf-diamond {
+  gap: 4px;
+  width: auto;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.placement-diamond-wrap.shelf-diamond .diamond-mid {
+  gap: 8px;
+}
+
+.placement-diamond-wrap.shelf-diamond .pill {
+  width: 76px;
+  height: 28px;
+  font-size: calc(10.5px * var(--font-scale, 1));
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 500;
+  transition: all 0.14s ease;
+}
+
+.placement-diamond-wrap.shelf-diamond .pill:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.placement-diamond-wrap.shelf-diamond .pill.active {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Edge pill transition pulse */
+.placement-diamond-wrap .pill.transitioning {
+  animation: edgePillPulse 0.44s ease-in-out infinite alternate;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+}
+
+@keyframes edgePillPulse {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.02);
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.6);
+  }
+}
+
 /* Custom Range Slider Controls */
 .setting-slider-wrap {
   display: flex;
@@ -708,12 +806,13 @@
   gap: 6px;
   padding: 10px 8px 12px;
   background: var(--bg-card);
-  border: none;
+  border: 2px solid transparent;
   border-radius: 16px;
   cursor: pointer;
-  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .indicator-card:hover {
@@ -722,9 +821,9 @@
 
 .indicator-card.active {
   background: #141414;
-  box-shadow: none;
-  outline: 2px solid #ffffff;
-  outline-offset: 0;
+  border-color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.12);
+  outline: none;
 }
 
 .indicator-card-stage {
@@ -1348,51 +1447,300 @@
   gap: 12px;
   width: 100%;
   height: 100%;
-  padding: 8px 16px 14px 16px;
+  padding: 8px 18px 14px 18px;
   box-sizing: border-box;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
 }
 
 .settings-shelf-track::-webkit-scrollbar {
   display: none;
 }
 
-/* Individual Shelf Card (~146px height) */
+/* Dedicated Tab View: Smooth horizontal scrolling track */
+.settings-shelf-track.tab-view {
+  overflow-x: auto;
+  overflow-y: hidden;
+  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  padding: 6px 18px 12px 18px;
+  gap: 12px;
+}
+
+.settings-shelf-track.tab-view .settings-shelf-card,
 .settings-shelf-card {
+  flex: 0 0 auto;
   height: 146px;
-  min-width: 240px;
-  max-width: 280px;
-  flex-shrink: 0;
-  background: #141416;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 10px 14px;
-  box-sizing: border-box;
+  background: var(--bg-card, #141414);
+  border: none;
+  border-radius: var(--radius-card, 18px);
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  box-sizing: border-box;
   position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.14s ease;
 }
 
+/* Specular light-reflection 1px border matching clipboard cards (.item::before) */
+.settings-shelf-track.tab-view .settings-shelf-card::before,
+.settings-shelf-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.14s ease;
+  background: 
+    radial-gradient(
+      ellipse 70% 1px at 50% 0%,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 45%,
+      transparent 80%
+    ) top / 100% 1px no-repeat,
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.035) 20%,
+      rgba(255, 255, 255, 0.035) 80%,
+      transparent 100%
+    ) bottom / 100% 1px no-repeat;
+}
+
+.settings-shelf-track.tab-view .settings-shelf-card:hover::before,
+.settings-shelf-card:hover::before {
+  opacity: 1.2;
+}
+
+.settings-shelf-track.tab-view .settings-shelf-card:first-child {
+  padding-left: 14px;
+}
+
+.settings-shelf-track.tab-view .settings-shelf-card:last-child {
+  padding-right: 14px;
+}
+
+.settings-shelf-track.tab-view .settings-shelf-card:hover,
 .settings-shelf-card:hover {
-  background: #18181c;
+  background: var(--bg-card-hover, #1c1c1c);
+}
+
+.settings-shelf-track.tab-view .hotkey-field {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+}
+
+.settings-shelf-card .setting-group-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 3px 0;
+  flex-shrink: 0;
+}
+
+.settings-shelf-card .setting-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.28;
+}
+
+.settings-shelf-card .setting-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.36;
+  margin-top: 2px;
+}
+
+/* Card layout distribution */
+.shelf-card-top {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.shelf-card-bottom {
+  margin-top: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shelf-card-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 100%;
+}
+
+.shelf-card-inline-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.shelf-card-inline-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Segmented pills in shelf cards */
+.settings-shelf-card .setting-pills .pill {
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11.5px;
+  font-weight: 500;
+  transition: all 0.14s ease;
+}
+
+.settings-shelf-card .setting-pills .pill:hover {
+  background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.settings-shelf-card .setting-pills .pill.active {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Specific Card Widths tailored dynamically to content */
+.settings-shelf-card.shortcuts-card {
+  width: 240px;
+}
+
+.settings-shelf-card.hotkey-card {
+  width: 250px;
+}
+
+.settings-shelf-card.hover-card {
+  width: 240px;
+}
+
+.settings-shelf-card.fullscreen-card {
+  width: 250px;
+}
+
+.settings-shelf-card.system-card {
+  width: 230px;
+}
+
+.settings-shelf-card.incognito-card {
+  width: 230px;
+}
+
+.settings-shelf-card.rules-card {
+  width: 240px;
+}
+
+.settings-shelf-card.order-card {
+  width: 240px;
+}
+
+.settings-shelf-card.storage-card {
+  width: 270px;
+}
+
+.settings-shelf-card.autodelete-card {
+  width: 330px;
+}
+
+.settings-shelf-card.updates-card {
+  width: 240px;
+}
+
+.settings-shelf-card.check-updates-card {
+  width: 240px;
+}
+
+.settings-shelf-card.placement-card {
+  width: 350px;
+}
+
+.settings-shelf-card.display-card {
+  width: 280px;
+}
+
+.settings-shelf-card.beacon-card {
+  width: 240px;
+}
+
+.settings-shelf-card.position-slider-card {
+  width: 320px;
+}
+
+.settings-shelf-card.dimensions-card {
+  width: 270px;
+}
+
+.settings-shelf-card.panel-height-card {
+  width: 270px;
+}
+
+.settings-shelf-card.trigger-bar-card {
+  width: 300px;
+}
+
+.settings-shelf-card.trigger-thickness-card {
+  width: 290px;
+}
+
+.settings-shelf-card.copy-card {
+  width: 240px;
+}
+
+.settings-shelf-card.beacon-toggle-card {
+  width: 230px;
+}
+
+.settings-shelf-card.typography-card {
+  width: 280px;
+}
+
+.settings-shelf-card.audio-card {
+  width: 230px;
+}
+
+.settings-shelf-card.support-card {
+  width: 260px;
+}
+
+.settings-shelf-card.about-card {
+  width: 260px;
 }
 
 .settings-shelf-card.update-card {
-  border-color: rgba(255, 214, 10, 0.25);
-  background: linear-gradient(180deg, rgba(255, 214, 10, 0.05) 0%, #141416 100%);
+  width: 290px;
+  background: linear-gradient(180deg, rgba(255, 214, 10, 0.08) 0%, #141414 100%);
+  box-shadow: 0 4px 20px rgba(255, 214, 10, 0.08);
 }
 
 /* Card Header */
 .shelf-card-header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   flex-shrink: 0;
 }
 
@@ -1400,7 +1748,7 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
 }
 
@@ -1412,6 +1760,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.25;
+  letter-spacing: 0.01em;
 }
 
 /* Card Body */
@@ -1421,7 +1770,7 @@
   justify-content: center;
   flex: 1;
   min-height: 0;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* Shelf Row for Toggle items */
@@ -1446,8 +1795,8 @@
 /* Card Footer */
 .shelf-card-footer {
   font-size: calc(10.5px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.42);
-  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.3;
   flex-shrink: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -1500,6 +1849,37 @@
   font-weight: 500;
   color: rgba(255, 255, 255, 0.85);
   white-space: nowrap;
+}
+
+/* Shelf Community & Support Action Buttons */
+.shelf-kofi-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  box-sizing: border-box;
+}
+
+.shelf-kofi-btn:hover {
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.shelf-kofi-btn:active {
+  transform: scale(0.98);
 }
 
 /* Danger Quit Button */

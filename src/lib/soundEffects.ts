@@ -5,10 +5,11 @@
 
 import { useStore } from '../store/appStore'
 
-let audioCtx: AudioContext | null = null
+let audioCtx: any = null
 
 function isSoundEnabled(): boolean {
-  if (typeof window === 'undefined') return false
+  const win = typeof globalThis !== 'undefined' ? (globalThis as any).window : undefined
+  if (!win) return false
   try {
     return useStore.getState().settings.soundEffects !== false
   } catch {
@@ -16,11 +17,12 @@ function isSoundEnabled(): boolean {
   }
 }
 
-function getAudioContext(): AudioContext | null {
+function getAudioContext(): any | null {
   if (!isSoundEnabled()) return null
-  if (typeof window === 'undefined') return null
+  const win = typeof globalThis !== 'undefined' ? (globalThis as any).window : undefined
+  if (!win) return null
   if (!audioCtx) {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    const AudioContextClass = win.AudioContext || win.webkitAudioContext
     if (AudioContextClass) {
       audioCtx = new AudioContextClass()
     }
@@ -32,22 +34,23 @@ function getAudioContext(): AudioContext | null {
 }
 
 // Global auto-unlock listener: resumes AudioContext on first pointerdown/mouseenter/keydown
-if (typeof window !== 'undefined') {
+const win = typeof globalThis !== 'undefined' ? (globalThis as any).window : undefined
+if (win && win.addEventListener) {
   const unlockAudio = () => {
     const ctx = getAudioContext()
     if (ctx && ctx.state === 'suspended') {
       ctx.resume().then(() => {
         if (ctx.state === 'running') {
-          window.removeEventListener('pointerdown', unlockAudio, true)
-          window.removeEventListener('mouseenter', unlockAudio, true)
-          window.removeEventListener('keydown', unlockAudio, true)
+          win.removeEventListener('pointerdown', unlockAudio, true)
+          win.removeEventListener('mouseenter', unlockAudio, true)
+          win.removeEventListener('keydown', unlockAudio, true)
         }
       }).catch(() => {})
     }
   }
-  window.addEventListener('pointerdown', unlockAudio, true)
-  window.addEventListener('mouseenter', unlockAudio, true)
-  window.addEventListener('keydown', unlockAudio, true)
+  win.addEventListener('pointerdown', unlockAudio, true)
+  win.addEventListener('mouseenter', unlockAudio, true)
+  win.addEventListener('keydown', unlockAudio, true)
 }
 
 /**
@@ -381,3 +384,137 @@ export function playCardExpandSound(expanding: boolean): void {
     /* ignore */
   }
 }
+
+/**
+ * 1. Plays a tactile mechanical dock/retract sound when the panel slides into the edge bar.
+ */
+export function playEdgeRetractSound(): void {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    const play = () => {
+      const now = ctx.currentTime
+
+      // Smooth downward glide into the dock
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(540, now)
+      osc.frequency.exponentialRampToValueAtTime(190, now + 0.08)
+      gain.gain.setValueAtTime(0.09, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.08)
+
+      // Mechanical latch click thud
+      const bodyOsc = ctx.createOscillator()
+      const bodyGain = ctx.createGain()
+      bodyOsc.type = 'triangle'
+      bodyOsc.frequency.setValueAtTime(140, now + 0.06)
+      bodyOsc.frequency.exponentialRampToValueAtTime(45, now + 0.11)
+      bodyGain.gain.setValueAtTime(0.08, now + 0.06)
+      bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
+      bodyOsc.connect(bodyGain)
+      bodyGain.connect(ctx.destination)
+      bodyOsc.start(now + 0.06)
+      bodyOsc.stop(now + 0.11)
+    }
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => play()).catch(() => {})
+    } else {
+      play()
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * 2. Plays a subtle magnetic detent ping when the edge bar fades in on the new screen edge.
+ */
+export function playEdgeBeaconAppearSound(): void {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    const play = () => {
+      const now = ctx.currentTime
+
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(780, now)
+      osc.frequency.exponentialRampToValueAtTime(520, now + 0.045)
+      gain.gain.setValueAtTime(0.07, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.045)
+    }
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => play()).catch(() => {})
+    } else {
+      play()
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * 3. Plays a tactile mechanical spring unlatch sound when the clipboard expands out from the bar.
+ */
+export function playEdgeExpandSound(): void {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    const play = () => {
+      const now = ctx.currentTime
+
+      // Upward expanding slide
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(260, now)
+      osc.frequency.exponentialRampToValueAtTime(740, now + 0.06)
+      gain.gain.setValueAtTime(0.08, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.06)
+
+      // Tactile detent release snap
+      const snapOsc = ctx.createOscillator()
+      const snapGain = ctx.createGain()
+      snapOsc.type = 'triangle'
+      snapOsc.frequency.setValueAtTime(180, now + 0.02)
+      snapOsc.frequency.exponentialRampToValueAtTime(70, now + 0.07)
+      snapGain.gain.setValueAtTime(0.10, now + 0.02)
+      snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07)
+      snapOsc.connect(snapGain)
+      snapGain.connect(ctx.destination)
+      snapOsc.start(now + 0.02)
+      snapOsc.stop(now + 0.07)
+    }
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => play()).catch(() => {})
+    } else {
+      play()
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Legacy alias for backwards compatibility */
+export const playEdgeTransitionSound = playEdgeRetractSound
+

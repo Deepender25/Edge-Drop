@@ -6,21 +6,60 @@
  */
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import { LiquidOctopusLoader } from './LiquidOctopusLoader'
+import { OCTO_PATH } from './LiquidOctopusLoader'
 
 /** System confirmation ease — fast settle, no bounce. */
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1]
 const ENTER_MS = 0.3
 const ICON_FILTER = 'drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35))'
 
-export function TickIndicatorIcon({
+export function LogoIndicatorIcon({
   fillColor = '#ffffff',
   size = 36
+}: {
+  fillColor?: string
+  glowColor?: string
+  size?: number
+}) {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: size,
+        height: size,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        filter: ICON_FILTER
+      }}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox="140 10 320 310"
+        fill="none"
+        style={{ display: 'block', overflow: 'visible' }}
+      >
+        <path
+          d={OCTO_PATH}
+          fill={fillColor}
+          fillRule="evenodd"
+        />
+      </svg>
+    </div>
+  )
+}
+
+export function TickIndicatorIcon({
+  fillColor = '#ffffff',
+  size = 36,
+  animated = false
 }: {
   color?: string
   fillColor?: string
   glowColor?: string
   size?: number
+  animated?: boolean
 }) {
   return (
     <div
@@ -42,16 +81,26 @@ export function TickIndicatorIcon({
         xmlns="http://www.w3.org/2000/svg"
         style={{ display: 'block', overflow: 'visible' }}
       >
-        <motion.path
-          d="M 5.0 12.5 L 9.5 17.0 L 22.8 2.8"
-          stroke={fillColor}
-          strokeWidth="2.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.28, ease: EASE_OUT }}
-        />
+        {animated ? (
+          <motion.path
+            d="M 5.0 12.5 L 9.5 17.0 L 22.8 2.8"
+            stroke={fillColor}
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 0.28, ease: EASE_OUT }}
+          />
+        ) : (
+          <path
+            d="M 5.0 12.5 L 9.5 17.0 L 22.8 2.8"
+            stroke={fillColor}
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
       </svg>
     </div>
   )
@@ -59,11 +108,13 @@ export function TickIndicatorIcon({
 
 export function CopyIndicatorIcon({
   fillColor = '#ffffff',
-  size = 36
+  size = 36,
+  animated = false
 }: {
   fillColor?: string
   glowColor?: string
   size?: number
+  animated?: boolean
 }) {
   const maskId = 'copy-icon-gap-mask'
 
@@ -92,29 +143,53 @@ export function CopyIndicatorIcon({
             <rect x="6.8" y="0.8" width="16.4" height="16.4" rx="5.8" fill="#000000" />
           </mask>
         </defs>
-        <motion.rect
-          x="2.5"
-          y="8.5"
-          width="13"
-          height="13"
-          rx="4.2"
-          fill={fillColor}
-          mask={`url(#${maskId})`}
-          initial={{ scale: 0.92, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.28, ease: EASE_OUT }}
-        />
-        <motion.rect
-          x="8.5"
-          y="2.5"
-          width="13"
-          height="13"
-          rx="4.2"
-          fill={fillColor}
-          initial={{ scale: 0.92, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.28, ease: EASE_OUT, delay: 0.04 }}
-        />
+        {animated ? (
+          <>
+            <motion.rect
+              x="2.5"
+              y="8.5"
+              width="13"
+              height="13"
+              rx="4.2"
+              fill={fillColor}
+              mask={`url(#${maskId})`}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.28, ease: EASE_OUT }}
+            />
+            <motion.rect
+              x="8.5"
+              y="2.5"
+              width="13"
+              height="13"
+              rx="4.2"
+              fill={fillColor}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.28, ease: EASE_OUT, delay: 0.04 }}
+            />
+          </>
+        ) : (
+          <>
+            <rect
+              x="2.5"
+              y="8.5"
+              width="13"
+              height="13"
+              rx="4.2"
+              fill={fillColor}
+              mask={`url(#${maskId})`}
+            />
+            <rect
+              x="8.5"
+              y="2.5"
+              width="13"
+              height="13"
+              rx="4.2"
+              fill={fillColor}
+            />
+          </>
+        )}
       </svg>
     </div>
   )
@@ -122,11 +197,13 @@ export function CopyIndicatorIcon({
 
 export function SparkleIndicatorIcon({
   fillColor = '#ffffff',
-  size = 36
+  size = 36,
+  animated = false
 }: {
   fillColor?: string
   glowColor?: string
   size?: number
+  animated?: boolean
 }) {
   return (
     <div
@@ -147,20 +224,35 @@ export function SparkleIndicatorIcon({
         fill="none"
         style={{ display: 'block', overflow: 'visible' }}
       >
-        <motion.path
-          d="M 9.5 1.5 C 9.5 5.8 5.8 9.5 1.5 9.5 C 5.8 9.5 9.5 13.2 9.5 17.5 C 9.5 13.2 13.2 9.5 17.5 9.5 C 13.2 9.5 9.5 5.8 9.5 1.5 Z"
-          fill={fillColor}
-          initial={{ scale: 0.86, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.28, ease: EASE_OUT }}
-        />
-        <motion.path
-          d="M 18.5 12.5 C 18.5 15.2 16.2 17.5 13.5 17.5 C 16.2 17.5 18.5 19.8 18.5 22.5 C 18.5 19.8 20.8 17.5 23.5 17.5 C 20.8 17.5 18.5 15.2 18.5 12.5 Z"
-          fill={fillColor}
-          initial={{ scale: 0.86, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.28, ease: EASE_OUT, delay: 0.05 }}
-        />
+        {animated ? (
+          <>
+            <motion.path
+              d="M 9.5 1.5 C 9.5 5.8 5.8 9.5 1.5 9.5 C 5.8 9.5 9.5 13.2 9.5 17.5 C 9.5 13.2 13.2 9.5 17.5 9.5 C 13.2 9.5 9.5 5.8 9.5 1.5 Z"
+              fill={fillColor}
+              initial={{ scale: 0.86, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.28, ease: EASE_OUT }}
+            />
+            <motion.path
+              d="M 18.5 12.5 C 18.5 15.2 16.2 17.5 13.5 17.5 C 16.2 17.5 18.5 19.8 18.5 22.5 C 18.5 19.8 20.8 17.5 23.5 17.5 C 20.8 17.5 18.5 15.2 18.5 12.5 Z"
+              fill={fillColor}
+              initial={{ scale: 0.86, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.28, ease: EASE_OUT, delay: 0.05 }}
+            />
+          </>
+        ) : (
+          <>
+            <path
+              d="M 9.5 1.5 C 9.5 5.8 5.8 9.5 1.5 9.5 C 5.8 9.5 9.5 13.2 9.5 17.5 C 9.5 13.2 13.2 9.5 17.5 9.5 C 13.2 9.5 9.5 5.8 9.5 1.5 Z"
+              fill={fillColor}
+            />
+            <path
+              d="M 18.5 12.5 C 18.5 15.2 16.2 17.5 13.5 17.5 C 16.2 17.5 18.5 19.8 18.5 22.5 C 18.5 19.8 20.8 17.5 23.5 17.5 C 20.8 17.5 18.5 15.2 18.5 12.5 Z"
+              fill={fillColor}
+            />
+          </>
+        )}
       </svg>
     </div>
   )
@@ -310,13 +402,13 @@ export function CopyIndicatorCurve() {
             }
           >
             {indicatorStyle === 'check' ? (
-              <TickIndicatorIcon fillColor="#ffffff" />
+              <TickIndicatorIcon fillColor="#ffffff" animated />
             ) : indicatorStyle === 'copy' ? (
-              <CopyIndicatorIcon fillColor="#ffffff" />
+              <CopyIndicatorIcon fillColor="#ffffff" animated />
             ) : indicatorStyle === 'sparkle' ? (
-              <SparkleIndicatorIcon fillColor="#ffffff" />
+              <SparkleIndicatorIcon fillColor="#ffffff" animated />
             ) : (
-              <LiquidOctopusLoader fillColor="#ffffff" glowColor="transparent" active={false} />
+              <LogoIndicatorIcon fillColor="#ffffff" size={38} />
             )}
           </motion.div>
         </motion.div>
