@@ -79,10 +79,10 @@ export function getHorizontalDockMetrics(
   const hOffset = Math.min(1, Math.max(0, horizontalOffset))
   const dockX = minX + Math.round(Math.max(0, maxX - minX) * hOffset)
   const dockCenterX = dockX + dockWidth / 2
-  // Trigger bar length scales with hotZoneHeight:
-  // Small (0.25) => 220px, Medium (0.40) => 320px, Large (0.60) => 460px
+  // Trigger bar length scales with hotZoneHeight (+25% increase):
+  // Small (0.25) => 275px, Medium (0.40) => 400px, Large (0.60) => 575px
   const triggerWidth = Math.round(
-    hotZoneHeight >= 0.55 ? 460 : hotZoneHeight >= 0.35 ? 320 : 220
+    hotZoneHeight >= 0.55 ? 575 : hotZoneHeight >= 0.35 ? 400 : 275
   )
   let triggerLeft = dockCenterX - triggerWidth / 2
   let triggerRight = dockCenterX + triggerWidth / 2
@@ -215,6 +215,7 @@ export function useEdgeHover(): void {
     const closePanelNow = () => {
       const s = useStore.getState()
       if (s.styleFlyoutOpen) s.setStyleFlyoutOpen(false)
+      if (s.languageFlyoutOpen) s.setLanguageFlyoutOpen(false)
       s.setOpen(false)
       if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
       interactiveTimer = window.setTimeout(() => {
@@ -229,11 +230,12 @@ export function useEdgeHover(): void {
       if (state.sliderActive || state.edgeTransition?.active) return
       if (state.dragActive && !state.internalDragReq) return
 
-      // If the indicator style flyout is open, let it play its exit spring first.
+      // If any flyout is open, let it play its exit spring first.
       // The Electron window resize (inside setOpen) would cut the flyout animation
       // in half if we close both simultaneously — so we sequence it properly.
-      if (state.styleFlyoutOpen) {
-        state.setStyleFlyoutOpen(false)
+      if (state.styleFlyoutOpen || state.languageFlyoutOpen) {
+        if (state.styleFlyoutOpen) state.setStyleFlyoutOpen(false)
+        if (state.languageFlyoutOpen) state.setLanguageFlyoutOpen(false)
         if (graceTimer !== undefined) window.clearTimeout(graceTimer)
         graceTimer = window.setTimeout(() => {
           graceTimer = undefined
@@ -333,7 +335,7 @@ export function useEdgeHover(): void {
       const { x, y } = lastClient.current
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
       const s = state.settings
-      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen)
+      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
       const currentPanelWide = hasFlyout ? PREVIEW_WIDE : PANEL_WIDE
 
       if (s.stickPosition === 'top') {
@@ -431,7 +433,7 @@ export function useEdgeHover(): void {
       const state = useStore.getState()
       const { stickPosition, displayWidth, displayHeight } = data
       const { top, bottom, midY, panelHalfH } = zone.current
-      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen)
+      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
       const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
       const currentStartClosePx = hasFlyout ? PREVIEW_WIDE + 20 : START_CLOSE_PX
 

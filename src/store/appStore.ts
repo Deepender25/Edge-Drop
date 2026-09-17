@@ -123,6 +123,9 @@ interface AppState {
   styleFlyoutOpen: boolean
   styleFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
   setStyleFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
+  languageFlyoutOpen: boolean
+  languageFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
+  setLanguageFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
   previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number } | null
   setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number } | null) => void
   isInternalCopying: boolean
@@ -180,6 +183,8 @@ export const useStore = create<AppState>((set, get) => ({
         previewFlyoutRect: null,
         styleFlyoutOpen: false,
         styleFlyoutAnchorRect: null,
+        languageFlyoutOpen: false,
+        languageFlyoutAnchorRect: null,
         expandedStackId: null
       })
       edge.setPreviewMode(false)
@@ -212,6 +217,9 @@ export const useStore = create<AppState>((set, get) => ({
   styleFlyoutAnchorRect: null,
   setStyleFlyoutOpen: (open, rect) => {
     const isHorizontal = get().settings.stickPosition === 'top' || get().settings.stickPosition === 'bottom'
+    if (open && get().languageFlyoutOpen) {
+      set({ languageFlyoutOpen: false, languageFlyoutAnchorRect: null })
+    }
     set({
       styleFlyoutOpen: open,
       styleFlyoutAnchorRect: open && rect ? rect : null,
@@ -228,6 +236,22 @@ export const useStore = create<AppState>((set, get) => ({
     // spring in half (the 25%/75% split the user sees). Instead, IndicatorStyleFlyout's
     // AnimatePresence.onExitComplete callback is the one that calls setPreviewMode(false)
     // after the exit animation has fully settled.
+  },
+  languageFlyoutOpen: false,
+  languageFlyoutAnchorRect: null,
+  setLanguageFlyoutOpen: (open, rect) => {
+    const isHorizontal = get().settings.stickPosition === 'top' || get().settings.stickPosition === 'bottom'
+    if (open && get().styleFlyoutOpen) {
+      set({ styleFlyoutOpen: false, styleFlyoutAnchorRect: null })
+    }
+    set({
+      languageFlyoutOpen: open,
+      languageFlyoutAnchorRect: open && rect ? rect : null,
+      ...(open ? {} : { previewFlyoutRect: null })
+    })
+    if (open && !isHorizontal) {
+      edge.setPreviewMode(true)
+    }
   },
   isInternalCopying: false,
   copyFlareActive: false,
@@ -373,6 +397,8 @@ export const useStore = create<AppState>((set, get) => ({
       previewFlyoutRect: null,
       styleFlyoutOpen: false,
       styleFlyoutAnchorRect: null,
+      languageFlyoutOpen: false,
+      languageFlyoutAnchorRect: null,
       expandedStackId: null,
       emojiOpen: settingsOpen ? false : get().emojiOpen
     })

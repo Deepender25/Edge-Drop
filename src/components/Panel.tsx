@@ -19,6 +19,7 @@ import { ToastStack } from './Toast'
 import { ClearMenu } from './ClearMenu'
 import { PreviewFlyout } from './PreviewFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
+import { LanguageFlyout } from './LanguageFlyout'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 
@@ -304,7 +305,7 @@ export function Panel() {
   }
 
   const triggerWidthPx = Math.round(
-    settings.hotZoneHeight >= 0.55 ? 460 : settings.hotZoneHeight >= 0.35 ? 320 : 220
+    settings.hotZoneHeight >= 0.55 ? 575 : settings.hotZoneHeight >= 0.35 ? 400 : 275
   )
   const halfTriggerW = triggerWidthPx / 2
   let insetLeft = `calc(50% - ${halfTriggerW}px)`
@@ -582,6 +583,7 @@ export function Panel() {
         </div>
         <PreviewFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
+        <LanguageFlyout isRight={isRight} />
       </motion.div>
     </div>
   )

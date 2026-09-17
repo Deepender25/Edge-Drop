@@ -296,9 +296,120 @@
   align-items: stretch;
   gap: 10px;
   margin: 0;
+  height: 100%;
 }
-.list.horizontal .section-label {
-  display: none;
+
+.list.horizontal .pinned-header-interactive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  height: 146px;
+  margin: 0;
+  padding: 10px 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: background 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.16s ease,
+              transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.16s ease;
+  position: relative;
+}
+
+.list.horizontal .pinned-header-interactive:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.list.horizontal .pinned-header-interactive:active {
+  transform: scale(0.97);
+}
+
+.list.horizontal .pinned-header-interactive .pinned-header-left {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.list.horizontal .pinned-header-interactive .pinned-header-left span:not(.pinned-count-badge) {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: calc(9.5px * var(--font-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 2px 0;
+}
+
+.list.horizontal .pinned-header-interactive .pinned-count-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.list.horizontal .pinned-header-interactive .pinned-header-right {
+  margin-bottom: 2px;
+}
+
+.list.horizontal .pinned-header-interactive .bundle-collapse-btn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.list.horizontal .pinned-header-interactive:hover .bundle-collapse-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.list.horizontal .recent-section .section-label.recent-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  height: 146px;
+  margin: 0 2px 0 0;
+  padding: 0;
+  background: transparent;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.list.horizontal .recent-section .recent-label-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: calc(9.5px * var(--font-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .section-label {

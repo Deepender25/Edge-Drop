@@ -1627,7 +1627,41 @@
 
 /* Specific Card Widths tailored dynamically to content */
 .settings-shelf-card.shortcuts-card {
-  width: 240px;
+  width: 250px;
+}
+
+/* Language Shelf Select Button */
+.language-shelf-btn {
+  width: 100%;
+  height: 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  padding: 0 12px;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.language-shelf-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.language-shelf-btn.flyout-open {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.06);
 }
 
 .settings-shelf-card.hotkey-card {
@@ -1680,6 +1714,27 @@
 
 .settings-shelf-card.display-card {
   width: 280px;
+}
+
+.settings-shelf-card.display-card .shelf-card-bottom {
+  max-height: 74px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+  gap: 5px;
+}
+
+.settings-shelf-card.display-card .shelf-card-bottom::-webkit-scrollbar {
+  width: 3px;
+}
+
+.settings-shelf-card.display-card .shelf-card-bottom::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-shelf-card.display-card .shelf-card-bottom::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
 }
 
 .settings-shelf-card.beacon-card {

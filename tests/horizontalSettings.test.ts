@@ -63,7 +63,7 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(src).toContain('settings.hotZoneHeight')
     expect(src).toContain('settings.hotZoneWidth')
     const panelSrc = read('src/components/Panel.tsx')
-    expect(panelSrc).toContain('settings.hotZoneHeight >= 0.55 ? 460 : settings.hotZoneHeight >= 0.35 ? 320 : 220')
+    expect(panelSrc).toContain('settings.hotZoneHeight >= 0.55 ? 575 : settings.hotZoneHeight >= 0.35 ? 400 : 275')
   })
 
   it('Appearance card triggers popup indicator style selector matching left/right alignment', () => {
@@ -116,16 +116,16 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(css).toContain('.shelf-quit-btn')
   })
 
-  it('getHorizontalDockMetrics scales trigger bar length based on hotZoneHeight', async () => {
+  it('getHorizontalDockMetrics scales trigger bar length based on hotZoneHeight (+25% increase)', async () => {
     const { getHorizontalDockMetrics } = await import('../src/hooks/useEdgeHover')
     const small = getHorizontalDockMetrics(1920, 0.5, 0.25)
-    expect(small.triggerWidth).toBe(220)
+    expect(small.triggerWidth).toBe(275)
 
     const medium = getHorizontalDockMetrics(1920, 0.5, 0.4)
-    expect(medium.triggerWidth).toBe(320)
+    expect(medium.triggerWidth).toBe(400)
 
     const large = getHorizontalDockMetrics(1920, 0.5, 0.6)
-    expect(large.triggerWidth).toBe(460)
+    expect(large.triggerWidth).toBe(575)
   })
 
   it('getHorizontalDockMetrics accurately positions triggerLeft and triggerRight based on triggerAlignment', async () => {
@@ -166,20 +166,19 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(panelSrc).toContain("insetRight = '0px'")
   })
 
-  it('Horizontal shelf includes position offset slider, trigger alignment, panel height, and auto-updates', () => {
+  it('Horizontal shelf includes trigger thickness and auto-updates, without panel height, horizontal position, or edge trigger position', () => {
     const src = read('src/components/Settings.tsx')
     // Find the isHorizontal branch
     const horizontalBlock = src.slice(src.indexOf('if (isHorizontal) {'), src.indexOf('const maxTabLen ='))
-    // Should contain horizontal position offset slider and presets
-    expect(horizontalBlock).toContain('horizontalPositionTitle')
-    expect(horizontalBlock).toContain('horizontalOffset')
-    expect(horizontalBlock).toContain('handleHorizontalPreset')
-    // Should contain trigger alignment pills
-    expect(horizontalBlock).toContain('edgeTriggerPositionTitle')
-    expect(horizontalBlock).toContain('triggerAlignment: opt.val')
-    // Should contain panel height pills
-    expect(horizontalBlock).toContain('panelHeightTitle')
-    expect(horizontalBlock).toContain('panelHeight: opt.val')
+    // Should NOT contain horizontal position offset slider or panel height pills
+    expect(horizontalBlock).not.toContain('horizontalPositionTitle')
+    expect(horizontalBlock).not.toContain('panelHeightTitle')
+    // Should NOT contain trigger alignment pills in horizontal shelf
+    expect(horizontalBlock).not.toContain('edgeTriggerPositionTitle')
+    expect(horizontalBlock).not.toContain('triggerAlignment: opt.val')
+    // Should contain trigger thickness
+    expect(horizontalBlock).toContain('trigger-thickness-card')
+    expect(horizontalBlock).toContain('handleThicknessRelease')
     // Should contain auto-updates toggle
     expect(horizontalBlock).toContain('autoUpdatesTitle')
     expect(horizontalBlock).toContain('autoUpdates: v')
@@ -236,10 +235,13 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(horizontalBlock).toContain('diamond-mid')
     expect(horizontalBlock).toContain('diamond-bottom')
 
-    // Explicit pixel labels on length presets & live thickness badge
-    expect(horizontalBlock).toContain('(220px)')
-    expect(horizontalBlock).toContain('(320px)')
-    expect(horizontalBlock).toContain('(460px)')
+    // Clean names on length presets & live thickness badge without pixel strings
+    expect(horizontalBlock).toContain("t('appearance.small')")
+    expect(horizontalBlock).toContain("t('position.medium')")
+    expect(horizontalBlock).toContain("t('appearance.large')")
+    expect(horizontalBlock).not.toContain('(220px)')
+    expect(horizontalBlock).not.toContain('(320px)')
+    expect(horizontalBlock).not.toContain('(460px)')
     expect(horizontalBlock).toContain('${settings.hotZoneWidth ?? 3}px')
   })
 
@@ -295,5 +297,19 @@ it('Appearance shelf renders Card 1 Copy Indicator toggle first, then Card 2 Ind
     expect(flyoutSrc).toContain('styleFlyoutAnchorRect')
     expect(flyoutSrc).toContain('styleFlyoutAnchorRect.x')
     expect(flyoutSrc).toContain('anchorCenterX - flyoutWidth / 2')
+  })
+
+  it('LanguageFlyout anchors horizontally relative to languageFlyoutAnchorRect in top/bottom dock', () => {
+    const flyoutSrc = read('src/components/LanguageFlyout.tsx')
+    expect(flyoutSrc).toContain('languageFlyoutAnchorRect')
+    expect(flyoutSrc).toContain('languageFlyoutAnchorRect.x')
+    expect(flyoutSrc).toContain('anchorCenterX - flyoutWidth / 2')
+
+    const panelSrc = read('src/components/Panel.tsx')
+    expect(panelSrc).toContain('<LanguageFlyout isRight={isRight} />')
+
+    const settingsSrc = read('src/components/Settings.tsx')
+    expect(settingsSrc).toContain('language-toggle-btn')
+    expect(settingsSrc).toContain('setLanguageFlyoutOpen(!languageFlyoutOpen, rect)')
   })
 });

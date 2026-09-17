@@ -312,11 +312,11 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
               maxHeight: maxFlyoutHeight,
               background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#141414',
               borderRadius: 20,
-              border: dragOver ? '2px dashed #4caf50' : '1px solid rgba(255, 255, 255, 0.08)',
+              border: dragOver ? '2px dashed #4caf50' : 'none',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: dragOver ? '0 0 35px rgba(76, 175, 80, 0.3)' : '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.5)',
+              boxShadow: dragOver ? '0 0 35px rgba(76, 175, 80, 0.3)' : 'none',
               pointerEvents: 'auto',
               transition: 'background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease',
               position: 'relative'

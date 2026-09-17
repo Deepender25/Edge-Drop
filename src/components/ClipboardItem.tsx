@@ -1101,19 +1101,16 @@ function Preview({ item }: { item: ClipboardItemDto }) {
           </>
         )
       }
-      // Non-image single file — show big hero icon on top, and name + meta on the bottom!
+      // Non-image single file — show hero icon on top, and name on the bottom!
       const info = getFileKind(first, entry?.isDirectory)
       return (
         <div className="single-file-preview">
           <div className="single-file-hero" style={{ color: info.color }}>
-            <FileKindIcon path={first} width={136} height={136} isDirectory={entry?.isDirectory} />
+            <FileKindIcon path={first} isDirectory={entry?.isDirectory} />
           </div>
           <div className="single-file-meta">
             <div className="preview single single-file-name" title={displayName}>
               {displayName}
-            </div>
-            <div className="single-file-sub">
-              {info.label}{!entry?.isDirectory && entry && entry.size > 0 ? ` · ${formatBytes(entry.size)}` : ''}
             </div>
           </div>
         </div>

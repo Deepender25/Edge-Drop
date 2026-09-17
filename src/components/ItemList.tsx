@@ -331,11 +331,18 @@ export function ItemList() {
                     type="button"
                     aria-label={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
                   >
-                    <ChevronDownIcon style={{ transform: pinnedCollapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.14s ease' }} />
+                    <ChevronDownIcon
+                      style={{
+                        transform: isHorizontal
+                          ? (pinnedCollapsed ? 'rotate(-90deg)' : 'rotate(90deg)')
+                          : (pinnedCollapsed ? 'rotate(0deg)' : 'rotate(180deg)'),
+                        transition: 'transform 0.14s ease'
+                      }}
+                    />
                   </button>
                 </div>
               </div>
-              {(isHorizontal || !pinnedCollapsed) && pinned.map((it) => (
+              {!pinnedCollapsed && pinned.map((it) => (
                 <ClipboardItemCard key={it.id} item={it} timeTick={timeTick} />
               ))}
             </section>
@@ -344,8 +351,8 @@ export function ItemList() {
           {recent.length > 0 && (
             <section className="recent-section">
               {pinned.length > 0 && (
-                <div className="section-label">
-                  {t('item.recent')}
+                <div className="section-label recent-header">
+                  <span className="recent-label-text">{t('item.recent')}</span>
                 </div>
               )}
               {recent.map((it) => (

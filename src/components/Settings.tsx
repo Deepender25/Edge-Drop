@@ -23,7 +23,7 @@ export function Settings({
   inlineIndicatorStyle?: boolean
   isHorizontal?: boolean
 }) {
-  const { t } = useTranslation()
+  const { t, language, languages } = useTranslation()
   const settings = useStore((s) => s.settings)
   const isHorizontal = propIsHorizontal ?? (settings.stickPosition === 'top' || settings.stickPosition === 'bottom')
 
@@ -39,9 +39,15 @@ export function Settings({
   const currentVersion = useStore((s) => s.currentVersion)
   const styleFlyoutOpen = useStore((s) => s.styleFlyoutOpen)
   const setStyleFlyoutOpen = useStore((s) => s.setStyleFlyoutOpen)
+  const languageFlyoutOpen = useStore((s) => s.languageFlyoutOpen)
+  const setLanguageFlyoutOpen = useStore((s) => s.setLanguageFlyoutOpen)
   const setSliderActive = useStore((s) => s.setSliderActive)
   const edgeTransition = useStore((s) => s.edgeTransition)
   const startEdgeTransition = useStore((s) => s.startEdgeTransition)
+
+  const getLangLabel = (l: { code: string; name: string; nativeName: string }) =>
+    l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
+  const selectedLang = languages.find((l) => l.code === (language || 'system')) || languages[0]
 
   const lastTickVal = useRef<number>(settings.verticalOffset ?? 0.5)
   const horizontalTab = useStore((s) => s.settingsTab)
@@ -103,31 +109,21 @@ export function Settings({
     patch({ verticalOffset: clamped })
   }
 
-  const lastHorizontalTickVal = useRef<number>(settings.horizontalOffset ?? 0.5)
-
-  const handleHorizontalSliderInput = (rawVal: number) => {
-    const clamped = Math.min(1.0, Math.max(0.0, rawVal))
-    if (Math.abs(clamped - lastHorizontalTickVal.current) >= 0.05) {
-      lastHorizontalTickVal.current = clamped
+  const handleThicknessInput = (rawVal: number) => {
+    const clamped = Math.min(7, Math.max(1, Math.round(rawVal)))
+    if (clamped !== (settings.hotZoneWidth ?? 3)) {
       playDialTickSound()
+      useStore.setState((s) => ({
+        settings: { ...s.settings, hotZoneWidth: clamped }
+      }))
     }
-    useStore.setState((s) => ({
-      settings: { ...s.settings, horizontalOffset: clamped }
-    }))
   }
 
-  const handleHorizontalSliderRelease = (rawVal: number) => {
-    const snapped = Math.round(rawVal / 0.05) * 0.05
-    const clamped = Math.min(1.0, Math.max(0.0, snapped))
-    lastHorizontalTickVal.current = clamped
+  const handleThicknessRelease = (rawVal: number) => {
+    const clamped = Math.min(7, Math.max(1, Math.round(rawVal)))
+    setSliderActive(false)
     playDialTickSound()
-    patch({ horizontalOffset: clamped })
-  }
-
-  const handleHorizontalPreset = (val: number) => {
-    playDialTickSound()
-    lastHorizontalTickVal.current = val
-    patch({ horizontalOffset: val })
+    patch({ hotZoneWidth: clamped })
   }
 
   const [localInlineOpen, setLocalInlineOpen] = useState(false)
@@ -582,6 +578,9 @@ export function Settings({
       if (styleFlyoutOpen) {
         setStyleFlyoutOpen(false)
       }
+      if (languageFlyoutOpen) {
+        setLanguageFlyoutOpen(false)
+      }
       horizontalTabScrollPositions.current[horizontalTab] = e.currentTarget.scrollLeft
     }
 
@@ -767,7 +766,35 @@ export function Settings({
                   <div className="setting-desc">Select application display language</div>
                 </div>
                 <div className="shelf-card-bottom">
-                  <LanguageDropdown compact />
+                  <button
+                    type="button"
+                    className={`language-shelf-btn language-toggle-btn ${languageFlyoutOpen ? 'flyout-open' : ''}`}
+                    onClick={(e) => {
+                      playButtonClickSound()
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      setLanguageFlyoutOpen(!languageFlyoutOpen, rect)
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, overflow: 'hidden' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.65, flexShrink: 0 }}>
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                      </svg>
+                      <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {getLangLabel(selectedLang)}
+                      </span>
+                    </div>
+                    <motion.span
+                      animate={{ rotate: languageFlyoutOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ display: 'flex', alignItems: 'center', opacity: 0.65, flexShrink: 0, marginLeft: 6 }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m6 9 6 6 6-6"/>
+                      </svg>
+                    </motion.span>
+                  </button>
                 </div>
               </div>
 
@@ -1139,15 +1166,15 @@ export function Settings({
                           key={d.id}
                           type="button"
                           className={`pill display-pill ${isActive ? 'active' : ''}`}
-                          style={{ width: '100%', justifyContent: 'space-between', padding: '6px 14px', fontSize: 11.5, height: 32 }}
+                          style={{ width: '100%', justifyContent: 'space-between', padding: '6px 14px', fontSize: 11.5, height: 32, flexShrink: 0 }}
                           onClick={() => {
                             playButtonClickSound()
                             patch({ stickDisplayId: d.id })
                             useStore.getState().notifyPositionChanged()
                           }}
                         >
-                          <span className="pill-name" style={{ fontWeight: 600 }}>{displayName}</span>
-                          <span className="pill-res" style={{ opacity: 0.75, fontSize: 11 }}>{d.resolution}</span>
+                          <span className="pill-name" style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginRight: 8 }}>{displayName}</span>
+                          <span className="pill-res" style={{ opacity: 0.75, fontSize: 11, flexShrink: 0 }}>{d.resolution}</span>
                         </button>
                       )
                     })
@@ -1174,157 +1201,8 @@ export function Settings({
                 </div>
               </div>
 
-              {/* Card 4: Horizontal Alignment Slider */}
-              <div className="settings-shelf-card position-slider-card position-col">
-                <div className="shelf-card-top">
-                  <div className="setting-group-label">ALIGNMENT</div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <div className="setting-title">{t('position.horizontalPositionTitle') || 'Horizontal Position'}</div>
-                      <div className="setting-desc">{t('position.horizontalPositionDesc') || 'Adjust horizontal alignment along screen edge'}</div>
-                    </div>
-                    <div className="setting-slider-val" style={{ flexShrink: 0, padding: '2px 8px', fontSize: 11, fontWeight: 600, borderRadius: 6 }}>
-                      {`${Math.round((settings.horizontalOffset ?? 0.5) * 100)}%`}
-                    </div>
-                  </div>
-                </div>
-                <div className="shelf-card-bottom">
-                  <div className="setting-slider-wrap" style={{ gap: 2, padding: '2px 0' }}>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.002"
-                      className="setting-range-input"
-                      value={settings.horizontalOffset ?? 0.5}
-                      style={{
-                        background: `linear-gradient(to right, #ffffff 0%, #ffffff ${(settings.horizontalOffset ?? 0.5) * 100}%, rgba(255, 255, 255, 0.12) ${(settings.horizontalOffset ?? 0.5) * 100}%, rgba(255, 255, 255, 0.12) 100%)`
-                      }}
-                      onPointerDown={() => {
-                        void window.edge.setInteractive(true)
-                        setSliderActive(true)
-                      }}
-                      onPointerUp={(e) => {
-                        setSliderActive(false)
-                        handleHorizontalSliderRelease(parseFloat((e.target as HTMLInputElement).value))
-                      }}
-                      onPointerCancel={(e) => {
-                        setSliderActive(false)
-                        handleHorizontalSliderRelease(parseFloat((e.target as HTMLInputElement).value))
-                      }}
-                      onLostPointerCapture={(e) => {
-                        setSliderActive(false)
-                        handleHorizontalSliderRelease(parseFloat((e.target as HTMLInputElement).value))
-                      }}
-                      onChange={(e) => {
-                        handleHorizontalSliderInput(parseFloat(e.target.value))
-                      }}
-                    />
 
-                    <div className="setting-slider-ticks">
-                      {Array.from({ length: 21 }, (_, i) => {
-                        const tickVal = i / 20
-                        const isMajor = i % 5 === 0
-                        const isActive = tickVal <= (settings.horizontalOffset ?? 0.5)
-                        return (
-                          <span
-                            key={i}
-                            className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
-                          />
-                        )
-                      })}
-                    </div>
-
-                    <div className="setting-slider-labels" style={{ marginTop: 2 }}>
-                      {[
-                        { label: 'Left', val: 0 },
-                        { label: 'Center', val: 0.5 },
-                        { label: 'Right', val: 1.0 }
-                      ].map((pos) => {
-                        const active = Math.abs((settings.horizontalOffset ?? 0.5) - pos.val) < 0.04
-                        return (
-                          <button
-                            key={pos.val}
-                            type="button"
-                            className={`slider-label-btn${active ? ' active' : ''}`}
-                            style={{ fontSize: 10, padding: '2px 8px' }}
-                            onClick={() => {
-                              handleHorizontalPreset(pos.val)
-                            }}
-                          >
-                            {pos.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 5: Edge Trigger Position */}
-              <div className="settings-shelf-card dimensions-card position-col">
-                <div className="shelf-card-top">
-                  <div className="setting-group-label">TRIGGER ALIGNMENT</div>
-                  <div className="setting-title">{t('position.edgeTriggerPositionTitle')}</div>
-                  <div className="setting-desc">Align invisible trigger zone along the dock</div>
-                </div>
-                <div className="shelf-card-bottom">
-                  <div className="setting-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
-                    {[
-                      { label: t('position.left') || 'Left', val: 'top' as const },
-                      { label: t('position.center'), val: 'center' as const },
-                      { label: t('position.right') || 'Right', val: 'bottom' as const }
-                    ].map((opt) => (
-                      <button
-                        key={opt.val}
-                        type="button"
-                        className={`pill ${(settings.triggerAlignment || 'center') === opt.val ? 'active' : ''}`}
-                        style={{ height: 32, fontSize: 11.5, fontWeight: 500, padding: 0 }}
-                        onClick={() => {
-                          playButtonClickSound()
-                          patch({ triggerAlignment: opt.val })
-                          useStore.getState().notifyPositionChanged()
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 6: Panel Height */}
-              <div className="settings-shelf-card panel-height-card position-col">
-                <div className="shelf-card-top">
-                  <div className="setting-group-label">PANEL PROPORTIONS</div>
-                  <div className="setting-title">{t('position.panelHeightTitle')}</div>
-                  <div className="setting-desc">Vertical height size of clipboard panel</div>
-                </div>
-                <div className="shelf-card-bottom">
-                  <div className="setting-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
-                    {[
-                      { label: t('appearance.small'), val: 0.5 },
-                      { label: t('position.medium'), val: 0.65 },
-                      { label: t('appearance.large'), val: 0.8 }
-                    ].map((opt) => (
-                      <button
-                        key={opt.val}
-                        type="button"
-                        className={`pill ${Math.abs((settings.panelHeight || 0.6) - opt.val) < 0.08 ? 'active' : ''}`}
-                        style={{ height: 32, fontSize: 11, fontWeight: 500, padding: 0 }}
-                        onClick={() => {
-                          playButtonClickSound()
-                          patch({ panelHeight: opt.val })
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 7: Hover Area Size */}
+              {/* Card 5: Hover Area Size */}
               <div className="settings-shelf-card trigger-bar-card position-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">HOVER ZONE LENGTH</div>
@@ -1334,15 +1212,15 @@ export function Settings({
                 <div className="shelf-card-bottom">
                   <div className="setting-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, width: '100%' }}>
                     {[
-                      { label: `${t('appearance.small')} (220px)`, val: 0.25 },
-                      { label: `${t('position.medium')} (320px)`, val: 0.4 },
-                      { label: `${t('appearance.large')} (460px)`, val: 0.6 }
+                      { label: t('appearance.small'), val: 0.25 },
+                      { label: t('position.medium'), val: 0.4 },
+                      { label: t('appearance.large'), val: 0.6 }
                     ].map((opt) => (
                       <button
                         key={opt.val}
                         type="button"
                         className={`pill ${Math.abs(settings.hotZoneHeight - opt.val) < 0.08 ? 'active' : ''}`}
-                        style={{ height: 32, fontSize: 11, fontWeight: 500, padding: 0 }}
+                        style={{ height: 32, fontSize: 11.5, fontWeight: 500, padding: 0 }}
                         onClick={() => {
                           playButtonClickSound()
                           patch({ hotZoneHeight: opt.val })
@@ -1355,7 +1233,7 @@ export function Settings({
                 </div>
               </div>
 
-              {/* Card 8: Edge Trigger Thickness */}
+              {/* Card 6: Edge Trigger Thickness */}
               <div className="settings-shelf-card trigger-thickness-card position-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">TRIGGER THICKNESS</div>
@@ -1381,14 +1259,24 @@ export function Settings({
                       style={{
                         width: '100%',
                         margin: '1px 0',
+                        touchAction: 'none',
                         background: `linear-gradient(to right, #ffffff 0%, #ffffff ${(((settings.hotZoneWidth ?? 3) - 1) / 6) * 100}%, rgba(255, 255, 255, 0.12) ${(((settings.hotZoneWidth ?? 3) - 1) / 6) * 100}%, rgba(255, 255, 255, 0.12) 100%)`
                       }}
+                      onPointerDown={() => {
+                        void window.edge.setInteractive(true)
+                        setSliderActive(true)
+                      }}
+                      onPointerUp={(e) => {
+                        handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                      }}
+                      onPointerCancel={(e) => {
+                        handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                      }}
+                      onLostPointerCapture={(e) => {
+                        handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                      }}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value, 10)
-                        if (val !== settings.hotZoneWidth) {
-                          playDialTickSound()
-                          patch({ hotZoneWidth: val })
-                        }
+                        handleThicknessInput(parseInt(e.target.value, 10))
                       }}
                     />
                     <div className="setting-slider-ticks">
@@ -1421,8 +1309,7 @@ export function Settings({
                             style={{ fontSize: 10, padding: '2px 8px' }}
                             onClick={() => {
                               if (currentPx !== preset.val) {
-                                playDialTickSound()
-                                patch({ hotZoneWidth: preset.val })
+                                handleThicknessRelease(preset.val)
                               }
                             }}
                           >
@@ -2145,17 +2032,24 @@ export function Settings({
                             className="setting-range-input"
                             value={currentPx}
                             style={{
+                              touchAction: 'none',
                               background: `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(255, 255, 255, 0.12) ${pct}%, rgba(255, 255, 255, 0.12) 100%)`
                             }}
                             onPointerDown={() => {
                               void window.edge.setInteractive(true)
+                              setSliderActive(true)
+                            }}
+                            onPointerUp={(e) => {
+                              handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                            }}
+                            onPointerCancel={(e) => {
+                              handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                            }}
+                            onLostPointerCapture={(e) => {
+                              handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
                             }}
                             onChange={(e) => {
-                              const val = parseInt(e.target.value, 10)
-                              if (val !== settings.hotZoneWidth) {
-                                playDialTickSound()
-                                patch({ hotZoneWidth: val })
-                              }
+                              handleThicknessInput(parseInt(e.target.value, 10))
                             }}
                           />
                         )
@@ -2191,8 +2085,7 @@ export function Settings({
                               className={`slider-label-btn${active ? ' active' : ''}`}
                               onClick={() => {
                                 if (currentPx !== preset.val) {
-                                  playDialTickSound()
-                                  patch({ hotZoneWidth: preset.val })
+                                  handleThicknessRelease(preset.val)
                                 }
                               }}
                             >
@@ -2572,7 +2465,6 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
-  const lastScrollTick = useRef<number>(0)
 
   const getLangLabel = (l: { code: string; name: string; nativeName: string }) =>
     l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
@@ -2651,20 +2543,13 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: direction === 'up' ? -6 : 6, scale: 0.98 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            onScroll={(e) => {
-              const tick = Math.floor(e.currentTarget.scrollTop / 28)
-              if (tick !== lastScrollTick.current) {
-                lastScrollTick.current = tick
-                playDialTickSound()
-              }
-            }}
             style={{
               position: 'absolute',
               top: direction === 'up' ? 'auto' : 'calc(100% + 6px)',
-              bottom: direction === 'up' ? 'calc(100% + 6px)' : 'auto',
+              bottom: direction === 'up' ? 'calc(100% + 5px)' : 'auto',
               left: 0,
               right: 0,
-              maxHeight: direction === 'up' ? 140 : 180,
+              maxHeight: direction === 'up' ? (compact ? 88 : 140) : 180,
               overflowY: 'auto',
               background: '#121214',
               border: '1px solid rgba(255, 255, 255, 0.14)',
@@ -2692,11 +2577,11 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '7px 10px',
+                    padding: compact ? '5px 8px' : '7px 10px',
                     borderRadius: 7,
                     background: active ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
                     color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                    fontSize: 12,
+                    fontSize: compact ? 11.5 : 12,
                     fontWeight: active ? 600 : 400,
                     border: 'none',
                     cursor: 'pointer',
@@ -2705,7 +2590,6 @@ function LanguageDropdown({ direction = 'down', compact = false }: { direction?:
                   }}
                   onMouseEnter={(e) => {
                     if (!active) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.07)'
-                    playDialTickSound()
                   }}
                   onMouseLeave={(e) => {
                     if (!active) e.currentTarget.style.background = 'transparent'
