@@ -123,7 +123,7 @@ describe('TV mirror regression � combined scenario', () => {
   })
 })
 
-describe('computeStickBounds — top and bottom positions', () => {
+describe('computeStickBounds — top position', () => {
   it('sticks to top edge of primary display and computes centered dock bounds with flare gutters', () => {
     const r = computeStickBounds({ position: 'top', displays: [PRIMARY] })
     expect(r.displayId).toBe(1)
@@ -135,32 +135,17 @@ describe('computeStickBounds — top and bottom positions', () => {
     expect(r.x).toBe(390)
   })
 
-  it('sticks to bottom edge of primary display above taskbar with flare gutters', () => {
-    const r = computeStickBounds({ position: 'bottom', displays: [PRIMARY] })
-    expect(r.displayId).toBe(1)
-    expect(r.y).toBe(560)
-    expect(r.x).toBe(390)
-    expect(r.width).toBe(1140)
-    expect(r.height).toBe(480)
-  })
-
   it('respects horizontalOffset in top dock bounds computation', () => {
     const r = computeStickBounds({ position: 'top', displays: [PRIMARY], horizontalOffset: 0 })
     // At hOffset=0, dock blade sits at pad=30, so window starts at x=0
     expect(r.x).toBe(0)
   })
 
-  it('expands window height to accommodate preview flyout when previewActive is true on top and bottom', () => {
+  it('expands window height to accommodate preview flyout when previewActive is true on top', () => {
     const topPreview = computeStickBounds({ position: 'top', displays: [PRIMARY], previewActive: true })
     expect(topPreview.y).toBe(0)
     expect(topPreview.height).toBe(720)
     expect(topPreview.width).toBe(1140)
-
-    const bottomPreview = computeStickBounds({ position: 'bottom', displays: [PRIMARY], previewActive: true })
-    // 1040 (wa.height) - 720 = 320
-    expect(bottomPreview.y).toBe(320)
-    expect(bottomPreview.height).toBe(720)
-    expect(bottomPreview.width).toBe(1140)
   })
 })
 

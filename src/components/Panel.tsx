@@ -136,7 +136,16 @@ export function Panel() {
         }
       }
 
-      if (el.closest('.split-dropzone')) {
+      const isTop = (settings.stickPosition === 'top')
+      const isRight = (settings.stickPosition === 'right')
+      
+      const isInsideSplitZone = 
+        !!el.closest('.split-dropzone') ||
+        (isTop && pos.y <= 80) ||
+        (!isTop && isRight && pos.x >= window.innerWidth - 100) ||
+        (!isTop && !isRight && pos.x <= 100)
+
+      if (isInsideSplitZone) {
         console.log('[Panel] Dropped in split dropzone, splitting')
         if (req.imageId || (req.paths && req.paths.length > 0)) {
           window.edge.splitItem(req)
@@ -205,13 +214,11 @@ export function Panel() {
 
   const isRight = settings.stickPosition === 'right'
   const isTop = settings.stickPosition === 'top'
-  const isBottom = settings.stickPosition === 'bottom'
-  const isHorizontal = isTop || isBottom
+  const isHorizontal = isTop
 
   let containerClass = 'blade-container'
   if (isRight) containerClass += ' blade-right'
   else if (isTop) containerClass += ' blade-top'
-  else if (isBottom) containerClass += ' blade-bottom'
   else containerClass += ' blade-left'
   if (isHorizontal) containerClass += ' horizontal-dock'
 
@@ -275,13 +282,6 @@ export function Panel() {
     containerStyle.y = 0
     originX = 0.5
     originY = 0
-  } else if (isBottom) {
-    containerStyle.bottom = 0
-    containerStyle.left = '50%'
-    containerStyle.x = '-50%'
-    containerStyle.y = 0
-    originX = 0.5
-    originY = 1
   } else {
     containerStyle.top = topOffset
     containerStyle.y = '-50%'
@@ -331,10 +331,6 @@ export function Panel() {
     clipPath = isVisuallyOpen
       ? 'inset(0px calc(0% - 100px) calc(0% - 600px) calc(0% - 100px) round 0px 0px 24px 24px)'
       : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 999px 999px)`
-  } else if (isBottom) {
-    clipPath = isVisuallyOpen
-      ? 'inset(calc(0% - 600px) calc(0% - 100px) 0px calc(0% - 100px) round 24px 24px 0px 0px)'
-      : `inset(calc(100% - ${hotWidth}px) ${insetRight} 0px ${insetLeft} round 999px 999px 0px 0px)`
   } else {
     clipPath = isVisuallyOpen
       ? 'inset(calc(0% - 100px) calc(0% - 800px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
@@ -384,7 +380,7 @@ export function Panel() {
                       position: 'absolute',
                       left: insetLeft,
                       right: insetRight,
-                      [isTop ? 'top' : 'bottom']: 0,
+                      top: 0,
                       height: 2,
                       boxSizing: 'border-box',
                       background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
@@ -420,20 +416,6 @@ export function Panel() {
             <div className="flare-horizontal flare-top-right">
               <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
                 <path d="M 2 30 C 2 16.57 18.57 0 32 0 L 0 0 L 0 30 Z" fill="#000000" />
-              </svg>
-            </div>
-          </>
-        )}
-        {isBottom && (
-          <>
-            <div className="flare-horizontal flare-bottom-left">
-              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
-                <path d="M 0 30 C 13.43 30 30 13.43 30 0 L 32 0 L 32 30 Z" fill="#000000" />
-              </svg>
-            </div>
-            <div className="flare-horizontal flare-bottom-right">
-              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
-                <path d="M 2 0 C 2 13.43 18.57 30 32 30 L 0 30 L 0 0 Z" fill="#000000" />
               </svg>
             </div>
           </>
@@ -669,7 +651,7 @@ function DropOverlay() {
   )
 }
 
-function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'right' | 'top' | 'bottom' }) {
+function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'right' | 'top' }) {
   const internalDragReq = useStore((s) => s.internalDragReq)
   const isSubitemDragging = !!(
     internalDragReq &&
@@ -699,16 +681,17 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
   }
 
   const isTop = stickPosition === 'top'
-  const isBottom = stickPosition === 'bottom'
   const isRight = stickPosition === 'right'
 
+  // Orientation alignment:
+  // When dock is on LEFT, drop zone is on the LEFT (-15px x-offset)
+  // When dock is on RIGHT, drop zone is on the RIGHT (+15px x-offset)
+  // When dock is on TOP, drop zone is at the TOP (-15px y-offset)
   const initialMotion = isTop
     ? { opacity: 0, y: -15 }
-    : isBottom
-      ? { opacity: 0, y: 15 }
-      : isRight
-        ? { opacity: 0, x: 15 }
-        : { opacity: 0, x: -15 }
+    : isRight
+      ? { opacity: 0, x: 15 }
+      : { opacity: 0, x: -15 }
 
   const exitMotion = initialMotion
 
@@ -717,38 +700,28 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
         top: 0,
         left: 0,
         right: 0,
-        height: isOver ? 68 : 52,
+        height: isOver ? 72 : 56,
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start'
       }
-    : isBottom
+    : isRight
       ? {
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: isOver ? 100 : 80,
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }
+      : {
+          top: 0,
           bottom: 0,
           left: 0,
-          right: 0,
-          height: isOver ? 68 : 52,
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-end'
+          width: isOver ? 100 : 80,
+          justifyContent: 'flex-start',
+          alignItems: 'center'
         }
-      : isRight
-        ? {
-            top: 0,
-            bottom: 0,
-            right: 0,
-            width: isOver ? 100 : 80,
-            justifyContent: 'flex-end',
-            alignItems: 'center'
-          }
-        : {
-            top: 0,
-            bottom: 0,
-            left: 0,
-            width: isOver ? 100 : 80,
-            justifyContent: 'flex-start',
-            alignItems: 'center'
-          }
 
   return (
     <AnimatePresence>

@@ -53,18 +53,6 @@
   border-radius: 0 0 24px 24px;
 }
 
-/* Bottom-position blade: centered at bottom, top-rounded corners */
-.blade-container.blade-bottom {
-  top: auto;
-  left: 50%;
-  right: auto;
-  bottom: 0;
-}
-.blade-container.blade-bottom .blade {
-  margin: 0 auto;
-  border-radius: 24px 24px 0 0;
-}
-
 /* Reverse curves (flares) connecting blade to screen edge */
 .flare-top, .flare-bottom {
   position: absolute;
@@ -116,14 +104,6 @@
   right: -30px;
   top: 0;
 }
-.flare-bottom-left {
-  left: -30px;
-  bottom: 0;
-}
-.flare-bottom-right {
-  right: -30px;
-  bottom: 0;
-}
 
 /* CSS transition for clip-path (Framer Motion can't interpolate calc() properly).
    cubic-bezier(0.22, 1, 0.36, 1) is an exponential ease-out — fast initial
@@ -154,20 +134,6 @@
   position: absolute;
   top: -30px;
   bottom: auto;
-  left: 0;
-  right: 0;
-  width: auto;
-  height: 30px;
-  background: #000000;
-  pointer-events: none;
-  z-index: -2;
-  display: block;
-}
-.blade-container.blade-bottom::before {
-  content: '';
-  position: absolute;
-  bottom: -30px;
-  top: auto;
   left: 0;
   right: 0;
   width: auto;

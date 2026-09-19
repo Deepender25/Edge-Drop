@@ -31,11 +31,15 @@ import '../styles/item.css'
 import { tryPaste } from '../lib/tryPaste'
 import { parseColor } from '../lib/colorUtils'
 import { useTranslation, t } from '../i18n'
+import { useRelativeTimeTick } from '../hooks/useRelativeTimeTick'
+
+export const RelativeTime = memo(function RelativeTime({ capturedAt }: { capturedAt: number }) {
+  useRelativeTimeTick()
+  return <span className="meta-time">{relativeTime(capturedAt)}</span>
+})
 
 interface Props {
   item: ClipboardItemDto
-  /** Shared relative-time clock from ItemList; included in memo so labels age. */
-  timeTick?: number
 }
 
 /**
@@ -52,7 +56,7 @@ export function fileStreamUrl(filePath: string): string {
 /* Main item card                                                      */
 /* ------------------------------------------------------------------ */
 
-const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 0 }, ref) => {
+const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const { t } = useTranslation()
   const copy = useStore.getState().copy
   const paste = useStore.getState().paste
@@ -63,7 +67,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
   const [copied, setCopied] = useState(false)
 
   const settings = useStore((s) => s.settings)
-  const isHorizontal = settings.stickPosition === 'top' || settings.stickPosition === 'bottom'
+  const isHorizontal = settings.stickPosition === 'top'
   const colorInfo = item.data.kind === 'text' ? parseColor(item.data.text) : null
 
   // Accordion expansion: ONE stack open at a time, coordinated store-wide
@@ -235,11 +239,8 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
   return (
     <motion.div
       ref={ref}
-      layout="position"
-      layoutId={`ed-card-${item.id}`}
       initial={false}
       animate={{ opacity: 1 }}
-      transition={{ layout: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
       className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
       style={{
@@ -337,9 +338,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
                 )}
                 {copied && <span className="meta-copied">· {t('item.copied')}</span>}
               </div>
-              <span className="meta-time" key={timeTick}>
-                {relativeTime(item.capturedAt)}
-              </span>
+              <RelativeTime capturedAt={item.capturedAt} />
             </div>
           )}
         </div>
@@ -1236,7 +1235,6 @@ export const ClipboardItemCard = memo(
       prev.pinned === next.pinned &&
       prev.hitCount === next.hitCount &&
       prev.capturedAt === next.capturedAt &&
-      prevProps.timeTick === nextProps.timeTick &&
       itemRenderKey(prev) === itemRenderKey(next)
     )
   }

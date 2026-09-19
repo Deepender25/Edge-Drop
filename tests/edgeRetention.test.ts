@@ -63,22 +63,21 @@ describe('Unified Open-State Retention Across All 4 Edges', () => {
     expect(hoverSrc).toContain('state.resetPositionChangedTime()')
   })
 
-  it('verifies isInsideBlade checks edgeTransition and uses consistent 218px blade height for top and bottom', () => {
+  it('verifies isInsideBlade checks edgeTransition and uses consistent 218px blade height for top dock', () => {
     const hoverSrc = read('src/hooks/useEdgeHover.ts')
     expect(hoverSrc).toContain('if (state.sliderActive || state.edgeTransition?.active) return true')
     expect(hoverSrc).toContain('const bladeHeight = 218')
     expect(hoverSrc).not.toContain('state.settingsOpen ? 480 : 218')
-    expect(hoverSrc).toContain('distFromBottom <= bladeHeight')
+    expect(hoverSrc).toContain('y <= bladeHeight')
   })
 
-  it('verifies unsubCursorEdge includes consistent 218px blade height and 40px hysteresis for top and bottom', () => {
+  it('verifies unsubCursorEdge includes consistent 218px blade height and 40px hysteresis for top dock', () => {
     const hoverSrc = read('src/hooks/useEdgeHover.ts')
     expect(hoverSrc).toContain('const baseBladeH = 218')
     expect(hoverSrc).toContain('const keepOpenDepth = baseBladeH')
     expect(hoverSrc).toContain('const startCloseDepth = baseBladeH + 40')
     expect(hoverSrc).toContain('const outsideX = data.x < dockX - (BUFFER_PX + 40) || data.x > dockX + dockWidth + (BUFFER_PX + 40)')
     expect(hoverSrc).toContain('distFromTop > startCloseDepth')
-    expect(hoverSrc).toContain('distFromBottom > startCloseDepth')
   })
 
   it('verifies closePanel and scheduleClose guard against active edge transitions', () => {

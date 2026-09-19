@@ -139,7 +139,7 @@ export function useEdgeHover(): void {
     const recompute = () => {
       const h = window.innerHeight
       const s = useStore.getState().settings
-      const isHorizontal = s.stickPosition === 'top' || s.stickPosition === 'bottom'
+      const isHorizontal = s.stickPosition === 'top'
 
       const pFrac = s.panelHeight || 0.6
       const panelH = h * pFrac
@@ -354,24 +354,6 @@ export function useEdgeHover(): void {
           if (inFlyout) return true
         }
         return false
-      } else if (s.stickPosition === 'bottom') {
-        const dispW = displaySize.current.width
-        const dispH = displaySize.current.height
-        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
-        const distFromBottom = dispH - y
-        const bladeHeight = 218
-        const inBlade = distFromBottom >= -BUFFER_PX && distFromBottom <= bladeHeight && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
-        if (inBlade) return true
-        if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
-          const FLYOUT_BUFFER = 24
-          const flyoutScreenLeft = dockX + state.previewFlyoutRect.left
-          const flyoutScreenRight = dockX + state.previewFlyoutRect.right
-          const inFlyout = distFromBottom >= (state.previewFlyoutRect.top - FLYOUT_BUFFER) &&
-            distFromBottom <= (state.previewFlyoutRect.bottom + FLYOUT_BUFFER) &&
-            x >= flyoutScreenLeft - FLYOUT_BUFFER && x <= flyoutScreenRight + FLYOUT_BUFFER
-          if (inFlyout) return true
-        }
-        return false
       }
 
       let insideX = false
@@ -431,7 +413,7 @@ export function useEdgeHover(): void {
       if (data.displayWidth) displaySize.current.width = data.displayWidth
       if (data.displayHeight) displaySize.current.height = data.displayHeight
       const state = useStore.getState()
-      const { stickPosition, displayWidth, displayHeight } = data
+      const { stickPosition, displayWidth } = data
       const { top, bottom, midY, panelHalfH } = zone.current
       const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
       const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
@@ -504,78 +486,6 @@ export function useEdgeHover(): void {
           }
 
           if (distFromTop > startCloseDepth || distFromTop < -BUFFER_PX || outsideX) {
-            scheduleClose()
-          }
-          break
-        }
-
-        case 'bottom': {
-          const dispH = displayHeight || displaySize.current.height
-          const distFromBottom = dispH - data.y
-          const triggerDepth = Math.max(state.settings.hotZoneWidth ?? 3, 1)
-          const inEdgeNear = distFromBottom >= -BUFFER_PX && distFromBottom <= (triggerDepth + 25)
-          const dispW = displayWidth || displaySize.current.width
-          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25, state.settings.triggerAlignment || 'center')
-          const inZone = data.x >= triggerLeft && data.x <= triggerRight
-
-          if (!inEdgeNear) {
-            edgeHintFired = false
-          }
-
-          const isHoverEnabled = state.settings.hoverActivation ?? true
-
-          if (inEdgeNear && !inZone && !state.open && isHoverEnabled && (state.settings.showEdgeLocationHint ?? false)) {
-            triggerEdgeHint()
-          }
-
-          if (distFromBottom >= -BUFFER_PX && distFromBottom <= triggerDepth && inZone && !state.open && isHoverEnabled) {
-            if (state.edgeHintActive) state.setEdgeHintActive(false)
-            cancelClose()
-            if (dwellTimer === undefined) {
-              dwellTimer = window.setTimeout(() => {
-                dwellTimer = undefined
-                openPanel()
-              }, DWELL_MS)
-            }
-            return
-          }
-
-          if (dwellTimer !== undefined) {
-            window.clearTimeout(dwellTimer)
-            dwellTimer = undefined
-          }
-
-          if (!state.open) return
-          if (state.edgeHintActive) state.setEdgeHintActive(false)
-
-          const now = Date.now()
-          if (now - lastSetInteractiveRef.current > 2000) {
-            lastSetInteractiveRef.current = now
-            edge.setInteractive(true)
-          }
-
-          const baseBladeH = 218
-          const keepOpenDepth = baseBladeH
-          const startCloseDepth = baseBladeH + 40
-          const insideX = data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
-          const outsideX = data.x < dockX - (BUFFER_PX + 40) || data.x > dockX + dockWidth + (BUFFER_PX + 40)
-
-          let inFlyout = false
-          if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
-            const FLYOUT_BUFFER = 24
-            const flyoutScreenLeft = dockX + state.previewFlyoutRect.left
-            const flyoutScreenRight = dockX + state.previewFlyoutRect.right
-            inFlyout = distFromBottom >= (state.previewFlyoutRect.top - FLYOUT_BUFFER) &&
-              distFromBottom <= (state.previewFlyoutRect.bottom + FLYOUT_BUFFER) &&
-              data.x >= flyoutScreenLeft - FLYOUT_BUFFER && data.x <= flyoutScreenRight + FLYOUT_BUFFER
-          }
-
-          if ((distFromBottom >= -BUFFER_PX && distFromBottom <= keepOpenDepth && insideX) || inFlyout) {
-            cancelClose()
-            return
-          }
-
-          if (distFromBottom > startCloseDepth || distFromBottom < -BUFFER_PX || outsideX) {
             scheduleClose()
           }
           break

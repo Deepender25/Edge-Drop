@@ -122,8 +122,8 @@ describe('Edge Transition Animation & State Management', () => {
     const p1 = useStore.getState().startEdgeTransition('right')
     expect(useStore.getState().edgeTransition?.to).toBe('right')
 
-    // Rapid second click to 'bottom' should be rejected
-    const p2 = useStore.getState().startEdgeTransition('bottom')
+    // Rapid second click to 'top' should be rejected
+    const p2 = useStore.getState().startEdgeTransition('top')
     expect(useStore.getState().edgeTransition?.to).toBe('right')
 
     await vi.advanceTimersByTimeAsync(900)
@@ -144,10 +144,10 @@ describe('Edge Transition Animation & State Management', () => {
       settings: { ...s.settings, stickPosition: 'left', reduceMotion: true }
     }))
 
-    await useStore.getState().startEdgeTransition('bottom')
+    await useStore.getState().startEdgeTransition('top')
 
     expect(useStore.getState().edgeTransition).toBeNull()
-    expect(useStore.getState().settings.stickPosition).toBe('bottom')
+    expect(useStore.getState().settings.stickPosition).toBe('top')
   })
 
   it('tactile acoustic synthesis functions execute safely without throwing in headless environments', () => {

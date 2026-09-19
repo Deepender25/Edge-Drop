@@ -10,8 +10,8 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store/appStore'
 
-/** While the shelf is open, refresh often enough to leave "just now" (5s). */
-const TICK_MS = 5000
+/** While the shelf is open, refresh relative time labels periodically (30s). */
+const TICK_MS = 30000
 
 let timer: number | undefined
 let subscribers = 0
@@ -24,10 +24,7 @@ function emit(): void {
 function syncTimer(): void {
   const shouldRun = subscribers > 0 && useStore.getState().open
   if (shouldRun && timer === undefined) {
-    // Paint current ages immediately. Waiting for the first interval left
-    // labels stuck on "just now" because the shelf is almost never left
-    // open for a full tick — copying in another app closes it first.
-    emit()
+    // Start periodic interval while open without emitting synchronously on the open animation frame
     timer = window.setInterval(emit, TICK_MS)
   } else if (!shouldRun && timer !== undefined) {
     window.clearInterval(timer)

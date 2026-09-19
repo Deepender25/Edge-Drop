@@ -22,8 +22,8 @@ export type EdgeTransitionStage =
 
 export interface EdgeTransitionState {
   active: boolean
-  from: 'left' | 'right' | 'top' | 'bottom'
-  to: 'left' | 'right' | 'top' | 'bottom'
+  from: 'left' | 'right' | 'top'
+  to: 'left' | 'right' | 'top'
   stage: EdgeTransitionStage
 }
 
@@ -150,7 +150,7 @@ interface AppState {
   refreshLaunchAtLogin: () => Promise<void>
   setTutorialStep: (step: number) => void
   edgeTransition: EdgeTransitionState | null
-  startEdgeTransition: (to: 'left' | 'right' | 'top' | 'bottom') => Promise<void>
+  startEdgeTransition: (to: 'left' | 'right' | 'top') => Promise<void>
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -216,7 +216,7 @@ export const useStore = create<AppState>((set, get) => ({
   styleFlyoutOpen: false,
   styleFlyoutAnchorRect: null,
   setStyleFlyoutOpen: (open, rect) => {
-    const isHorizontal = get().settings.stickPosition === 'top' || get().settings.stickPosition === 'bottom'
+    const isHorizontal = get().settings.stickPosition === 'top'
     if (open && get().languageFlyoutOpen) {
       set({ languageFlyoutOpen: false, languageFlyoutAnchorRect: null })
     }
@@ -225,7 +225,7 @@ export const useStore = create<AppState>((set, get) => ({
       styleFlyoutAnchorRect: open && rect ? rect : null,
       ...(open ? {} : { previewFlyoutRect: null })
     })
-    // In horizontal mode (top/bottom), the flyout fits natively inside the 480px dock bounds.
+    // In horizontal mode (top), the flyout fits natively inside the 480px dock bounds.
     // Resizing the Electron window to 720px across IPC takes ~1s in Windows DWM, which caused
     // the flyout to mount squeezed vertically at 240px and then expand 1s later when the resize event fired.
     if (open && !isHorizontal) {
@@ -240,7 +240,7 @@ export const useStore = create<AppState>((set, get) => ({
   languageFlyoutOpen: false,
   languageFlyoutAnchorRect: null,
   setLanguageFlyoutOpen: (open, rect) => {
-    const isHorizontal = get().settings.stickPosition === 'top' || get().settings.stickPosition === 'bottom'
+    const isHorizontal = get().settings.stickPosition === 'top'
     if (open && get().styleFlyoutOpen) {
       set({ styleFlyoutOpen: false, styleFlyoutAnchorRect: null })
     }
@@ -577,7 +577,7 @@ export const useStore = create<AppState>((set, get) => ({
   edgeTransition: null,
   async startEdgeTransition(to) {
     if (get().edgeTransition?.active) return
-    const current = (get().settings.stickPosition || 'left') as 'left' | 'right' | 'top' | 'bottom'
+    const current = (get().settings.stickPosition || 'left') as 'left' | 'right' | 'top'
     if (current === to) return
 
     const reduceMotion = get().settings.reduceMotion

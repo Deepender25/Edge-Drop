@@ -13,12 +13,10 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(panelSrc).not.toContain('height: settingsOpen ? 460 : 210')
   })
 
-  it('Panel.tsx renders horizontal curved connector arcs (flares) for top and bottom positions', () => {
+  it('Panel.tsx renders horizontal curved connector arcs (flares) for top position', () => {
     const panelSrc = read('src/components/Panel.tsx')
     expect(panelSrc).toContain('flare-horizontal flare-top-left')
     expect(panelSrc).toContain('flare-horizontal flare-top-right')
-    expect(panelSrc).toContain('flare-horizontal flare-bottom-left')
-    expect(panelSrc).toContain('flare-horizontal flare-bottom-right')
   })
 
   it('item.css contains 210px card width, 5-line text clamp, and compact actions toolbar', () => {
@@ -32,7 +30,7 @@ describe('Horizontal Card Shelf Settings Layout', () => {
   it('Settings accepts isHorizontal prop and detects horizontal dock positions', () => {
     const src = read('src/components/Settings.tsx')
     expect(src).toContain('isHorizontal: propIsHorizontal')
-    expect(src).toContain("settings.stickPosition === 'top' || settings.stickPosition === 'bottom'")
+    expect(src).toContain("settings.stickPosition === 'top'")
   })
 
   it('Settings renders horizontal card shelf with smooth scrolling track and shelf cards', () => {
@@ -77,7 +75,7 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'check' })")
     expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'copy' })")
     expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'sparkle' })")
-    expect(flyoutSrc).toContain("stickPosition === 'top' || stickPosition === 'bottom'")
+    expect(flyoutSrc).toContain("stickPosition === 'top'")
     expect(flyoutSrc).toContain("border: active ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.08)'")
     expect(flyoutSrc).not.toContain("outline: active ? '2px solid #ffffff' : 'none'")
   })
@@ -198,20 +196,14 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(verticalBlock).toContain('panelHeightTitle')
   })
 
-  it('Vertical settings arranges edge placement buttons in diamond layout (top, left/right, bottom)', () => {
+  it('Vertical settings arranges edge placement buttons in 3-way layout (left, top, right)', () => {
     const src = read('src/components/Settings.tsx')
     const verticalBlock = src.slice(src.indexOf('const maxTabLen ='))
-    expect(verticalBlock).toContain('placement-diamond-wrap')
-    expect(verticalBlock).toContain('diamond-top')
-    expect(verticalBlock).toContain('diamond-mid')
-    expect(verticalBlock).toContain('diamond-bottom')
+    expect(verticalBlock).toContain('placement-3way-wrap')
 
     const css = read('src/styles/settings.css')
-    expect(css).toContain('.placement-diamond-wrap')
-    expect(css).toContain('.placement-diamond-wrap .diamond-row')
-    expect(css).toContain('.placement-diamond-wrap .diamond-top')
-    expect(css).toContain('.placement-diamond-wrap .diamond-mid')
-    expect(css).toContain('.placement-diamond-wrap .diamond-bottom')
+    expect(css).toContain('.placement-3way-wrap')
+    expect(css).toContain('.placement-3way-wrap .pill')
   })
 
   it('Horizontal dashboard uses correct translations, multi-column classes, and explicit pixel values', () => {
@@ -228,12 +220,9 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(horizontalBlock).toContain('position-col')
     expect(horizontalBlock).toContain('appearance-col')
 
-    // Edge placement diamond layout for horizontal card shelf
-    expect(horizontalBlock).toContain('placement-diamond-wrap')
-    expect(horizontalBlock).toContain('shelf-diamond')
-    expect(horizontalBlock).toContain('diamond-top')
-    expect(horizontalBlock).toContain('diamond-mid')
-    expect(horizontalBlock).toContain('diamond-bottom')
+    // Edge placement 3-way layout for horizontal card shelf
+    expect(horizontalBlock).toContain('placement-3way-wrap')
+    expect(horizontalBlock).toContain('shelf-placement-3way')
 
     // Clean names on length presets & live thickness badge without pixel strings
     expect(horizontalBlock).toContain("t('appearance.small')")

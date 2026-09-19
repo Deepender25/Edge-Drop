@@ -8,11 +8,10 @@
  * Drag-in awareness: sets `dragActive` on the store while OS files are being
  * dragged over the panel so the edge-hover hook knows not to close mid-drag.
  */
-import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useRef, useEffect, useLayoutEffect, useState } from 'react'
 import { useStore } from '../store/appStore'
 import { useFilteredItems } from '../hooks/useFilteredItems'
-import { useRelativeTimeTick } from '../hooks/useRelativeTimeTick'
 import { ClipboardItemCard } from './ClipboardItem'
 import { EmptyState } from './EmptyState'
 import { ChevronDownIcon, PinFillIcon } from './icons'
@@ -23,16 +22,14 @@ import { useTranslation } from '../i18n'
 export function ItemList() {
   const { t } = useTranslation()
   const { pinned, recent } = useFilteredItems()
-  const timeTick = useRelativeTimeTick()
   const query = useStore((s) => s.query)
   const listRef = useRef<HTMLDivElement>(null)
 
   const total = pinned.length + recent.length
   
   const isDraggingAny = useStore((s) => !!s.dragActive || !!s.internalDragReq)
-  const open = useStore((s) => s.open)
   const settings = useStore((s) => s.settings)
-  const isHorizontal = settings.stickPosition === 'top' || settings.stickPosition === 'bottom'
+  const isHorizontal = settings.stickPosition === 'top'
   
   const typeFilter = useStore((s) => s.typeFilter) || 'all'
   const filterScrollMap = useRef<Record<string, { top: number; left: number }>>({})
@@ -74,41 +71,48 @@ export function ItemList() {
     }
   }, [])
 
-  const prevOpen = useRef(open)
   const lastClosedAt = useRef<number>(Date.now())
   const lastClosedTopId = useRef<string | undefined>(topRecentId)
   const lastClosedTopTime = useRef<number | undefined>(topRecentTime)
   const lastClosedTopPinnedTime = useRef<number | undefined>(topPinnedTime)
 
-  useLayoutEffect(() => {
-    if (!open && prevOpen.current) {
-      // Panel just closed: record timestamps and top item ids
-      lastClosedAt.current = Date.now()
-      lastClosedTopId.current = topRecentId
-      lastClosedTopTime.current = topRecentTime
-      lastClosedTopPinnedTime.current = topPinnedTime
-    } else if (open && !prevOpen.current) {
-      // Panel just opened: check if closed >= 60s OR if a new copy happened while closed
-      const timeSinceClosed = Date.now() - lastClosedAt.current
-      const hasNewCopyWhileClosed =
-        topRecentId !== lastClosedTopId.current ||
-        topRecentTime !== lastClosedTopTime.current ||
-        topPinnedTime !== lastClosedTopPinnedTime.current
+  // Decoupled open state tracking: subscribe to store changes without triggering full list re-renders
+  useEffect(() => {
+    let lastOpen = useStore.getState().open
+    const unsub = useStore.subscribe((state) => {
+      const isNowOpen = !!state.open
+      if (isNowOpen !== lastOpen) {
+        if (!isNowOpen && lastOpen) {
+          // Panel just closed: record timestamps and top item ids
+          lastClosedAt.current = Date.now()
+          lastClosedTopId.current = prevTopRecentId.current
+          lastClosedTopTime.current = prevTopRecentTime.current
+          lastClosedTopPinnedTime.current = prevTopPinnedTime.current
+        } else if (isNowOpen && !lastOpen) {
+          // Panel just opened: check if closed >= 60s OR if a new copy happened while closed
+          const timeSinceClosed = Date.now() - lastClosedAt.current
+          const hasNewCopyWhileClosed =
+            prevTopRecentId.current !== lastClosedTopId.current ||
+            prevTopRecentTime.current !== lastClosedTopTime.current ||
+            prevTopPinnedTime.current !== lastClosedTopPinnedTime.current
 
-      if (timeSinceClosed >= 60000 || hasNewCopyWhileClosed) {
-        filterScrollMap.current = {}
-        if (listRef.current) {
-          if (isHorizontal) listRef.current.scrollLeft = 0
-          else listRef.current.scrollTop = 0
+          if (timeSinceClosed >= 60000 || hasNewCopyWhileClosed) {
+            filterScrollMap.current = {}
+            if (listRef.current) {
+              if (isHorizontal) listRef.current.scrollLeft = 0
+              else listRef.current.scrollTop = 0
+            }
+          }
         }
+        lastOpen = isNowOpen
       }
-    }
-    prevOpen.current = open
-  }, [open, topRecentId, topRecentTime, topPinnedTime, isHorizontal])
+    })
+    return unsub
+  }, [isHorizontal])
 
   useLayoutEffect(() => {
     // If a brand new or freshly updated item was added while panel is open, jump to top
-    if (open) {
+    if (useStore.getState().open) {
       const isNewRecent = !!topRecentTime && (!prevTopRecentTime.current || topRecentTime > prevTopRecentTime.current)
       const isNewPinned = !!topPinnedTime && (!prevTopPinnedTime.current || topPinnedTime > prevTopPinnedTime.current)
 
@@ -124,7 +128,7 @@ export function ItemList() {
     prevTopRecentId.current = topRecentId
     prevTopRecentTime.current = topRecentTime
     prevTopPinnedTime.current = topPinnedTime
-  }, [open, topRecentId, topRecentTime, topPinnedTime, isHorizontal, typeFilter])
+  }, [topRecentId, topRecentTime, topPinnedTime, isHorizontal, typeFilter])
 
   // Independent scroll position per filter page (unsynchronized across tabs)
   useLayoutEffect(() => {
@@ -301,7 +305,6 @@ export function ItemList() {
       {total === 0 ? (
         <EmptyState filtered={query.trim().length > 0} />
       ) : (
-        <LayoutGroup id={`shelf-${typeFilter}`}>
         <motion.div
           key={filterKey}
           className="list-stack"
@@ -343,7 +346,7 @@ export function ItemList() {
                 </div>
               </div>
               {!pinnedCollapsed && pinned.map((it) => (
-                <ClipboardItemCard key={it.id} item={it} timeTick={timeTick} />
+                <ClipboardItemCard key={it.id} item={it} />
               ))}
             </section>
           )}
@@ -356,12 +359,11 @@ export function ItemList() {
                 </div>
               )}
               {recent.map((it) => (
-                <ClipboardItemCard key={it.id} item={it} timeTick={timeTick} />
+                <ClipboardItemCard key={it.id} item={it} />
               ))}
             </section>
           )}
         </motion.div>
-        </LayoutGroup>
       )}
 
       <AnimatePresence>

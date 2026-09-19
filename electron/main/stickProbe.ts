@@ -19,7 +19,7 @@ export interface StickProbeInput {
   cursor: { x: number; y: number }
   /** Work area of the display the shelf is stuck to. */
   workArea: WorkAreaRect
-  stickPosition: 'left' | 'right' | 'top' | 'bottom'
+  stickPosition: 'left' | 'right' | 'top'
   /** Physical thickness of the hover trigger band. */
   hotZoneWidth: number
 }
@@ -57,9 +57,6 @@ export function probeStickEdge(input: StickProbeInput): StickProbeResult {
       break
     case 'top':
       distFromEdge = clientY
-      break
-    case 'bottom':
-      distFromEdge = workArea.height - clientY
       break
   }
 
@@ -132,7 +129,7 @@ export function probeSeamAware(
   input: {
     cursor: { x: number; y: number }
     workArea: WorkAreaRect
-    stickPosition: 'left' | 'right' | 'top' | 'bottom'
+    stickPosition: 'left' | 'right' | 'top'
     hotZoneWidth: number
     /** Monotonic-ish wall time for THIS sample (Date.now() in production). */
     now: number

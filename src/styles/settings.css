@@ -182,34 +182,19 @@
   gap: 4px;
 }
 
-/* Diamond Edge Placement (Vertical Settings) */
-.placement-diamond-wrap {
+/* 3-Way Edge Placement Selector (Left, Top, Right) */
+.placement-3way-wrap {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 4px 0 2px;
 }
 
-.placement-diamond-wrap .diamond-row {
-  display: flex;
-  width: 100%;
-}
-
-.placement-diamond-wrap .diamond-top,
-.placement-diamond-wrap .diamond-bottom {
-  justify-content: center;
-}
-
-.placement-diamond-wrap .diamond-mid {
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-}
-
-.placement-diamond-wrap .pill {
-  width: 100px;
+.placement-3way-wrap .pill {
+  flex: 1;
+  max-width: 110px;
   height: 32px;
   font-size: calc(11.5px * var(--font-scale, 1));
   font-weight: 500;
@@ -219,42 +204,43 @@
   justify-content: center;
   text-align: center;
   border-radius: 999px;
-  flex: none;
   box-sizing: border-box;
 }
 
-/* Horizontal Shelf Compact Diamond (Side-by-side card) */
-.placement-diamond-wrap.shelf-diamond {
-  gap: 4px;
-  width: auto;
+/* Horizontal Shelf 3-Way Placement Selector */
+.placement-3way-wrap.shelf-placement-3way {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
   padding: 0;
-  flex-shrink: 0;
 }
 
-.placement-diamond-wrap.shelf-diamond .diamond-mid {
-  gap: 8px;
-}
-
-.placement-diamond-wrap.shelf-diamond .pill {
-  width: 76px;
-  height: 28px;
-  font-size: calc(10.5px * var(--font-scale, 1));
-  padding: 0 6px;
+.placement-3way-wrap.shelf-placement-3way .pill {
+  width: 100%;
+  height: 32px;
+  font-size: calc(11px * var(--font-scale, 1));
+  padding: 0 4px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.78);
   font-weight: 500;
   transition: all 0.14s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
 }
 
-.placement-diamond-wrap.shelf-diamond .pill:hover:not(.active) {
+.placement-3way-wrap.shelf-placement-3way .pill:hover:not(.active) {
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;
 }
 
-.placement-diamond-wrap.shelf-diamond .pill.active {
+.placement-3way-wrap.shelf-placement-3way .pill.active {
   background: #ffffff;
   color: #000000;
   font-weight: 600;
@@ -263,6 +249,7 @@
 }
 
 /* Edge pill transition pulse */
+.placement-3way-wrap .pill.transitioning,
 .placement-diamond-wrap .pill.transitioning {
   animation: edgePillPulse 0.44s ease-in-out infinite alternate;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
@@ -1709,7 +1696,7 @@
 }
 
 .settings-shelf-card.placement-card {
-  width: 350px;
+  width: 320px;
 }
 
 .settings-shelf-card.display-card {

@@ -18,10 +18,10 @@ const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
 const flyoutEaseClose = [0.3, 0, 0.2, 1] as const
 
 const flyoutVariants = {
-  hidden: (dir: 'left' | 'right' | 'top' | 'bottom') => ({
+  hidden: (dir: 'left' | 'right' | 'top') => ({
     opacity: 0,
     x: dir === 'right' ? 14 : dir === 'left' ? -14 : 0,
-    y: dir === 'top' ? -14 : dir === 'bottom' ? 14 : 0,
+    y: dir === 'top' ? -14 : 0,
     scale: 0.97,
   }),
   shown: {
@@ -36,10 +36,10 @@ const flyoutVariants = {
       opacity: { duration: 0.18, ease: 'easeOut' as const },
     },
   },
-  exit: (dir: 'left' | 'right' | 'top' | 'bottom') => ({
+  exit: (dir: 'left' | 'right' | 'top') => ({
     opacity: 0,
     x: dir === 'right' ? 10 : dir === 'left' ? -10 : 0,
-    y: dir === 'top' ? -10 : dir === 'bottom' ? 10 : 0,
+    y: dir === 'top' ? -10 : 0,
     scale: 0.98,
     transition: {
       x: { duration: 0.18, ease: flyoutEaseClose },
@@ -61,10 +61,9 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   
   const item = previewItemId ? items.find((i) => i.id === previewItemId) : null
 
-  const stickPosition = (settings.stickPosition || (isRight ? 'right' : 'left')) as 'left' | 'right' | 'top' | 'bottom'
+  const stickPosition = (settings.stickPosition || (isRight ? 'right' : 'left')) as 'left' | 'right' | 'top'
   const isTop = stickPosition === 'top'
-  const isBottom = stickPosition === 'bottom'
-  const isHorizontal = isTop || isBottom
+  const isHorizontal = isTop
 
   const screenH = typeof window !== 'undefined' ? window.innerHeight : 800
   const screenW = typeof window !== 'undefined' ? window.innerWidth : 1140
@@ -271,13 +270,13 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                   position: 'absolute',
                   left: dockLeft + flyoutLeft,
                   width: flyoutWidth,
-                  [isTop ? 'top' : 'bottom']: 222,
+                  top: 222,
                   display: 'flex',
                   flexDirection: 'column',
                   pointerEvents: 'none',
                   zIndex: 5,
                   originX: 0.5,
-                  originY: isTop ? 0 : 1,
+                  originY: 0,
                   willChange: 'transform, opacity',
                   backfaceVisibility: 'hidden',
                 }
@@ -347,7 +346,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             </div>
           )}
           {/* Content — even bezels, no header chrome */}
-          <div style={{ padding: selectedKeys.size > 0 ? '20px 20px 68px 20px' : '20px', overflowY: 'auto', overflowX: 'hidden', flex: 1, minHeight: 0 }}>
+          <div style={{ padding: selectedKeys.size > 0 ? '20px 20px 68px 20px' : '20px', overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none', flex: 1, minHeight: 0 }}>
             <PreviewContent
               item={item}
               selectedKeys={selectedKeys}

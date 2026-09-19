@@ -79,6 +79,24 @@ svg {
   background-clip: padding-box;
 }
 
+/* All flyout preview containers hide visible scrollbars while maintaining scroll functionality */
+.preview-flyout,
+.preview-flyout *,
+.language-flyout,
+.language-flyout * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.preview-flyout::-webkit-scrollbar,
+.preview-flyout *::-webkit-scrollbar,
+.language-flyout::-webkit-scrollbar,
+.language-flyout *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 img,
 a {
   -webkit-user-drag: none;

@@ -71,7 +71,7 @@ class StickController {
   currentStickDisplayId: number | undefined
   windowBounds: { x: number; y: number } | null = null
   lastProbe: ReturnType<typeof probeStickEdge> | null = null
-  stickPosition: 'left' | 'right' | 'top' | 'bottom' = 'left'
+  stickPosition: 'left' | 'right' | 'top' = 'left'
   hotZoneWidth = 3
   windowWidth = 384
 
@@ -239,22 +239,6 @@ describe('SIMULATION — top-stick dock', () => {
   })
 })
 
-describe('SIMULATION — bottom-stick dock', () => {
-  it('triggers at the bottom workArea edge with correct distance math', () => {
-    const ctl = new StickController(sideBySideDesktop())
-    ctl.stickPosition = 'bottom'
-    ctl.applyStickDisplay(1)
-
-    // Primary display has workArea height 1040 (1080 - 40px taskbar)
-    const inside = ctl.tick({ x: 500, y: 1038 })!
-    expect(inside.inEdge).toBe(true)
-    expect(inside.distFromEdge).toBe(2) // 1040 - 1038
-
-    const outside = ctl.tick({ x: 500, y: 1000 })!
-    expect(outside.inEdge).toBe(false)
-  })
-})
-
 describe('SIMULATION — vertically stacked secondary', () => {
   it('detects its own edge with correct Y translation', () => {
     const desktop = new VirtualDesktop([
@@ -367,7 +351,7 @@ describe('SIMULATION — adaptive proximity thresholds (unchanged feel)', () => 
 /* ------------------------------------------------------------------ */
 
 const SEC_X = 1920
-function seamController(stickPosition: 'left' | 'right' | 'top' | 'bottom' = 'left') {
+function seamController(stickPosition: 'left' | 'right' | 'top' = 'left') {
   const ctl = new StickController(sideBySideDesktop())
   ctl.stickPosition = stickPosition
   ctl.applyStickDisplay(2)

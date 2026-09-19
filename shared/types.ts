@@ -77,7 +77,7 @@ export interface ClipboardItemDto extends Omit<ClipboardItem, 'data'> {
 /** Section the renderer groups items into. */
 export type ItemSection = 'pinned' | 'shelf'
 
-export type StickPosition = 'left' | 'right' | 'top' | 'bottom'
+export type StickPosition = 'left' | 'right' | 'top'
 
 export interface DisplayInfo {
   id: number

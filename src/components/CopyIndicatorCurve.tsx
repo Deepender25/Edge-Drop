@@ -265,8 +265,7 @@ export function CopyIndicatorCurve() {
   const settings = useStore((s) => s.settings)
   const isRight = settings.stickPosition === 'right'
   const isTop = settings.stickPosition === 'top'
-  const isBottom = settings.stickPosition === 'bottom'
-  const isHorizontal = isTop || isBottom
+  const isHorizontal = isTop
   const indicatorStyle = settings.copyIndicatorStyle || 'logo'
   const reduceMotion = !!settings.reduceMotion
 
@@ -283,13 +282,8 @@ export function CopyIndicatorCurve() {
     const W = 297 // 220 * 1.35 (+35% increase, matches trigger bar)
     boxW = W
     boxH = 75
-    if (isTop) {
-      activePath = `M 0,0 L 0,${hw} C ${W * 0.22},${hw} ${W * 0.28},${bulge} ${W / 2},${bulge} C ${W * 0.72},${bulge} ${W * 0.78},${hw} ${W},${hw} L ${W},0 Z`
-      flatPath = `M 0,0 L 0,${hw} C ${W * 0.22},${hw} ${W * 0.28},${hw} ${W / 2},${hw} C ${W * 0.72},${hw} ${W * 0.78},${hw} ${W},${hw} L ${W},0 Z`
-    } else {
-      activePath = `M 0,${boxH} L 0,${boxH - hw} C ${W * 0.22},${boxH - hw} ${W * 0.28},${boxH - bulge} ${W / 2},${boxH - bulge} C ${W * 0.72},${boxH - bulge} ${W * 0.78},${boxH - hw} ${W},${boxH - hw} L ${W},${boxH} Z`
-      flatPath = `M 0,${boxH} L 0,${boxH - hw} C ${W * 0.22},${boxH - hw} ${W * 0.28},${boxH - hw} ${W / 2},${boxH - hw} C ${W * 0.72},${boxH - hw} ${W * 0.78},${boxH - hw} ${W},${boxH - hw} L ${W},${boxH} Z`
-    }
+    activePath = `M 0,0 L 0,${hw} C ${W * 0.22},${hw} ${W * 0.28},${bulge} ${W / 2},${bulge} C ${W * 0.72},${bulge} ${W * 0.78},${hw} ${W},${hw} L ${W},0 Z`
+    flatPath = `M 0,0 L 0,${hw} C ${W * 0.22},${hw} ${W * 0.28},${hw} ${W / 2},${hw} C ${W * 0.72},${hw} ${W * 0.78},${hw} ${W},${hw} L ${W},0 Z`
   } else {
     const H = screenH * (settings.hotZoneHeight || 0.25)
     boxW = 75
@@ -331,7 +325,7 @@ export function CopyIndicatorCurve() {
                   position: 'absolute',
                   left: '50%',
                   x: '-50%',
-                  [isTop ? 'top' : 'bottom']: 0,
+                  top: 0,
                   width: boxW,
                   height: boxH,
                   pointerEvents: 'none',
@@ -379,7 +373,7 @@ export function CopyIndicatorCurve() {
                     position: 'absolute',
                     left: '50%',
                     x: '-50%',
-                    [isTop ? 'top' : 'bottom']: 2,
+                    top: 2,
                     width: 43.3,
                     height: 43.3,
                     display: 'flex',

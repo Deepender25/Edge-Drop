@@ -1,4 +1,4 @@
-export type StickPosition = 'left' | 'right' | 'top' | 'bottom'
+export type StickPosition = 'left' | 'right' | 'top'
 
 export interface DisplayInfo {
   id: number
@@ -137,22 +137,6 @@ export function computeStickBounds(params: StickBoundsParams): StickBoundsResult
       // Allocate 30px transparent gutters on left and right for curved connector arcs (flares)
       x = dockX - 30
       y = wa.y
-      width = dockWidth + 60
-      height = dockHeight
-      break
-    }
-    case 'bottom': {
-      const dockWidth = Math.min(wa.width - 60, 1080)
-      const previewHeight = Math.min(wa.height - 20, 720)
-      const dockHeight = params.previewActive ? previewHeight : (params.windowHeight ?? 480)
-      const hOffset = Math.min(1, Math.max(0, params.horizontalOffset ?? 0.5))
-      const pad = wa.width >= dockWidth + 60 ? 30 : 0
-      const minX = wa.x + pad
-      const maxX = wa.x + wa.width - dockWidth - pad
-      const dockX = minX + Math.round(Math.max(0, maxX - minX) * hOffset)
-      // Allocate 30px transparent gutters on left and right for curved connector arcs (flares)
-      x = dockX - 30
-      y = wa.y + wa.height - dockHeight
       width = dockWidth + 60
       height = dockHeight
       break

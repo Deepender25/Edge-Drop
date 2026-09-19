@@ -26,10 +26,10 @@ const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
 const flyoutEaseClose = [0.3, 0, 0.2, 1] as const
 
 const flyoutVariants = {
-  hidden: (dir: 'left' | 'right' | 'top' | 'bottom') => ({
+  hidden: (dir: 'left' | 'right' | 'top') => ({
     opacity: 0,
     x: dir === 'right' ? 14 : dir === 'left' ? -14 : 0,
-    y: dir === 'top' ? -14 : dir === 'bottom' ? 14 : 0,
+    y: dir === 'top' ? -14 : 0,
     scale: 0.97,
   }),
   shown: {
@@ -44,10 +44,10 @@ const flyoutVariants = {
       opacity: { duration: 0.18, ease: 'easeOut' as const },
     },
   },
-  exit: (dir: 'left' | 'right' | 'top' | 'bottom') => ({
+  exit: (dir: 'left' | 'right' | 'top') => ({
     opacity: 0,
     x: dir === 'right' ? 10 : dir === 'left' ? -10 : 0,
-    y: dir === 'top' ? -10 : dir === 'bottom' ? 10 : 0,
+    y: dir === 'top' ? -10 : 0,
     scale: 0.98,
     transition: {
       x: { duration: 0.18, ease: flyoutEaseClose },
@@ -70,8 +70,8 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
   const patch = useStore((s) => s.patchSettings)
   const adaptiveSpring = useAdaptiveSpring()
 
-  const stickPosition = (settings.stickPosition || (isRight ? 'right' : 'left')) as 'left' | 'right' | 'top' | 'bottom'
-  const isHorizontal = stickPosition === 'top' || stickPosition === 'bottom'
+  const stickPosition = (settings.stickPosition || (isRight ? 'right' : 'left')) as 'left' | 'right' | 'top'
+  const isHorizontal = stickPosition === 'top'
   const isTop = stickPosition === 'top'
 
   const isVisible = styleFlyoutOpen && settingsOpen && open
@@ -106,7 +106,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
   const originX = isHorizontal
     ? Math.max(0.08, Math.min(0.92, (anchorCenterX - flyoutLeft) / flyoutWidth))
     : (isRight ? 1 : 0)
-  const originY = isHorizontal ? (isTop ? 0 : 1) : 0.5
+  const originY = isHorizontal ? 0 : 0.5
 
   useEffect(() => {
     if (!isVisible || !flyoutRef.current) {
@@ -119,8 +119,8 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
       const h = flyoutRef.current.offsetHeight
       if (isHorizontal) {
         useStore.getState().setPreviewFlyoutRect({
-          top: isTop ? 210 : Math.max(0, screenH - (222 + h)),
-          bottom: isTop ? 222 + h : screenH - 210,
+          top: 210,
+          bottom: 222 + h,
           left: flyoutLeft,
           right: flyoutLeft + flyoutWidth
         })
@@ -169,7 +169,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
   return createPortal(
     <AnimatePresence onExitComplete={() => {
       const s = useStore.getState()
-      const isHoriz = s.settings.stickPosition === 'top' || s.settings.stickPosition === 'bottom'
+      const isHoriz = s.settings.stickPosition === 'top'
       if (!isHoriz && !s.styleFlyoutOpen && !s.previewItemId) {
         window.edge.setPreviewMode(false)
       }
@@ -189,7 +189,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
                   position: 'absolute',
                   left: dockLeft + flyoutLeft,
                   width: flyoutWidth,
-                  [isTop ? 'top' : 'bottom']: 222,
+                  top: 222,
                   display: 'flex',
                   flexDirection: 'column',
                   pointerEvents: 'none',

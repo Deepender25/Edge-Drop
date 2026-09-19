@@ -25,7 +25,7 @@ export function Settings({
 }) {
   const { t, language, languages } = useTranslation()
   const settings = useStore((s) => s.settings)
-  const isHorizontal = propIsHorizontal ?? (settings.stickPosition === 'top' || settings.stickPosition === 'bottom')
+  const isHorizontal = propIsHorizontal ?? (settings.stickPosition === 'top')
 
   const TABS: { id: SettingsTab; label: string }[] = [
     { id: 'behaviour',  label: t('tabs.behaviour') },
@@ -1084,61 +1084,41 @@ export function Settings({
               <div className="settings-shelf-card placement-card position-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">{t('tabs.position')}</div>
+                  <div className="setting-title" style={{ color: '#ffffff' }}>{t('position.edgePlacementTitle')}</div>
+                  <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
                 </div>
-                <div className="shelf-card-inline">
-                  <div className="shelf-card-inline-text">
-                    <div className="setting-title" style={{ color: '#ffffff' }}>{t('position.edgePlacementTitle')}</div>
-                    <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
-                  </div>
-                  <div className="shelf-card-inline-action">
-                    <div className="placement-diamond-wrap shelf-diamond">
-                      <div className="diamond-row diamond-top">
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'top' : settings.stickPosition === 'top') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'top' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('top')
-                          }}
-                        >
-                          {t('position.topEdge') || 'Top Edge'}
-                        </button>
-                      </div>
-                      <div className="diamond-row diamond-mid">
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'left' : settings.stickPosition === 'left') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'left' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('left')
-                          }}
-                        >
-                          {t('position.leftEdge') || 'Left Edge'}
-                        </button>
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'right' : settings.stickPosition === 'right') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'right' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('right')
-                          }}
-                        >
-                          {t('position.rightEdge') || 'Right Edge'}
-                        </button>
-                      </div>
-                      <div className="diamond-row diamond-bottom">
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'bottom' : settings.stickPosition === 'bottom') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'bottom' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('bottom')
-                          }}
-                        >
-                          {t('position.bottomEdge') || 'Bottom Edge'}
-                        </button>
-                      </div>
-                    </div>
+                <div className="shelf-card-bottom">
+                  <div className="placement-3way-wrap shelf-placement-3way">
+                    <button
+                      type="button"
+                      className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'left' : settings.stickPosition === 'left') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'left' ? 'transitioning' : ''}`}
+                      disabled={edgeTransition?.active}
+                      onClick={() => {
+                        void startEdgeTransition('left')
+                      }}
+                    >
+                      {t('position.leftEdge') || 'Left Edge'}
+                    </button>
+                    <button
+                      type="button"
+                      className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'top' : settings.stickPosition === 'top') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'top' ? 'transitioning' : ''}`}
+                      disabled={edgeTransition?.active}
+                      onClick={() => {
+                        void startEdgeTransition('top')
+                      }}
+                    >
+                      {t('position.topEdge') || 'Top Edge'}
+                    </button>
+                    <button
+                      type="button"
+                      className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'right' : settings.stickPosition === 'right') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'right' ? 'transitioning' : ''}`}
+                      disabled={edgeTransition?.active}
+                      onClick={() => {
+                        void startEdgeTransition('right')
+                      }}
+                    >
+                      {t('position.rightEdge') || 'Right Edge'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1381,36 +1361,6 @@ export function Settings({
                 </div>
               )}
 
-              {/* Card 3: Typography */}
-              <div className="settings-shelf-card typography-card appearance-col">
-                <div className="shelf-card-top">
-                  <div className="setting-group-label">{t('appearance.typography')}</div>
-                  <div className="setting-title">{t('appearance.textSizeTitle')}</div>
-                  <div className="setting-desc">{t('appearance.textSizeDesc')}</div>
-                </div>
-                <div className="shelf-card-bottom">
-                  <div className="setting-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, width: '100%' }}>
-                    {[
-                      { label: t('appearance.small'), val: 0.85 },
-                      { label: t('appearance.normal'), val: 1.0 },
-                      { label: t('appearance.large'), val: 1.15 }
-                    ].map((opt) => (
-                      <button
-                        key={opt.label}
-                        type="button"
-                        className={`pill ${Math.abs((settings.fontSizeScale ?? 1.0) - opt.val) < 0.05 ? 'active' : ''}`}
-                        style={{ height: 32, fontSize: 11.5, fontWeight: 500, padding: 0 }}
-                        onClick={() => {
-                          playButtonClickSound()
-                          patch({ fontSizeScale: opt.val })
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
 
               {/* Card 4: Audio & Feedback */}
               <div className="settings-shelf-card audio-card appearance-col">
@@ -1735,61 +1685,45 @@ export function Settings({
                       <div className="setting-title">{t('position.edgePlacementTitle')}</div>
                       <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
                     </div>
-                    <div className="placement-diamond-wrap">
-                      <div className="diamond-row diamond-top">
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'top' : settings.stickPosition === 'top') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'top' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('top')
-                          }}
-                        >
-                          {t('position.topEdge') || 'Top Edge'}
-                        </button>
-                      </div>
-                      <div className="diamond-row diamond-mid">
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'left' : settings.stickPosition === 'left') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'left' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('left')
-                          }}
-                        >
-                          {t('position.leftEdge') || 'Left Edge'}
-                        </button>
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'right' : settings.stickPosition === 'right') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'right' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('right')
-                          }}
-                        >
-                          {t('position.rightEdge') || 'Right Edge'}
-                        </button>
-                      </div>
-                      <div className="diamond-row diamond-bottom">
-                        <button
-                          type="button"
-                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'bottom' : settings.stickPosition === 'bottom') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'bottom' ? 'transitioning' : ''}`}
-                          disabled={edgeTransition?.active}
-                          onClick={() => {
-                            void startEdgeTransition('bottom')
-                          }}
-                        >
-                          {t('position.bottomEdge') || 'Bottom Edge'}
-                        </button>
-                      </div>
+                    <div className="placement-3way-wrap">
+                      <button
+                        type="button"
+                        className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'left' : settings.stickPosition === 'left') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'left' ? 'transitioning' : ''}`}
+                        disabled={edgeTransition?.active}
+                        onClick={() => {
+                          void startEdgeTransition('left')
+                        }}
+                      >
+                        {t('position.leftEdge') || 'Left Edge'}
+                      </button>
+                      <button
+                        type="button"
+                        className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'top' : settings.stickPosition === 'top') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'top' ? 'transitioning' : ''}`}
+                        disabled={edgeTransition?.active}
+                        onClick={() => {
+                          void startEdgeTransition('top')
+                        }}
+                      >
+                        {t('position.topEdge') || 'Top Edge'}
+                      </button>
+                      <button
+                        type="button"
+                        className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'right' : settings.stickPosition === 'right') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'right' ? 'transitioning' : ''}`}
+                        disabled={edgeTransition?.active}
+                        onClick={() => {
+                          void startEdgeTransition('right')
+                        }}
+                      >
+                        {t('position.rightEdge') || 'Right Edge'}
+                      </button>
                     </div>
                   </div>
 
                   <div className="setting-divider" />
 
-                  {/* Position Range Slider (Vertical for left/right, Horizontal for top/bottom) */}
+                  {/* Position Range Slider (Vertical for left/right, Horizontal for top) */}
                   {(() => {
-                    const isHorizontal = settings.stickPosition === 'top' || settings.stickPosition === 'bottom'
+                    const isHorizontal = settings.stickPosition === 'top'
                     const offsetVal = isHorizontal ? (settings.horizontalOffset ?? 0.5) : (settings.verticalOffset ?? 0.5)
                     const sliderTitle = isHorizontal ? (t('position.horizontalPositionTitle') || 'Horizontal Position') : t('position.verticalPositionTitle')
                     const sliderDesc = isHorizontal ? (t('position.horizontalPositionDesc') || 'Adjust horizontal alignment along screen edge') : t('position.verticalPositionDesc')
