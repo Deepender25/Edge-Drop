@@ -14,6 +14,7 @@
  * the panel suppresses itself after a game goes fullscreen, which is fine.
  */
 import koffi from 'koffi'
+import { isMacFullscreenAppActive } from './macos'
 
 // Windows QUERY_USER_NOTIFICATION_STATE enum values:
 // 1 = QUNS_NOT_PRESENT        (screen saver / locked)
@@ -70,6 +71,7 @@ if (process.platform === 'win32') {
 let isFullscreenActiveCache = false
 let checkTimer: ReturnType<typeof setInterval> | null = null
 let onFullscreenDetectedFn: (() => void) | null = null
+let macCheckInFlight = false
 
 export function registerFullscreenActiveListener(fn: () => void): void {
   onFullscreenDetectedFn = fn
@@ -112,6 +114,17 @@ export function isFullscreenAppActive(): boolean {
 }
 
 export function triggerFullscreenCheck(): void {
+  if (process.platform === 'darwin') {
+    if (macCheckInFlight) return
+    macCheckInFlight = true
+    void isMacFullscreenAppActive().then((isNowFullscreen) => {
+      isFullscreenActiveCache = isNowFullscreen
+      if (isNowFullscreen) onFullscreenDetectedFn?.()
+    }).finally(() => {
+      macCheckInFlight = false
+    })
+    return
+  }
   if (process.platform !== 'win32') return
   const state = queryNotificationState()
   if (state < 0) return   // koffi unavailable or call failed
@@ -143,7 +156,7 @@ export function triggerFullscreenCheck(): void {
 const FULLSCREEN_CHECK_INTERVAL_MS = 800
 
 export function startFullscreenMonitor(): void {
-  if (process.platform !== 'win32') return
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return
   if (checkTimer !== null) return
 
   triggerFullscreenCheck()  // seed cache immediately

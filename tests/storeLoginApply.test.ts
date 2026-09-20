@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const describeWindows = process.platform === 'win32' ? describe : describe.skip
+
 const store = vi.hoisted(() => ({
   get: vi.fn(async () => 2 as number | null),
   enable: vi.fn(async () => 2 as number | null),
@@ -58,7 +60,7 @@ vi.mock('node:child_process', async (importOriginal) => {
 import { app } from 'electron'
 import { applyLaunchAtLogin, reconcileLaunchAtLoginOnStartup, refreshLaunchAtLoginFromOs } from '../electron/main/loginItems'
 
-describe('Store applyLaunchAtLogin uses only enable / disable / getStatus', () => {
+describeWindows('Store applyLaunchAtLogin uses only enable / disable / getStatus', () => {
   beforeEach(() => {
     process.env.APP_BUILD_TARGET = 'store'
     mocks.isPackaged = true

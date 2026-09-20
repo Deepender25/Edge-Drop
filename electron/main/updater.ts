@@ -177,6 +177,12 @@ export function initAutoUpdater(): void {
     console.log('[AutoUpdater] Store build detected — auto-updater disabled.')
     return
   }
+  if (process.platform === 'darwin') {
+    // The fork has no signed/notarized macOS release feed yet. Avoid a noisy
+    // request to the Windows-only upstream release on every launch.
+    console.log('[AutoUpdater] macOS release feed not configured — automatic updates disabled.')
+    return
+  }
 
   try {
     const { autoUpdater } = require('electron-updater')

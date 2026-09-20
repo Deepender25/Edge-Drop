@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { resolveStoredImage, thumbnailUrlForFile, thumbnailUrlForStoredImage } from '../electron/main/imageProtocol'
+import { isMacFileListFormat } from '../electron/clipboard/formats'
 
 describe('resolveStoredImage', () => {
   let imagesDir: string
@@ -53,5 +54,17 @@ describe('resolveStoredImage', () => {
   it('encodes file thumbnail paths without exposing a raw Windows path', () => {
     expect(thumbnailUrlForFile('C:\\Pictures\\image one.png'))
       .toBe('edgelocal://thumb/file/C%3A%2FPictures%2Fimage%20one.png')
+  })
+})
+
+describe('macOS clipboard file formats', () => {
+  it('recognizes Electron\'s normalized Finder URI-list format', () => {
+    expect(isMacFileListFormat('text/uri-list')).toBe(true)
+  })
+
+  it('keeps native Finder file-list format compatibility', () => {
+    expect(isMacFileListFormat('public.file-url')).toBe(true)
+    expect(isMacFileListFormat('NSFilenamesPboardType')).toBe(true)
+    expect(isMacFileListFormat('image/png')).toBe(false)
   })
 })

@@ -145,11 +145,20 @@
   background: transparent;
   border: none;
   transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
+    color var(--dur-fast) var(--ease-out),
+    transform 0.1s ease;
 }
 .icon-btn:hover {
   background: var(--bg-chip);
   color: var(--text-primary);
+}
+.icon-btn:active {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.11);
+}
+.icon-btn.active {
+  background: var(--bg-chip);
+  color: #ffffff;
 }
 
 /* Search */
@@ -572,6 +581,27 @@
   color: #ffffff;
 }
 
+/* Retina-friendly controls: lighter surfaces and less chrome than the
+   Windows/DWM treatment, while preserving the same layout and interaction. */
+html[data-platform='darwin'] .filter-chip {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.045);
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+html[data-platform='darwin'] .filter-chip:not(.active):hover {
+  background: rgba(255, 255, 255, 0.095);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+html[data-platform='darwin'] .icon-btn {
+  border-radius: 8px;
+}
+
 /* Copy Indicator Sine Curve Morph Styles */
 .copy-curve-container {
   pointer-events: none;
@@ -584,4 +614,3 @@
   font-family: inherit;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
-

@@ -1,6 +1,8 @@
 node_modules
 out
 dist
+resources/macos/build
+resources/macos/bin
 *.log
 drag_debug.txt
 clipboard_debug.log
@@ -21,4 +23,3 @@ icons-showcase.svg
 scripts/generate_showcase.mjs
 electron-clipboard-search-implementation/
 scratch/verify-*.cjs
-

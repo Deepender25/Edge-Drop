@@ -2,6 +2,8 @@
   <img src=".github/readme/Logo.gif" alt="Edge-Drop Logo" width="220" style="max-width: 100%; height: auto;" />
 </p>
 
+> **macOS port:** the `macos-port` branch adds a native macOS pasteboard helper, menu-bar/Spaces behavior, Finder file copy/paste, Command+V automation, full-screen detection, launch at login, and DMG/ZIP packaging. See [MACOS.md](MACOS.md) for setup and current distribution notes.
+
 <h1 align="center">Edge-Drop</h1>
 
 <p align="center">
@@ -37,7 +39,7 @@
   <a href="https://github.com/Deepender25/Edge-Drop/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=d2f4e8" /></a>
   <img src="https://img.shields.io/badge/tests-364%20passing-8ca77b?style=flat-square&logo=vitest&logoColor=white&labelColor=23272e" alt="Tests" />
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=ffe6b3" /></a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-93a4fc?style=flat-square&logo=windows&logoColor=white&labelColor=23272e" alt="Platform" />
+  <img src="https://img.shields.io/badge/platform-Windows%20%2B%20macOS-93a4fc?style=flat-square&logo=apple&logoColor=white&labelColor=23272e" alt="Platform" />
 </p>
 
 <p align="center">

@@ -721,10 +721,9 @@
 }
 
 .indicator-card.active {
-  background: #141414;
+  background: rgba(255, 255, 255, 0.055);
   box-shadow: none;
-  outline: 2px solid #ffffff;
-  outline-offset: 0;
+  outline: none;
 }
 
 .indicator-card-stage {

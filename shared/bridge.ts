@@ -9,6 +9,8 @@ import type { Settings } from './types'
 import type { DragRequest } from './types'
 
 export interface EdgeApi {
+  readonly platform: 'aix' | 'android' | 'darwin' | 'freebsd' | 'haiku' | 'linux' | 'openbsd' | 'sunos' | 'win32' | 'cygwin' | 'netbsd'
+
   /* Renderer -> Main */
   loadState: () => Promise<{ items: import('./types').ClipboardItemDto[]; settings: Settings; version: string; isStoreBuild?: boolean }>
   setPinned: (id: string, pinned: boolean) => Promise<import('./types').ClipboardItemDto[]>

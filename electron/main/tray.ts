@@ -65,6 +65,17 @@ export function isTaskbarLightTheme(): boolean {
 
 /** Resolves the appropriate 32x32 tray icon based on the current taskbar theme. */
 export function getTrayImage(): Electron.NativeImage {
+  if (process.platform === 'darwin') {
+    const source = existsSync(PATHS.trayIcon())
+      ? nativeImage.createFromPath(PATHS.trayIcon())
+      : fallbackIcon()
+    const image = source.resize({ width: 18, height: 18, quality: 'best' })
+    if (typeof image.setTemplateImage === 'function') {
+      image.setTemplateImage(true)
+      return image
+    }
+  }
+
   const isLight = isTaskbarLightTheme()
   const preferredPath = isLight ? PATHS.trayDarkIcon() : PATHS.trayIcon()
   const fallbackPath = PATHS.trayIcon()

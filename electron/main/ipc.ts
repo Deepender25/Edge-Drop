@@ -25,6 +25,8 @@ import { isStoreBuild } from './config'
 import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
 import { toUnpackagedFilePath, toUnpackagedFilePaths } from '../store/paths'
 import { isPasteableEmoji } from '../../shared/emoji'
+import { simulateMacPaste, writeMacClipboardFiles, writeMacClipboardImage } from './macos'
+import { filePathsFromUriList } from '../../shared/dropPayload'
 
 export { isStoreBuild }
 
@@ -71,6 +73,9 @@ function simulatePaste(): void {
         })
       })
   }
+  if (process.platform === 'darwin') {
+    void simulateMacPaste()
+  }
 }
 
 /**
@@ -107,6 +112,9 @@ async function writeFileListToClipboard(rawPaths: string[]): Promise<boolean> {
       console.error('[ipc] writeFileListToClipboard PowerShell failed, using text fallback:', err)
     }
   }
+  if (process.platform === 'darwin') {
+    return writeMacClipboardFiles(validPaths)
+  }
   // Non-Windows / PowerShell failure fallback: plain text paths (best-effort)
   clipboard.clear()
   clipboard.writeText(validPaths.join('\r\n'))
@@ -141,6 +149,9 @@ export async function writeImageToClipboard(imagePath: string | null): Promise<b
  * our friendly filename. Atomic multi-format write via PowerShell DataObject.
  */
 async function writeImageWithNamedFile(imagePath: string, namedPath: string): Promise<boolean> {
+  if (process.platform === 'darwin') {
+    return writeMacClipboardImage(imagePath, [namedPath])
+  }
   if (process.platform !== 'win32') return false
   try {
     const b64Img = Buffer.from(imagePath, 'utf8').toString('base64')
@@ -554,14 +565,11 @@ export function registerIpc(): void {
     if (data.kind === 'image' && (data as any).imageUrl) {
       const imageUrl = (data as any).imageUrl as string
       if (/^file:/i.test(imageUrl)) {
-        const local = imageUrl.replace(/^file:\/\//i, '').replace(/^\/([a-zA-Z]:)/, '$1')
-        try {
-          const decoded = decodeURIComponent(local).replace(/\//g, '\\')
-          if (existsSync(decoded)) {
-            addFiles([decoded])
-            return getStore().toDto()
-          }
-        } catch { /* fall through to bitmap import */ }
+        const localPaths = filterValidPaths(filePathsFromUriList(imageUrl, process.platform))
+        if (localPaths.length > 0) {
+          addFiles(localPaths)
+          return getStore().toDto()
+        }
       }
       try {
         let img = nativeImage.createFromDataURL(imageUrl)
@@ -858,6 +866,13 @@ export async function writeItemToClipboard(data: ItemData, capturedAt?: number):
         // No bitmap recoverable — the surviving named file references are
         // still perfectly valid for Explorer-style targets.
         return writeFileListToClipboard(stagedFiles)
+      }
+
+      if (process.platform === 'darwin') {
+        return writeMacClipboardImage(
+          toUnpackagedFilePath(firstSrc),
+          stagedFiles.map((p) => toUnpackagedFilePath(p))
+        )
       }
 
       // Multi-file: all pretty-named refs + first image as bitmap.

@@ -33,6 +33,33 @@ export interface LaunchAtLoginResult {
   ok: boolean
 }
 
+function readMacLaunchAtLogin(): LaunchAtLoginResult {
+  try {
+    const settings = app.getLoginItemSettings()
+    return {
+      enabled: settings.openAtLogin || settings.executableWillLaunchAtLogin,
+      blockedByUser: false,
+      ok: true
+    }
+  } catch {
+    return { enabled: false, blockedByUser: false, ok: false }
+  }
+}
+
+function applyMacLaunchAtLogin(wantLaunch: boolean): LaunchAtLoginResult {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: wantLaunch,
+      openAsHidden: true
+    })
+    const actual = readMacLaunchAtLogin()
+    return { ...actual, ok: actual.ok && actual.enabled === wantLaunch }
+  } catch (err) {
+    console.error('[LoginItems] macOS login-item update failed:', err)
+    return { enabled: !wantLaunch, blockedByUser: false, ok: false }
+  }
+}
+
 export function normalizeLoginPath(p: string): string {
   let s = p.trim().replace(/\//g, '\\').toLowerCase()
   if (s.startsWith('"')) {
@@ -383,6 +410,9 @@ export async function readLaunchAtLogin(): Promise<LaunchAtLoginResult> {
   if (!app.isPackaged) {
     return { enabled: loadSettings().launchAtLogin, blockedByUser: false, ok: true }
   }
+  if (process.platform === 'darwin') {
+    return readMacLaunchAtLogin()
+  }
   if (isStoreBuild()) {
     return resultFromState(await getStatus())
   }
@@ -396,6 +426,9 @@ export async function applyLaunchAtLogin(wantLaunch: boolean): Promise<LaunchAtL
   try {
     if (!app.isPackaged) {
       return { enabled: wantLaunch, blockedByUser: false, ok: true }
+    }
+    if (process.platform === 'darwin') {
+      return applyMacLaunchAtLogin(wantLaunch)
     }
     if (isStoreBuild()) {
       try {
@@ -429,7 +462,7 @@ export async function reconcileLaunchAtLoginOnStartup(): Promise<Settings> {
   if (!os.ok) {
     // GitHub: even when the Electron query fails, a healthy raw key means
     // we are actually fine. Heal the quoting/stale path opportunistically.
-    if (settings.launchAtLogin && !isStoreBuild()) {
+    if (process.platform === 'win32' && settings.launchAtLogin && !isStoreBuild()) {
       try {
         if (!isGithubRunKeyHealthy()) {
           applyGithubLaunchAtLogin(true)
@@ -446,7 +479,7 @@ export async function reconcileLaunchAtLoginOnStartup(): Promise<Settings> {
     // If user has settings=false, but the Run key exists for Edge-Drop and is NOT blocked by user:
     // This happens when 0.3.1's false-negative poll bug erroneously saved launchAtLogin: false.
     // Self-heal: restore settings to true and ensure key is properly quoted!
-    if (!isStoreBuild()) {
+    if (process.platform === 'win32' && !isStoreBuild()) {
       const exe = app.getPath('exe')
       const raw = getRawGithubRunCommand(CANONICAL_LOGIN_ITEM_NAME)
       if (raw && isOurLoginExe(raw, exe) && !isBlockedInStartupApproved(CANONICAL_LOGIN_ITEM_NAME)) {
@@ -484,7 +517,7 @@ export async function reconcileLaunchAtLoginOnStartup(): Promise<Settings> {
     }
   }
 
-  if (settings.launchAtLogin && os.enabled && !isStoreBuild()) {
+  if (process.platform === 'win32' && settings.launchAtLogin && os.enabled && !isStoreBuild()) {
     // Self-heal quoting / stale path / missing --hidden on every launch so
     // users updating from 0.3.0 (unquoted) get fixed without touching UI.
     try {

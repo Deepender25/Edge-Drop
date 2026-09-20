@@ -26,6 +26,7 @@ if (!container) throw new Error('#root element not found')
 // saving massive amounts of GPU fill-rate on 4K/Hi-DPI displays.
 const dpr = window.devicePixelRatio || 1
 document.documentElement.style.setProperty('--dpr', dpr.toString())
+document.documentElement.dataset.platform = window.edge?.platform ?? 'unknown'
 
 const root = createRoot(container)
 

@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
   shouldUseDarkColors: true
 }))
 
+const itWindows = process.platform === 'win32' ? it : it.skip
+
 vi.mock('node:child_process', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:child_process')>()
   return {
@@ -91,7 +93,7 @@ describe('Tray Icon Theme Adaptation (Issue #64)', () => {
     expect(darkBuf.subarray(0, 8)).toEqual(pngMagic)
   })
 
-  it('detects Light taskbar when SystemUsesLightTheme is 0x1', () => {
+  itWindows('detects Light taskbar when SystemUsesLightTheme is 0x1', () => {
     mocks.execFileSync.mockReturnValue(
       'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\r\n    SystemUsesLightTheme    REG_DWORD    0x1\r\n'
     )
