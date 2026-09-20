@@ -15,9 +15,17 @@ import { useFilteredItems } from '../hooks/useFilteredItems'
 import { ClipboardItemCard } from './ClipboardItem'
 import { EmptyState } from './EmptyState'
 import { ChevronDownIcon, PinFillIcon } from './icons'
-import { playExpandSound } from '../lib/soundEffects'
+import { playExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 import { useTranslation } from '../i18n'
+
+const getVerticalPinnedLabelStyle = (text: string): React.CSSProperties => {
+  const len = text.length
+  if (len <= 6) return { fontSize: 'calc(9.5px * var(--font-scale, 1))', letterSpacing: '0.14em' }
+  if (len <= 8) return { fontSize: 'calc(8.5px * var(--font-scale, 1))', letterSpacing: '0.07em' }
+  if (len <= 10) return { fontSize: 'calc(7.5px * var(--font-scale, 1))', letterSpacing: '0.02em' }
+  return { fontSize: 'calc(7.0px * var(--font-scale, 1))', letterSpacing: '0em' }
+}
 
 export function ItemList() {
   const { t } = useTranslation()
@@ -196,6 +204,7 @@ export function ItemList() {
   }
 
   const scrollToTop = () => {
+    playButtonClickSound()
     if (listRef.current) {
       filterScrollMap.current[typeFilter] = { top: 0, left: 0 }
       if (isHorizontal) {
@@ -325,8 +334,12 @@ export function ItemList() {
               >
                 <div className="pinned-header-left">
                   <PinFillIcon width={13} height={13} style={{ opacity: 0.9, color: '#ffffff' }} />
-                  <span>{t('item.pinned')}</span>
-                  <span className="pinned-count-badge">{pinned.length}</span>
+                  <div className="pinned-label-group">
+                    <span style={isHorizontal ? getVerticalPinnedLabelStyle(t('item.pinned')) : undefined}>
+                      {t('item.pinned')}
+                    </span>
+                    <span className="pinned-count-badge">{pinned.length}</span>
+                  </div>
                 </div>
                 <div className="pinned-header-right">
                   <button
@@ -367,19 +380,26 @@ export function ItemList() {
       )}
 
       <AnimatePresence>
-        {!isHorizontal && showScrollTop && (
+        {showScrollTop && (
           <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            className="scroll-top-btn"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: settings.reduceMotion ? 0.01 : 0.14, ease: 'easeOut' }}
+            className={`scroll-top-btn${isHorizontal ? ' horizontal' : ''}`}
             onClick={scrollToTop}
             title={t('item.scrollToTop')}
+            aria-label={t('item.scrollToTop')}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="18 15 12 9 6 15"></polyline>
-            </svg>
+            {isHorizontal ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            )}
           </motion.button>
         )}
       </AnimatePresence>

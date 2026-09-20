@@ -207,7 +207,7 @@
   padding-left: 6px;
 }
 
-/* Scroll to top button */
+/* Scroll to top / start button */
 .scroll-top-btn {
   position: fixed;
   bottom: 64px;
@@ -216,7 +216,7 @@
   height: 44px;
   border-radius: 50%;
   background: #141414;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
   display: flex;
   align-items: center;
@@ -224,17 +224,44 @@
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   z-index: 100;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scroll-top-btn:hover {
   background: #1c1c1c;
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
 }
 
 .scroll-top-btn:active {
   transform: translateY(1px);
+}
+
+/* Horizontal Dock Scroll-to-Start Button */
+.scroll-top-btn.horizontal {
+  bottom: 16px;
+  right: 44px;
+  left: auto;
+  top: auto;
+  width: 38px;
+  height: 38px;
+  background: rgba(18, 18, 20, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.scroll-top-btn.horizontal:hover {
+  background: rgba(28, 28, 32, 0.96);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateX(-2px) scale(1.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.scroll-top-btn.horizontal:active {
+  transform: scale(0.96);
 }
 
 .bundle-stack {

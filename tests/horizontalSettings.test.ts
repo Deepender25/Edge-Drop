@@ -301,4 +301,33 @@ it('Appearance shelf renders Card 1 Copy Indicator toggle first, then Card 2 Ind
     expect(settingsSrc).toContain('language-toggle-btn')
     expect(settingsSrc).toContain('setLanguageFlyoutOpen(!languageFlyoutOpen, rect)')
   })
+
+  it('ItemList renders scroll-to-start arrow button with directional left chevron in horizontal dock mode', () => {
+    const itemListSrc = read('src/components/ItemList.tsx')
+    expect(itemListSrc).toContain('showScrollTop && (')
+    expect(itemListSrc).toContain('className={`scroll-top-btn${isHorizontal ? \' horizontal\' : \'\'}`}')
+    expect(itemListSrc).toContain('points="15 18 9 12 15 6"') // Left chevron in horizontal
+    expect(itemListSrc).toContain('points="18 15 12 9 6 15"') // Up chevron in vertical
+    expect(itemListSrc).toContain('playButtonClickSound()')
+
+    const itemCss = read('src/styles/item.css')
+    expect(itemCss).toContain('.scroll-top-btn.horizontal')
+    expect(itemCss).toContain('right: 44px')
+    expect(itemCss).toContain('bottom: 16px')
+    expect(itemCss).toContain('backdrop-filter: blur(12px)')
+  })
+
+  it('ItemList applies dynamic vertical font scaling and panel.css bounds for horizontal pinned pill', () => {
+    const itemListSrc = read('src/components/ItemList.tsx')
+    expect(itemListSrc).toContain('getVerticalPinnedLabelStyle')
+    expect(itemListSrc).toContain('getVerticalPinnedLabelStyle(t(\'item.pinned\'))')
+    expect(itemListSrc).toContain('pinned-label-group')
+
+    const panelCss = read('src/styles/panel.css')
+    expect(panelCss).toContain('.list.horizontal .pinned-header-interactive')
+    expect(panelCss).toContain('max-height: 68px')
+    expect(panelCss).toContain('text-overflow: ellipsis')
+    expect(panelCss).toContain('margin: auto 0')
+  })
 });
+

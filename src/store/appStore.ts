@@ -584,6 +584,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     if (reduceMotion) {
       playButtonClickSound()
+      set({ settingsTab: 'position' })
       await get().patchSettings({ stickPosition: to })
       get().notifyPositionChanged()
       return

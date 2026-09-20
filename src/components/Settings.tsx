@@ -178,7 +178,8 @@ export function Settings({
   const downloadPercent = updateInfo?.downloadProgress?.percent ?? 0
 
   // ── Tab state & Independent Scroll Memory per section ──────────────────────
-  const [activeTab, setActiveTab] = useState<SettingsTab>('behaviour')
+  const activeTab = useStore((s) => s.settingsTab)
+  const setActiveTab = useStore((s) => s.setSettingsTab)
   const scrollListRef = useRef<HTMLDivElement>(null)
   const tabScrollPositions = useRef<Record<SettingsTab, number>>({
     behaviour: 0,

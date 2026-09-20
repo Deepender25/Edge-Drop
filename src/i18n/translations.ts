@@ -5638,7 +5638,7 @@ export const pl: TranslationKeys = {
     "copy": "Kopiuj",
     "copied": "skopiowano",
     "imagePlaceholder": "obraz",
-    "pinned": "PRZYPINIĘTE",
+    "pinned": "PRZYPIĘTE",
     "pin": "Przypnij",
     "unpin": "Odepnij",
     "delete": "Usuń",
