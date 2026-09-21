@@ -316,9 +316,29 @@ export function useEdgeHover(): void {
         window.clearTimeout(interactiveTimer)
         interactiveTimer = undefined
       }
-      edge.setInteractive(true)
+      // Sequence the open across two steps so the OS/DWM surface work
+      // (click-through off + always-on-top re-assert over IPC) starts before
+      // the React clip-path/spring commit. Previously both fired in the same
+      // tick, so DWM recomposition contended with layout + first-paint work
+      // and the first open after launch visibly hitched. No visual change:
+      // the same two calls run in the same order, one frame apart.
+      try {
+        void (edge.setInteractive(true) as unknown as Promise<void>)?.catch?.(() => {})
+      } catch { /* ignore IPC errors; close path still governs state */ }
       if (useStore.getState().open) return
-      useStore.getState().setOpen(true)
+      const commitOpen = () => {
+        if (useStore.getState().open) return
+        useStore.getState().setOpen(true)
+      }
+      try {
+        if (typeof window.requestAnimationFrame === 'function') {
+          window.requestAnimationFrame(() => commitOpen())
+        } else {
+          commitOpen()
+        }
+      } catch {
+        commitOpen()
+      }
     }
 
     // ── panel:leave / panel:enter (from Panel.tsx blade div) ──────────────

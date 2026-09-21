@@ -33,6 +33,21 @@ function getAudioContext(): any | null {
   return audioCtx
 }
 
+/**
+ * Idle warmup for the shared AudioContext.
+ * Creates/resumes the singleton off the animation path (called once from an
+ * idle callback after hydration). No sound is played; first real UI sound
+ * then reuses the warm context instead of paying creation cost mid-animation.
+ * Respects the `soundEffects` setting via getAudioContext().
+ */
+export function warmAudioContext(): void {
+  try {
+    getAudioContext()
+  } catch {
+    /* ignore Web Audio API restrictions */
+  }
+}
+
 // Global auto-unlock listener: resumes AudioContext on first pointerdown/mouseenter/keydown
 const win = typeof globalThis !== 'undefined' ? (globalThis as any).window : undefined
 if (win && win.addEventListener) {

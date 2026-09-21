@@ -15,7 +15,7 @@ import { isStagedTempPath } from '../store/paths'
 import { prefetchFileIcons } from './drag'
 import { forgetStagedItems, reconcileTempOnStartup } from './stagedTemp'
 import { runtime } from './config'
-import { getMainWindow, registerClipboardUpdateListener } from './window'
+import { getMainWindow, registerClipboardUpdateListener, requestPollBoost } from './window'
 
 const store = new ItemStore((removed) => forgetStagedItems(removed))
 const watcher = new ClipboardWatcher(600, 220)
@@ -29,6 +29,9 @@ function handleSystemSleep(): void {
 function handleSystemWake(): void {
   watcher.resyncSignature()
   watcher.setPaused(true)
+  // First hover after sleep/unlock otherwise hits a SLOW poll tick and feels
+  // laggy. Hold FAST briefly; self-expiring, idle battery behavior unchanged.
+  try { requestPollBoost(8000) } catch { /* ignore */ }
 
   if (wakeTimer !== null) clearTimeout(wakeTimer)
   wakeTimer = setTimeout(() => {

@@ -176,11 +176,19 @@ export function isInteractive(): boolean {
  * - interactive=true  (expanded) -> normal interactive window: the black blade
  *   captures all clicks.
  */
+let gcTimer: ReturnType<typeof setTimeout> | null = null
+
 export function setInteractive(value: boolean): void {
   if (!mainWindow || value === interactive) return
   interactive = value
   if (value) {
     // Panel is open: disable click-through so user can interact.
+    // Cancel any pending idle GC: collecting during the open animation is
+    // what made fast reopen-after-close hitch. The next close re-arms it.
+    if (gcTimer !== null) {
+      clearTimeout(gcTimer)
+      gcTimer = null
+    }
     mainWindow.setIgnoreMouseEvents(false)
     // Use 'screen-saver' level to stay above fullscreen apps (YouTube fullscreen, games, etc.)
     // 'floating' (HWND_TOPMOST) can be pushed behind by fullscreen D3D/browser windows.
@@ -196,7 +204,9 @@ export function setInteractive(value: boolean): void {
 
     // Trigger gentle idle memory cleanup 1.5s after panel closes to reclaim RAM
     if (global.gc) {
-      setTimeout(() => {
+      if (gcTimer !== null) clearTimeout(gcTimer)
+      gcTimer = setTimeout(() => {
+        gcTimer = null
         if (!interactive && global.gc) {
           try { global.gc() } catch { /* ignore */ }
         }
@@ -245,8 +255,35 @@ let heartbeatPaused = false
 
 /** Whether the poll is currently running in fast (16ms) mode. */
 let _pollFast = false
+/**
+ * Cold-start / wake boost deadline (epoch ms). While `Date.now()` is before
+ * this, the poll stays FAST even with the cursor far from the edge. Covers
+ * the first hover after launch/restart/wake, which otherwise hits a SLOW
+ * tick (75/100ms) + dwell and feels like lag. Steady-state adaptive behavior
+ * is unchanged once the window expires.
+ */
+let _boostUntilMs = 0
 /** Timestamp of when the cursor last left the proximity zone. */
 let _lastProximityExitMs = 0
+
+/**
+ * Hold the cursor poll at full speed for `durationMs`. Used once at launch
+ * and after system wake. Bounded and self-expiring: after the deadline the
+ * adaptive SLOW/FAST logic resumes exactly as before, so idle battery cost
+ * is unchanged (one ~8s FAST window per launch/wake).
+ */
+export function requestPollBoost(durationMs = 8000): void {
+  try {
+    _boostUntilMs = Date.now() + Math.max(0, durationMs)
+  } catch {
+    _boostUntilMs = 0
+  }
+  if (cursorPollTimer !== null && !_pollFast) {
+    _pollFast = true
+    _lastProximityExitMs = 0
+    _restartPollTimer(POLL_FAST_MS)
+  }
+}
 /** Last sent cursor position — used to suppress duplicate IPC messages. */
 let _lastSentX = -9999
 let _lastSentY = -9999
@@ -326,7 +363,9 @@ function _pollTick(): void {
   const distFromEdge = seam.probe.distFromEdge
 
   // ── Adaptive speed: switch to fast poll when cursor approaches the edge ──
-  const nearProximity = isNearProximity(distFromEdge)
+  // The launch/wake boost forces FAST during the cold window so the first
+  // hover never waits on a SLOW tick. `isNearProximity` behavior is untouched.
+  const nearProximity = isNearProximity(distFromEdge) || Date.now() < _boostUntilMs
 
   if (nearProximity || interactive) {
     _lastProximityExitMs = 0  // reset cooldown
@@ -400,6 +439,10 @@ export function startCursorPoll(): void {
   const slowMs = powerMonitor.isOnBatteryPower() ? POLL_SLOW_BATTERY_MS : POLL_SLOW_AC_MS
   _pollFast = false
   cursorPollTimer = setInterval(_pollTick, slowMs)
+  // Cold-start boost: hold FAST briefly so the very first hover after a
+  // device restart / full relaunch responds on a 16ms tick, not a 75/100ms
+  // one. Self-expiring; idle battery behavior after the window is unchanged.
+  requestPollBoost(8000)
 }
 
 export function stopCursorPoll(): void {

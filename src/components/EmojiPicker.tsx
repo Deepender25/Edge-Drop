@@ -69,6 +69,7 @@ function Glyph({ file, size = 22 }: { file: string; size?: number }) {
       height={size}
       draggable={false}
       decoding="async"
+      loading="lazy"
       style={{ width: size, height: size }}
     />
   )
@@ -99,6 +100,12 @@ export function EmojiPicker({
   const scrollerRef = useRef<HTMLDivElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
   const lastPasteAt = useRef(0)
+  // Scroll position is consumed one frame at a time: rapid scroll events
+  // only record the latest offset and schedule a single rAF commit, so the
+  // virtualized grid recomputes at most once per frame instead of once per
+  // raw scroll event. Same scroll position, less CPU while scrolling.
+  const scrollRaf = useRef<number | null>(null)
+  const pendingScrollTop = useRef(0)
 
   const shownCats = useMemo(() => {
     return CATEGORY_ORDER.filter((c) => c.id !== 'recents' || recents.length > 0)
@@ -137,6 +144,15 @@ export function EmojiPicker({
     setScrollTop(0)
     if (scrollerRef.current) scrollerRef.current.scrollTop = 0
   }, [category])
+
+  useEffect(() => {
+    return () => {
+      if (scrollRaf.current !== null) {
+        try { cancelAnimationFrame(scrollRaf.current) } catch { /* ignore */ }
+        scrollRaf.current = null
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!active || !catalog) return
@@ -297,9 +313,14 @@ export function EmojiPicker({
           ref={scrollerRef}
           className="emoji-grid"
           onScroll={(e) => {
-            setScrollTop((e.currentTarget as HTMLDivElement).scrollTop)
-            setTonePop(null)
-            setHoveredCat(null)
+            pendingScrollTop.current = (e.currentTarget as HTMLDivElement).scrollTop
+            if (scrollRaf.current !== null) return
+            scrollRaf.current = requestAnimationFrame(() => {
+              scrollRaf.current = null
+              setScrollTop(pendingScrollTop.current)
+              setTonePop(null)
+              setHoveredCat(null)
+            })
           }}
         >
           <div style={{ height: startRow * rowH }} />
