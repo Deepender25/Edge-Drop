@@ -314,7 +314,9 @@ it('Appearance shelf renders Card 1 Copy Indicator toggle first, then Card 2 Ind
     expect(itemCss).toContain('.scroll-top-btn.horizontal')
     expect(itemCss).toContain('right: 44px')
     expect(itemCss).toContain('bottom: 16px')
-    expect(itemCss).toContain('backdrop-filter: blur(12px)')
+    // Crisp solid fill instead of backdrop blur (4K sharpness, zero raster cost).
+    expect(itemCss).toContain('background: #121214')
+    expect(itemCss).not.toContain('backdrop-filter')
   })
 
   it('ItemList applies dynamic vertical font scaling and panel.css bounds for horizontal pinned pill', () => {

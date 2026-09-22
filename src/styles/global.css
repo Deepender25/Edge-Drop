@@ -36,10 +36,10 @@ body {
   color: var(--text-primary);
   background: transparent;
   overflow: hidden;
-  /* Real face is loaded; grayscale AA on dark UI is the sharp path. */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
+  /* No font-smoothing/rendering overrides: the OS default (ClearType on
+     Windows) is the sharp path, matching every native element next to us.
+     Forced grayscale AA + geometricPrecision visibly softens glyphs,
+     worst on high-DPI displays. */
   font-feature-settings: 'ss01' 1;
   user-select: none;
   -webkit-user-select: none;

@@ -1317,9 +1317,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(18, 18, 18, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #121212;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   font-size: 11.5px;
