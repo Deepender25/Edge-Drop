@@ -8,6 +8,7 @@
  */
 import { create } from 'zustand'
 import { edge } from '../lib/edge'
+import { takeSearchEngaged } from '../lib/searchFocus'
 import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
 import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
@@ -397,6 +398,15 @@ export const useStore = create<AppState>((set, get) => ({
       // compiling under the DOM-less node tsconfig.)
       const active = (globalThis as { document?: { activeElement?: { blur?: () => void } } }).document?.activeElement
       try { active?.blur?.() } catch { /* ignore */ }
+      // If search held temporary OS focusability + paused hotkey through a
+      // close path that skipped the input's blur (tray toggle, cursor
+      // leave), restore both exactly once. No-op when search was never used.
+      try {
+        if (takeSearchEngaged()) {
+          void edge.focusWindow(false)?.catch?.(() => {})
+          void edge.pauseHotkey(false)?.catch?.(() => {})
+        }
+      } catch { /* ignore */ }
       // NOTE: Do NOT reset styleFlyoutOpen here — closePanel() handles the
       // sequencing so the flyout exit animation completes before the panel closes.
       // Only reset previewItemId so the normal preview flyout clears correctly.

@@ -4,6 +4,7 @@ import { useStore } from '../store/appStore'
 import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon, EmojiSmileIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { loadEmojiCatalog } from '../lib/emoji/load'
+import { ShelfSearch } from './ShelfSearch'
 
 import { useTranslation } from '../i18n'
 import { ClearMenu } from './ClearMenu'
@@ -255,6 +256,11 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         )}
       </div>
 
+      {isHorizontal && !settingsOpen && !emojiOpen && (
+        <div className="header-search header-search-center">
+          <ShelfSearch />
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 2, position: 'relative', zIndex: 260 }}>
         {isHorizontal && !settingsOpen && itemCount != null && (
           <div className="footer-capsule" style={{ marginRight: 2 }}>

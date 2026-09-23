@@ -220,6 +220,32 @@
   pointer-events: none;
 }
 
+/* Header-embedded search (horizontal dock): centered overlay, long field.
+   Absolutely centered to the header so side widths can't offset it; fixed
+   width so focusing never shifts any neighboring buttons. */
+.header-search-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+}
+.header-search-center .search {
+  margin: 0;
+}
+.header-search-center .search input {
+  height: 30px;
+  width: 300px;
+  max-width: 100%;
+  padding: 0 10px 0 30px;
+  font-size: calc(12px * var(--font-scale, 1));
+}
+.header-search-center .search .search-icon {
+  left: 9px;
+}
+
 /* Scroll area */
 .list {
   flex: 1;

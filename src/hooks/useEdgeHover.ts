@@ -638,6 +638,10 @@ export function useEdgeHover(): void {
 
     // ── keyboard ───────────────────────────────────────────────────────────
     const onKeyDown = (e: KeyboardEvent) => {
+      // Never close the panel while the user is typing in a text field
+      // (search owns Escape: clear, then blur).
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
       if (e.key === 'Escape' && useStore.getState().open) scheduleClose(0)
     }
 

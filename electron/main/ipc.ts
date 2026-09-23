@@ -12,7 +12,7 @@ import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
-import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable } from './window'
+import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
@@ -430,10 +430,19 @@ export function registerIpc(): void {
         getStore().touch(id)
       }
 
-      // 4. Simulate Ctrl+V after 50ms
-      setTimeout(() => {
-        simulatePaste()
-      }, 50)
+      // 4. Keys under the uniform rule: clipboard is already written, so
+      // resolve WHERE they may go. Verified target -> send after settle;
+      // unrecoverable foreground -> toast, never fire blind.
+      const sendDelay = await resolvePasteTarget(50)
+      if (sendDelay < 0) {
+        toast('Clipboard ready — click your app and press Ctrl+V to paste', 'info')
+      } else {
+        setTimeout(() => {
+          traceFg('sendKeys')
+          simulatePaste()
+          setTimeout(() => traceFg('sendKeys+400ms'), 400)
+        }, sendDelay)
+      }
 
       // 5. Broadcast updated items list after panel has fully closed off-screen (250ms)
       if (settings.movePastedToTop !== false) {
@@ -489,10 +498,17 @@ export function registerIpc(): void {
       // Pass false to explicitly close and avoid toggle race conditions.
       pushState.togglePanel(false)
 
-      // Wait 50ms for layout updates, then simulate Ctrl+V
-      setTimeout(() => {
-        simulatePaste()
-      }, 50)
+      // Wait for layout updates, then keys under the uniform rule.
+      const subSendDelay = await resolvePasteTarget(50)
+      if (subSendDelay < 0) {
+        toast('Clipboard ready — click your app and press Ctrl+V to paste', 'info')
+      } else {
+        setTimeout(() => {
+          traceFg('sendKeys')
+          simulatePaste()
+          setTimeout(() => traceFg('sendKeys+400ms'), 400)
+        }, subSendDelay)
+      }
     } finally {
       setTimeout(() => {
         watcher.invalidateSignature()
@@ -518,9 +534,16 @@ export function registerIpc(): void {
       // same emoji from another app still lands: signatures include the Win32
       // sequence number, so an outside Ctrl+C is a new seq and is recorded.
       clipboard.writeText(text.trim())
-      setTimeout(() => {
-        simulatePaste()
-      }, 40)
+      const emojiSendDelay = await resolvePasteTarget(40)
+      if (emojiSendDelay < 0) {
+        toast('Clipboard ready — click your app and press Ctrl+V to paste', 'info')
+      } else {
+        setTimeout(() => {
+          traceFg('sendKeys')
+          simulatePaste()
+          setTimeout(() => traceFg('sendKeys+400ms'), 400)
+        }, emojiSendDelay)
+      }
     } finally {
       setTimeout(() => {
         watcher.resyncSignature()
@@ -710,8 +733,21 @@ export function registerIpc(): void {
     }
   })
 
-  handle('window:focus', (focusable) => {
-    setWindowFocusable(focusable ?? true)
+  handle('window:focus', async (focusable) => {
+    const want = focusable ?? true
+    traceFg(`window:focus(${want})`)
+    if (want) {
+      // Last safe instant: we cannot be foreground yet (still NOACTIVATE /
+      // non-focusable), so whatever is front is the user's app. Re-capture
+      // heals any stale open-time note.
+      try {
+        captureExternalForeground()
+      } catch { /* ignore */ }
+    }
+    // Release path fully handled inside setWindowFocusable (writes, then
+    // before/after-compared verified repair). No pre-restore here: restoring
+    // first would only mask the before-reading the repair depends on.
+    setWindowFocusable(want)
   })
 
   handle('displays:list', () => {
