@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import type { DisplayInfo } from '../../shared/types'
+import type { DisplayInfo, UpdateMode } from '../../shared/types'
+import { resolveUpdateMode } from '../../shared/types'
 import {
   LogoIndicatorIcon,
   TickIndicatorIcon,
@@ -168,13 +169,18 @@ export function Settings({
   }, [])
 
   const updateDownloaded = updateInfo?.downloaded ? { version: updateInfo.latestVersion } : null
-  const autoUpdates = settings.autoUpdates ?? true
+  const updateMode = resolveUpdateMode(settings)
 
   const checkState = useStore((s) => s.manualCheckState)
   const handleManualCheck = () => useStore.getState().startManualCheck()
   const handleStartDownload = () => useStore.getState().startManualDownload()
 
-  const isDownloading = checkState.status === 'downloading' || (!updateDownloaded && (settings.autoUpdates ?? true) && !!updateInfo?.hasUpdate)
+  // Downloading while a real download runs (manual or auto). In 'auto' mode a
+  // just-found update starts downloading immediately, so cover that gap too;
+  // in 'notify' mode a found update waits for the user's Download click.
+  const isDownloading = checkState.status === 'downloading' || (!updateDownloaded && !!updateInfo?.hasUpdate && (updateMode === 'auto' || !!updateInfo?.downloadProgress))
+  // Background-found update waiting for a decision (notify mode prompt).
+  const hasBackgroundUpdate = !updateDownloaded && !isDownloading && !!updateInfo?.hasUpdate
   const downloadPercent = updateInfo?.downloadProgress?.percent ?? 0
 
   // ── Tab state & Independent Scroll Memory per section ──────────────────────
@@ -219,11 +225,13 @@ export function Settings({
 
   // ── Update banner ref & status tracking ────────────────────────────────────
   const updateBannerRef = useRef<HTMLDivElement | null>(null)
-  const hasUpdatePrompt = !isStoreBuild && (!autoUpdates || !!(updateDownloaded || isDownloading || checkState.status === 'available'))
+  // Active update states, mode-independent: banners and prompts show whenever
+  // an update is known (auto download, notify prompt, or manual result).
+  const hasUpdatePrompt = !isStoreBuild && !!(updateDownloaded || isDownloading || checkState.status === 'available' || hasBackgroundUpdate)
 
   // ── Floating Scroll Indicator Badge for Off-Screen Update Banner ────────────
   const [isUpdateCardVisible, setIsUpdateCardVisible] = useState(false)
-  const hasActiveUpdate = !isStoreBuild && !!(updateDownloaded || isDownloading || checkState.status === 'available')
+  const hasActiveUpdate = !isStoreBuild && !!(updateDownloaded || isDownloading || checkState.status === 'available' || hasBackgroundUpdate)
   const showScrollUpdateBadge = hasActiveUpdate && !isUpdateCardVisible
 
   useEffect(() => {
@@ -291,92 +299,97 @@ export function Settings({
   const PersistentFooter = (
     <>
       {/* Community & Support */}
-      <div className="setting-group-label" style={{ marginTop: 20 }}>{t('footer.communityAndSupport')}</div>
+      <div className="setting-section-divider">
+        <span className="setting-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
+      </div>
 
-      <div className="setting-row vertical" style={{ gap: 10 }}>
-        <div className="setting-info">
+      <div className="setting-card">
+        <div className="shelf-card-top">
+          <div className="setting-group-label">FEEDBACK</div>
           <div className="setting-title">{t('footer.feedbackTitle')}</div>
           <div className="setting-desc">{t('footer.feedbackDesc')}</div>
         </div>
-        <button
-          className="pill display-pill"
-          style={{ width: '100%', justifyContent: 'center', padding: '7px 14px', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '12.5px' }}
-          onClick={() => {
-            playButtonClickSound()
-            window.open('https://github.com/Deepender25/Edge-Drop/issues/new/choose', '_blank')
-          }}
-        >
-          {t('footer.submitFeedback')}
-        </button>
+        <div className="shelf-card-bottom">
+          <button
+            className="pill display-pill"
+            style={{ width: '100%', justifyContent: 'center', padding: '7px 14px', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '12.5px' }}
+            onClick={() => {
+              playButtonClickSound()
+              window.open('https://github.com/Deepender25/Edge-Drop/issues/new/choose', '_blank')
+            }}
+          >
+            {t('footer.submitFeedback')}
+          </button>
+        </div>
       </div>
 
-      {/* Support & GitHub Promo Footer */}
-      <div className="setting-divider" style={{ marginTop: 20 }} />
-
-      <div className="support-promo">
-        <div className="support-promo-title">
-          {t('footer.supportPromo')}
-        </div>
-        <div className="support-buttons-group">
-          {/* Primary Action: Support via Ko-fi / UPI */}
-          <button
-            className="kofi-support-btn"
-            onClick={() => {
-              playButtonClickSound()
-              window.open('https://www.edgedrop.app/supportedgedrop', '_blank')
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff4757" stroke="none" style={{ flexShrink: 0 }}>
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-            <span>{t('footer.supportOnKofi')}</span>
-          </button>
-
-          {/* Secondary Action: GitHub Star on GitHub builds / Review on Microsoft Store for Store builds */}
-          {isStoreBuild ? (
+      {/* Support & GitHub Promo Card */}
+      <div className="setting-card" style={{ padding: '14px' }}>
+        <div className="support-promo" style={{ margin: 0, padding: 0, background: 'transparent', border: 'none' }}>
+          <div className="support-promo-title">
+            {t('footer.supportPromo')}
+          </div>
+          <div className="support-buttons-group">
+            {/* Primary Action: Support via Ko-fi / UPI */}
             <button
-              type="button"
-              className="store-review-promo-btn"
+              className="kofi-support-btn"
               onClick={() => {
                 playButtonClickSound()
-                window.open('ms-windows-store://review/?ProductId=9P3JMHN9M4NR', '_blank')
+                window.open('https://www.edgedrop.app/supportedgedrop', '_blank')
               }}
             >
-              <MicrosoftStoreLogo width={14} height={14} className="store-logo-icon" />
-              <span>{t('footer.reviewOnStore')}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff4757" stroke="none" style={{ flexShrink: 0 }}>
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+              <span>{t('footer.supportOnKofi')}</span>
             </button>
-          ) : (
+
+            {/* Secondary Action: GitHub Star on GitHub builds / Review on Microsoft Store for Store builds */}
+            {isStoreBuild ? (
+              <button
+                type="button"
+                className="store-review-promo-btn"
+                onClick={() => {
+                  playButtonClickSound()
+                  window.open('ms-windows-store://review/?ProductId=9P3JMHN9M4NR', '_blank')
+                }}
+              >
+                <MicrosoftStoreLogo width={14} height={14} className="store-logo-icon" />
+                <span>{t('footer.reviewOnStore')}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="github-promo-btn"
+                onClick={() => {
+                  playButtonClickSound()
+                  window.open('https://github.com/Deepender25/Edge-Drop', '_blank')
+                }}
+              >
+                <GithubOctocatLogo width={14} height={14} className="github-octocat-icon" />
+                <span>{t('footer.starOnGithub')}</span>
+                <StarIcon width={13} height={13} className="star-icon" fill="#fbbf24" stroke="#fbbf24" style={{ marginLeft: 2 }} />
+              </button>
+            )}
+          </div>
+          <div className="app-version-footer">
+            <span>{t('footer.version')} {currentVersion || '0.3.1'}</span>
+            <span className="version-separator">·</span>
             <button
               type="button"
-              className="github-promo-btn"
+              className="version-changelog-link"
               onClick={() => {
                 playButtonClickSound()
-                window.open('https://github.com/Deepender25/Edge-Drop', '_blank')
+                if (currentVersion) {
+                  patch({ lastSeenChangelogVersion: currentVersion })
+                }
+                window.open('https://www.edgedrop.app/changelog', '_blank')
               }}
             >
-              <GithubOctocatLogo width={14} height={14} className="github-octocat-icon" />
-              <span>{t('footer.starOnGithub')}</span>
-              <StarIcon width={13} height={13} className="star-icon" fill="#fbbf24" stroke="#fbbf24" style={{ marginLeft: 2 }} />
+              <span>{t('header.whatsNew')}</span>
+              <span style={{ fontSize: 10, opacity: 0.7 }}>↗</span>
             </button>
-          )}
-        </div>
-        <div className="app-version-footer">
-          <span>{t('footer.version')} {currentVersion || '0.3.1'}</span>
-          <span className="version-separator">·</span>
-          <button
-            type="button"
-            className="version-changelog-link"
-            onClick={() => {
-              playButtonClickSound()
-              if (currentVersion) {
-                patch({ lastSeenChangelogVersion: currentVersion })
-              }
-              window.open('https://www.edgedrop.app/changelog', '_blank')
-            }}
-          >
-            <span>{t('header.whatsNew')}</span>
-            <span style={{ fontSize: 10, opacity: 0.7 }}>↗</span>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -398,7 +411,10 @@ export function Settings({
 
   // ── Manual update card renderer shared between vertical and horizontal views ──
   const renderManualUpdateCard = (withRef = false) => {
-    if (!hasUpdatePrompt) return null
+    // Callers gate visibility; the idle branch below IS the Check button, so
+    // the card renders in every state on GitHub builds. Store builds never
+    // call this (whole update section is hidden there).
+    if (isStoreBuild) return null
     return (
       <div className="manual-update-section" ref={withRef ? updateBannerRef : undefined} style={{ width: '100%' }}>
         <div className="manual-update-card">
@@ -449,12 +465,12 @@ export function Settings({
                   : 'Downloading update...'}
               </button>
             </>
-          ) : checkState.status === 'available' ? (
+          ) : (checkState.status === 'available' || hasBackgroundUpdate) ? (
             <>
               <div className="manual-update-info">
                 <div className="manual-update-title">
                   <span className="manual-update-dot ready" />
-                  <span>{t('behaviour.updateAvailableTitle', { version: checkState.version || '' })}</span>
+                  <span>{t('behaviour.updateAvailableTitle', { version: checkState.version || updateInfo?.latestVersion || '' })}</span>
                 </div>
                 <div className="manual-update-desc">
                   {t('behaviour.updateAvailableDesc')}
@@ -694,75 +710,18 @@ export function Settings({
           onWheel={handleShelfWheel}
           onScroll={handleShelfScroll}
         >
-          {/* ── CARD 0: Update Banner (if applicable) ── */}
-          {hasUpdatePrompt && horizontalTab === 'behaviour' && (
-            <div className="settings-shelf-card update-card">
-              <div className="shelf-card-top">
-                <div className="setting-group-label" style={{ color: '#ffd60a' }}>UPDATE</div>
-                <div className="setting-title" style={{ lineHeight: 1.3 }}>
-                  {updateDownloaded
-                    ? t('behaviour.updateReadyTitle', { version: updateDownloaded.version })
-                    : isDownloading
-                    ? 'Downloading Update...'
-                    : checkState.status === 'available'
-                    ? t('behaviour.updateAvailableTitle', { version: checkState.version || '' })
-                    : t('behaviour.checkForUpdates')}
-                </div>
-              </div>
-              <div className="shelf-card-bottom">
-                {updateDownloaded ? (
-                  <button
-                    type="button"
-                    className="pill primary-pill"
-                    style={{ width: '100%', justifyContent: 'center', background: '#ffd60a', color: '#000000', fontWeight: 600, height: 32, fontSize: 11.5 }}
-                    onClick={() => {
-                      playButtonClickSound()
-                      void window.edge.installUpdate()
-                    }}
-                  >
-                    {t('behaviour.restartToUpdate')}
-                  </button>
-                ) : isDownloading ? (
-                  <div className="shelf-update-progress-wrap">
-                    <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
-                    <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
-                  </div>
-                ) : checkState.status === 'available' ? (
-                  <button
-                    type="button"
-                    className="pill primary-pill"
-                    style={{ width: '100%', justifyContent: 'center', height: 32, fontSize: 11.5 }}
-                    onClick={() => {
-                      playButtonClickSound()
-                      handleStartDownload()
-                    }}
-                  >
-                    {t('behaviour.downloadAndUpdate')}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="pill display-pill"
-                    style={{ width: '100%', justifyContent: 'center', height: 32, fontSize: 11.5 }}
-                    onClick={() => {
-                      playButtonClickSound()
-                      handleManualCheck()
-                    }}
-                  >
-                    {t('behaviour.checkForUpdates')}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* ── TAB 1: BEHAVIOUR ── */}
           {horizontalTab === 'behaviour' && (
             <>
+              {/* ── SUB-GROUP 1 DIVIDER: General & Startup ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('tabs.generalStartup') || 'GENERAL & STARTUP'}</span>
+              </div>
+
               {/* Card 1: Language */}
               <div className="settings-shelf-card shortcuts-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">LANGUAGE</div>
+                  <div className="setting-group-label">GENERAL</div>
                   <div className="setting-title">{t('behaviour.languageTitle')}</div>
                   <div className="setting-desc">Select application display language</div>
                 </div>
@@ -799,29 +758,55 @@ export function Settings({
                 </div>
               </div>
 
-              {/* Card 2: Global Toggle Shortcut */}
-              <div className="settings-shelf-card hotkey-card behaviour-col">
+              {/* Card 2: Launch at Login */}
+              <div className="settings-shelf-card system-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">KEYBOARD SHORTCUT</div>
-                  <div className="setting-title">{t('behaviour.toggleHotkeyTitle')}</div>
-                  <div className="setting-desc">Press anywhere to toggle Edge-Drop</div>
+                  <div className="setting-group-label">STARTUP</div>
                 </div>
-                <div className="shelf-card-bottom">
-                  <HotkeyRecorder
-                    hotkey={settings.toggleHotkey || 'Alt+C'}
-                    onChange={(nextHotkey) => {
-                      patch({ toggleHotkey: nextHotkey })
-                      pushToast({
-                        id: Date.now().toString(),
-                        message: t('toast.shortcutUpdated', { shortcut: nextHotkey }),
-                        tone: 'info'
-                      })
-                    }}
-                  />
+                <div className="shelf-card-inline">
+                  <div className="shelf-card-inline-text">
+                    <div className="setting-title">{t('behaviour.launchAtLoginTitle')}</div>
+                    <div className="setting-desc">{t('behaviour.launchAtLoginDesc')}</div>
+                  </div>
+                  <div className="shelf-card-inline-action">
+                    <Toggle
+                      checked={settings.launchAtLogin}
+                      onChange={(v) => {
+                        useStore.setState((s) => ({
+                          settings: { ...s.settings, launchAtLogin: v }
+                        }))
+                        void patch({ launchAtLogin: v })
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Card 3: Hover Activation */}
+              {/* Card 3: Incognito Mode */}
+              <div className="settings-shelf-card incognito-card behaviour-col">
+                <div className="shelf-card-top">
+                  <div className="setting-group-label">PRIVACY</div>
+                </div>
+                <div className="shelf-card-inline">
+                  <div className="shelf-card-inline-text">
+                    <div className="setting-title">{t('behaviour.incognitoTitle')}</div>
+                    <div className="setting-desc">{t('behaviour.incognitoDesc')}</div>
+                  </div>
+                  <div className="shelf-card-inline-action">
+                    <Toggle
+                      checked={settings.incognito}
+                      onChange={(v) => patch({ incognito: v })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── SUB-GROUP 2 DIVIDER: Shortcuts & Hover ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('tabs.activationShortcuts') || 'SHORTCUTS & HOVER'}</span>
+              </div>
+
+              {/* Card 4: Hover Activation */}
               <div className="settings-shelf-card hover-card behaviour-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">HOVER ACTIVATION</div>
@@ -850,7 +835,29 @@ export function Settings({
                 </div>
               </div>
 
-              {/* Card 4: Fullscreen Protection */}
+              {/* Card 5: Global Toggle Shortcut */}
+              <div className="settings-shelf-card hotkey-card behaviour-col">
+                <div className="shelf-card-top">
+                  <div className="setting-group-label">KEYBOARD SHORTCUT</div>
+                  <div className="setting-title">{t('behaviour.toggleHotkeyTitle')}</div>
+                  <div className="setting-desc">Press anywhere to toggle Edge-Drop</div>
+                </div>
+                <div className="shelf-card-bottom">
+                  <HotkeyRecorder
+                    hotkey={settings.toggleHotkey || 'Alt+C'}
+                    onChange={(nextHotkey) => {
+                      patch({ toggleHotkey: nextHotkey })
+                      pushToast({
+                        id: Date.now().toString(),
+                        message: t('toast.shortcutUpdated', { shortcut: nextHotkey }),
+                        tone: 'info'
+                      })
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Card 6: Fullscreen Protection */}
               <div className="settings-shelf-card fullscreen-card behaviour-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">FULLSCREEN PROTECTION</div>
@@ -874,50 +881,31 @@ export function Settings({
                 </div>
               </div>
 
-              {/* Card 5: Launch at Login */}
-              <div className="settings-shelf-card system-card behaviour-col">
+              {/* ── SUB-GROUP 3 DIVIDER: Clipboard Rules ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('tabs.clipboardRules') || 'CLIPBOARD RULES'}</span>
+              </div>
+
+              {/* Card 7: Move Pasted to Top */}
+              <div className="settings-shelf-card order-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">STARTUP</div>
+                  <div className="setting-group-label">CLIPBOARD BEHAVIOUR</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
-                    <div className="setting-title">{t('behaviour.launchAtLoginTitle')}</div>
-                    <div className="setting-desc">{t('behaviour.launchAtLoginDesc')}</div>
+                    <div className="setting-title">{t('behaviour.movePastedToTopTitle')}</div>
+                    <div className="setting-desc">{t('behaviour.movePastedToTopDesc')}</div>
                   </div>
                   <div className="shelf-card-inline-action">
                     <Toggle
-                      checked={settings.launchAtLogin}
-                      onChange={(v) => {
-                        useStore.setState((s) => ({
-                          settings: { ...s.settings, launchAtLogin: v }
-                        }))
-                        void patch({ launchAtLogin: v })
-                      }}
+                      checked={settings.movePastedToTop ?? true}
+                      onChange={(v) => patch({ movePastedToTop: v })}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Card 6: Incognito Mode */}
-              <div className="settings-shelf-card incognito-card behaviour-col">
-                <div className="shelf-card-top">
-                  <div className="setting-group-label">PRIVACY</div>
-                </div>
-                <div className="shelf-card-inline">
-                  <div className="shelf-card-inline-text">
-                    <div className="setting-title">{t('behaviour.incognitoTitle')}</div>
-                    <div className="setting-desc">{t('behaviour.incognitoDesc')}</div>
-                  </div>
-                  <div className="shelf-card-inline-action">
-                    <Toggle
-                      checked={settings.incognito}
-                      onChange={(v) => patch({ incognito: v })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 7: Clear Unpinned on Restart */}
+              {/* Card 8: Clear Unpinned on Restart */}
               <div className="settings-shelf-card rules-card behaviour-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">RESTART CLEANUP</div>
@@ -936,23 +924,9 @@ export function Settings({
                 </div>
               </div>
 
-              {/* Card 8: Move Pasted to Top */}
-              <div className="settings-shelf-card order-card behaviour-col">
-                <div className="shelf-card-top">
-                  <div className="setting-group-label">CLIPBOARD BEHAVIOUR</div>
-                </div>
-                <div className="shelf-card-inline">
-                  <div className="shelf-card-inline-text">
-                    <div className="setting-title">{t('behaviour.movePastedToTopTitle')}</div>
-                    <div className="setting-desc">{t('behaviour.movePastedToTopDesc')}</div>
-                  </div>
-                  <div className="shelf-card-inline-action">
-                    <Toggle
-                      checked={settings.movePastedToTop ?? true}
-                      onChange={(v) => patch({ movePastedToTop: v })}
-                    />
-                  </div>
-                </div>
+              {/* ── SUB-GROUP 4 DIVIDER: Storage & Retention ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('tabs.storageRetention') || 'STORAGE & RETENTION'}</span>
               </div>
 
               {/* Card 9: History Capacity */}
@@ -1014,60 +988,144 @@ export function Settings({
                 </div>
               </div>
 
-              {/* Card 11: Application Updates */}
+              {/* ── SUB-GROUP 5 DIVIDER: Updates ── */}
+              {!isStoreBuild && (
+                <div className="shelf-section-divider">
+                  <span className="shelf-section-divider-text">{t('tabs.updates') || 'UPDATES'}</span>
+                </div>
+              )}
+
+              {/* Card 11: Application Updates (3-mode selector) */}
               <div className="settings-shelf-card updates-card behaviour-col">
                 <div className="shelf-card-top">
                   <div className="setting-group-label">UPDATES</div>
+                  <div className="setting-title">{t('behaviour.autoUpdatesTitle')}</div>
+                  <div className="setting-desc">
+                    {!isStoreBuild
+                      ? (updateMode === 'auto'
+                        ? t('behaviour.autoUpdatesDescOn')
+                        : updateMode === 'notify'
+                        ? (t('behaviour.updateModeNotifyDesc') || 'Check at launch and notify — never downloads automatically')
+                        : t('behaviour.autoUpdatesDescOff'))
+                      : 'Managed by Microsoft Store'}
+                  </div>
                 </div>
-                <div className="shelf-card-inline">
-                  {!isStoreBuild ? (
-                    <>
-                      <div className="shelf-card-inline-text">
-                        <div className="setting-title">{t('behaviour.autoUpdatesTitle')}</div>
-                        <div className="setting-desc">
-                          {(settings.autoUpdates ?? true) ? t('behaviour.autoUpdatesDescOn') : t('behaviour.autoUpdatesDescOff')}
-                        </div>
-                      </div>
-                      <div className="shelf-card-inline-action">
-                        <Toggle
-                          checked={settings.autoUpdates ?? true}
-                          onChange={(v) => patch({ autoUpdates: v })}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="shelf-card-inline-text">
-                      <div className="setting-title">Microsoft Store</div>
-                      <div className="setting-desc">Managed by Microsoft Store</div>
+                {!isStoreBuild && (
+                  <div className="shelf-card-bottom">
+                    <div className="setting-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, width: '100%' }}>
+                      {([
+                        { id: 'auto' as UpdateMode, label: t('behaviour.updateModeAuto') || 'Automatic' },
+                        { id: 'notify' as UpdateMode, label: t('behaviour.updateModeNotify') || 'Notify me' },
+                        { id: 'off' as UpdateMode, label: t('behaviour.updateModeOff') || 'Off' }
+                      ]).map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          className={`pill ${updateMode === opt.id ? 'active' : ''}`}
+                          style={{ height: 32, fontSize: 11, fontWeight: 500, padding: '0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', justifyContent: 'center' }}
+                          onClick={() => { playButtonClickSound(); patch({ updateMode: opt.id }) }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
-              {/* Card 12: Check for Updates Button */}
-              <div className="settings-shelf-card check-updates-card behaviour-col">
-                <div className="shelf-card-top">
-                  <div className="setting-group-label">UPDATE STATUS</div>
-                  <div className="setting-title">Check for Updates</div>
-                  <div className="setting-desc">Edge-Drop v{currentVersion || '0.3.1'}</div>
+              {/* Card 12: Update Status & Actions */}
+              {!isStoreBuild && (
+                <div className="settings-shelf-card check-updates-card behaviour-col" ref={updateBannerRef}>
+                  <div className="shelf-card-top">
+                    <div className="setting-group-label" style={hasUpdatePrompt ? { color: '#ffd60a' } : undefined}>
+                      {hasUpdatePrompt ? 'UPDATE' : 'UPDATE STATUS'}
+                    </div>
+                    <div className="setting-title" style={{ lineHeight: 1.3 }}>
+                      {updateDownloaded
+                        ? t('behaviour.updateReadyTitle', { version: updateDownloaded.version })
+                        : isDownloading
+                        ? 'Downloading Update...'
+                        : (checkState.status === 'available' || hasBackgroundUpdate)
+                        ? t('behaviour.updateAvailableTitle', { version: checkState.version || updateInfo?.latestVersion || '' })
+                        : t('behaviour.checkForUpdates')}
+                    </div>
+                    <div className="setting-desc">
+                      {updateDownloaded
+                        ? t('behaviour.updateReadyDesc')
+                        : isDownloading
+                        ? t('behaviour.downloadingUpdate')
+                        : (checkState.status === 'available' || hasBackgroundUpdate)
+                        ? `Edge-Drop v${checkState.version || updateInfo?.latestVersion || ''}`
+                        : `Edge-Drop v${currentVersion || '0.3.1'}`}
+                    </div>
+                  </div>
+                  <div className="shelf-card-bottom">
+                    {updateDownloaded ? (
+                      <button
+                        type="button"
+                        className="pill primary-pill"
+                        style={{ width: '100%', justifyContent: 'center', background: '#ffd60a', color: '#000000', fontWeight: 600, height: 32, fontSize: 11.5 }}
+                        onClick={() => {
+                          playButtonClickSound()
+                          void window.edge.installUpdate()
+                        }}
+                      >
+                        {t('behaviour.restartToUpdate')}
+                      </button>
+                    ) : isDownloading ? (
+                      <div className="shelf-update-progress-wrap" style={{ width: '100%' }}>
+                        <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
+                        <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
+                      </div>
+                    ) : (checkState.status === 'available' || hasBackgroundUpdate) ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
+                        <button
+                          type="button"
+                          className="pill primary-pill"
+                          style={{ width: '100%', justifyContent: 'center', height: 30, fontSize: 11.5 }}
+                          onClick={() => {
+                            playButtonClickSound()
+                            handleStartDownload()
+                          }}
+                        >
+                          {t('behaviour.downloadAndUpdate')}
+                        </button>
+                        <button
+                          type="button"
+                          className="pill display-pill"
+                          style={{ width: '100%', justifyContent: 'center', height: 28, fontSize: 11 }}
+                          onClick={() => {
+                            playButtonClickSound()
+                            useStore.getState().dismissUpdate()
+                          }}
+                        >
+                          {t('behaviour.skip')}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="pill display-pill"
+                        style={{ width: '100%', justifyContent: 'center', padding: '6px 12px', fontSize: 11.5, height: 32 }}
+                        onClick={() => {
+                          playButtonClickSound()
+                          handleManualCheck()
+                        }}
+                      >
+                        {checkState.status === 'checking'
+                          ? t('behaviour.checkingForUpdates')
+                          : checkState.status === 'up-to-date'
+                          ? `${t('behaviour.isUpToDate')}`
+                          : t('behaviour.checkForUpdates')}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="shelf-card-bottom">
-                  <button
-                    type="button"
-                    className="pill display-pill"
-                    style={{ width: '100%', justifyContent: 'center', padding: '6px 12px', fontSize: 11.5, height: 32 }}
-                    onClick={() => {
-                      playButtonClickSound()
-                      handleManualCheck()
-                    }}
-                  >
-                    {checkState.status === 'checking'
-                      ? t('behaviour.checkingForUpdates')
-                      : checkState.status === 'up-to-date'
-                      ? `${t('behaviour.isUpToDate')}`
-                      : t('behaviour.checkForUpdates')}
-                  </button>
-                </div>
+              )}
+
+              {/* ── SUB-GROUP 6 DIVIDER: Community & Support ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
               </div>
 
               {/* Card 13: Community & Feedback */}
@@ -1081,10 +1139,15 @@ export function Settings({
           {/* ── TAB 2: POSITION ── */}
           {horizontalTab === 'position' && (
             <>
+              {/* ── SUB-GROUP 1 DIVIDER: Position ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('tabs.position') || 'POSITION'}</span>
+              </div>
+
               {/* Card 1: Edge Placement */}
               <div className="settings-shelf-card placement-card position-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">{t('tabs.position')}</div>
+                  <div className="setting-group-label">PLACEMENT</div>
                   <div className="setting-title" style={{ color: '#ffffff' }}>{t('position.edgePlacementTitle')}</div>
                   <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
                 </div>
@@ -1182,6 +1245,10 @@ export function Settings({
                 </div>
               </div>
 
+              {/* ── SUB-GROUP 2 DIVIDER: Trigger Zone ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('position.triggerZone') || 'TRIGGER ZONE'}</span>
+              </div>
 
               {/* Card 5: Hover Area Size */}
               <div className="settings-shelf-card trigger-bar-card position-col">
@@ -1303,6 +1370,11 @@ export function Settings({
                 </div>
               </div>
 
+              {/* ── SUB-GROUP 3 DIVIDER: Community & Support ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
+              </div>
+
               {/* Card 9: Community & Feedback */}
               {renderHorizontalCommunityCard()}
 
@@ -1314,10 +1386,15 @@ export function Settings({
           {/* ── TAB 3: APPEARANCE ── */}
           {horizontalTab === 'appearance' && (
             <>
+              {/* ── SUB-GROUP 1 DIVIDER: Copy Indicator ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('appearance.copyIndicatorTitle') || 'COPY INDICATOR'}</span>
+              </div>
+
               {/* Card 1: Copy Indicator Toggle */}
               <div className="settings-shelf-card beacon-toggle-card appearance-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">{t('appearance.copyIndicatorTitle')}</div>
+                  <div className="setting-group-label">COPY BEACON</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -1337,7 +1414,7 @@ export function Settings({
               {(settings.showCopyIndicator ?? true) && (
                 <div className="settings-shelf-card copy-card appearance-col">
                   <div className="shelf-card-top">
-                    <div className="setting-group-label">{t('appearance.indicatorStyleTitle')}</div>
+                    <div className="setting-group-label">BEACON STYLE</div>
                   </div>
                   <div className="shelf-card-inline">
                     <div className="shelf-card-inline-text">
@@ -1362,6 +1439,10 @@ export function Settings({
                 </div>
               )}
 
+              {/* ── SUB-GROUP 2 DIVIDER: Audio & Feedback ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('appearance.audioAndFeedback') || 'AUDIO FEEDBACK'}</span>
+              </div>
 
               {/* Card 4: Audio & Feedback */}
               <div className="settings-shelf-card audio-card appearance-col">
@@ -1383,6 +1464,11 @@ export function Settings({
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* ── SUB-GROUP 3 DIVIDER: Community & Support ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</span>
               </div>
 
               {/* Card 5: Community & Feedback */}
@@ -1442,225 +1528,288 @@ export function Settings({
                   exit={{ opacity: 0, scale: 0.98, y: -4 }}
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  {/* ── GROUP: Behaviour ─────────────────────────────────── */}
-                  <div className="setting-group-label">{t('tabs.behaviour')}</div>
+                  {/* ── SUB-GROUP 1: General & Startup ───────────────── */}
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('tabs.generalStartup') || 'GENERAL & STARTUP'}</span>
+                  </div>
 
-                  {/* ── Language Selector ── */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 8,
-                    padding: '2px 0'
-                  }}>
-                    <div>
+                  {/* Card 1: Language */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">GENERAL</div>
                       <div className="setting-title">{t('behaviour.languageTitle')}</div>
-                      <div className="setting-desc" style={{ marginTop: 2 }}>{t('behaviour.languageDesc')}</div>
+                      <div className="setting-desc">{t('behaviour.languageDesc')}</div>
                     </div>
-                    <LanguageDropdown />
+                    <div className="shelf-card-bottom">
+                      <LanguageDropdown />
+                    </div>
                   </div>
 
-                  <div className="setting-divider" />
-
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.launchAtLoginTitle')}</div>
-                      <div className="setting-desc">{t('behaviour.launchAtLoginDesc')}</div>
+                  {/* Card 2: Launch at Login */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">STARTUP</div>
                     </div>
-                    <Toggle
-                      checked={settings.launchAtLogin}
-                      onChange={(v) => {
-                        useStore.setState((s) => ({
-                          settings: { ...s.settings, launchAtLogin: v }
-                        }))
-                        void patch({ launchAtLogin: v })
-                      }}
-                    />
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.incognitoTitle')}</div>
-                      <div className="setting-desc">{t('behaviour.incognitoDesc')}</div>
-                    </div>
-                    <Toggle
-                      checked={settings.incognito}
-                      onChange={(v) => patch({ incognito: v })}
-                    />
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.hoverActivationTitle')}</div>
-                      <div className="setting-desc" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '3px 5px', marginTop: 2 }}>
-                        {(settings.hoverActivation ?? true) ? (
-                          <span>{t('behaviour.hoverActivationDescOn')}</span>
-                        ) : (
-                          <span>{t('behaviour.hoverActivationDescOff', { shortcut: settings.toggleHotkey || 'Alt+C' })}</span>
-                        )}
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('behaviour.launchAtLoginTitle')}</div>
+                        <div className="setting-desc">{t('behaviour.launchAtLoginDesc')}</div>
                       </div>
-                    </div>
-                    <Toggle
-                      checked={settings.hoverActivation ?? true}
-                      onChange={(v) => {
-                        if (!v) {
-                          patch({ hoverActivation: false, suppressInFullscreen: false })
-                        } else {
-                          patch({ hoverActivation: true, suppressInFullscreen: true })
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  {/* ── Global Toggle Shortcut (Vertical Layout) ── */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 8,
-                    padding: '2px 0'
-                  }}>
-                    <div>
-                      <div className="setting-title">{t('behaviour.toggleHotkeyTitle')}</div>
-                      <div className="setting-desc" style={{ marginTop: 2 }}>{t('behaviour.toggleHotkeyDesc')}</div>
-                    </div>
-                    <HotkeyRecorder
-                      hotkey={settings.toggleHotkey || 'Alt+C'}
-                      onChange={(nextHotkey) => {
-                        patch({ toggleHotkey: nextHotkey })
-                        pushToast({
-                          id: Date.now().toString(),
-                          message: t('toast.shortcutUpdated', { shortcut: nextHotkey }),
-                          tone: 'info'
-                        })
-                      }}
-                    />
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row" style={{ opacity: (settings.hoverActivation ?? true) ? 1 : 0.45, transition: 'opacity 0.2s ease' }}>
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.fullscreenProtectionTitle')}</div>
-                      <div className="setting-desc">
-                        {(settings.hoverActivation ?? true)
-                          ? t('behaviour.fullscreenProtectionDesc')
-                          : t('behaviour.disabledHoverOff')}
-                      </div>
-                    </div>
-                    <Toggle
-                      checked={(settings.hoverActivation ?? true) ? settings.suppressInFullscreen : false}
-                      onChange={(v) => (settings.hoverActivation ?? true) && patch({ suppressInFullscreen: v })}
-                      disabled={!(settings.hoverActivation ?? true)}
-                    />
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.clearUnpinnedTitle')}</div>
-                      <div className="setting-desc">{t('behaviour.clearUnpinnedDesc')}</div>
-                    </div>
-                    <Toggle
-                      checked={settings.clearUnpinnedOnRestart}
-                      onChange={(v) => patch({ clearUnpinnedOnRestart: v })}
-                    />
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.movePastedToTopTitle')}</div>
-                      <div className="setting-desc">{t('behaviour.movePastedToTopDesc')}</div>
-                    </div>
-                    <Toggle
-                      checked={settings.movePastedToTop ?? true}
-                      onChange={(v) => patch({ movePastedToTop: v })}
-                    />
-                  </div>
-
-                  {!isStoreBuild && (
-                    <>
-                      <div className="setting-divider" />
-
-                      <div className="setting-row">
-                        <div className="setting-info">
-                          <div className="setting-title">{t('behaviour.autoUpdatesTitle')}</div>
-                          <div className="setting-desc">
-                            {(settings.autoUpdates ?? true)
-                              ? t('behaviour.autoUpdatesDescOn')
-                              : t('behaviour.autoUpdatesDescOff')}
-                          </div>
-                        </div>
+                      <div className="shelf-card-inline-action">
                         <Toggle
-                          checked={settings.autoUpdates ?? true}
-                          onChange={(v) => patch({ autoUpdates: v })}
+                          checked={settings.launchAtLogin}
+                          onChange={(v) => {
+                            useStore.setState((s) => ({
+                              settings: { ...s.settings, launchAtLogin: v }
+                            }))
+                            void patch({ launchAtLogin: v })
+                          }}
                         />
                       </div>
-                    </>
-                  )}
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.autoDeleteTitle')}</div>
-                      <div className="setting-desc">{t('behaviour.autoDeleteDesc')}</div>
-                    </div>
-                    <div className="setting-pills">
-                      {[
-                        { label: t('behaviour.never'), val: 0 },
-                        { label: '1h', val: 1 },
-                        { label: '6h', val: 6 },
-                        { label: '24h', val: 24 },
-                        { label: '7d', val: 168 }
-                      ].map((opt) => (
-                        <button
-                          key={opt.val}
-                          className={`pill ${settings.autoDeleteHours === opt.val ? 'active' : ''}`}
-                          onClick={() => { playButtonClickSound(); patch({ autoDeleteHours: opt.val }) }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
                     </div>
                   </div>
 
-                  <div className="setting-divider" />
+                  {/* Card 3: Incognito Mode */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">PRIVACY</div>
+                    </div>
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('behaviour.incognitoTitle')}</div>
+                        <div className="setting-desc">{t('behaviour.incognitoDesc')}</div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={settings.incognito}
+                          onChange={(v) => patch({ incognito: v })}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
+                  {/* ── SUB-GROUP 2: Shortcuts & Hover ──────────────── */}
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('tabs.activationShortcuts') || 'SHORTCUTS & HOVER'}</span>
+                  </div>
+
+                  {/* Card 4: Hover Activation */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">HOVER ACTIVATION</div>
+                    </div>
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('behaviour.hoverActivationTitle')}</div>
+                        <div className="setting-desc">
+                          {(settings.hoverActivation ?? true)
+                            ? t('behaviour.hoverActivationDescOn')
+                            : t('behaviour.hoverActivationDescOff', { shortcut: settings.toggleHotkey || 'Alt+C' })}
+                        </div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={settings.hoverActivation ?? true}
+                          onChange={(v) => {
+                            if (!v) {
+                              patch({ hoverActivation: false, suppressInFullscreen: false })
+                            } else {
+                              patch({ hoverActivation: true, suppressInFullscreen: true })
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 5: Global Toggle Shortcut */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">KEYBOARD SHORTCUT</div>
+                      <div className="setting-title">{t('behaviour.toggleHotkeyTitle')}</div>
+                      <div className="setting-desc">{t('behaviour.toggleHotkeyDesc')}</div>
+                    </div>
+                    <div className="shelf-card-bottom">
+                      <HotkeyRecorder
+                        hotkey={settings.toggleHotkey || 'Alt+C'}
+                        onChange={(nextHotkey) => {
+                          patch({ toggleHotkey: nextHotkey })
+                          pushToast({
+                            id: Date.now().toString(),
+                            message: t('toast.shortcutUpdated', { shortcut: nextHotkey }),
+                            tone: 'info'
+                          })
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Card 6: Fullscreen Protection */}
+                  <div className="setting-card" style={{ opacity: (settings.hoverActivation ?? true) ? 1 : 0.45, transition: 'opacity 0.2s ease' }}>
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">FULLSCREEN PROTECTION</div>
+                    </div>
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('behaviour.fullscreenProtectionTitle')}</div>
+                        <div className="setting-desc">
+                          {(settings.hoverActivation ?? true)
+                            ? t('behaviour.fullscreenProtectionDesc')
+                            : t('behaviour.disabledHoverOff')}
+                        </div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={(settings.hoverActivation ?? true) ? settings.suppressInFullscreen : false}
+                          onChange={(v) => (settings.hoverActivation ?? true) && patch({ suppressInFullscreen: v })}
+                          disabled={!(settings.hoverActivation ?? true)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── SUB-GROUP 3: Clipboard Rules ─────────────────── */}
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('tabs.clipboardRules') || 'CLIPBOARD RULES'}</span>
+                  </div>
+
+                  {/* Card 7: Move Pasted to Top */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">CLIPBOARD BEHAVIOUR</div>
+                    </div>
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('behaviour.movePastedToTopTitle')}</div>
+                        <div className="setting-desc">{t('behaviour.movePastedToTopDesc')}</div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={settings.movePastedToTop ?? true}
+                          onChange={(v) => patch({ movePastedToTop: v })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 8: Clear Unpinned on Restart */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">RESTART CLEANUP</div>
+                    </div>
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('behaviour.clearUnpinnedTitle')}</div>
+                        <div className="setting-desc">{t('behaviour.clearUnpinnedDesc')}</div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={settings.clearUnpinnedOnRestart}
+                          onChange={(v) => patch({ clearUnpinnedOnRestart: v })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── SUB-GROUP 4: Storage & Retention ─────────────── */}
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('tabs.storageRetention') || 'STORAGE & RETENTION'}</span>
+                  </div>
+
+                  {/* Card 9: History Capacity */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">STORAGE CAPACITY</div>
                       <div className="setting-title">{t('behaviour.capacityTitle')}</div>
                       <div className="setting-desc">{t('behaviour.capacityDesc')}</div>
                     </div>
-                    <div className="setting-pills">
-                      {[
-                        { label: '100', val: 100 },
-                        { label: '250', val: 250 },
-                        { label: '500', val: 500 },
-                        { label: '1000', val: 1000 }
-                      ].map((opt) => (
-                        <button
-                          key={opt.val}
-                          className={`pill ${settings.historyLimit === opt.val ? 'active' : ''}`}
-                          onClick={() => { playButtonClickSound(); patch({ historyLimit: opt.val }) }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="shelf-card-bottom">
+                      <div className="setting-pills">
+                        {[
+                          { label: '100', val: 100 },
+                          { label: '250', val: 250 },
+                          { label: '500', val: 500 },
+                          { label: '1000', val: 1000 }
+                        ].map((opt) => (
+                          <button
+                            key={opt.val}
+                            className={`pill ${settings.historyLimit === opt.val ? 'active' : ''}`}
+                            onClick={() => { playButtonClickSound(); patch({ historyLimit: opt.val }) }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* ── Update Control (Shown at bottom above Community) ── */}
-                  {hasUpdatePrompt && (
+                  {/* Card 10: Auto-Delete Timer */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">AUTO-DELETE</div>
+                      <div className="setting-title">{t('behaviour.autoDeleteTitle')}</div>
+                      <div className="setting-desc">{t('behaviour.autoDeleteDesc')}</div>
+                    </div>
+                    <div className="shelf-card-bottom">
+                      <div className="setting-pills">
+                        {[
+                          { label: t('behaviour.never'), val: 0 },
+                          { label: '1h', val: 1 },
+                          { label: '6h', val: 6 },
+                          { label: '24h', val: 24 },
+                          { label: '7d', val: 168 }
+                        ].map((opt) => (
+                          <button
+                            key={opt.val}
+                            className={`pill ${settings.autoDeleteHours === opt.val ? 'active' : ''}`}
+                            onClick={() => { playButtonClickSound(); patch({ autoDeleteHours: opt.val }) }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── UPDATES SECTION (Consolidated above Community & Support) ── */}
+                  {!isStoreBuild && (
                     <>
-                      <div className="setting-divider" style={{ marginTop: 20 }} />
+                      <div className="setting-section-divider">
+                        <span className="setting-section-divider-text">{t('tabs.updates') || 'UPDATES'}</span>
+                      </div>
+
+                      {/* Card 11: Auto Updates (3-way selector) */}
+                      <div className="setting-card">
+                        <div className="shelf-card-top">
+                          <div className="setting-group-label">UPDATES</div>
+                          <div className="setting-title">{t('behaviour.autoUpdatesTitle')}</div>
+                          <div className="setting-desc">
+                            {updateMode === 'auto'
+                              ? t('behaviour.autoUpdatesDescOn')
+                              : updateMode === 'notify'
+                              ? (t('behaviour.updateModeNotifyDesc') || 'Check at launch and notify — never downloads automatically')
+                              : t('behaviour.autoUpdatesDescOff')}
+                          </div>
+                        </div>
+                        <div className="shelf-card-bottom">
+                          <div className="setting-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
+                            {([
+                              { label: t('behaviour.updateModeAuto') || 'Automatic', val: 'auto' as UpdateMode },
+                              { label: t('behaviour.updateModeNotify') || 'Notify me', val: 'notify' as UpdateMode },
+                              { label: t('behaviour.updateModeOff') || 'Off', val: 'off' as UpdateMode }
+                            ]).map((opt) => (
+                              <button
+                                key={opt.val}
+                                className={`pill ${updateMode === opt.val ? 'active' : ''}`}
+                                onClick={() => { playButtonClickSound(); patch({ updateMode: opt.val }) }}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
                       {renderManualUpdateCard(true)}
                     </>
                   )}
@@ -1679,50 +1828,54 @@ export function Settings({
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {/* ── GROUP: Position ──────────────────────────────────── */}
-                  <div className="setting-group-label">{t('tabs.position')}</div>
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('tabs.position') || 'POSITION'}</span>
+                  </div>
 
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
+                  {/* Card 1: Edge Placement */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">PLACEMENT</div>
                       <div className="setting-title">{t('position.edgePlacementTitle')}</div>
                       <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
                     </div>
-                    <div className="placement-3way-wrap">
-                      <button
-                        type="button"
-                        className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'left' : settings.stickPosition === 'left') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'left' ? 'transitioning' : ''}`}
-                        disabled={edgeTransition?.active}
-                        onClick={() => {
-                          void startEdgeTransition('left')
-                        }}
-                      >
-                        {t('position.leftEdge') || 'Left Edge'}
-                      </button>
-                      <button
-                        type="button"
-                        className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'top' : settings.stickPosition === 'top') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'top' ? 'transitioning' : ''}`}
-                        disabled={edgeTransition?.active}
-                        onClick={() => {
-                          void startEdgeTransition('top')
-                        }}
-                      >
-                        {t('position.topEdge') || 'Top Edge'}
-                      </button>
-                      <button
-                        type="button"
-                        className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'right' : settings.stickPosition === 'right') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'right' ? 'transitioning' : ''}`}
-                        disabled={edgeTransition?.active}
-                        onClick={() => {
-                          void startEdgeTransition('right')
-                        }}
-                      >
-                        {t('position.rightEdge') || 'Right Edge'}
-                      </button>
+                    <div className="shelf-card-bottom">
+                      <div className="placement-3way-wrap">
+                        <button
+                          type="button"
+                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'left' : settings.stickPosition === 'left') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'left' ? 'transitioning' : ''}`}
+                          disabled={edgeTransition?.active}
+                          onClick={() => {
+                            void startEdgeTransition('left')
+                          }}
+                        >
+                          {t('position.leftEdge') || 'Left Edge'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'top' : settings.stickPosition === 'top') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'top' ? 'transitioning' : ''}`}
+                          disabled={edgeTransition?.active}
+                          onClick={() => {
+                            void startEdgeTransition('top')
+                          }}
+                        >
+                          {t('position.topEdge') || 'Top Edge'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`pill ${(edgeTransition?.active ? edgeTransition.to === 'right' : settings.stickPosition === 'right') ? 'active' : ''} ${edgeTransition?.active && edgeTransition.to === 'right' ? 'transitioning' : ''}`}
+                          disabled={edgeTransition?.active}
+                          onClick={() => {
+                            void startEdgeTransition('right')
+                          }}
+                        >
+                          {t('position.rightEdge') || 'Right Edge'}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="setting-divider" />
-
-                  {/* Position Range Slider (Vertical for left/right, Horizontal for top) */}
+                  {/* Card 2: Position Range Slider */}
                   {(() => {
                     const isHorizontal = settings.stickPosition === 'top'
                     const offsetVal = isHorizontal ? (settings.horizontalOffset ?? 0.5) : (settings.verticalOffset ?? 0.5)
@@ -1730,301 +1883,147 @@ export function Settings({
                     const sliderDesc = isHorizontal ? (t('position.horizontalPositionDesc') || 'Adjust horizontal alignment along screen edge') : t('position.verticalPositionDesc')
 
                     return (
-                      <div className="setting-row vertical" style={{ gap: 10 }}>
-                        <div className="setting-slider-header">
-                          <div className="setting-info">
-                            <div className="setting-title">{sliderTitle}</div>
-                            <div className="setting-desc">{sliderDesc}</div>
-                          </div>
-                          <div className="setting-slider-val">
-                            {`${Math.round(offsetVal * 100)}%`}
+                      <div className="setting-card">
+                        <div className="shelf-card-top">
+                          <div className="setting-group-label">ALIGNMENT</div>
+                          <div className="setting-slider-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <div>
+                              <div className="setting-title">{sliderTitle}</div>
+                              <div className="setting-desc">{sliderDesc}</div>
+                            </div>
+                            <div className="setting-slider-val">
+                              {`${Math.round(offsetVal * 100)}%`}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="setting-slider-wrap">
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.002"
-                            className="setting-range-input"
-                            value={offsetVal}
-                            style={{
-                              background: `linear-gradient(to right, #ffffff 0%, #ffffff ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) 100%)`
-                            }}
-                            onPointerDown={() => {
-                              void window.edge.setInteractive(true)
-                              setSliderActive(true)
-                            }}
-                            onPointerUp={(e) => {
-                              setSliderActive(false)
-                              const val = parseFloat((e.target as HTMLInputElement).value)
-                              if (isHorizontal) {
-                                patch({ horizontalOffset: val })
-                              } else {
-                                handleSliderRelease(val)
-                              }
-                            }}
-                            onPointerCancel={(e) => {
-                              setSliderActive(false)
-                              const val = parseFloat((e.target as HTMLInputElement).value)
-                              if (isHorizontal) {
-                                patch({ horizontalOffset: val })
-                              } else {
-                                handleSliderRelease(val)
-                              }
-                            }}
-                            onLostPointerCapture={(e) => {
-                              setSliderActive(false)
-                              const val = parseFloat((e.target as HTMLInputElement).value)
-                              if (isHorizontal) {
-                                patch({ horizontalOffset: val })
-                              } else {
-                                handleSliderRelease(val)
-                              }
-                            }}
-                            onChange={(e) => {
-                              const raw = parseFloat(e.target.value)
-                              if (isHorizontal) {
-                                patch({ horizontalOffset: raw })
-                              } else {
-                                handleSliderInput(raw)
-                              }
-                            }}
-                          />
+                        <div className="shelf-card-bottom">
+                          <div className="setting-slider-wrap">
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.002"
+                              className="setting-range-input"
+                              value={offsetVal}
+                              style={{
+                                background: `linear-gradient(to right, #ffffff 0%, #ffffff ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) 100%)`
+                              }}
+                              onPointerDown={() => {
+                                void window.edge.setInteractive(true)
+                                setSliderActive(true)
+                              }}
+                              onPointerUp={(e) => {
+                                setSliderActive(false)
+                                const val = parseFloat((e.target as HTMLInputElement).value)
+                                if (isHorizontal) {
+                                  patch({ horizontalOffset: val })
+                                } else {
+                                  handleSliderRelease(val)
+                                }
+                              }}
+                              onPointerCancel={(e) => {
+                                setSliderActive(false)
+                                const val = parseFloat((e.target as HTMLInputElement).value)
+                                if (isHorizontal) {
+                                  patch({ horizontalOffset: val })
+                                } else {
+                                  handleSliderRelease(val)
+                                }
+                              }}
+                              onLostPointerCapture={(e) => {
+                                setSliderActive(false)
+                                const val = parseFloat((e.target as HTMLInputElement).value)
+                                if (isHorizontal) {
+                                  patch({ horizontalOffset: val })
+                                } else {
+                                  handleSliderRelease(val)
+                                }
+                              }}
+                              onChange={(e) => {
+                                const raw = parseFloat(e.target.value)
+                                if (isHorizontal) {
+                                  patch({ horizontalOffset: raw })
+                                } else {
+                                  handleSliderInput(raw)
+                                }
+                              }}
+                            />
 
-                          <div className="setting-slider-ticks">
-                            {Array.from({ length: 21 }, (_, i) => {
-                              const tickVal = i / 20
-                              const isMajor = i % 5 === 0
-                              const isActive = tickVal <= offsetVal
-                              return (
-                                <span
-                                  key={i}
-                                  className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
-                                />
-                              )
-                            })}
-                          </div>
+                            <div className="setting-slider-ticks">
+                              {Array.from({ length: 21 }, (_, i) => {
+                                const tickVal = i / 20
+                                const isMajor = i % 5 === 0
+                                const isActive = tickVal <= offsetVal
+                                return (
+                                  <span
+                                    key={i}
+                                    className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
+                                  />
+                                )
+                              })}
+                            </div>
 
-                          <div className="setting-slider-labels">
-                            {[
-                              { label: isHorizontal ? 'Left' : '0%', val: 0 },
-                              { label: 'Center', val: 0.5 },
-                              { label: isHorizontal ? 'Right' : '100%', val: 1.0 }
-                            ].map((pos) => {
-                              const active = Math.abs(offsetVal - pos.val) < 0.04
-                              return (
-                                <button
-                                  key={pos.val}
-                                  type="button"
-                                  className={`slider-label-btn${active ? ' active' : ''}`}
-                                  onClick={() => {
-                                    if (isHorizontal) {
-                                      patch({ horizontalOffset: pos.val })
-                                    } else {
-                                      handleSliderRelease(pos.val)
-                                    }
-                                  }}
-                                >
-                                  {pos.label}
-                                </button>
-                              )
-                            })}
+                            <div className="setting-slider-labels">
+                              {[
+                                { label: isHorizontal ? 'Left' : '0%', val: 0 },
+                                { label: 'Center', val: 0.5 },
+                                { label: isHorizontal ? 'Right' : '100%', val: 1.0 }
+                              ].map((pos) => {
+                                const active = Math.abs(offsetVal - pos.val) < 0.04
+                                return (
+                                  <button
+                                    key={pos.val}
+                                    type="button"
+                                    className={`slider-label-btn${active ? ' active' : ''}`}
+                                    onClick={() => {
+                                      if (isHorizontal) {
+                                        patch({ horizontalOffset: pos.val })
+                                      } else {
+                                        handleSliderRelease(pos.val)
+                                      }
+                                    }}
+                                  >
+                                    {pos.label}
+                                  </button>
+                                )
+                              })}
+                            </div>
                           </div>
                         </div>
                       </div>
                     )
                   })()}
 
-                  <div className="setting-divider" />
-
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
+                  {/* Card 3: Target Display */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">DISPLAY MONITOR</div>
                       <div className="setting-title">{t('position.displayTitle')}</div>
                       <div className="setting-desc">{t('position.displayDesc')}</div>
                     </div>
-                    <div className="setting-pills">
-                      {displays.length === 0 && <div className="pill disabled">{t('position.loadingDisplays')}</div>}
-                      {displays.map((d) => {
-                        const currentDisplay = displays.find((disp) => disp.isCurrent)
-                        const activeDisplayId = currentDisplay
-                          ? currentDisplay.id
-                          : (settings.stickDisplayId ?? displays.find((disp) => disp.isPrimary)?.id ?? displays[0]?.id)
-                        const isActive = activeDisplayId === d.id
-                        const displayName = d.isPrimary ? t('position.primaryDisplay') : d.name
-                        return (
-                          <button
-                            key={d.id}
-                            className={`pill display-pill ${isActive ? 'active' : ''}`}
-                            onClick={() => {
-                              playButtonClickSound()
-                              patch({ stickDisplayId: d.id })
-                              useStore.getState().notifyPositionChanged()
-                            }}
-                          >
-                            <div className="pill-name">{displayName}</div>
-                            <div className="pill-res">{d.resolution}</div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* ── GROUP: Trigger Zone ──────────────────────────────── */}
-                  <div className="setting-group-label" style={{ marginTop: 20 }}>{t('position.triggerZone')}</div>
-
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('position.edgeLocationHintTitle')}</div>
-                      <div className="setting-desc">{t('position.edgeLocationHintDesc')}</div>
-                    </div>
-                    <Toggle
-                      checked={settings.showEdgeLocationHint ?? false}
-                      onChange={(v) => patch({ showEdgeLocationHint: v })}
-                    />
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('position.edgeTriggerPositionTitle')}</div>
-                      <div className="setting-desc">{t('position.edgeTriggerPositionDesc')}</div>
-                    </div>
-                    <div className="setting-pills">
-                      {[
-                        { label: isHorizontal ? (t('position.left') || 'Left') : t('position.top'), val: 'top' as const },
-                        { label: t('position.center'), val: 'center' as const },
-                        { label: isHorizontal ? (t('position.right') || 'Right') : t('position.bottom'), val: 'bottom' as const }
-                      ].map((opt) => (
-                        <button
-                          key={opt.val}
-                          className={`pill ${(settings.triggerAlignment || 'center') === opt.val ? 'active' : ''}`}
-                          onClick={() => {
-                            playButtonClickSound()
-                            patch({ triggerAlignment: opt.val })
-                            useStore.getState().notifyPositionChanged()
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('position.hoverAreaSizeTitle')}</div>
-                      <div className="setting-desc">{t('position.hoverAreaSizeDesc')}</div>
-                    </div>
-                    <div className="setting-pills">
-                      {[
-                        { label: t('appearance.small'), val: 0.25 },
-                        { label: t('position.medium'), val: 0.4 },
-                        { label: t('appearance.large'), val: 0.6 }
-                      ].map((opt) => (
-                        <button
-                          key={opt.label}
-                          className={`pill ${Math.abs(settings.hotZoneHeight - opt.val) < 0.08 ? 'active' : ''}`}
-                          onClick={() => {
-                            playButtonClickSound()
-                            patch({ hotZoneHeight: opt.val })
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="setting-divider" />
-
-                  {/* Edge Trigger Thickness Range Slider */}
-                  <div className="setting-row vertical" style={{ gap: 10 }}>
-                    <div className="setting-slider-header">
-                      <div className="setting-info">
-                        <div className="setting-title">{t('position.edgeTriggerThicknessTitle')}</div>
-                        <div className="setting-desc">{t('position.edgeTriggerThicknessDesc')}</div>
-                      </div>
-                      <div className="setting-slider-val">
-                        {`${settings.hotZoneWidth ?? 3}px`}
-                      </div>
-                    </div>
-
-                    <div className="setting-slider-wrap">
-                      {(() => {
-                        const currentPx = settings.hotZoneWidth ?? 3
-                        const pct = Math.max(0, Math.min(100, ((currentPx - 1) / (7 - 1)) * 100))
-                        return (
-                          <input
-                            type="range"
-                            min="1"
-                            max="7"
-                            step="1"
-                            className="setting-range-input"
-                            value={currentPx}
-                            style={{
-                              touchAction: 'none',
-                              background: `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(255, 255, 255, 0.12) ${pct}%, rgba(255, 255, 255, 0.12) 100%)`
-                            }}
-                            onPointerDown={() => {
-                              void window.edge.setInteractive(true)
-                              setSliderActive(true)
-                            }}
-                            onPointerUp={(e) => {
-                              handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                            }}
-                            onPointerCancel={(e) => {
-                              handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                            }}
-                            onLostPointerCapture={(e) => {
-                              handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                            }}
-                            onChange={(e) => {
-                              handleThicknessInput(parseInt(e.target.value, 10))
-                            }}
-                          />
-                        )
-                      })()}
-
-                      <div className="setting-slider-ticks">
-                        {Array.from({ length: 7 }, (_, i) => {
-                          const tickPx = i + 1
-                          const currentPx = settings.hotZoneWidth ?? 3
-                          const isMajor = tickPx === 1 || tickPx === 4 || tickPx === 7
-                          const isActive = currentPx === tickPx
-                          return (
-                            <span
-                              key={tickPx}
-                              className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
-                            />
-                          )
-                        })}
-                      </div>
-
-                      <div className="setting-slider-labels">
-                        {[
-                          { label: 'Min', val: 1 },
-                          { label: 'Mid', val: 4 },
-                          { label: 'Max', val: 7 }
-                        ].map((preset) => {
-                          const currentPx = settings.hotZoneWidth ?? 3
-                          const active = currentPx === preset.val
+                    <div className="shelf-card-bottom">
+                      <div className="setting-pills">
+                        {displays.length === 0 && <div className="pill disabled">{t('position.loadingDisplays')}</div>}
+                        {displays.map((d) => {
+                          const currentDisplay = displays.find((disp) => disp.isCurrent)
+                          const activeDisplayId = currentDisplay
+                            ? currentDisplay.id
+                            : (settings.stickDisplayId ?? displays.find((disp) => disp.isPrimary)?.id ?? displays[0]?.id)
+                          const isActive = activeDisplayId === d.id
+                          const displayName = d.isPrimary ? t('position.primaryDisplay') : d.name
                           return (
                             <button
-                              key={preset.val}
-                              type="button"
-                              className={`slider-label-btn${active ? ' active' : ''}`}
+                              key={d.id}
+                              className={`pill display-pill ${isActive ? 'active' : ''}`}
                               onClick={() => {
-                                if (currentPx !== preset.val) {
-                                  handleThicknessRelease(preset.val)
-                                }
+                                playButtonClickSound()
+                                patch({ stickDisplayId: d.id })
+                                useStore.getState().notifyPositionChanged()
                               }}
                             >
-                              {preset.label}
+                              <div className="pill-name">{displayName}</div>
+                              <div className="pill-res">{d.resolution}</div>
                             </button>
                           )
                         })}
@@ -2032,30 +2031,210 @@ export function Settings({
                     </div>
                   </div>
 
-                  <div className="setting-divider" />
+                  {/* ── GROUP: Trigger Zone ──────────────────────────────── */}
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('position.triggerZone') || 'TRIGGER ZONE'}</span>
+                  </div>
 
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
+                  {/* Card 4: Location Hint */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">LOCATION HINT</div>
+                    </div>
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('position.edgeLocationHintTitle')}</div>
+                        <div className="setting-desc">{t('position.edgeLocationHintDesc')}</div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={settings.showEdgeLocationHint ?? false}
+                          onChange={(v) => patch({ showEdgeLocationHint: v })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 5: Trigger Alignment */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">TRIGGER POSITION</div>
+                      <div className="setting-title">{t('position.edgeTriggerPositionTitle')}</div>
+                      <div className="setting-desc">{t('position.edgeTriggerPositionDesc')}</div>
+                    </div>
+                    <div className="shelf-card-bottom">
+                      <div className="setting-pills">
+                        {[
+                          { label: (settings.stickPosition === 'top') ? (t('position.left') || 'Left') : t('position.top'), val: 'top' as const },
+                          { label: t('position.center'), val: 'center' as const },
+                          { label: (settings.stickPosition === 'top') ? (t('position.right') || 'Right') : t('position.bottom'), val: 'bottom' as const }
+                        ].map((opt) => (
+                          <button
+                            key={opt.val}
+                            className={`pill ${(settings.triggerAlignment || 'center') === opt.val ? 'active' : ''}`}
+                            onClick={() => {
+                              playButtonClickSound()
+                              patch({ triggerAlignment: opt.val })
+                              useStore.getState().notifyPositionChanged()
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 6: Hover Area Size */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">HOVER ZONE LENGTH</div>
+                      <div className="setting-title">{t('position.hoverAreaSizeTitle')}</div>
+                      <div className="setting-desc">{t('position.hoverAreaSizeDesc')}</div>
+                    </div>
+                    <div className="shelf-card-bottom">
+                      <div className="setting-pills">
+                        {[
+                          { label: t('appearance.small'), val: 0.25 },
+                          { label: t('position.medium'), val: 0.4 },
+                          { label: t('appearance.large'), val: 0.6 }
+                        ].map((opt) => (
+                          <button
+                            key={opt.label}
+                            className={`pill ${Math.abs(settings.hotZoneHeight - opt.val) < 0.08 ? 'active' : ''}`}
+                            onClick={() => {
+                              playButtonClickSound()
+                              patch({ hotZoneHeight: opt.val })
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 7: Edge Trigger Thickness */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">TRIGGER THICKNESS</div>
+                      <div className="setting-slider-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <div>
+                          <div className="setting-title">{t('position.edgeTriggerThicknessTitle')}</div>
+                          <div className="setting-desc">{t('position.edgeTriggerThicknessDesc')}</div>
+                        </div>
+                        <div className="setting-slider-val">
+                          {`${settings.hotZoneWidth ?? 3}px`}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shelf-card-bottom">
+                      <div className="setting-slider-wrap">
+                        {(() => {
+                          const currentPx = settings.hotZoneWidth ?? 3
+                          const pct = Math.max(0, Math.min(100, ((currentPx - 1) / (7 - 1)) * 100))
+                          return (
+                            <input
+                              type="range"
+                              min="1"
+                              max="7"
+                              step="1"
+                              className="setting-range-input"
+                              value={currentPx}
+                              style={{
+                                touchAction: 'none',
+                                background: `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(255, 255, 255, 0.12) ${pct}%, rgba(255, 255, 255, 0.12) 100%)`
+                              }}
+                              onPointerDown={() => {
+                                void window.edge.setInteractive(true)
+                                setSliderActive(true)
+                              }}
+                              onPointerUp={(e) => {
+                                handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                              }}
+                              onPointerCancel={(e) => {
+                                handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                              }}
+                              onLostPointerCapture={(e) => {
+                                handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                              }}
+                              onChange={(e) => {
+                                handleThicknessInput(parseInt(e.target.value, 10))
+                              }}
+                            />
+                          )
+                        })()}
+
+                        <div className="setting-slider-ticks">
+                          {Array.from({ length: 7 }, (_, i) => {
+                            const tickPx = i + 1
+                            const currentPx = settings.hotZoneWidth ?? 3
+                            const isMajor = tickPx === 1 || tickPx === 4 || tickPx === 7
+                            const isActive = currentPx === tickPx
+                            return (
+                              <span
+                                key={tickPx}
+                                className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
+                              />
+                            )
+                          })}
+                        </div>
+
+                        <div className="setting-slider-labels">
+                          {[
+                            { label: 'Min', val: 1 },
+                            { label: 'Mid', val: 4 },
+                            { label: 'Max', val: 7 }
+                          ].map((preset) => {
+                            const currentPx = settings.hotZoneWidth ?? 3
+                            const active = currentPx === preset.val
+                            return (
+                              <button
+                                key={preset.val}
+                                type="button"
+                                className={`slider-label-btn${active ? ' active' : ''}`}
+                                onClick={() => {
+                                  if (currentPx !== preset.val) {
+                                    handleThicknessRelease(preset.val)
+                                  }
+                                }}
+                              >
+                                {preset.label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 8: Panel Height */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">PANEL HEIGHT</div>
                       <div className="setting-title">{t('position.panelHeightTitle')}</div>
                       <div className="setting-desc">{t('position.panelHeightDesc')}</div>
                     </div>
-                    <div className="setting-pills">
-                      {[
-                        { label: t('appearance.small'), val: 0.5 },
-                        { label: t('position.medium'), val: 0.65 },
-                        { label: t('appearance.large'), val: 0.8 }
-                      ].map((opt) => (
-                        <button
-                          key={opt.label}
-                          className={`pill ${Math.abs((settings.panelHeight || 0.6) - opt.val) < 0.08 ? 'active' : ''}`}
-                          onClick={() => {
-                            playButtonClickSound()
-                            patch({ panelHeight: opt.val })
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="shelf-card-bottom">
+                      <div className="setting-pills">
+                        {[
+                          { label: t('appearance.small'), val: 0.5 },
+                          { label: t('position.medium'), val: 0.65 },
+                          { label: t('appearance.large'), val: 0.8 }
+                        ].map((opt) => (
+                          <button
+                            key={opt.label}
+                            className={`pill ${Math.abs((settings.panelHeight || 0.6) - opt.val) < 0.08 ? 'active' : ''}`}
+                            onClick={() => {
+                              playButtonClickSound()
+                              patch({ panelHeight: opt.val })
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -2073,42 +2252,55 @@ export function Settings({
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {/* ── GROUP: Copy Indicator ────────────────────────────── */}
-                  <div className="setting-group-label">{t('appearance.copyIndicatorTitle')}</div>
-
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('appearance.copyIndicatorTitle')}</div>
-                      <div className="setting-desc">{t('appearance.copyIndicatorDesc')}</div>
-                    </div>
-                    <Toggle
-                      checked={settings.showCopyIndicator ?? true}
-                      onChange={(v) => patch({ showCopyIndicator: v })}
-                    />
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('appearance.copyIndicatorTitle') || 'COPY INDICATOR'}</span>
                   </div>
 
-                  {(settings.showCopyIndicator ?? true) && (
-                    <>
-                      <div className="setting-divider" />
+                  {/* Card 1: Copy Indicator Toggle */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">COPY BEACON</div>
+                    </div>
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('appearance.copyIndicatorTitle')}</div>
+                        <div className="setting-desc">{t('appearance.copyIndicatorDesc')}</div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={settings.showCopyIndicator ?? true}
+                          onChange={(v) => patch({ showCopyIndicator: v })}
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-                      <div className="setting-row">
-                        <div className="setting-info">
+                  {/* Card 2: Indicator Style */}
+                  {(settings.showCopyIndicator ?? true) && (
+                    <div className="setting-card">
+                      <div className="shelf-card-top">
+                        <div className="setting-group-label">BEACON STYLE</div>
+                      </div>
+                      <div className="shelf-card-inline">
+                        <div className="shelf-card-inline-text">
                           <div className="setting-title">{t('appearance.indicatorStyleTitle')}</div>
                           <div className="setting-desc">
                             {t('appearance.indicatorStyleDesc')}
                           </div>
                         </div>
-                        
-                        <button
-                          type="button"
-                          className={`icon-btn style-preview-toggle-btn ${isFlyoutActive ? 'active' : ''}`}
-                          title={isFlyoutActive ? 'Close Style Selector' : 'Open Indicator Style Selector'}
-                          onClick={(e) => {
-                            playButtonClickSound()
-                            handleToggleFlyout(e.currentTarget)
-                          }}
-                        >
-                          {isFlyoutActive ? <CloseIcon /> : <ChevronRightIcon />}
-                        </button>
+                        <div className="shelf-card-inline-action">
+                          <button
+                            type="button"
+                            className={`icon-btn style-preview-toggle-btn ${isFlyoutActive ? 'active' : ''}`}
+                            title={isFlyoutActive ? 'Close Style Selector' : 'Open Indicator Style Selector'}
+                            onClick={(e) => {
+                              playButtonClickSound()
+                              handleToggleFlyout(e.currentTarget)
+                            }}
+                          >
+                            {isFlyoutActive ? <CloseIcon /> : <ChevronRightIcon />}
+                          </button>
+                        </div>
                       </div>
 
                       {isTutorial && localInlineOpen && (
@@ -2234,54 +2426,68 @@ export function Settings({
                           </div>
                         </motion.div>
                       )}
-                    </>
+                    </div>
                   )}
 
                   {/* ── GROUP: Typography ────────────────────────────────── */}
-                  <div className="setting-group-label" style={{ marginTop: 20 }}>{t('appearance.typography')}</div>
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('appearance.typography') || 'TYPOGRAPHY'}</span>
+                  </div>
 
-                  <div className="setting-row vertical">
-                    <div className="setting-info">
+                  {/* Card 3: Text Size */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">TEXT SIZE</div>
                       <div className="setting-title">{t('appearance.textSizeTitle')}</div>
                       <div className="setting-desc">{t('appearance.textSizeDesc')}</div>
                     </div>
-                    <div className="setting-pills">
-                      {[
-                        { label: t('appearance.small'), val: 0.85 },
-                        { label: t('appearance.normal'), val: 1.0 },
-                        { label: t('appearance.large'), val: 1.15 }
-                      ].map((opt) => (
-                        <button
-                          key={opt.label}
-                          className={`pill ${Math.abs((settings.fontSizeScale ?? 1.0) - opt.val) < 0.05 ? 'active' : ''}`}
-                          onClick={() => {
-                            playButtonClickSound()
-                            patch({ fontSizeScale: opt.val })
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="shelf-card-bottom">
+                      <div className="setting-pills">
+                        {[
+                          { label: t('appearance.small'), val: 0.85 },
+                          { label: t('appearance.normal'), val: 1.0 },
+                          { label: t('appearance.large'), val: 1.15 }
+                        ].map((opt) => (
+                          <button
+                            key={opt.label}
+                            className={`pill ${Math.abs((settings.fontSizeScale ?? 1.0) - opt.val) < 0.05 ? 'active' : ''}`}
+                            onClick={() => {
+                              playButtonClickSound()
+                              patch({ fontSizeScale: opt.val })
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="setting-divider" />
-
                   {/* ── GROUP: Audio & Feedback ──────────────────────────── */}
-                  <div className="setting-group-label" style={{ marginTop: 20 }}>{t('appearance.audioAndFeedback')}</div>
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('appearance.audioAndFeedback') || 'AUDIO FEEDBACK'}</span>
+                  </div>
 
-                  <div className="setting-row">
-                    <div className="setting-info">
-                      <div className="setting-title">{t('behaviour.soundEffectsTitle')}</div>
-                      <div className="setting-desc">{t('behaviour.soundEffectsDesc')}</div>
+                  {/* Card 4: Audio Feedback */}
+                  <div className="setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">AUDIO FEEDBACK</div>
                     </div>
-                    <Toggle
-                      checked={settings.soundEffects ?? true}
-                      onChange={(v) => {
-                        if (v) playToggleSound(true)
-                        patch({ soundEffects: v })
-                      }}
-                    />
+                    <div className="shelf-card-inline">
+                      <div className="shelf-card-inline-text">
+                        <div className="setting-title">{t('behaviour.soundEffectsTitle')}</div>
+                        <div className="setting-desc">{t('behaviour.soundEffectsDesc')}</div>
+                      </div>
+                      <div className="shelf-card-inline-action">
+                        <Toggle
+                          checked={settings.soundEffects ?? true}
+                          onChange={(v) => {
+                            if (v) playToggleSound(true)
+                            patch({ soundEffects: v })
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {PersistentFooter}

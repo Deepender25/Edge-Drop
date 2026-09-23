@@ -307,6 +307,14 @@ export const useStore = create<AppState>((set, get) => ({
   resetManualCheck: () => set({ manualCheckState: { status: 'idle' } }),
 
   setUpdateAvailable: (info) => {
+    // Skip memory: a version the user explicitly skipped is not re-prompted
+    // by background checks. A different (newer) version clears the stale skip
+    // and surfaces normally. Manual checks bypass this (their own state).
+    const skipped = get().settings.skippedUpdateVersion
+    if (skipped && info.version === skipped) return
+    if (skipped && info.version !== skipped) {
+      void get().patchSettings({ skippedUpdateVersion: undefined }).catch(() => {})
+    }
     set({
       updateInfo: {
         hasUpdate: true,
@@ -349,7 +357,15 @@ export const useStore = create<AppState>((set, get) => ({
     })
   },
 
-  dismissUpdate: () => set({ updateInfo: null, manualCheckState: { status: 'idle' } }),
+  dismissUpdate: () => {
+    // Skip = "remind me next launch": persist the skipped version so this
+    // exact version is not re-prompted, while a newer one still surfaces.
+    const skipped = get().updateInfo?.latestVersion || get().manualCheckState.version
+    if (skipped) {
+      void get().patchSettings({ skippedUpdateVersion: skipped }).catch(() => {})
+    }
+    set({ updateInfo: null, manualCheckState: { status: 'idle' } })
+  },
 
   async installUpdate() {
     await edge.installUpdate()

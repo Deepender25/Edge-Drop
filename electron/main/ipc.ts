@@ -673,7 +673,7 @@ export function registerIpc(): void {
         popUpAndRetract(1500)
       }
     }
-    if (patch.autoUpdates !== undefined) {
+    if (patch.autoUpdates !== undefined || patch.updateMode !== undefined) {
       syncAutoUpdaterState()
     }
     if (patch.toggleHotkey !== undefined) {

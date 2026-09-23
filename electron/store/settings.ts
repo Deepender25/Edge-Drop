@@ -6,7 +6,7 @@
  * defaults so a bad field never takes the whole app down.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { DEFAULT_SETTINGS, type Settings } from '../../shared/types'
+import { DEFAULT_SETTINGS, isUpdateMode, type Settings } from '../../shared/types'
 import { PATHS } from './paths'
 
 let cache: Settings | null = null
@@ -29,6 +29,17 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
   }
   if (typeof out.language !== 'string' || !out.language.trim()) {
     out.language = 'system'
+  }
+  // Update mode migration + validation. Legacy files carry only autoUpdates;
+  // map them (false -> 'off', anything else -> 'auto') so existing installs
+  // keep byte-identical behavior. Then sync the legacy boolean back from the
+  // mode so downgraded app versions still read a sensible value.
+  if (!isUpdateMode(out.updateMode)) {
+    out.updateMode = out.autoUpdates === false ? 'off' : 'auto'
+  }
+  out.autoUpdates = out.updateMode === 'auto'
+  if (typeof out.skippedUpdateVersion !== 'string' || !out.skippedUpdateVersion.trim()) {
+    out.skippedUpdateVersion = undefined
   }
   return out
 }

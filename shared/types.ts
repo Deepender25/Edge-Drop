@@ -11,6 +11,27 @@
 /** Maximum number of sub-items that may live in a single stack/bundle. */
 export const MAX_STACK = 10
 
+/** Update behavior mode. See Settings.updateMode. */
+export type UpdateMode = 'auto' | 'notify' | 'off'
+
+const UPDATE_MODES: readonly UpdateMode[] = ['auto', 'notify', 'off']
+
+/**
+ * Resolve the effective update mode. Prefers the stored updateMode; migrates
+ * legacy autoUpdates booleans (true/missing -> 'auto', false -> 'off') so
+ * existing installs keep their exact behavior with zero surprises.
+ */
+export function resolveUpdateMode(s: Pick<Settings, 'updateMode' | 'autoUpdates'>): UpdateMode {
+  if (s.updateMode === 'auto' || s.updateMode === 'notify' || s.updateMode === 'off') {
+    return s.updateMode
+  }
+  return s.autoUpdates === false ? 'off' : 'auto'
+}
+
+export function isUpdateMode(value: unknown): value is UpdateMode {
+  return (UPDATE_MODES as readonly unknown[]).includes(value)
+}
+
 /** How a clipboard bitmap was captured. Omitted on older persisted items. */
 export type ClipboardImageSource = 'screenshot' | 'image'
 
@@ -180,8 +201,16 @@ export interface Settings {
   hoverActivation?: boolean
   /** Font size scale multiplier (0.85 = Small, 1.00 = Normal, 1.15 = Large). Default: 1.0. */
   fontSizeScale?: number
-  /** When true, automatically checks for and downloads app updates in background. Default: true. */
+  /** When true, automatically checks for and downloads app updates in background. Default: true. Legacy: kept in sync from updateMode for downgrade safety. */
   autoUpdates?: boolean
+  /**
+   * Update behavior mode: 'auto' (check + download + prompt restart),
+   * 'notify' (check at launch, prompt with Download/Skip, never auto-download),
+   * 'off' (fully silent, zero network). Default: 'auto'. Supersedes autoUpdates.
+   */
+  updateMode?: UpdateMode
+  /** Version string the user skipped; that exact version is not re-prompted until a newer one appears. */
+  skippedUpdateVersion?: string
   /** Active UI language code ('system' | 'en' | 'es' | 'fr' | 'de' | ...). Default: 'system'. */
   language?: string
   /** When true, pasting an unpinned item updates its timestamp to move it to the top of Recent. Default: true. */
@@ -222,6 +251,8 @@ export const DEFAULT_SETTINGS: Settings = {
   hoverActivation: true,
   fontSizeScale: 1.0,
   autoUpdates: true,
+  updateMode: 'auto',
+  skippedUpdateVersion: undefined,
   language: 'system',
   toggleHotkey: 'Alt+C'
 }

@@ -2,6 +2,7 @@ import { app, net } from 'electron'
 import { isStoreBuild } from './config'
 import { pushState } from './state'
 import { getSettings } from '../store/settings'
+import { resolveUpdateMode } from '../../shared/types'
 
 // Module-level reference to the single autoUpdater instance.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,15 +26,16 @@ export function quitAndInstallUpdate(): void {
 }
 
 /**
- * Syncs the autoDownload flag on electron-updater whenever user changes settings.
+ * Syncs the download flags on electron-updater whenever user changes settings.
+ * Only 'auto' mode downloads; 'notify' checks without downloading.
  */
 export function syncAutoUpdaterState(): void {
   if (isStoreBuild() || !_autoUpdater) return
-  const settings = getSettings()
-  const enabled = settings.autoUpdates !== false
-  _autoUpdater.autoDownload = enabled
-  _autoUpdater.autoInstallOnAppQuit = enabled
-  console.log('[AutoUpdater] Synced autoDownload =', enabled)
+  const mode = resolveUpdateMode(getSettings())
+  const autoDownload = mode === 'auto'
+  _autoUpdater.autoDownload = autoDownload
+  _autoUpdater.autoInstallOnAppQuit = autoDownload
+  console.log('[AutoUpdater] Synced mode =', mode, 'autoDownload =', autoDownload)
 }
 
 function semverCompare(v1: string, v2: string): number {
@@ -183,11 +185,15 @@ export function initAutoUpdater(): void {
     _autoUpdater = autoUpdater
 
     const settings = getSettings()
-    const autoUpdatesEnabled = settings.autoUpdates !== false
+    const mode = resolveUpdateMode(settings)
+    const autoDownload = mode === 'auto'
+    // 'notify' still checks at launch (tiny version query) but never downloads
+    // on its own; 'off' stays fully network-silent.
+    const shouldCheck = mode !== 'off'
 
     autoUpdater.logger = console
-    autoUpdater.autoDownload = autoUpdatesEnabled
-    autoUpdater.autoInstallOnAppQuit = autoUpdatesEnabled
+    autoUpdater.autoDownload = autoDownload
+    autoUpdater.autoInstallOnAppQuit = autoDownload
 
     if (!app.isPackaged) {
       console.log('[AutoUpdater] Unpackaged dev build detected — enabling forceDevUpdateConfig')
@@ -228,8 +234,13 @@ export function initAutoUpdater(): void {
       console.warn('[AutoUpdater] Update check error:', msg)
     })
 
-    // Initiate background update check ONLY if autoUpdates is enabled!
-    if (autoUpdatesEnabled) {
+    // Background check runs in 'auto' and 'notify' modes; only 'off' stays
+    // fully network-silent. In 'notify' mode autoDownload is off, so a found
+    // update only surfaces the Download/Skip prompt — nothing downloads.
+    if (shouldCheck) {
+      if (!autoDownload) {
+        console.log('[AutoUpdater] Notify mode: background check without auto-download.')
+      }
       setTimeout(() => {
         autoUpdater.checkForUpdates().catch((err: Error | string) => {
           const msg = typeof err === 'string' ? err : err?.message
@@ -237,7 +248,7 @@ export function initAutoUpdater(): void {
         })
       }, 3000)
     } else {
-      console.log('[AutoUpdater] Automatic updates disabled by user setting. Staying network-silent on startup.')
+      console.log('[AutoUpdater] Updates disabled by user setting. Staying network-silent on startup.')
     }
   } catch (err) {
     console.error('[AutoUpdater] Initialization failed:', err)

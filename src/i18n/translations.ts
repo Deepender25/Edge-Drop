@@ -11,6 +11,11 @@ export interface TranslationKeys {
     behaviour: string
     position: string
     appearance: string
+    updates?: string
+    generalStartup?: string
+    activationShortcuts?: string
+    clipboardRules?: string
+    storageRetention?: string
   }
   header: {
     searchPlaceholder: string
@@ -47,6 +52,10 @@ export interface TranslationKeys {
     autoUpdatesTitle: string
     autoUpdatesDescOn: string
     autoUpdatesDescOff: string
+    updateModeAuto?: string
+    updateModeNotify?: string
+    updateModeOff?: string
+    updateModeNotifyDesc?: string
     checkForUpdates: string
     checkingForUpdates: string
     isUpToDate: string
@@ -487,7 +496,12 @@ export const en: TranslationKeys = {
   "tabs": {
     "behaviour": "Behaviour",
     "position": "Position",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "updates": "Updates",
+    "generalStartup": "General & Startup",
+    "activationShortcuts": "Shortcuts & Hover",
+    "clipboardRules": "Clipboard Rules",
+    "storageRetention": "Storage & Retention"
   },
   "header": {
     "searchPlaceholder": "Search history...",
@@ -519,7 +533,11 @@ export const en: TranslationKeys = {
     "soundEffectsDesc": "Play tactile audio feedback for toggles, sliders, and button clicks",
     "autoUpdatesTitle": "Automatic updates",
     "autoUpdatesDescOn": "Check for and download app updates automatically in background",
-    "autoUpdatesDescOff": "Background update checks paused. Check for updates manually below",
+    "autoUpdatesDescOff": "Fully silent. The app never checks for updates on its own",
+    "updateModeAuto": "Automatic",
+    "updateModeNotify": "Notify me",
+    "updateModeOff": "Off",
+    "updateModeNotifyDesc": "Check at launch and notify — never downloads automatically",
     "checkForUpdates": "Check for updates",
     "checkingForUpdates": "Checking GitHub for updates...",
     "isUpToDate": "✓ Edge-Drop is up to date",

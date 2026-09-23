@@ -375,7 +375,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
           >
             <CloseIcon />
           </span>
-          {!settingsOpen && (updateInfo?.downloaded || ((settings.autoUpdates ?? true) && updateInfo?.hasUpdate)) && (
+          {!settingsOpen && (updateInfo?.downloaded || updateInfo?.hasUpdate) && (
             <span
               style={{
                 position: 'absolute',

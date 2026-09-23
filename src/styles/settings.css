@@ -139,13 +139,44 @@
   flex-shrink: 0;
 }
 
+/* ── Section Dividers across Vertical Settings (Matches Horizontal Subcategory Style) ── */
+.setting-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 2px 10px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.setting-section-divider:first-of-type,
+.setting-section-divider:first-child {
+  margin-top: 6px;
+}
+
+.setting-section-divider .setting-section-divider-text {
+  font-size: calc(9.5px * var(--font-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+  white-space: nowrap;
+}
+
+.setting-section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .setting-group-label {
-  font-size: calc(11px * var(--font-scale, 1));
+  font-size: calc(10px * var(--font-scale, 1));
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.88);
-  margin: 14px 4px 6px;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 18px 4px 8px;
   user-select: none;
   white-space: normal;
   word-break: break-word;
@@ -154,6 +185,129 @@
 
 .setting-group-label:first-of-type {
   margin-top: 4px;
+}
+
+/* ── Vertical Setting Card (Matches Horizontal Shelf Card Aesthetic) ── */
+.setting-card {
+  width: 100%;
+  background: var(--bg-card, #141414);
+  border: none;
+  border-radius: var(--radius-card, 16px);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.14s ease;
+}
+
+.setting-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.14s ease;
+  background: 
+    radial-gradient(
+      ellipse 70% 1px at 50% 0%,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 45%,
+      transparent 80%
+    ) top / 100% 1px no-repeat,
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.035) 20%,
+      rgba(255, 255, 255, 0.035) 80%,
+      transparent 100%
+    ) bottom / 100% 1px no-repeat;
+}
+
+.setting-card:hover {
+  background: var(--bg-card-hover, #1c1c1c);
+}
+
+.setting-card:hover::before {
+  opacity: 1.2;
+}
+
+.setting-card .setting-group-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 2px 0;
+  flex-shrink: 0;
+}
+
+.setting-card .setting-title {
+  font-size: calc(13px * var(--font-scale, 1));
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.setting-card .setting-desc {
+  font-size: calc(11.5px * var(--font-scale, 1));
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.setting-card .shelf-card-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.setting-card .shelf-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.setting-card .shelf-card-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.setting-card .setting-pills .pill {
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11.5px;
+  font-weight: 500;
+  transition: all 0.14s ease;
+}
+
+.setting-card .setting-pills .pill:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.setting-card .setting-pills .pill.active {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  border-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
 }
 
 .setting-badge-subtle {
@@ -1456,6 +1610,42 @@
   gap: 12px;
 }
 
+/* Vertical subsection divider in horizontal shelf matching recent-header */
+.settings-shelf-track.tab-view .shelf-section-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  min-width: 20px;
+  height: 146px;
+  margin: 0 2px 0 0;
+  padding: 0;
+  background: transparent;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.settings-shelf-track.tab-view .shelf-section-divider:first-child {
+  border-left: none;
+}
+
+.settings-shelf-track.tab-view .shelf-section-divider .shelf-section-divider-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: calc(9.5px * var(--font-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+  max-height: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-shelf-track.tab-view .settings-shelf-card,
 .settings-shelf-card {
   flex: 0 0 auto;
@@ -1686,7 +1876,7 @@
 }
 
 .settings-shelf-card.updates-card {
-  width: 240px;
+  width: 290px;
 }
 
 .settings-shelf-card.check-updates-card {

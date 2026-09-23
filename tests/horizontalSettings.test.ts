@@ -177,9 +177,10 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     // Should contain trigger thickness
     expect(horizontalBlock).toContain('trigger-thickness-card')
     expect(horizontalBlock).toContain('handleThicknessRelease')
-    // Should contain auto-updates toggle
+    // Should contain 3-mode updates selector (Automatic / Notify me / Off)
     expect(horizontalBlock).toContain('autoUpdatesTitle')
-    expect(horizontalBlock).toContain('autoUpdates: v')
+    expect(horizontalBlock).toContain('updateMode')
+    expect(horizontalBlock).toContain("patch({ updateMode: opt.id })")
     // Should contain clearUnpinnedOnRestart
     expect(horizontalBlock).toContain('clearUnpinnedTitle')
     expect(horizontalBlock).toContain('clearUnpinnedOnRestart')
