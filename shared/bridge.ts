@@ -85,7 +85,7 @@ export interface EdgeApi {
     displayWidth: number
     displayHeight: number
   }) => void) => () => void
-  onToast: (cb: (toast: { id: string; message: string; tone: 'info' | 'error' }) => void) => () => void
+  onToast: (cb: (toast: { id: string; message: string; tone: 'info' | 'error'; params?: Record<string, string | number> }) => void) => () => void
   onCopyFlare: (cb: () => void) => () => void
   onTutorialStep: (cb: (step: number) => void) => () => void
   onUpdateAvailable: (cb: (info: { version: string }) => void) => () => void

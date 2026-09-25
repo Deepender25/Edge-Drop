@@ -22,7 +22,9 @@ export default function App() {
   const pushToast = useStore((s) => s.pushToast)
   const settings = useStore((s) => s.settings)
   const hydrated = useStore((s) => s.hydrated)
+  const panelOpen = useStore((s) => s.open)
   const warmupDone = useRef(false)
+  const audioWarmed = useRef(false)
 
   // Drive the edge open/close behavior.
   useEdgeHover()
@@ -176,6 +178,44 @@ export default function App() {
       } catch { /* ignore */ }
     }
   }, [hydrated])
+
+  // Warm the shared AudioContext shortly after the first panel open, via
+  // idle callback so it never lands inside the blade spring. First-click
+  // sounds otherwise pay full AudioContext construction on the click frame.
+  useEffect(() => {
+    if (!panelOpen || audioWarmed.current) return
+    audioWarmed.current = true
+    let idleHandle: any = null
+    let timeoutHandle: any = null
+    const warmAudio = () => {
+      try {
+        void import('./lib/soundEffects')
+          .then((m) => {
+            try { m.warmAudioContext() } catch { /* ignore */ }
+          })
+          .catch(() => undefined)
+      } catch { /* ignore */ }
+    }
+    try {
+      const ric = (globalThis as any)?.requestIdleCallback
+      if (typeof ric === 'function') {
+        idleHandle = ric(() => warmAudio(), { timeout: 2000 })
+      } else {
+        timeoutHandle = setTimeout(warmAudio, 800)
+      }
+    } catch {
+      try { timeoutHandle = setTimeout(warmAudio, 800) } catch { /* ignore */ }
+    }
+    return () => {
+      try {
+        const cic = (globalThis as any)?.cancelIdleCallback
+        if (idleHandle != null && typeof cic === 'function') cic(idleHandle)
+      } catch { /* ignore */ }
+      try {
+        if (timeoutHandle != null) clearTimeout(timeoutHandle)
+      } catch { /* ignore */ }
+    }
+  }, [panelOpen])
 
   // Hydrate once + subscribe to pushed updates.
   useEffect(() => {

@@ -331,7 +331,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
                 {item.hitCount > 1 && (
                   <>
                     <span>·</span>
-                    <span className="meta-hit-count" title={`Copied ${item.hitCount} times`}>
+                    <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
                       ×{item.hitCount}
                     </span>
                   </>

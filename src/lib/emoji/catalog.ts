@@ -98,52 +98,123 @@ function cleanEmojiName(rawName?: string, rawShort?: string): string | undefined
   return name.toLowerCase().replace(/(^|\s)\S/g, (t) => t.toUpperCase())
 }
 
-export function buildCatalog(raw: readonly EmojiSourceEntry[]): EmojiCatalog {
-  const all: EmojiEntry[] = []
-  const byCategory: Record<string, EmojiEntry[]> = {}
-  const byUnified = new Map<string, EmojiEntry>()
+interface CatalogAccumulator {
+  all: EmojiEntry[]
+  byCategory: Record<string, EmojiEntry[]>
+  byUnified: Map<string, EmojiEntry>
+}
 
-  for (const src of raw) {
-    if (!src || src.has_img_twitter === false) continue
-    if (SKIP_CATEGORIES.has(src.category)) continue
-    if (src.obsoleted_by) continue
-    if (!src.unified || !src.category) continue
+function ingestEmojiEntry(src: EmojiSourceEntry | null | undefined, acc: CatalogAccumulator): void {
+  if (!src || src.has_img_twitter === false) return
+  if (SKIP_CATEGORIES.has(src.category)) return
+  if (src.obsoleted_by) return
+  if (!src.unified || !src.category) return
 
-    const skins: Record<string, EmojiSkin> = {}
-    if (src.skin_variations) {
-      for (const key of SKIN_TONE_KEYS) {
-        const v = src.skin_variations[key]
-        if (!v || v.has_img_twitter === false || !v.unified) continue
-        skins[key] = { unified: v.unified, file: fileOf(v.image, v.unified) }
-      }
+  const skins: Record<string, EmojiSkin> = {}
+  if (src.skin_variations) {
+    for (const key of SKIN_TONE_KEYS) {
+      const v = src.skin_variations[key]
+      if (!v || v.has_img_twitter === false || !v.unified) continue
+      skins[key] = { unified: v.unified, file: fileOf(v.image, v.unified) }
     }
-
-    const entry: EmojiEntry = {
-      unified: src.unified,
-      name: cleanEmojiName(src.name, src.short_name),
-      shortName: src.short_name ? `:${src.short_name}:` : undefined,
-      file: fileOf(src.image, src.unified),
-      category: src.category,
-      sort: typeof src.sort_order === 'number' ? src.sort_order : 9999,
-      skins: Object.keys(skins).length > 0 ? skins : undefined
-    }
-    all.push(entry)
-    byUnified.set(entry.unified, entry)
-    if (entry.skins) {
-      for (const skin of Object.values(entry.skins)) {
-        byUnified.set(skin.unified, entry)
-      }
-    }
-    const bucket = byCategory[entry.category] ?? (byCategory[entry.category] = [])
-    bucket.push(entry)
   }
 
-  for (const list of Object.values(byCategory)) {
+  const entry: EmojiEntry = {
+    unified: src.unified,
+    name: cleanEmojiName(src.name, src.short_name),
+    shortName: src.short_name ? `:${src.short_name}:` : undefined,
+    file: fileOf(src.image, src.unified),
+    category: src.category,
+    sort: typeof src.sort_order === 'number' ? src.sort_order : 9999,
+    skins: Object.keys(skins).length > 0 ? skins : undefined
+  }
+  acc.all.push(entry)
+  acc.byUnified.set(entry.unified, entry)
+  if (entry.skins) {
+    for (const skin of Object.values(entry.skins)) {
+      acc.byUnified.set(skin.unified, entry)
+    }
+  }
+  const bucket = acc.byCategory[entry.category] ?? (acc.byCategory[entry.category] = [])
+  bucket.push(entry)
+}
+
+function finalizeCatalog(acc: CatalogAccumulator): EmojiCatalog {
+  for (const list of Object.values(acc.byCategory)) {
     list.sort((a, b) => a.sort - b.sort || a.unified.localeCompare(b.unified))
   }
-  all.sort((a, b) => a.sort - b.sort || a.unified.localeCompare(b.unified))
+  acc.all.sort((a, b) => a.sort - b.sort || a.unified.localeCompare(b.unified))
 
-  return { byCategory, byUnified, all }
+  return { byCategory: acc.byCategory, byUnified: acc.byUnified, all: acc.all }
+}
+
+export function buildCatalog(raw: readonly EmojiSourceEntry[]): EmojiCatalog {
+  const acc: CatalogAccumulator = { all: [], byCategory: {}, byUnified: new Map() }
+
+  for (const src of raw) {
+    ingestEmojiEntry(src, acc)
+  }
+
+  return finalizeCatalog(acc)
+}
+
+/**
+ * Same result as buildCatalog, but yields to the event loop every chunk so
+ * frames can paint between slices. Used on first picker open so the filter
+ * animation keeps its frame budget while the catalog assembles.
+ */
+export async function buildCatalogChunked(
+  raw: readonly EmojiSourceEntry[],
+  chunkSize = 600
+): Promise<EmojiCatalog> {
+  const acc: CatalogAccumulator = { all: [], byCategory: {}, byUnified: new Map() }
+  const yieldFrame = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
+
+  for (let i = 0; i < raw.length; i++) {
+    ingestEmojiEntry(raw[i], acc)
+    if ((i + 1) % chunkSize === 0 && i + 1 < raw.length) {
+      await yieldFrame()
+    }
+  }
+
+  return finalizeCatalog(acc)
+}
+
+export interface CatalogItem {
+  key: string
+  file: string
+  entry: EmojiEntry
+}
+
+/**
+ * Flat item list for one picker category, in display order. Single source
+ * of truth shared by the grid memo and the hover-intent preloader so both
+ * always agree on what "first screen" means.
+ */
+export function entriesForCategory(
+  catalog: EmojiCatalog | null,
+  category: EmojiCategoryId,
+  recents: readonly string[]
+): CatalogItem[] {
+  if (!catalog) return []
+  if (category === 'recents') {
+    const out: CatalogItem[] = []
+    for (const u of recents) {
+      const g = resolveGlyph(catalog, u)
+      if (g) out.push({ key: g.unified, file: g.file, entry: g.entry })
+    }
+    return out
+  }
+  const spec = CATEGORY_ORDER.find((c) => c.id === category)
+  if (!spec || !spec.sources || spec.sources.length === 0) return []
+  const out: CatalogItem[] = []
+  for (const src of spec.sources) {
+    const list = catalog.byCategory[src] ?? []
+    for (const entry of list) {
+      out.push({ key: entry.unified, file: entry.file, entry })
+    }
+  }
+  return out
 }
 
 export function applySkin(entry: EmojiEntry, toneKey: SkinToneKey | null): { unified: string; file: string } {

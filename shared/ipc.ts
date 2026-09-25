@@ -138,7 +138,7 @@ export interface EventMap {
    * Transient user-facing notice (e.g. "Stack is full (10 max)"). The renderer
    * shows it as a toast; `id` lets it dedupe/dismiss.
    */
-  'ui:toast': [toast: { id: string; message: string; tone: 'info' | 'error' }]
+  'ui:toast': [toast: { id: string; message: string; tone: 'info' | 'error'; params?: Record<string, string | number> }]
   /** Fired when an OS copy event (Ctrl+C) is detected by the main process watcher. */
   'ui:copy-flare': []
   /** Fired by electron-updater when a new update is available for GitHub builds. */

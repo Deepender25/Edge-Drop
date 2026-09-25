@@ -9,48 +9,21 @@
   z-index: 1;
 }
 
-/* Sleek 8-Category Pill Bar (Zero Horizontal Scroll, Zero Arrows, Fits Perfectly) */
+/* Sleek Category Pill Bar (RubberSegment) */
 .emoji-cat-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2px;
+  justify-content: center;
   background: transparent;
   border: none;
   border-radius: 999px;
   padding: 0;
   margin: 2px var(--pad) 8px;
-  height: 36px;
+  height: 32px;
   box-sizing: border-box;
   flex-shrink: 0;
   box-shadow: none;
-}
-
-.emoji-cat-btn {
-  flex: 1;
-  height: 28px;
-  min-width: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: #141414;
-  border: none;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.70);
-  padding: 0;
-  transition: background 0.16s cubic-bezier(0.22, 1, 0.36, 1), color 0.16s ease;
-}
-.emoji-cat-btn:hover {
-  background: #1c1c1c;
-  color: #ffffff;
-}
-.emoji-cat-btn.active {
-  background: #ffffff;
-  color: #000000;
-  box-shadow: none;
-}
-.emoji-cat-btn:active {
-  transform: scale(0.94);
+  overflow: visible;
 }
 
 .emoji-grid {
@@ -73,6 +46,10 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
   height: 36px;
+  /* Offscreen rows skip layout/paint/decode entirely; the intrinsic size is
+     exact (rows are fixed-height), so the scrollbar never jumps. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 36px;
 }
 
 .emoji-cell {
@@ -254,34 +231,17 @@
 }
 
 .emoji-picker.horizontal .emoji-cat-bar {
-  max-width: 440px;
-  width: 100%;
-  margin: 0 auto 4px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 999px;
-  padding: 2px;
-  gap: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
-.emoji-picker.horizontal .emoji-cat-btn {
-  height: 22px;
-  border-radius: 999px;
+  max-width: 100%;
+  width: auto;
+  margin: 0 auto 6px;
+  height: 32px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.emoji-picker.horizontal .emoji-cat-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
-
-.emoji-picker.horizontal .emoji-cat-btn.active {
-  background: #ffffff;
-  color: #000000;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  border: none;
+  border-radius: 999px;
+  padding: 0;
+  gap: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .emoji-picker.horizontal .emoji-cat-tooltip {
@@ -299,6 +259,7 @@
 .emoji-picker.horizontal .emoji-row {
   gap: 2px;
   height: 32px;
+  contain-intrinsic-size: auto 32px;
 }
 
 .emoji-picker.horizontal .emoji-cell {

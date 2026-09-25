@@ -263,7 +263,7 @@ export function Settings({
 
       <div className="setting-card">
         <div className="shelf-card-top">
-          <div className="setting-group-label">FEEDBACK</div>
+          <div className="setting-group-label">{t('groups.feedback') || 'FEEDBACK'}</div>
           <div className="setting-title">{t('footer.feedbackTitle')}</div>
           <div className="setting-desc">{t('footer.feedbackDesc')}</div>
         </div>
@@ -411,6 +411,7 @@ export function Settings({
             <SlideCommit
               label={t('behaviour.restart') || 'Restart'}
               doneLabel={t('behaviour.restarting') || 'Restarting...'}
+              errorLabel={t('behaviour.restartFailed') || 'Restart failed'}
               height={32}
               radius={10}
               onConfirm={() => {
@@ -556,6 +557,7 @@ export function Settings({
             <SlideCommit
               label={t('behaviour.restart') || 'Restart'}
               doneLabel={t('behaviour.restarting') || 'Restarting...'}
+              errorLabel={t('behaviour.restartFailed') || 'Restart failed'}
               height={32}
               radius={10}
               onConfirm={() => {
@@ -781,9 +783,9 @@ export function Settings({
     const renderHorizontalCommunityCard = () => (
       <div className="settings-shelf-card support-card">
         <div className="shelf-card-top">
-          <div className="setting-group-label">COMMUNITY & SUPPORT</div>
+          <div className="setting-group-label">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</div>
           <div className="setting-title">{t('footer.communityAndSupport')}</div>
-          <div className="setting-desc">100% free & open-source clipboard</div>
+          <div className="setting-desc">{t('footer.supportTagline') || '100% free & open-source clipboard'}</div>
         </div>
         <div className="shelf-card-bottom">
           <button
@@ -832,7 +834,7 @@ export function Settings({
     const renderHorizontalAboutCard = () => (
       <div className="settings-shelf-card about-card">
         <div className="shelf-card-top">
-          <div className="setting-group-label">ABOUT EDGE-DROP</div>
+          <div className="setting-group-label">{t('groups.aboutEdgeDrop') || 'ABOUT EDGE-DROP'}</div>
           <div className="setting-title">Edge-Drop v{currentVersion || '0.3.1'}</div>
           <div className="setting-desc">{t('footer.feedbackDesc')}</div>
         </div>
@@ -900,9 +902,9 @@ export function Settings({
               {/* Card 1: Language */}
               <div className="settings-shelf-card shortcuts-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">GENERAL</div>
+                  <div className="setting-group-label">{t('groups.general') || 'GENERAL'}</div>
                   <div className="setting-title">{t('behaviour.languageTitle')}</div>
-                  <div className="setting-desc">Select application display language</div>
+                  <div className="setting-desc">{t('groups.languageSelectDesc') || 'Select application display language'}</div>
                 </div>
                 <div className="shelf-card-bottom">
                   <button
@@ -940,7 +942,7 @@ export function Settings({
               {/* Card 2: Launch at Login */}
               <div className="settings-shelf-card system-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">STARTUP</div>
+                  <div className="setting-group-label">{t('groups.startup') || 'STARTUP'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -964,7 +966,7 @@ export function Settings({
               {/* Card 3: Incognito Mode */}
               <div className="settings-shelf-card incognito-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">PRIVACY</div>
+                  <div className="setting-group-label">{t('groups.privacy') || 'PRIVACY'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -988,7 +990,7 @@ export function Settings({
               {/* Card 4: Hover Activation */}
               <div className="settings-shelf-card hover-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">HOVER ACTIVATION</div>
+                  <div className="setting-group-label">{t('groups.hoverActivation') || 'HOVER ACTIVATION'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -1017,9 +1019,9 @@ export function Settings({
               {/* Card 5: Global Toggle Shortcut */}
               <div className="settings-shelf-card hotkey-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">KEYBOARD SHORTCUT</div>
+                  <div className="setting-group-label">{t('groups.keyboardShortcut') || 'KEYBOARD SHORTCUT'}</div>
                   <div className="setting-title">{t('behaviour.toggleHotkeyTitle')}</div>
-                  <div className="setting-desc">Press anywhere to toggle Edge-Drop</div>
+                  <div className="setting-desc">{t('groups.toggleHotkeyPressDesc') || 'Press anywhere to toggle Edge-Drop'}</div>
                 </div>
                 <div className="shelf-card-bottom">
                   <HotkeyRecorder
@@ -1039,7 +1041,7 @@ export function Settings({
               {/* Card 6: Fullscreen Protection */}
               <div className="settings-shelf-card fullscreen-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">FULLSCREEN PROTECTION</div>
+                  <div className="setting-group-label">{t('groups.fullscreenProtection') || 'FULLSCREEN PROTECTION'}</div>
                 </div>
                 <div className="shelf-card-inline" style={{ opacity: (settings.hoverActivation ?? true) ? 1 : 0.45 }}>
                   <div className="shelf-card-inline-text">
@@ -1068,7 +1070,7 @@ export function Settings({
               {/* Card 7: Move Pasted to Top */}
               <div className="settings-shelf-card order-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">CLIPBOARD BEHAVIOUR</div>
+                  <div className="setting-group-label">{t('groups.clipboardBehaviour') || 'CLIPBOARD BEHAVIOUR'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -1087,7 +1089,7 @@ export function Settings({
               {/* Card 8: Clear Unpinned on Restart */}
               <div className="settings-shelf-card rules-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">RESTART CLEANUP</div>
+                  <div className="setting-group-label">{t('groups.restartCleanup') || 'RESTART CLEANUP'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -1111,7 +1113,7 @@ export function Settings({
               {/* Card 9: History Capacity */}
               <div className="settings-shelf-card storage-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">STORAGE CAPACITY</div>
+                  <div className="setting-group-label">{t('groups.storageCapacity') || 'STORAGE CAPACITY'}</div>
                   <div className="setting-title">{t('behaviour.capacityTitle')}</div>
                   <div className="setting-desc">{t('behaviour.capacityDesc')}</div>
                 </div>
@@ -1140,7 +1142,7 @@ export function Settings({
               {/* Card 10: Auto-Delete Timer */}
               <div className="settings-shelf-card autodelete-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">AUTO-DELETE</div>
+                  <div className="setting-group-label">{t('groups.autoDelete') || 'AUTO-DELETE'}</div>
                   <div className="setting-title">{t('behaviour.autoDeleteTitle')}</div>
                   <div className="setting-desc">{t('behaviour.autoDeleteDesc')}</div>
                 </div>
@@ -1177,7 +1179,7 @@ export function Settings({
               {/* Card 11: Application Updates (3-mode selector) */}
               <div className="settings-shelf-card updates-card behaviour-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">UPDATES</div>
+                  <div className="setting-group-label">{t('groups.updates') || 'UPDATES'}</div>
                   <div className="setting-title">{t('behaviour.autoUpdatesTitle')}</div>
                   <div className="setting-desc">
                     {!isStoreBuild
@@ -1287,7 +1289,7 @@ export function Settings({
               {/* Card 1: Edge Placement */}
               <div className="settings-shelf-card placement-card position-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">PLACEMENT</div>
+                  <div className="setting-group-label">{t('groups.placement') || 'PLACEMENT'}</div>
                   <div className="setting-title" style={{ color: '#ffffff' }}>{t('position.edgePlacementTitle')}</div>
                   <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
                 </div>
@@ -1330,7 +1332,7 @@ export function Settings({
               {/* Card 2: Target Display */}
               <div className="settings-shelf-card display-card position-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">DISPLAY MONITOR</div>
+                  <div className="setting-group-label">{t('groups.displayMonitor') || 'DISPLAY MONITOR'}</div>
                   <div className="setting-title">{t('position.displayTitle')}</div>
                   <div className="setting-desc">{t('position.displayDesc')}</div>
                 </div>
@@ -1369,12 +1371,12 @@ export function Settings({
               {/* Card 3: Edge Location Hint */}
               <div className="settings-shelf-card beacon-card position-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">LOCATION HINT</div>
+                  <div className="setting-group-label">{t('groups.locationHint') || 'LOCATION HINT'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
                     <div className="setting-title">{t('position.edgeLocationHintTitle')}</div>
-                    <div className="setting-desc">Beacon pulse along edge to hint dock position</div>
+                    <div className="setting-desc">{t('groups.edgeHintPulseDesc') || 'Beacon pulse along edge to hint dock position'}</div>
                   </div>
                   <div className="shelf-card-inline-action">
                     <Toggle
@@ -1393,7 +1395,7 @@ export function Settings({
               {/* Card 5: Hover Area Size */}
               <div className="settings-shelf-card trigger-bar-card position-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">HOVER ZONE LENGTH</div>
+                  <div className="setting-group-label">{t('groups.hoverZoneLength') || 'HOVER ZONE LENGTH'}</div>
                   <div className="setting-title">{t('position.hoverAreaSizeTitle')}</div>
                   <div className="setting-desc">{t('position.hoverAreaSizeDesc')}</div>
                 </div>
@@ -1424,7 +1426,7 @@ export function Settings({
               {/* Card 6: Edge Trigger Thickness */}
               <div className="settings-shelf-card trigger-thickness-card position-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">TRIGGER THICKNESS</div>
+                  <div className="setting-group-label">{t('groups.triggerThickness') || 'TRIGGER THICKNESS'}</div>
                   <div className="setting-slider-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div>
                       <div className="setting-title">{t('position.edgeTriggerThicknessTitle')}</div>
@@ -1438,6 +1440,7 @@ export function Settings({
                 <div className="shelf-card-bottom">
                   <div className="setting-slider-wrap" style={{ gap: 4, padding: '2px 0' }}>
                     <WakeSlider
+                      ariaLabel={t('position.edgeTriggerThicknessTitle')}
                       min={1}
                       max={7}
                       step={1}
@@ -1510,7 +1513,7 @@ export function Settings({
               {/* Card 1: Copy Indicator Toggle */}
               <div className="settings-shelf-card beacon-toggle-card appearance-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">COPY BEACON</div>
+                  <div className="setting-group-label">{t('groups.copyBeacon') || 'COPY BEACON'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -1530,7 +1533,7 @@ export function Settings({
               {(settings.showCopyIndicator ?? true) && (
                 <div className="settings-shelf-card copy-card appearance-col">
                   <div className="shelf-card-top">
-                    <div className="setting-group-label">BEACON STYLE</div>
+                    <div className="setting-group-label">{t('groups.beaconStyle') || 'BEACON STYLE'}</div>
                   </div>
                   <div className="shelf-card-inline">
                     <div className="shelf-card-inline-text">
@@ -1542,7 +1545,7 @@ export function Settings({
                         ref={indicatorBtnRef}
                         type="button"
                         className={`icon-btn style-preview-toggle-btn ${isFlyoutActive ? 'active' : ''}`}
-                        title={isFlyoutActive ? 'Close Style Selector' : 'Open Indicator Style Selector'}
+                        title={isFlyoutActive ? t('appearance.closeStyleSelector') : t('appearance.openStyleSelector')}
                         onClick={(e) => {
                           playButtonClickSound()
                           handleToggleFlyout(e.currentTarget)
@@ -1563,7 +1566,7 @@ export function Settings({
               {/* Card 4: Audio & Feedback */}
               <div className="settings-shelf-card audio-card appearance-col">
                 <div className="shelf-card-top">
-                  <div className="setting-group-label">AUDIO FEEDBACK</div>
+                  <div className="setting-group-label">{t('groups.audioFeedback') || 'AUDIO FEEDBACK'}</div>
                 </div>
                 <div className="shelf-card-inline">
                   <div className="shelf-card-inline-text">
@@ -1654,7 +1657,7 @@ export function Settings({
                   {/* Card 1: Language */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">GENERAL</div>
+                      <div className="setting-group-label">{t('groups.general') || 'GENERAL'}</div>
                       <div className="setting-title">{t('behaviour.languageTitle')}</div>
                       <div className="setting-desc">{t('behaviour.languageDesc')}</div>
                     </div>
@@ -1666,7 +1669,7 @@ export function Settings({
                   {/* Card 2: Launch at Login */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">STARTUP</div>
+                      <div className="setting-group-label">{t('groups.startup') || 'STARTUP'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -1690,7 +1693,7 @@ export function Settings({
                   {/* Card 3: Incognito Mode */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">PRIVACY</div>
+                      <div className="setting-group-label">{t('groups.privacy') || 'PRIVACY'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -1714,7 +1717,7 @@ export function Settings({
                   {/* Card 4: Hover Activation */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">HOVER ACTIVATION</div>
+                      <div className="setting-group-label">{t('groups.hoverActivation') || 'HOVER ACTIVATION'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -1743,7 +1746,7 @@ export function Settings({
                   {/* Card 5: Global Toggle Shortcut */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">KEYBOARD SHORTCUT</div>
+                      <div className="setting-group-label">{t('groups.keyboardShortcut') || 'KEYBOARD SHORTCUT'}</div>
                       <div className="setting-title">{t('behaviour.toggleHotkeyTitle')}</div>
                       <div className="setting-desc">{t('behaviour.toggleHotkeyDesc')}</div>
                     </div>
@@ -1765,7 +1768,7 @@ export function Settings({
                   {/* Card 6: Fullscreen Protection */}
                   <div className="setting-card" style={{ opacity: (settings.hoverActivation ?? true) ? 1 : 0.45, transition: 'opacity 0.2s ease' }}>
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">FULLSCREEN PROTECTION</div>
+                      <div className="setting-group-label">{t('groups.fullscreenProtection') || 'FULLSCREEN PROTECTION'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -1794,7 +1797,7 @@ export function Settings({
                   {/* Card 7: Move Pasted to Top */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">CLIPBOARD BEHAVIOUR</div>
+                      <div className="setting-group-label">{t('groups.clipboardBehaviour') || 'CLIPBOARD BEHAVIOUR'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -1813,7 +1816,7 @@ export function Settings({
                   {/* Card 8: Clear Unpinned on Restart */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">RESTART CLEANUP</div>
+                      <div className="setting-group-label">{t('groups.restartCleanup') || 'RESTART CLEANUP'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -1837,7 +1840,7 @@ export function Settings({
                   {/* Card 9: History Capacity */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">STORAGE CAPACITY</div>
+                      <div className="setting-group-label">{t('groups.storageCapacity') || 'STORAGE CAPACITY'}</div>
                       <div className="setting-title">{t('behaviour.capacityTitle')}</div>
                       <div className="setting-desc">{t('behaviour.capacityDesc')}</div>
                     </div>
@@ -1864,7 +1867,7 @@ export function Settings({
                   {/* Card 10: Auto-Delete Timer */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">AUTO-DELETE</div>
+                      <div className="setting-group-label">{t('groups.autoDelete') || 'AUTO-DELETE'}</div>
                       <div className="setting-title">{t('behaviour.autoDeleteTitle')}</div>
                       <div className="setting-desc">{t('behaviour.autoDeleteDesc')}</div>
                     </div>
@@ -1899,7 +1902,7 @@ export function Settings({
                       {/* Card 11: Auto Updates (3-way selector) */}
                       <div className="setting-card">
                         <div className="shelf-card-top">
-                          <div className="setting-group-label">UPDATES</div>
+                          <div className="setting-group-label">{t('groups.updates') || 'UPDATES'}</div>
                           <div className="setting-title">{t('behaviour.autoUpdatesTitle')}</div>
                           <div className="setting-desc">
                             {updateMode === 'auto'
@@ -1953,7 +1956,7 @@ export function Settings({
                   {/* Card 1: Edge Placement */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">PLACEMENT</div>
+                      <div className="setting-group-label">{t('groups.placement') || 'PLACEMENT'}</div>
                       <div className="setting-title">{t('position.edgePlacementTitle')}</div>
                       <div className="setting-desc">{t('position.edgePlacementDesc')}</div>
                     </div>
@@ -2003,7 +2006,7 @@ export function Settings({
                     return (
                       <div className="setting-card">
                         <div className="shelf-card-top">
-                          <div className="setting-group-label">ALIGNMENT</div>
+                          <div className="setting-group-label">{t('groups.alignment') || 'ALIGNMENT'}</div>
                           <div className="setting-slider-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                             <div>
                               <div className="setting-title">{sliderTitle}</div>
@@ -2018,6 +2021,7 @@ export function Settings({
                         <div className="shelf-card-bottom">
                           <div className="setting-slider-wrap">
                             <WakeSlider
+                              ariaLabel={sliderTitle}
                               min={0}
                               max={1}
                               step={0.002}
@@ -2081,7 +2085,7 @@ export function Settings({
                   {/* Card 3: Target Display */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">DISPLAY MONITOR</div>
+                      <div className="setting-group-label">{t('groups.displayMonitor') || 'DISPLAY MONITOR'}</div>
                       <div className="setting-title">{t('position.displayTitle')}</div>
                       <div className="setting-desc">{t('position.displayDesc')}</div>
                     </div>
@@ -2122,7 +2126,7 @@ export function Settings({
                   {/* Card 4: Location Hint */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">LOCATION HINT</div>
+                      <div className="setting-group-label">{t('groups.locationHint') || 'LOCATION HINT'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -2141,7 +2145,7 @@ export function Settings({
                   {/* Card 5: Trigger Alignment */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">TRIGGER POSITION</div>
+                      <div className="setting-group-label">{t('groups.triggerPosition') || 'TRIGGER POSITION'}</div>
                       <div className="setting-title">{t('position.edgeTriggerPositionTitle')}</div>
                       <div className="setting-desc">{t('position.edgeTriggerPositionDesc')}</div>
                     </div>
@@ -2171,7 +2175,7 @@ export function Settings({
                   {/* Card 6: Hover Area Size */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">HOVER ZONE LENGTH</div>
+                      <div className="setting-group-label">{t('groups.hoverZoneLength') || 'HOVER ZONE LENGTH'}</div>
                       <div className="setting-title">{t('position.hoverAreaSizeTitle')}</div>
                       <div className="setting-desc">{t('position.hoverAreaSizeDesc')}</div>
                     </div>
@@ -2200,7 +2204,7 @@ export function Settings({
                   {/* Card 7: Edge Trigger Thickness */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">TRIGGER THICKNESS</div>
+                      <div className="setting-group-label">{t('groups.triggerThickness') || 'TRIGGER THICKNESS'}</div>
                       <div className="setting-slider-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                         <div>
                           <div className="setting-title">{t('position.edgeTriggerThicknessTitle')}</div>
@@ -2266,7 +2270,7 @@ export function Settings({
                   {/* Card 8: Panel Height */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">PANEL HEIGHT</div>
+                      <div className="setting-group-label">{t('groups.panelHeight') || 'PANEL HEIGHT'}</div>
                       <div className="setting-title">{t('position.panelHeightTitle')}</div>
                       <div className="setting-desc">{t('position.panelHeightDesc')}</div>
                     </div>
@@ -2313,7 +2317,7 @@ export function Settings({
                   {/* Card 1: Copy Indicator Toggle */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">COPY BEACON</div>
+                      <div className="setting-group-label">{t('groups.copyBeacon') || 'COPY BEACON'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">
@@ -2333,7 +2337,7 @@ export function Settings({
                   {(settings.showCopyIndicator ?? true) && (
                     <div className="setting-card">
                       <div className="shelf-card-top">
-                        <div className="setting-group-label">BEACON STYLE</div>
+                        <div className="setting-group-label">{t('groups.beaconStyle') || 'BEACON STYLE'}</div>
                       </div>
                       <div className="shelf-card-inline">
                         <div className="shelf-card-inline-text">
@@ -2346,7 +2350,7 @@ export function Settings({
                           <button
                             type="button"
                             className={`icon-btn style-preview-toggle-btn ${isFlyoutActive ? 'active' : ''}`}
-                            title={isFlyoutActive ? 'Close Style Selector' : 'Open Indicator Style Selector'}
+                            title={isFlyoutActive ? t('appearance.closeStyleSelector') : t('appearance.openStyleSelector')}
                             onClick={(e) => {
                               playButtonClickSound()
                               handleToggleFlyout(e.currentTarget)
@@ -2491,7 +2495,7 @@ export function Settings({
                   {/* Card 3: Text Size */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">TEXT SIZE</div>
+                      <div className="setting-group-label">{t('groups.textSize') || 'TEXT SIZE'}</div>
                       <div className="setting-title">{t('appearance.textSizeTitle')}</div>
                       <div className="setting-desc">{t('appearance.textSizeDesc')}</div>
                     </div>
@@ -2525,7 +2529,7 @@ export function Settings({
                   {/* Card 4: Audio Feedback */}
                   <div className="setting-card">
                     <div className="shelf-card-top">
-                      <div className="setting-group-label">AUDIO FEEDBACK</div>
+                      <div className="setting-group-label">{t('groups.audioFeedback') || 'AUDIO FEEDBACK'}</div>
                     </div>
                     <div className="shelf-card-inline">
                       <div className="shelf-card-inline-text">

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applySkin,
   buildCatalog,
+  entriesForCategory,
   hasSkinTones,
   isPasteableEmoji,
   pushRecent,
@@ -138,6 +139,20 @@ describe('emoji asset protocol', () => {
 })
 
 describe('horizontal emoji picker layout calculations', () => {
+  it('entriesForCategory matches the grid memo for every category', () => {
+    const cat = buildCatalog(sample)
+    // smileys merges two source categories in sort order
+    const smileys = entriesForCategory(cat, 'smileys', [])
+    expect(smileys.map((e) => e.key)).toEqual(['1F600', '1F44B'])
+    expect(smileys[0]).toMatchObject({ file: '1f600.png' })
+    // recents resolve through glyphs, unknown codes dropped
+    const recents = entriesForCategory(cat, 'recents', ['1F44B', 'NOPE'])
+    expect(recents.map((e) => e.key)).toEqual(['1F44B'])
+    // null catalog and empty recents are safe
+    expect(entriesForCategory(null, 'smileys', [])).toEqual([])
+    expect(entriesForCategory(cat, 'recents', [])).toEqual([])
+  })
+
   it('calculates responsive columns matching horizontal viewport width', () => {
     const calcCols = (viewW: number, isHorizontal: boolean) => {
       if (!isHorizontal) return 7

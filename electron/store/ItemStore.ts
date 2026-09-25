@@ -353,9 +353,11 @@ export class ItemStore {
     const src = this.items[srcIdx]
     const tgt = this.items[tgtIdx]
 
-    // Text and links cannot be merged into stacks
+    // Text and links cannot be merged into stacks.
+    // NOTE: message is a translation key resolved renderer-side (see toast.*
+    // in translations.ts), never display English from the store.
     if (src.data.kind === 'text' || tgt.data.kind === 'text') {
-      return { ok: false, reason: 'incompatible', message: 'Text and links cannot be grouped together' }
+      return { ok: false, reason: 'incompatible', message: 'toast.mergeTextLinks' }
     }
 
     let newData: ItemData | null = null
@@ -388,7 +390,7 @@ export class ItemStore {
       const seen = new Set(tgtImages.map((i) => i.imageId))
       const combined = [...tgtImages, ...srcImages.filter((i) => !seen.has(i.imageId))]
 
-      if (combined.length > MAX_STACK) return { ok: false, reason: 'full', message: 'An image collection can hold a maximum of 10 items' }
+      if (combined.length > MAX_STACK) return { ok: false, reason: 'full', message: 'toast.mergeImagesFull' }
       newData = { kind: 'image-collection', images: combined }
     } else if (
       (src.data.kind === 'files' || src.data.kind === 'image' || src.data.kind === 'image-collection') &&
@@ -400,12 +402,12 @@ export class ItemStore {
       const seen = new Set(tgtPaths)
       const combined = [...tgtPaths, ...srcPaths.filter((p) => !seen.has(p))]
 
-      if (combined.length > MAX_STACK) return { ok: false, reason: 'full', message: 'A folder bundle can hold a maximum of 10 files' }
+      if (combined.length > MAX_STACK) return { ok: false, reason: 'full', message: 'toast.mergeFilesFull' }
       newData = { kind: 'files', paths: combined }
     }
 
     if (!newData) {
-      return { ok: false, reason: 'incompatible', message: 'Cannot combine these items' }
+      return { ok: false, reason: 'incompatible', message: 'toast.mergeIncompatible' }
     }
 
     // Update target item

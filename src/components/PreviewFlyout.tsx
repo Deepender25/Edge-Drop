@@ -11,7 +11,7 @@ import { useDragOut } from '../hooks/useDragOut'
 import { tryPaste } from '../lib/tryPaste'
 import { playButtonClickSound, playToggleSound } from '../lib/soundEffects'
 
-import { useTranslation } from '../i18n'
+import { useTranslation, t } from '../i18n'
 
 /** Fast start, soft landing — no overshoot, no spring hang. */
 const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
@@ -558,7 +558,7 @@ function QuickActionButton({
 
   return (
     <button
-      title={copied ? 'Copied!' : title}
+      title={copied ? t('flyout.copied') : title}
       onClick={handleClick}
       style={{
         width: size,
@@ -665,7 +665,7 @@ function SelectionBadge({
         e.stopPropagation()
         onToggle(e)
       }}
-      title={isSelected ? 'Deselect item' : 'Select item'}
+                      title={isSelected ? t('flyout.deselectItem') : t('flyout.selectItem')}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -938,7 +938,7 @@ function PreviewContent({
                   tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId }))
                 }
               }}
-              title={selectedKeys && selectedKeys.size > 0 ? (isSelected ? 'Click to deselect' : 'Click to select') : 'Click to paste image · Drag to move'}
+              title={selectedKeys && selectedKeys.size > 0 ? (isSelected ? t('flyout.clickToDeselect') : t('flyout.clickToSelect')) : t('flyout.clickToPasteImageDrag')}
               style={{
                 display: 'flex',
                 flexDirection: 'column',

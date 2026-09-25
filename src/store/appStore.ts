@@ -9,6 +9,8 @@
 import { create } from 'zustand'
 import { edge } from '../lib/edge'
 import { takeSearchEngaged } from '../lib/searchFocus'
+import { t } from '../i18n'
+import { loadRecents } from '../lib/emoji/prefs'
 import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
 import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
@@ -40,6 +42,7 @@ export interface ToastMsg {
   id: string
   message: string
   tone: 'info' | 'error'
+  params?: Record<string, string | number>
 }
 
 export interface UpdateProgress {
@@ -189,8 +192,15 @@ export const useStore = create<AppState>((set, get) => ({
   setEmojiCategory: (emojiCategory) => set({ emojiCategory }),
   setEmojiOpen: (emojiOpen) => {
     if (emojiOpen) {
+      // Every open lands on the first page: recents when any exist,
+      // otherwise smileys. Scroll/budget reset happens in the picker.
+      let landing: import('../lib/emoji/catalog').EmojiCategoryId = 'smileys'
+      try {
+        if (loadRecents().length > 0) landing = 'recents'
+      } catch { /* ignore */ }
       set({
         emojiOpen: true,
+        emojiCategory: landing,
         settingsOpen: false,
         previewItemId: null,
         previewItemRect: null,
@@ -536,7 +546,7 @@ export const useStore = create<AppState>((set, get) => ({
       // Do not leave the UI claiming an item was deleted when the main-process
       // persistence request failed (for example during a renderer reload).
       set({ items: previousItems })
-      get().pushToast({ id: `delete-${Date.now()}`, message: 'Could not delete this item. Please try again.', tone: 'error' })
+      get().pushToast({ id: `delete-${Date.now()}`, message: t('toast.deleteFailed'), tone: 'error' })
     }
   },
 
@@ -552,7 +562,7 @@ export const useStore = create<AppState>((set, get) => ({
         }
       } catch {
         set({ items: previousItems })
-        get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
+        get().pushToast({ id: `clear-${Date.now()}`, message: t('toast.clearFailed'), tone: 'error' })
       }
     } else {
       const previousItems = get().items
@@ -566,7 +576,7 @@ export const useStore = create<AppState>((set, get) => ({
         }
       } catch {
         set({ items: previousItems })
-        get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
+        get().pushToast({ id: `clear-${Date.now()}`, message: t('toast.clearFailed'), tone: 'error' })
       }
     }
   },

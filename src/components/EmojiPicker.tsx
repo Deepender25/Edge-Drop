@@ -4,11 +4,10 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  CATEGORY_ORDER,
   emojiGlyphUrl,
+  entriesForCategory,
   hasSkinTones,
   pushRecent,
-  resolveGlyph,
   skinChoices,
   unifiedToNative,
   type EmojiCatalog,
@@ -20,31 +19,8 @@ import { loadRecents, saveRecents } from '../lib/emoji/prefs'
 import { useStore } from '../store/appStore'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
-import {
-  TrashIcon,
-  EmojiSmileIcon,
-  EmojiClockIcon,
-  EmojiPawIcon,
-  EmojiFoodIcon,
-  EmojiPlaneIcon,
-  EmojiTrophyIcon,
-  EmojiBulbIcon,
-  EmojiShapesIcon
-} from './icons'
-import type { SVGProps } from 'react'
-
-type IconCmp = (p: SVGProps<SVGSVGElement>) => JSX.Element
-
-const CATEGORY_ICONS: Record<EmojiCategoryId, IconCmp> = {
-  recents: EmojiClockIcon,
-  smileys: EmojiSmileIcon,
-  animals: EmojiPawIcon,
-  food: EmojiFoodIcon,
-  travel: EmojiPlaneIcon,
-  activities: EmojiTrophyIcon,
-  objects: EmojiBulbIcon,
-  symbols: EmojiShapesIcon
-}
+import { EmojiCategoryBar } from './EmojiCategoryBar'
+import { TrashIcon } from './icons'
 
 const COLS = 7
 const ROW_H = 36
@@ -87,16 +63,13 @@ export function EmojiPicker({
   const category = useStore((s) => s.emojiCategory)
   const setCategory = useStore((s) => s.setEmojiCategory)
   const [catalog, setCatalog] = useState<EmojiCatalog | null>(null)
+  const [roomy, setRoomy] = useState(false)
   const [failed, setFailed] = useState(false)
   const [recents, setRecents] = useState<string[]>(loadRecents)
   const [scrollTop, setScrollTop] = useState(0)
   const [viewW, setViewW] = useState(0)
   const [viewH, setViewH] = useState(320)
   const [tonePop, setTonePop] = useState<TonePopup | null>(null)
-  const [hoveredCat, setHoveredCat] = useState<{
-    label: string
-    left: number
-  } | null>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
   const lastPasteAt = useRef(0)
@@ -107,25 +80,22 @@ export function EmojiPicker({
   const scrollRaf = useRef<number | null>(null)
   const pendingScrollTop = useRef(0)
 
-  const shownCats = useMemo(() => {
-    return CATEGORY_ORDER.filter((c) => c.id !== 'recents' || recents.length > 0)
-  }, [recents])
-
-  const selectCategory = useCallback((id: EmojiCategoryId) => {
-    playButtonClickSound()
-    setTonePop(null)
-    setHoveredCat(null)
-    setCategory(id)
-    setScrollTop(0)
-    if (scrollerRef.current) scrollerRef.current.scrollTop = 0
-  }, [setCategory])
-
+  // Measured: fetch + parse + build totals ~15ms — small enough to start on
+  // mount without starving the filter animation. The expensive part was
+  // always the image mount burst, which the row budget below spreads out.
   useEffect(() => {
     let alive = true
+    // TEMP-DIAG-EMOJI (remove after diagnosis): stage timings.
+    const tMount = performance.now()
     loadEmojiCatalog()
       .then((c) => {
         if (!alive) return
+        const tLoaded = performance.now()
         setCatalog(c)
+        requestAnimationFrame(() => {
+          // eslint-disable-next-line no-console
+          console.log(`[EmojiPerf] mountToLoadStart=~0ms load=${(tLoaded - tMount).toFixed(1)}ms loadToPaint=${(performance.now() - tLoaded).toFixed(1)}ms`)
+        })
         if (loadRecents().length > 0 && category === 'smileys') {
           setCategory('recents')
         }
@@ -140,10 +110,21 @@ export function EmojiPicker({
 
   useEffect(() => {
     setTonePop(null)
-    setHoveredCat(null)
-    setScrollTop(0)
     if (scrollerRef.current) scrollerRef.current.scrollTop = 0
   }, [category])
+
+  // Reopen always lands on the first page: reset view state whenever the
+  // picker becomes active (store already lands the category itself).
+  const wasActive = useRef(active)
+  useEffect(() => {
+    const justOpened = active && !wasActive.current
+    wasActive.current = active
+    if (!justOpened) return
+    setTonePop(null)
+    setScrollTop(0)
+    setRowBudget(3)
+    if (scrollerRef.current) scrollerRef.current.scrollTop = 0
+  }, [active])
 
   useEffect(() => {
     return () => {
@@ -153,6 +134,12 @@ export function EmojiPicker({
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!catalog) return
+    const id = requestAnimationFrame(() => setRoomy(true))
+    return () => cancelAnimationFrame(id)
+  }, [catalog])
 
   useEffect(() => {
     if (!active || !catalog) return
@@ -171,26 +158,35 @@ export function EmojiPicker({
   }, [catalog, active])
 
   const items = useMemo(() => {
-    if (!catalog) return [] as Array<{ key: string; file: string; entry: EmojiEntry }>
-    if (category === 'recents') {
-      const out: Array<{ key: string; file: string; entry: EmojiEntry }> = []
-      for (const u of recents) {
-        const g = resolveGlyph(catalog, u)
-        if (g) out.push({ key: g.unified, file: g.file, entry: g.entry })
-      }
-      return out
-    }
-    const spec = CATEGORY_ORDER.find((c) => c.id === category)
-    if (!spec || !spec.sources || spec.sources.length === 0) return []
-    const out: Array<{ key: string; file: string; entry: EmojiEntry }> = []
-    for (const src of spec.sources) {
-      const list = catalog.byCategory[src] ?? []
-      for (const entry of list) {
-        out.push({ key: entry.unified, file: entry.file, entry })
-      }
-    }
-    return out
+    return entriesForCategory(catalog, category, recents)
   }, [catalog, category, recents])
+
+  // Hover-intent preload: while the user aims at a category button (no
+  // animation running), decode its first screen into the image cache so the
+  // click lands warm. Capped and deduped; keyboard/touch users without hover
+  // are still covered by the fetch-budget ramp below. Never prefetches the
+  // active category (already mounted).
+  const warmedCats = useRef<Set<string>>(new Set())
+  const preloadCategory = useCallback(
+    (id: EmojiCategoryId) => {
+      if (id === category || !catalog) return
+      if (warmedCats.current.has(id)) return
+      warmedCats.current.add(id)
+      try {
+        const first = entriesForCategory(catalog, id, recents).slice(0, 28)
+        const ImgCtor = (globalThis as any)?.Image
+        if (typeof ImgCtor !== 'function') return
+        for (const item of first) {
+          try {
+            const im = new ImgCtor() as HTMLImageElement
+            try { (im as any).decoding = 'async' } catch { /* ignore */ }
+            im.src = emojiGlyphUrl(item.file)
+          } catch { /* ignore */ }
+        }
+      } catch { /* ignore */ }
+    },
+    [catalog, category, recents]
+  )
 
   const cols = useMemo(() => {
     if (!isHorizontal) return COLS
@@ -202,10 +198,43 @@ export function EmojiPicker({
   const glyphSize = isHorizontal ? 22 : 26
 
   const rows = Math.ceil(items.length / cols)
-  const overscan = 3
+  // First paint mounts a tight window (fewer images fighting for decode),
+  // then widens to full overscan on the next frame for scroll smoothness.
+  const overscan = roomy ? 3 : 1
   const startRow = Math.max(0, Math.floor(scrollTop / rowH) - overscan)
   const visibleRows = Math.ceil(viewH / rowH) + overscan * 2
   const endRow = Math.min(rows, startRow + visibleRows)
+  // Fetch budget: <img> tags start their file requests on DOM insert, which
+  // content-visibility cannot prevent — so cap how many rows mount per frame
+  // and ramp up over frames. Landing frame mounts ~3 rows (~21 requests, not
+  // ~100); spacers keep total height exact so nothing jumps, and the window
+  // fills over ~5 frames (~80ms), which reads as instant instead of a
+  // stampede.
+  // Small steps (~21 images each) so no single frame carries a decode
+  // stampede; the full window fills over ~5 frames (~80ms).
+  const [rowBudget, setRowBudget] = useState(3)
+  // Derived-state reset (render phase, before commit): a category switch
+  // must commit its FIRST frame already budgeted at the top. Resetting in an
+  // effect instead mounts one full wide-grid frame first (all-new images at
+  // once) and only then tears most of it down — that double-mount hitch is
+  // the in-tab switch lag. setState-during-render re-renders pre-commit, so
+  // no extra paint happens.
+  const seenCategory = useRef(category)
+  if (seenCategory.current !== category) {
+    seenCategory.current = category
+    setRowBudget(3)
+    setScrollTop(0)
+  }
+  const windowRows = endRow - startRow
+  useEffect(() => {
+    if (!catalog) return
+    if (windowRows <= rowBudget) return
+    const id = requestAnimationFrame(() => {
+      setRowBudget((b) => b + 3)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [catalog, windowRows, rowBudget])
+  const effEndRow = Math.min(endRow, startRow + rowBudget)
 
   const onPaste = useCallback(
     (unified: string) => {
@@ -233,7 +262,6 @@ export function EmojiPicker({
     const place: 'above' | 'below' = spaceAbove >= TONE_POP_H + 10 ? 'above' : 'below'
     const top = place === 'above' ? cr.top - pr.top : cr.bottom - pr.top
     setTonePop({ entry, left, top, place })
-    setHoveredCat(null)
   }
 
   return (
@@ -245,54 +273,7 @@ export function EmojiPicker({
         if (!t.closest('[data-tone-popup], [data-has-skins]')) setTonePop(null)
       }}
     >
-      <div className="emoji-cat-bar" role="tablist" aria-label={t('emoji.categories')}>
-        {shownCats.map((c) => {
-          const Icon = CATEGORY_ICONS[c.id]
-          const active = category === c.id
-          const label = t(c.labelKey)
-          return (
-            <button
-              key={c.id}
-              type="button"
-              role="tab"
-              data-cat={c.id}
-              aria-selected={active}
-              aria-label={label}
-              tabIndex={-1}
-              className={`emoji-cat-btn${active ? ' active' : ''}`}
-              onPointerEnter={(e) => {
-                const picker = pickerRef.current
-                if (!picker) return
-                const pr = picker.getBoundingClientRect()
-                const cr = e.currentTarget.getBoundingClientRect()
-                const center = cr.left - pr.left + cr.width / 2
-                setHoveredCat({
-                  label,
-                  left: center
-                })
-              }}
-              onPointerLeave={() => setHoveredCat(null)}
-              onClick={(e) => {
-                e.currentTarget.blur()
-                setHoveredCat(null)
-                selectCategory(c.id)
-              }}
-            >
-              <Icon width={16} height={16} />
-            </button>
-          )
-        })}
-      </div>
-
-      {hoveredCat && (
-        <div
-          className="emoji-cat-tooltip"
-          style={{ left: hoveredCat.left }}
-          aria-hidden
-        >
-          {hoveredCat.label}
-        </div>
-      )}
+      {!isHorizontal && <EmojiCategoryBar isHorizontal={false} onHoverCategory={preloadCategory} />}
 
       {failed ? (
         <div className="emoji-status">{t('emoji.loadFailed')}</div>
@@ -319,12 +300,11 @@ export function EmojiPicker({
               scrollRaf.current = null
               setScrollTop(pendingScrollTop.current)
               setTonePop(null)
-              setHoveredCat(null)
             })
           }}
         >
           <div style={{ height: startRow * rowH }} />
-          {Array.from({ length: endRow - startRow }, (_, i) => {
+          {Array.from({ length: effEndRow - startRow }, (_, i) => {
             const row = startRow + i
             const slice = items.slice(row * cols, row * cols + cols)
             return (
@@ -364,7 +344,7 @@ export function EmojiPicker({
               </div>
             )
           })}
-          <div style={{ height: Math.max(0, (rows - endRow) * rowH) }} />
+          <div style={{ height: Math.max(0, (rows - effEndRow) * rowH) }} />
         </div>
       )}
 

@@ -48,9 +48,9 @@ function clipboardMatchesItem(item: ClipboardItem): boolean {
   return signatureMatchesItem(clipboardSignature(), item.data, fullText)
 }
 
-/** Fire a transient toast to the renderer (best-effort; renderer may be closed). */
-function toast(message: string, tone: 'info' | 'error' = 'info'): void {
-  sendToMainWindow('ui:toast', { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, message, tone })
+/** Fire a transient toast to the renderer (best-effort; renderer may be closed). Message is a translation key resolved renderer-side; params fill {placeholders}. */
+function toast(message: string, tone: 'info' | 'error' = 'info', params?: Record<string, string | number>): void {
+  sendToMainWindow('ui:toast', { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, message, tone, params })
 }
 
 /** Simulate pressing Ctrl+V via PowerShell after returning focus to the previous active window. */
@@ -441,7 +441,7 @@ export function registerIpc(): void {
       // unrecoverable foreground -> toast, never fire blind.
       const sendDelay = await resolvePasteTarget(50)
       if (sendDelay < 0) {
-        toast('Clipboard ready — click your app and press Ctrl+V to paste', 'info')
+        toast('toast.pasteFallback', 'info')
       } else {
         setTimeout(() => {
           traceFg('sendKeys')
@@ -507,7 +507,7 @@ export function registerIpc(): void {
       // Wait for layout updates, then keys under the uniform rule.
       const subSendDelay = await resolvePasteTarget(50)
       if (subSendDelay < 0) {
-        toast('Clipboard ready — click your app and press Ctrl+V to paste', 'info')
+        toast('toast.pasteFallback', 'info')
       } else {
         setTimeout(() => {
           traceFg('sendKeys')
@@ -542,7 +542,7 @@ export function registerIpc(): void {
       clipboard.writeText(text.trim())
       const emojiSendDelay = await resolvePasteTarget(40)
       if (emojiSendDelay < 0) {
-        toast('Clipboard ready — click your app and press Ctrl+V to paste', 'info')
+        toast('toast.pasteFallback', 'info')
       } else {
         setTimeout(() => {
           traceFg('sendKeys')
@@ -564,7 +564,7 @@ export function registerIpc(): void {
     // If a large drop was split into several stacks, let the user know why
     // they suddenly see multiple items instead of one bundle.
     if (result.stacksCreated > 1) {
-      toast(`Split into ${result.stacksCreated} stacks (max 10 each)`, 'info')
+      toast('toast.splitStacks', 'info', { count: result.stacksCreated })
     }
     return getStore().toDto()
   })
@@ -575,7 +575,7 @@ export function registerIpc(): void {
     if (data.kind === 'files' && data.paths && data.paths.length > 0) {
       const result = addFiles(data.paths)
       if (result.stacksCreated > 1) {
-        toast(`Split into ${result.stacksCreated} stacks (max 10 each)`, 'info')
+        toast('toast.splitStacks', 'info', { count: result.stacksCreated })
       }
       return getStore().toDto()
     }
@@ -641,9 +641,9 @@ export function registerIpc(): void {
     if (result.ok) {
       pushState.items()
     } else if (result.reason === 'full') {
-      toast(result.message || 'Collection is full (10 max)', 'info')
+      toast(result.message || 'toast.mergeIncompatible', 'info')
     } else if (result.reason === 'incompatible') {
-      toast(result.message || 'Cannot combine different item types', 'info')
+      toast(result.message || 'toast.mergeIncompatible', 'info')
     }
     // 'notfound' fails silently
     return result

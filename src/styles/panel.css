@@ -761,42 +761,111 @@
   filter: brightness(1.1);
 }
 
-/* Quick Type Segmented Control */
+/* Quick Type Segmented Control (Jelly Radio Physics) */
 .filter-segmented-track {
   background: transparent;
+  display: flex;
+  align-items: center;
+  overflow: visible;
 }
+
+.jelly-filters {
+  --jf-chip: #27272a;
+  --jf-active: #ffffff;
+  --jf-text: rgba(255, 255, 255, 0.72);
+  --jf-active-text: #18181b;
+  --jf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overflow: visible;
+}
+
 .filter-chip {
   position: relative;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: linear-gradient(var(--bg-card, #141414), var(--bg-card, #141414)) padding-box,
-              linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.03) 100%) border-box;
-  border: 1px solid transparent;
-  -webkit-background-clip: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  background: none !important;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  transform-origin: 50% 50%;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  outline: none;
-  padding: 0;
-  transition: all 0.16s ease;
   flex-shrink: 0;
-}
-.filter-chip:not(.active):hover {
-  background: linear-gradient(var(--bg-card-hover, #1c1c1c), var(--bg-card-hover, #1c1c1c)) padding-box,
-              linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 100%) border-box;
-  -webkit-background-clip: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  color: #ffffff;
+  will-change: transform;
+  /* Transform is driven strictly per-frame by Jelly MotionValues (inline) - no CSS transform transition */
 }
 
-.header:not(.header-horizontal) .filter-chip {
-  width: 25px;
-  height: 25px;
+.filter-chip[data-on='true'],
+.filter-chip.active {
+  cursor: default;
+}
+
+.filter-chip__skin {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #27272a;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1;
+  white-space: nowrap;
+  border: none;
+  box-shadow: none;
+  transition:
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.filter-chip__skin::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filter-chip[data-on='false']:not(:disabled):hover .filter-chip__skin::before,
+  .filter-chip:not(.active):not(:disabled):hover .filter-chip__skin::before {
+    opacity: 0.12;
+  }
+  .filter-chip[data-on='false']:not(:disabled):hover .filter-chip__skin,
+  .filter-chip:not(.active):not(:disabled):hover .filter-chip__skin {
+    color: #ffffff;
+  }
+}
+
+.filter-chip:active .filter-chip__skin {
+  transform: scale(0.95);
+}
+
+.filter-chip[data-on='true'] .filter-chip__skin,
+.filter-chip.active .filter-chip__skin {
+  background: #ffffff;
+  color: #18181b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip:active .filter-chip__skin {
+    transform: none;
+  }
 }
 
 /* Copy Indicator Sine Curve Morph Styles */
