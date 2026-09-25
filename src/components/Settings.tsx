@@ -9,8 +9,10 @@ import {
   CopyIndicatorIcon,
   SparkleIndicatorIcon
 } from './CopyIndicatorCurve'
-import { ChevronRightIcon, CloseIcon, LogOutIcon, StarIcon, GithubOctocatLogo, MicrosoftStoreLogo } from './icons'
+import { ChevronRightIcon, CloseIcon, LogOutIcon, StarIcon, InfoIcon, GithubOctocatLogo, MicrosoftStoreLogo } from './icons'
 import { HotkeyRecorder } from './HotkeyRecorder'
+import { SlideCommit } from './SlideCommit'
+import { WakeSlider } from './WakeSlider'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
 import '../styles/settings.css'
@@ -175,12 +177,10 @@ export function Settings({
   const handleManualCheck = () => useStore.getState().startManualCheck()
   const handleStartDownload = () => useStore.getState().startManualDownload()
 
-  // Downloading while a real download runs (manual or auto). In 'auto' mode a
-  // just-found update starts downloading immediately, so cover that gap too;
-  // in 'notify' mode a found update waits for the user's Download click.
-  const isDownloading = checkState.status === 'downloading' || (!updateDownloaded && !!updateInfo?.hasUpdate && (updateMode === 'auto' || !!updateInfo?.downloadProgress))
-  // Background-found update waiting for a decision (notify mode prompt).
-  const hasBackgroundUpdate = !updateDownloaded && !isDownloading && !!updateInfo?.hasUpdate
+  const isManualDownloading = checkState.status === 'downloading'
+  const isDownloading = isManualDownloading || (!updateDownloaded && !!updateInfo?.hasUpdate && (updateMode === 'auto' || !!updateInfo?.downloadProgress))
+  // Update waiting for a user decision (Notify mode prompt or available check).
+  const hasBackgroundUpdate = !updateDownloaded && !isDownloading && (!!updateInfo?.hasUpdate || checkState.status === 'available')
   const downloadPercent = updateInfo?.downloadProgress?.percent ?? 0
 
   // ── Tab state & Independent Scroll Memory per section ──────────────────────
@@ -223,77 +223,35 @@ export function Settings({
     }
   }, [activeTab])
 
-  // ── Update banner ref & status tracking ────────────────────────────────────
-  const updateBannerRef = useRef<HTMLDivElement | null>(null)
-  // Active update states, mode-independent: banners and prompts show whenever
-  // an update is known (auto download, notify prompt, or manual result).
-  const hasUpdatePrompt = !isStoreBuild && !!(updateDownloaded || isDownloading || checkState.status === 'available' || hasBackgroundUpdate)
-
-  // ── Floating Scroll Indicator Badge for Off-Screen Update Banner ────────────
-  const [isUpdateCardVisible, setIsUpdateCardVisible] = useState(false)
-  const hasActiveUpdate = !isStoreBuild && !!(updateDownloaded || isDownloading || checkState.status === 'available' || hasBackgroundUpdate)
-  const showScrollUpdateBadge = hasActiveUpdate && !isUpdateCardVisible
-
+  // When update check finds a new update, smoothly scroll to top/front to highlight the update card
   useEffect(() => {
-    if (!hasActiveUpdate) {
-      setIsUpdateCardVisible(false)
-      return
-    }
-
-    if (activeTab !== 'behaviour') {
-      setIsUpdateCardVisible(false)
-      return
-    }
-
-    const scrollEl = scrollListRef.current
-    const bannerEl = updateBannerRef.current
-    if (!scrollEl || !bannerEl) {
-      setIsUpdateCardVisible(false)
-      return
-    }
-
-    const checkVisibility = () => {
-      const scrollRect = scrollEl.getBoundingClientRect()
-      const bannerRect = bannerEl.getBoundingClientRect()
-      const isVisible = bannerRect.top < scrollRect.bottom && bannerRect.bottom > scrollRect.top
-      setIsUpdateCardVisible(isVisible)
-    }
-
-    checkVisibility()
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries
-        setIsUpdateCardVisible(entry?.isIntersecting ?? false)
-      },
-      {
-        root: scrollEl,
-        threshold: 0.05
+    if (checkState.status === 'available') {
+      const behavior = settings.reduceMotion ? 'auto' : 'smooth'
+      if (isHorizontal) {
+        if (shelfTrackRef.current) {
+          shelfTrackRef.current.scrollTo({ left: 0, behavior })
+        }
+        horizontalTabScrollPositions.current.behaviour = 0
+      } else {
+        if (scrollListRef.current) {
+          scrollListRef.current.scrollTo({ top: 0, behavior })
+        }
+        tabScrollPositions.current.behaviour = 0
       }
-    )
-
-    observer.observe(bannerEl)
-    scrollEl.addEventListener('scroll', checkVisibility, { passive: true })
-
-    return () => {
-      observer.disconnect()
-      scrollEl.removeEventListener('scroll', checkVisibility)
     }
-  }, [activeTab, hasActiveUpdate, hasUpdatePrompt, isDownloading, updateDownloaded, checkState.status])
+  }, [checkState.status, isHorizontal, settings.reduceMotion])
 
-  const scrollToUpdateCard = () => {
-    playButtonClickSound()
-    if (activeTab !== 'behaviour') {
-      handleTabSwitch('behaviour')
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          updateBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-        }, 60)
-      })
-    } else {
-      updateBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }
-  }
+  // ── Promoted Active Update State ───────────────────────────────────────────
+  // The top card shows all active update lifecycle stages:
+  // 1) Downloaded update -> 'Restart to Update'
+  // 2) Downloading in progress -> Live progress bar
+  // 3) Update found & available -> 'Download & Update' / 'Skip'
+  const hasPromotedTopUpdate = !isStoreBuild && (
+    !!updateDownloaded ||
+    isDownloading ||
+    hasBackgroundUpdate
+  )
+  const updateBannerRef = useRef<HTMLDivElement | null>(null)
 
   // ── Persistent footer shared across all tabs ───────────────────────────
   const PersistentFooter = (
@@ -409,97 +367,316 @@ export function Settings({
     </>
   )
 
-  // ── Manual update card renderer shared between vertical and horizontal views ──
-  const renderManualUpdateCard = (withRef = false) => {
-    // Callers gate visibility; the idle branch below IS the Check button, so
-    // the card renders in every state on GitHub builds. Store builds never
-    // call this (whole update section is hidden there).
+  const handleOpenChangelog = () => {
+    playButtonClickSound()
+    const targetVersion = checkState.version || updateInfo?.latestVersion || currentVersion
+    if (targetVersion) {
+      patch({ lastSeenChangelogVersion: targetVersion })
+    }
+    window.open('https://www.edgedrop.app/changelog', '_blank')
+  }
+
+  // ── Promoted Top Update Card Renderer (Vertical Layout) ────────────────────
+  const renderPromotedTopUpdateCard = () => {
     if (isStoreBuild) return null
+    if (!hasPromotedTopUpdate) return null
+
+    if (updateDownloaded) {
+      return (
+        <div className="setting-card update-promoted-card">
+          <div className="shelf-card-top">
+            <div className="update-header-row">
+              <div className="update-group-label">
+                <span className="update-dot" />
+                <span>{t('behaviour.updateLabelReady') || 'UPDATE READY'}</span>
+              </div>
+              <button
+                type="button"
+                className="update-info-btn"
+                title={t('header.whatsNew') || "What's New"}
+                aria-label={t('header.whatsNew') || "What's New"}
+                onClick={handleOpenChangelog}
+              >
+                <InfoIcon width={13} height={13} />
+              </button>
+            </div>
+            <div className="setting-title">
+              {t('behaviour.updateReadyTitle', { version: updateDownloaded.version })}
+            </div>
+            <div className="setting-desc">
+              {t('behaviour.updateReadyDesc')}
+            </div>
+          </div>
+          <div className="shelf-card-bottom">
+            <SlideCommit
+              label={t('behaviour.restart') || 'Restart'}
+              doneLabel={t('behaviour.restarting') || 'Restarting...'}
+              height={32}
+              radius={10}
+              onConfirm={() => {
+                playButtonClickSound()
+                void window.edge.installUpdate()
+              }}
+            />
+          </div>
+        </div>
+      )
+    }
+
+    if (isDownloading) {
+      return (
+        <div className="setting-card update-promoted-card">
+          <div className="shelf-card-top">
+            <div className="update-header-row">
+              <div className="update-group-label">
+                <span className="update-dot checking" />
+                <span>{t('behaviour.updateLabelDownloading') || 'DOWNLOADING UPDATE'}</span>
+              </div>
+              <button
+                type="button"
+                className="update-info-btn"
+                title={t('header.whatsNew') || "What's New"}
+                aria-label={t('header.whatsNew') || "What's New"}
+                onClick={handleOpenChangelog}
+              >
+                <InfoIcon width={13} height={13} />
+              </button>
+            </div>
+            <div className="setting-title">
+              {updateInfo?.latestVersion
+                ? t('behaviour.updateAvailableTitle', { version: updateInfo.latestVersion })
+                : t('behaviour.downloadingUpdate')}
+            </div>
+            <div className="setting-desc">
+              {downloadPercent > 0 ? t('behaviour.downloadingWithPercent', { percent: downloadPercent }) : t('behaviour.downloadingUpdate')}
+            </div>
+          </div>
+          <div className="shelf-card-bottom">
+            <div className="shelf-update-progress-wrap">
+              <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
+              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    if (checkState.status === 'available' || hasBackgroundUpdate) {
+      const versionStr = checkState.version || updateInfo?.latestVersion || ''
+      return (
+        <div className="setting-card update-promoted-card">
+          <div className="shelf-card-top">
+            <div className="update-header-row">
+              <div className="update-group-label">
+                <span className="update-dot" />
+                <span>{t('behaviour.updateLabelAvailable') || 'NEW UPDATE AVAILABLE'}</span>
+              </div>
+              <button
+                type="button"
+                className="update-info-btn"
+                title={t('header.whatsNew') || "What's New"}
+                aria-label={t('header.whatsNew') || "What's New"}
+                onClick={handleOpenChangelog}
+              >
+                <InfoIcon width={13} height={13} />
+              </button>
+            </div>
+            <div className="setting-title">
+              {t('behaviour.updateAvailableTitle', { version: versionStr })}
+            </div>
+            <div className="setting-desc">
+              {t('behaviour.updateAvailableDesc')}
+            </div>
+          </div>
+          <div className="shelf-card-bottom">
+            <div className="update-action-row">
+              <button
+                type="button"
+                className="update-action-btn primary"
+                style={{ flex: 1 }}
+                onClick={() => {
+                  playButtonClickSound()
+                  handleStartDownload()
+                }}
+              >
+                {t('behaviour.update') || 'Update'}
+              </button>
+              <button
+                type="button"
+                className="update-action-btn secondary"
+                style={{ flex: '0 0 68px' }}
+                onClick={() => {
+                  playButtonClickSound()
+                  useStore.getState().dismissUpdate()
+                }}
+              >
+                {t('behaviour.skip')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return null
+  }
+
+  // ── Promoted Front Update Card Renderer (Horizontal Shelf Layout) ──────────
+  const renderPromotedHorizontalUpdateCard = () => {
+    if (isStoreBuild) return null
+    if (!hasPromotedTopUpdate) return null
+
+    if (updateDownloaded) {
+      return (
+        <div className="settings-shelf-card update-promoted-card behaviour-col">
+          <div className="shelf-card-top">
+            <div className="update-header-row">
+              <div className="update-group-label">
+                <span className="update-dot" />
+                <span>{t('behaviour.updateLabelReady') || 'UPDATE READY'}</span>
+              </div>
+              <button
+                type="button"
+                className="update-info-btn"
+                title={t('header.whatsNew') || "What's New"}
+                aria-label={t('header.whatsNew') || "What's New"}
+                onClick={handleOpenChangelog}
+              >
+                <InfoIcon width={13} height={13} />
+              </button>
+            </div>
+            <div className="setting-title">
+              {t('behaviour.updateReadyTitle', { version: updateDownloaded.version })}
+            </div>
+            <div className="setting-desc">
+              {t('behaviour.updateReadyDesc')}
+            </div>
+          </div>
+          <div className="shelf-card-bottom">
+            <SlideCommit
+              label={t('behaviour.restart') || 'Restart'}
+              doneLabel={t('behaviour.restarting') || 'Restarting...'}
+              height={32}
+              radius={10}
+              onConfirm={() => {
+                playButtonClickSound()
+                void window.edge.installUpdate()
+              }}
+            />
+          </div>
+        </div>
+      )
+    }
+
+    if (isDownloading) {
+      return (
+        <div className="settings-shelf-card update-promoted-card behaviour-col">
+          <div className="shelf-card-top">
+            <div className="update-header-row">
+              <div className="update-group-label">
+                <span className="update-dot checking" />
+                <span>{t('behaviour.updateLabelDownloading') || 'DOWNLOADING UPDATE'}</span>
+              </div>
+              <button
+                type="button"
+                className="update-info-btn"
+                title={t('header.whatsNew') || "What's New"}
+                aria-label={t('header.whatsNew') || "What's New"}
+                onClick={handleOpenChangelog}
+              >
+                <InfoIcon width={13} height={13} />
+              </button>
+            </div>
+            <div className="setting-title">
+              {updateInfo?.latestVersion
+                ? t('behaviour.updateAvailableTitle', { version: updateInfo.latestVersion })
+                : t('behaviour.downloadingUpdate')}
+            </div>
+            <div className="setting-desc">
+              {downloadPercent > 0 ? t('behaviour.downloadingWithPercent', { percent: downloadPercent }) : t('behaviour.downloadingUpdate')}
+            </div>
+          </div>
+          <div className="shelf-card-bottom">
+            <div className="shelf-update-progress-wrap">
+              <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
+              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    if (checkState.status === 'available' || hasBackgroundUpdate) {
+      const versionStr = checkState.version || updateInfo?.latestVersion || ''
+      return (
+        <div className="settings-shelf-card update-promoted-card behaviour-col">
+          <div className="shelf-card-top">
+            <div className="update-header-row">
+              <div className="update-group-label">
+                <span className="update-dot" />
+                <span>{t('behaviour.updateLabelAvailable') || 'NEW UPDATE AVAILABLE'}</span>
+              </div>
+              <button
+                type="button"
+                className="update-info-btn"
+                title={t('header.whatsNew') || "What's New"}
+                aria-label={t('header.whatsNew') || "What's New"}
+                onClick={handleOpenChangelog}
+              >
+                <InfoIcon width={13} height={13} />
+              </button>
+            </div>
+            <div className="setting-title">
+              {t('behaviour.updateAvailableTitle', { version: versionStr })}
+            </div>
+            <div className="setting-desc">
+              {t('behaviour.updateAvailableDesc')}
+            </div>
+          </div>
+          <div className="shelf-card-bottom">
+            <div className="update-action-row">
+              <button
+                type="button"
+                className="update-action-btn primary"
+                style={{ flex: 1 }}
+                onClick={() => {
+                  playButtonClickSound()
+                  handleStartDownload()
+                }}
+              >
+                {t('behaviour.update') || 'Update'}
+              </button>
+              <button
+                type="button"
+                className="update-action-btn secondary"
+                style={{ flex: '0 0 68px' }}
+                onClick={() => {
+                  playButtonClickSound()
+                  useStore.getState().dismissUpdate()
+                }}
+              >
+                {t('behaviour.skip')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return null
+  }
+
+  // ── Manual update card renderer (idle/check states at the bottom) ──
+  const renderManualUpdateCard = (withRef = false) => {
+    // Hidden while the promoted top card shows an actionable state — the
+    // top card already carries Download/Skip/Restart/progress, so rendering
+    // both would duplicate the prompt. The idle branch below IS the Check
+    // button, which is exactly what belongs at the bottom.
+    if (isStoreBuild || hasPromotedTopUpdate) return null
     return (
       <div className="manual-update-section" ref={withRef ? updateBannerRef : undefined} style={{ width: '100%' }}>
         <div className="manual-update-card">
-          {updateDownloaded ? (
-            <>
-              <div className="manual-update-info">
-                <div className="manual-update-title">
-                  <span className="manual-update-dot ready" />
-                  <span>{t('behaviour.updateReadyTitle', { version: updateDownloaded.version })}</span>
-                </div>
-                <div className="manual-update-desc">
-                  {t('behaviour.updateReadyDesc')}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="manual-update-pill primary"
-                onClick={() => {
-                  playButtonClickSound()
-                  void window.edge.installUpdate()
-                }}
-              >
-                {t('behaviour.restartToUpdate')}
-              </button>
-            </>
-          ) : isDownloading ? (
-            <>
-              <div className="manual-update-info">
-                <div className="manual-update-title">
-                  <span className="manual-update-dot ready" />
-                  <span>
-                    {updateInfo?.latestVersion
-                      ? `Update v${updateInfo.latestVersion} Available`
-                      : t('behaviour.updateAvailableTitle', { version: '' })}
-                  </span>
-                </div>
-                <div className="manual-update-desc">
-                  {t('behaviour.downloadingUpdate')}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="manual-update-pill primary"
-                disabled
-              >
-                {downloadPercent > 0
-                  ? `Downloading... (${downloadPercent}%)`
-                  : 'Downloading update...'}
-              </button>
-            </>
-          ) : (checkState.status === 'available' || hasBackgroundUpdate) ? (
-            <>
-              <div className="manual-update-info">
-                <div className="manual-update-title">
-                  <span className="manual-update-dot ready" />
-                  <span>{t('behaviour.updateAvailableTitle', { version: checkState.version || updateInfo?.latestVersion || '' })}</span>
-                </div>
-                <div className="manual-update-desc">
-                  {t('behaviour.updateAvailableDesc')}
-                </div>
-              </div>
-              <div className="manual-update-actions">
-                <button
-                  type="button"
-                  className="manual-update-pill primary"
-                  onClick={() => {
-                    playButtonClickSound()
-                    handleStartDownload()
-                  }}
-                >
-                  {t('behaviour.downloadAndUpdate')}
-                </button>
-                <button
-                  type="button"
-                  className="manual-update-pill outline"
-                  onClick={() => {
-                    playButtonClickSound()
-                    useStore.getState().dismissUpdate()
-                  }}
-                >
-                  {t('behaviour.skip')}
-                </button>
-              </div>
-            </>
-          ) : checkState.status === 'checking' ? (
+          {checkState.status === 'checking' ? (
             <>
               <div className="manual-update-info">
                 <div className="manual-update-title">{t('behaviour.checkForUpdates')}</div>
@@ -510,7 +687,7 @@ export function Settings({
                 className="manual-update-pill outline"
                 disabled
               >
-                <span className="manual-update-dot checking" />
+                <span className="update-dot checking" />
                 <span>{t('behaviour.checkingForUpdates')}</span>
               </button>
             </>
@@ -518,7 +695,7 @@ export function Settings({
             <>
               <div className="manual-update-info">
                 <div className="manual-update-title">
-                  <span className="manual-update-dot ready" />
+                  <span className="update-dot available" />
                   <span>{t('behaviour.isUpToDate')}</span>
                 </div>
                 <div className="manual-update-desc">
@@ -713,6 +890,8 @@ export function Settings({
           {/* ── TAB 1: BEHAVIOUR ── */}
           {horizontalTab === 'behaviour' && (
             <>
+              {renderPromotedHorizontalUpdateCard()}
+
               {/* ── SUB-GROUP 1 DIVIDER: General & Startup ── */}
               <div className="shelf-section-divider">
                 <span className="shelf-section-divider-text">{t('tabs.generalStartup') || 'GENERAL & STARTUP'}</span>
@@ -1005,7 +1184,7 @@ export function Settings({
                       ? (updateMode === 'auto'
                         ? t('behaviour.autoUpdatesDescOn')
                         : updateMode === 'notify'
-                        ? (t('behaviour.updateModeNotifyDesc') || 'Check at launch and notify — never downloads automatically')
+                        ? (t('behaviour.updateModeNotifyDesc') || 'Notify when updates are available without downloading')
                         : t('behaviour.autoUpdatesDescOff'))
                       : 'Managed by Microsoft Store'}
                   </div>
@@ -1033,92 +1212,53 @@ export function Settings({
                 )}
               </div>
 
-              {/* Card 12: Update Status & Actions */}
-              {!isStoreBuild && (
+              {/* Card 12: Update Status & Actions (idle/check states; hidden
+                  while the promoted front card shows an actionable state) */}
+              {!isStoreBuild && !hasPromotedTopUpdate && (
                 <div className="settings-shelf-card check-updates-card behaviour-col" ref={updateBannerRef}>
                   <div className="shelf-card-top">
-                    <div className="setting-group-label" style={hasUpdatePrompt ? { color: '#ffd60a' } : undefined}>
-                      {hasUpdatePrompt ? 'UPDATE' : 'UPDATE STATUS'}
+                    <div className="setting-group-label">
+                      UPDATE STATUS
                     </div>
                     <div className="setting-title" style={{ lineHeight: 1.3 }}>
-                      {updateDownloaded
-                        ? t('behaviour.updateReadyTitle', { version: updateDownloaded.version })
-                        : isDownloading
-                        ? 'Downloading Update...'
-                        : (checkState.status === 'available' || hasBackgroundUpdate)
-                        ? t('behaviour.updateAvailableTitle', { version: checkState.version || updateInfo?.latestVersion || '' })
+                      {checkState.status === 'checking'
+                        ? t('behaviour.checkingForUpdates')
+                        : checkState.status === 'up-to-date'
+                        ? t('behaviour.isUpToDate')
+                        : checkState.status === 'error'
+                        ? t('behaviour.updateCheckFailed')
                         : t('behaviour.checkForUpdates')}
                     </div>
                     <div className="setting-desc">
-                      {updateDownloaded
-                        ? t('behaviour.updateReadyDesc')
-                        : isDownloading
-                        ? t('behaviour.downloadingUpdate')
-                        : (checkState.status === 'available' || hasBackgroundUpdate)
-                        ? `Edge-Drop v${checkState.version || updateInfo?.latestVersion || ''}`
+                      {checkState.status === 'error'
+                        ? (checkState.error || t('behaviour.updateCheckFailed'))
                         : `Edge-Drop v${currentVersion || '0.3.1'}`}
                     </div>
                   </div>
                   <div className="shelf-card-bottom">
-                    {updateDownloaded ? (
-                      <button
-                        type="button"
-                        className="pill primary-pill"
-                        style={{ width: '100%', justifyContent: 'center', background: '#ffd60a', color: '#000000', fontWeight: 600, height: 32, fontSize: 11.5 }}
-                        onClick={() => {
-                          playButtonClickSound()
-                          void window.edge.installUpdate()
-                        }}
-                      >
-                        {t('behaviour.restartToUpdate')}
-                      </button>
-                    ) : isDownloading ? (
-                      <div className="shelf-update-progress-wrap" style={{ width: '100%' }}>
-                        <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
-                        <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
-                      </div>
-                    ) : (checkState.status === 'available' || hasBackgroundUpdate) ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
-                        <button
-                          type="button"
-                          className="pill primary-pill"
-                          style={{ width: '100%', justifyContent: 'center', height: 30, fontSize: 11.5 }}
-                          onClick={() => {
-                            playButtonClickSound()
-                            handleStartDownload()
-                          }}
-                        >
-                          {t('behaviour.downloadAndUpdate')}
-                        </button>
-                        <button
-                          type="button"
-                          className="pill display-pill"
-                          style={{ width: '100%', justifyContent: 'center', height: 28, fontSize: 11 }}
-                          onClick={() => {
-                            playButtonClickSound()
-                            useStore.getState().dismissUpdate()
-                          }}
-                        >
-                          {t('behaviour.skip')}
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="pill display-pill"
-                        style={{ width: '100%', justifyContent: 'center', padding: '6px 12px', fontSize: 11.5, height: 32 }}
-                        onClick={() => {
-                          playButtonClickSound()
-                          handleManualCheck()
-                        }}
-                      >
-                        {checkState.status === 'checking'
-                          ? t('behaviour.checkingForUpdates')
-                          : checkState.status === 'up-to-date'
-                          ? `${t('behaviour.isUpToDate')}`
-                          : t('behaviour.checkForUpdates')}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="pill display-pill"
+                      style={{ width: '100%', justifyContent: 'center', fontSize: 11.5, height: 32 }}
+                      disabled={checkState.status === 'checking'}
+                      onClick={() => {
+                        playButtonClickSound()
+                        handleManualCheck()
+                      }}
+                    >
+                      {checkState.status === 'checking' ? (
+                        <>
+                          <span className="update-dot checking" style={{ marginRight: 6 }} />
+                          <span>{t('behaviour.checkingForUpdates')}</span>
+                        </>
+                      ) : checkState.status === 'up-to-date' ? (
+                        t('behaviour.checkAgain')
+                      ) : checkState.status === 'error' ? (
+                        t('behaviour.tryAgain')
+                      ) : (
+                        t('behaviour.checkForUpdates')
+                      )}
+                    </button>
                   </div>
                 </div>
               )}
@@ -1296,51 +1436,27 @@ export function Settings({
                   </div>
                 </div>
                 <div className="shelf-card-bottom">
-                  <div className="setting-slider-wrap" style={{ gap: 2, padding: '2px 0' }}>
-                    <input
-                      type="range"
-                      min="1"
-                      max="7"
-                      step="1"
-                      className="setting-range-input"
+                  <div className="setting-slider-wrap" style={{ gap: 4, padding: '2px 0' }}>
+                    <WakeSlider
+                      min={1}
+                      max={7}
+                      step={1}
+                      bars={14}
+                      height={26}
+                      restHeight={7}
+                      gap={3}
                       value={settings.hotZoneWidth ?? 3}
-                      style={{
-                        width: '100%',
-                        margin: '1px 0',
-                        touchAction: 'none',
-                        background: `linear-gradient(to right, #ffffff 0%, #ffffff ${(((settings.hotZoneWidth ?? 3) - 1) / 6) * 100}%, rgba(255, 255, 255, 0.12) ${(((settings.hotZoneWidth ?? 3) - 1) / 6) * 100}%, rgba(255, 255, 255, 0.12) 100%)`
-                      }}
-                      onPointerDown={() => {
+                      onStart={() => {
                         void window.edge.setInteractive(true)
                         setSliderActive(true)
                       }}
-                      onPointerUp={(e) => {
-                        handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
+                      onRelease={(val) => {
+                        handleThicknessRelease(val)
                       }}
-                      onPointerCancel={(e) => {
-                        handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                      }}
-                      onLostPointerCapture={(e) => {
-                        handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                      }}
-                      onChange={(e) => {
-                        handleThicknessInput(parseInt(e.target.value, 10))
+                      onChange={(val) => {
+                        handleThicknessInput(val)
                       }}
                     />
-                    <div className="setting-slider-ticks">
-                      {Array.from({ length: 7 }, (_, i) => {
-                        const tickPx = i + 1
-                        const currentPx = settings.hotZoneWidth ?? 3
-                        const isMajor = tickPx === 1 || tickPx === 4 || tickPx === 7
-                        const isActive = currentPx === tickPx
-                        return (
-                          <span
-                            key={tickPx}
-                            className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
-                          />
-                        )
-                      })}
-                    </div>
                     <div className="setting-slider-labels" style={{ marginTop: 2 }}>
                       {[
                         { label: 'Min', val: 1 },
@@ -1528,6 +1644,8 @@ export function Settings({
                   exit={{ opacity: 0, scale: 0.98, y: -4 }}
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
+                  {renderPromotedTopUpdateCard()}
+
                   {/* ── SUB-GROUP 1: General & Startup ───────────────── */}
                   <div className="setting-section-divider">
                     <span className="setting-section-divider-text">{t('tabs.generalStartup') || 'GENERAL & STARTUP'}</span>
@@ -1787,7 +1905,7 @@ export function Settings({
                             {updateMode === 'auto'
                               ? t('behaviour.autoUpdatesDescOn')
                               : updateMode === 'notify'
-                              ? (t('behaviour.updateModeNotifyDesc') || 'Check at launch and notify — never downloads automatically')
+                              ? (t('behaviour.updateModeNotifyDesc') || 'Notify when updates are available without downloading')
                               : t('behaviour.autoUpdatesDescOff')}
                           </div>
                         </div>
@@ -1899,49 +2017,28 @@ export function Settings({
 
                         <div className="shelf-card-bottom">
                           <div className="setting-slider-wrap">
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="0.002"
-                              className="setting-range-input"
+                            <WakeSlider
+                              min={0}
+                              max={1}
+                              step={0.002}
+                              bars={28}
+                              height={28}
+                              restHeight={8}
+                              gap={3}
                               value={offsetVal}
-                              style={{
-                                background: `linear-gradient(to right, #ffffff 0%, #ffffff ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) ${offsetVal * 100}%, rgba(255, 255, 255, 0.12) 100%)`
-                              }}
-                              onPointerDown={() => {
+                              onStart={() => {
                                 void window.edge.setInteractive(true)
                                 setSliderActive(true)
                               }}
-                              onPointerUp={(e) => {
+                              onRelease={(val) => {
                                 setSliderActive(false)
-                                const val = parseFloat((e.target as HTMLInputElement).value)
                                 if (isHorizontal) {
                                   patch({ horizontalOffset: val })
                                 } else {
                                   handleSliderRelease(val)
                                 }
                               }}
-                              onPointerCancel={(e) => {
-                                setSliderActive(false)
-                                const val = parseFloat((e.target as HTMLInputElement).value)
-                                if (isHorizontal) {
-                                  patch({ horizontalOffset: val })
-                                } else {
-                                  handleSliderRelease(val)
-                                }
-                              }}
-                              onLostPointerCapture={(e) => {
-                                setSliderActive(false)
-                                const val = parseFloat((e.target as HTMLInputElement).value)
-                                if (isHorizontal) {
-                                  patch({ horizontalOffset: val })
-                                } else {
-                                  handleSliderRelease(val)
-                                }
-                              }}
-                              onChange={(e) => {
-                                const raw = parseFloat(e.target.value)
+                              onChange={(raw) => {
                                 if (isHorizontal) {
                                   patch({ horizontalOffset: raw })
                                 } else {
@@ -1949,20 +2046,6 @@ export function Settings({
                                 }
                               }}
                             />
-
-                            <div className="setting-slider-ticks">
-                              {Array.from({ length: 21 }, (_, i) => {
-                                const tickVal = i / 20
-                                const isMajor = i % 5 === 0
-                                const isActive = tickVal <= offsetVal
-                                return (
-                                  <span
-                                    key={i}
-                                    className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
-                                  />
-                                )
-                              })}
-                            </div>
 
                             <div className="setting-slider-labels">
                               {[
@@ -2131,55 +2214,26 @@ export function Settings({
 
                     <div className="shelf-card-bottom">
                       <div className="setting-slider-wrap">
-                        {(() => {
-                          const currentPx = settings.hotZoneWidth ?? 3
-                          const pct = Math.max(0, Math.min(100, ((currentPx - 1) / (7 - 1)) * 100))
-                          return (
-                            <input
-                              type="range"
-                              min="1"
-                              max="7"
-                              step="1"
-                              className="setting-range-input"
-                              value={currentPx}
-                              style={{
-                                touchAction: 'none',
-                                background: `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(255, 255, 255, 0.12) ${pct}%, rgba(255, 255, 255, 0.12) 100%)`
-                              }}
-                              onPointerDown={() => {
-                                void window.edge.setInteractive(true)
-                                setSliderActive(true)
-                              }}
-                              onPointerUp={(e) => {
-                                handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                              }}
-                              onPointerCancel={(e) => {
-                                handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                              }}
-                              onLostPointerCapture={(e) => {
-                                handleThicknessRelease(parseInt((e.target as HTMLInputElement).value, 10))
-                              }}
-                              onChange={(e) => {
-                                handleThicknessInput(parseInt(e.target.value, 10))
-                              }}
-                            />
-                          )
-                        })()}
-
-                        <div className="setting-slider-ticks">
-                          {Array.from({ length: 7 }, (_, i) => {
-                            const tickPx = i + 1
-                            const currentPx = settings.hotZoneWidth ?? 3
-                            const isMajor = tickPx === 1 || tickPx === 4 || tickPx === 7
-                            const isActive = currentPx === tickPx
-                            return (
-                              <span
-                                key={tickPx}
-                                className={`slider-tick${isMajor ? ' major' : ''}${isActive ? ' active' : ''}`}
-                              />
-                            )
-                          })}
-                        </div>
+                        <WakeSlider
+                          min={1}
+                          max={7}
+                          step={1}
+                          bars={14}
+                          height={28}
+                          restHeight={7}
+                          gap={3}
+                          value={settings.hotZoneWidth ?? 3}
+                          onStart={() => {
+                            void window.edge.setInteractive(true)
+                            setSliderActive(true)
+                          }}
+                          onRelease={(val) => {
+                            handleThicknessRelease(val)
+                          }}
+                          onChange={(val) => {
+                            handleThicknessInput(val)
+                          }}
+                        />
 
                         <div className="setting-slider-labels">
                           {[
@@ -2496,31 +2550,6 @@ export function Settings({
             </AnimatePresence>
 
           </div>
-
-          {/* ── Floating Scroll Indicator Badge for Off-Screen Update Banner ── */}
-          <AnimatePresence>
-            {showScrollUpdateBadge && (
-              <motion.div
-                key="scroll-update-badge"
-                initial={{ opacity: 0, y: 14, scale: 0.92 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 14, scale: 0.92 }}
-                transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-                onClick={scrollToUpdateCard}
-                className="floating-update-pill"
-              >
-                <span className="floating-update-dot" />
-                <span className="floating-update-text">
-                  {updateDownloaded
-                    ? t('behaviour.restartToUpdateBelow')
-                    : isDownloading
-                    ? (downloadPercent > 0 ? t('behaviour.downloadingWithPercent', { percent: downloadPercent }) : t('behaviour.downloadingUpdate'))
-                    : t('behaviour.newUpdateAvailableBelow')}
-                </span>
-                <span className="floating-update-arrow">↓</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       )
     }

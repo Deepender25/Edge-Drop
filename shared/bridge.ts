@@ -10,7 +10,18 @@ import type { DragRequest } from './types'
 
 export interface EdgeApi {
   /* Renderer -> Main */
-  loadState: () => Promise<{ items: import('./types').ClipboardItemDto[]; settings: Settings; version: string; isStoreBuild?: boolean }>
+  loadState: () => Promise<{
+    items: import('./types').ClipboardItemDto[]
+    settings: Settings
+    version: string
+    isStoreBuild?: boolean
+    updateInfo?: {
+      hasUpdate: boolean
+      latestVersion: string
+      downloaded: boolean
+      downloadProgress?: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }
+    } | null
+  }>
   setPinned: (id: string, pinned: boolean) => Promise<import('./types').ClipboardItemDto[]>
   deleteItem: (id: string) => Promise<import('./types').ClipboardItemDto[]>
   deleteBatchItems: (ids: string[]) => Promise<import('./types').ClipboardItemDto[]>
@@ -25,6 +36,12 @@ export interface EdgeApi {
   installUpdate: () => Promise<void>
   checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>
   startUpdateDownload: () => Promise<void>
+  getUpdateState: () => Promise<{
+    hasUpdate: boolean
+    latestVersion: string
+    downloaded: boolean
+    downloadProgress?: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }
+  } | null>
   quitApp: () => Promise<void>
   /**
    * Begin a native OS drag-out. Fire-and-forget: must be called synchronously

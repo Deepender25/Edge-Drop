@@ -19,7 +19,7 @@ import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData, prestageDrag, stageDragFile } from './drag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
-import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
+import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
 import { isStoreBuild } from './config'
 import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
@@ -193,7 +193,8 @@ export function registerIpc(): void {
       items: getStore().toDto(),
       settings: loadSettings(),
       version: app.getVersion(),
-      isStoreBuild: isStoreBuild()
+      isStoreBuild: isStoreBuild(),
+      updateInfo: getCachedUpdateState()
     }
   })
 
@@ -211,6 +212,11 @@ export function registerIpc(): void {
   handle('updater:start-download', async () => {
     if (isStoreBuild()) return
     await startUpdateDownload()
+  })
+
+  handle('updater:get-state', async () => {
+    if (isStoreBuild()) return null
+    return getCachedUpdateState()
   })
 
   handle('app:quit', () => {
@@ -698,6 +704,13 @@ export function registerIpc(): void {
     }
     if (patch.autoUpdates !== undefined || patch.updateMode !== undefined) {
       syncAutoUpdaterState()
+    }
+    // Switching into a checking mode checks now — previously nothing happened
+    // until the next restart. Switching to 'off' cancels any pending check.
+    if (patch.updateMode !== undefined) {
+      try {
+        triggerBackgroundCheck()
+      } catch { /* ignore */ }
     }
     if (patch.toggleHotkey !== undefined) {
       registerGlobalHotkey(patch.toggleHotkey)

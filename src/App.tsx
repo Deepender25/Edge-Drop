@@ -239,6 +239,19 @@ export default function App() {
       if (useStore.getState().isInternalCopying) return
       useStore.getState().triggerCopyFlare()
     })
+    // Recover any update findings that landed before we subscribed (slow
+    // first load can miss the startup check's fire-and-forget push).
+    // Skip-filtering applies automatically inside setUpdateAvailable.
+    void edge.getUpdateState().then((s) => {
+      if (!s) return
+      const st = useStore.getState()
+      if (s.downloaded) {
+        st.setUpdateDownloaded({ version: s.latestVersion })
+      } else if (s.hasUpdate) {
+        st.setUpdateAvailable({ version: s.latestVersion })
+        if (s.downloadProgress) st.setUpdateProgress(s.downloadProgress)
+      }
+    }).catch(() => {})
     return () => {
       offItems()
       offSettings()

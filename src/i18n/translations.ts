@@ -56,6 +56,9 @@ export interface TranslationKeys {
     updateModeNotify?: string
     updateModeOff?: string
     updateModeNotifyDesc?: string
+    updateLabelReady?: string
+    updateLabelDownloading?: string
+    updateLabelAvailable?: string
     checkForUpdates: string
     checkingForUpdates: string
     isUpToDate: string
@@ -65,6 +68,9 @@ export interface TranslationKeys {
     updateAvailableTitle: string
     updateAvailableDesc: string
     downloadAndUpdate: string
+    update?: string
+    restart?: string
+    restarting?: string
     skip: string
     downloadingUpdate: string
     downloadingWithPercent?: string
@@ -532,12 +538,15 @@ export const en: TranslationKeys = {
     "soundEffectsTitle": "Sound Effects",
     "soundEffectsDesc": "Play tactile audio feedback for toggles, sliders, and button clicks",
     "autoUpdatesTitle": "Automatic updates",
-    "autoUpdatesDescOn": "Check for and download app updates automatically in background",
-    "autoUpdatesDescOff": "Fully silent. The app never checks for updates on its own",
+    "autoUpdatesDescOn": "Automatically download updates in the background",
+    "autoUpdatesDescOff": "Never check automatically. Check manually below",
     "updateModeAuto": "Automatic",
     "updateModeNotify": "Notify me",
     "updateModeOff": "Off",
-    "updateModeNotifyDesc": "Check at launch and notify — never downloads automatically",
+    "updateModeNotifyDesc": "Notify when updates are available without downloading",
+    "updateLabelReady": "UPDATE READY TO INSTALL",
+    "updateLabelDownloading": "DOWNLOADING UPDATE",
+    "updateLabelAvailable": "NEW UPDATE AVAILABLE",
     "checkForUpdates": "Check for updates",
     "checkingForUpdates": "Checking GitHub for updates...",
     "isUpToDate": "✓ Edge-Drop is up to date",
@@ -545,8 +554,11 @@ export const en: TranslationKeys = {
     "tryAgain": "Try again",
     "updateCheckFailed": "Update check failed",
     "updateAvailableTitle": "Edge-Drop v{version} is available!",
-    "updateAvailableDesc": "A newer version is ready on GitHub. Would you like to download and update now?",
+    "updateAvailableDesc": "A newer version is ready to download.",
     "downloadAndUpdate": "Download & Update",
+    "update": "Update",
+    "restart": "Restart",
+    "restarting": "Restarting...",
     "skip": "Skip",
     "downloadingUpdate": "Downloading in background...",
     "downloadingWithPercent": "Downloading update... ({percent}%)",

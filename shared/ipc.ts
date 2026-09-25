@@ -95,6 +95,13 @@ export interface InvokeMap {
   /** Start background download of an update in manual mode. */
   'updater:start-download': { args: []; result: void }
 
+  /**
+   * Current update state snapshot (background findings so far). Lets a
+   * freshly subscribed renderer recover pushes it missed (slow load after
+   * the startup check already fired). Null when nothing is known.
+   */
+  'updater:get-state': { args: []; result: { hasUpdate: boolean; latestVersion: string; downloaded: boolean; downloadProgress?: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number } } | null }
+
   /** Quit the application process. */
   'app:quit': { args: []; result: void }
 

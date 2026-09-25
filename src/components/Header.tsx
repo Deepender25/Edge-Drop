@@ -23,6 +23,7 @@ export interface HeaderProps {
 }
 
 export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderProps = {}) {
+  const isStoreBuild = useStore((s) => s.isStoreBuild)
   const { t } = useTranslation()
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const settingsOpen = useStore((s) => s.settingsOpen)
@@ -381,17 +382,18 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
           >
             <CloseIcon />
           </span>
-          {!settingsOpen && (updateInfo?.downloaded || updateInfo?.hasUpdate) && (
+          {!settingsOpen && !isStoreBuild && (updateInfo?.downloaded || updateInfo?.hasUpdate) && (
             <span
               style={{
                 position: 'absolute',
-                top: 5,
-                right: 5,
-                width: 8,
-                height: 8,
+                top: 6,
+                right: 6,
+                width: 6,
+                height: 6,
                 borderRadius: '50%',
-                backgroundColor: '#4caf50',
+                backgroundColor: '#30d158',
                 border: '1.5px solid #000000',
+                boxShadow: '0 0 8px rgba(48, 209, 88, 0.7)',
                 pointerEvents: 'none'
               }}
             />

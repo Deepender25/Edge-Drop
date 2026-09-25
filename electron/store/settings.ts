@@ -38,9 +38,10 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
     out.updateMode = out.autoUpdates === false ? 'off' : 'auto'
   }
   out.autoUpdates = out.updateMode === 'auto'
-  if (typeof out.skippedUpdateVersion !== 'string' || !out.skippedUpdateVersion.trim()) {
-    out.skippedUpdateVersion = undefined
-  }
+  // Skip is session-only by contract ("remind me next restart"), so a
+  // persisted skip from older builds is self-healed away on load. This also
+  // un-sticks anyone whose prompt went permanently silent.
+  out.skippedUpdateVersion = undefined
   return out
 }
 
