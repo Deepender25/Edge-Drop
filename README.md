@@ -35,7 +35,7 @@
   <a href="https://github.com/Deepender25/Edge-Drop/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=f6c7d6" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=c7e7f6" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=d2f4e8" /></a>
-  <img src="https://img.shields.io/badge/tests-364%20passing-8ca77b?style=flat-square&logo=vitest&logoColor=white&labelColor=23272e" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-444%20passing-8ca77b?style=flat-square&logo=vitest&logoColor=white&labelColor=23272e" alt="Tests" />
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=ffe6b3" /></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-93a4fc?style=flat-square&logo=windows&logoColor=white&labelColor=23272e" alt="Platform" />
 </p>
@@ -260,6 +260,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Rest-as-Intent Seam Policy (Multi-Monitor):** Intelligent 140ms dwell threshold for interior monitor boundaries. Moving your cursor between displays passes through smoothly without accidental shelf triggers, while stopping deliberately at the edge opens the shelf instantly.
 - **Versioned Screen Geometry & Probe:** Replaced asynchronous display queries with a pure geometric screen probe (`stickProbe.ts`) backed by versioned display-change caching, eliminating boundary seam jitter across mixed-DPI monitor arrays.
 - **Cross-Reboot Display Persistence:** Edge-Drop remembers your chosen monitor across device restarts. A 4-tier resolution pipeline silently re-identifies the correct physical monitor after Windows re-assigns numeric display IDs on reboot.
+- **Top screen edge dock:** Besides the left and right edges, the shelf can now live horizontally along the top of your screen (up to 1080px wide), with its own trigger zone, flares, preview flyout, and settings layouts.
 - **Smart Windows Fullscreen Game Detection:** Native Win32 `SHQueryUserNotificationState` OS detection (`fullscreen.ts`) combined with `GetForegroundWindow` + `GetClassNameA` filtering (`Progman`, `WorkerW`, `Shell_TrayWnd`) automatically suppresses edge hover during Direct3D games (*VALORANT*, *Cyberpunk*, *PowerPoint*) while allowing Edge-Drop to open smoothly on the Windows Home Screen / Desktop.
 - **Self-Healing Launch at Login (Quoted Paths):** Automatic Windows Registry synchronization (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`) strictly quotes executable paths, guaranteeing that usernames or installation paths with spaces launch cleanly on startup. Includes automatic migration and healing for unquoted keys across updates.
 - **RAM Footprint Stabilization (~130 MB):** Large text entries (>300 chars) are stored as disk payload files (`payloads/<id>.txt`), holding only 300-char preview snippets in memory. Locks operational RAM to ~130 MB–160 MB with a V8 ceiling cap of 512 MB.
@@ -269,6 +270,11 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Tactile Keycap Hotkey Recorder (`<HotkeyRecorder />`):** Customize the shelf toggle shortcut (defaults to `Alt+C`) with live modifier keycap preview, instant clear/reset buttons, and non-blocking key capture.
 - **Collision Detection & Dynamic Registration:** Dynamically updates Electron `globalShortcut` with automatic collision resolution and instant toast feedback.
 - **Zero OS Focus Stealing:** Dynamically toggles window focusability exclusively during active key recording, keeping normal shelf clicks non-intrusive.
+
+**Shelf Search**
+- Type-to-filter search box in the shelf (full row on the vertical blade, centered box on the horizontal dock). Typing never steals focus from your active app, and clicking a result pastes straight into it.
+- **Elastic filter controls:** The filter chips and emoji category bar use a rubber-band control with momentum glide and squash-and-settle, fully keyboard navigable with reduced-motion support.
+- **Colors filter & Pantone swatches:** A dedicated Colors tab collects copied color codes, rendered as dynamic Pantone-style swatch cards.
 
 **Selective & Filter-Scoped History Clearing**
 - **Time-Based Preset Windows:** Clear history in convenient time windows (**Last 1 hour**, **6 hours**, **24 hours**, or **Clear all**).
@@ -297,6 +303,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **5% Magnetic Tick Slider:** Smooth `0.002` real-time 1-to-1 continuous tracking during drag with 60fps/120fps precision, featuring 21 visual tick dashes, live percentage badge (`50%`), percentage quick-jump buttons (`0%`, `50%`, `100%`), and magnetic 5% snapping on pointer release.
 - **Position & Display Switch Preview:** 1.75s temporary interactive preview window when changing `Stick position` (`Left` / `Right`) or `Display` monitor in settings.
 - **CPU Performance Optimization & Zero Blur Jank:** Replaced heavy `backdrop-filter: blur()` calls across UI components with high-performance solid/semi-transparent dark fills, eliminating CPU rasterization overhead for 60fps/120fps butter-smooth panel opening and scrolling.
+- **Sharper text on every display:** The app now uses Windows native ClearType text rendering instead of forced grayscale smoothing, so text looks crisp next to native apps — most noticeable on 4K monitors.
 - **Prominent Support Section & Matching Pill Buttons:** Re-ordered settings footer placing the Support & Sponsor card prominently above the Quit button, linking to official domain `www.edgedrop.app`. Features matching 40px height pill buttons for Support and GitHub Star.
 - **Low-Profile Bottom Quit Pill:** Compact, subtle Quit pill button (`.subtle-quit-btn`) centered at the very bottom of the settings view without noisy header text.
 
@@ -306,6 +313,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Windows Light Theme Adaptive System Tray:** Dynamically detects Windows taskbar theme changes and automatically swaps between pure-white and high-contrast dark vector tray icons.
 - **Monochrome Glassmorphic Banner:** Prominently positioned at the top of the scrollable content area across all category tabs. Styled with a dark-mode glassmorphic 4% white card fill (`rgba(255, 255, 255, 0.04)`), 12% white border, and high-contrast white button.
 - **Microsoft Store Isolation:** Isolated build pipelines ensure Microsoft Store (MSIX) builds remain 100% compliant with Store terms and conditions without integrated update mechanisms (`isStoreBuild()`).
+- **Three update modes:** Choose **Automatic** (check + download + one-click restart), **Notify me** (check at launch, prompt with Download/Skip, never downloads on its own), or **Off** (fully silent). Update prompts sit at the top of Settings, manual checks behave the same in every mode, and skipped versions remind you on next launch.
 
 **Multi-format clipboard engine**
 - Captures plain text, URLs, rich HTML, raw images, spreadsheets, and multi-file selections

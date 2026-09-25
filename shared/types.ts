@@ -18,14 +18,15 @@ const UPDATE_MODES: readonly UpdateMode[] = ['auto', 'notify', 'off']
 
 /**
  * Resolve the effective update mode. Prefers the stored updateMode; migrates
- * legacy autoUpdates booleans (true/missing -> 'auto', false -> 'off') so
- * existing installs keep their exact behavior with zero surprises.
+ * legacy autoUpdates booleans (true/missing -> 'auto', false -> 'notify') so
+ * upgraders keep getting told about updates without anything downloading
+ * behind their back. Pure 'off' is opt-in on the new selector.
  */
 export function resolveUpdateMode(s: Pick<Settings, 'updateMode' | 'autoUpdates'>): UpdateMode {
   if (s.updateMode === 'auto' || s.updateMode === 'notify' || s.updateMode === 'off') {
     return s.updateMode
   }
-  return s.autoUpdates === false ? 'off' : 'auto'
+  return s.autoUpdates === false ? 'notify' : 'auto'
 }
 
 export function isUpdateMode(value: unknown): value is UpdateMode {

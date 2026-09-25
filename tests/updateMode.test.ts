@@ -12,13 +12,13 @@ describe('updateMode resolution and legacy migration', () => {
     expect(resolveUpdateMode({ updateMode: 'auto', autoUpdates: false })).toBe('auto')
   })
 
-  it('migrates legacy booleans with zero behavior change', () => {
+  it('migrates legacy booleans: on stays auto, off becomes notify', () => {
     expect(resolveUpdateMode({ autoUpdates: true })).toBe('auto')
-    expect(resolveUpdateMode({ autoUpdates: false })).toBe('off')
+    expect(resolveUpdateMode({ autoUpdates: false })).toBe('notify')
   })
 
   it('falls back to the legacy boolean on corrupt mode values', () => {
-    expect(resolveUpdateMode({ updateMode: 'sometimes' as never, autoUpdates: false })).toBe('off')
+    expect(resolveUpdateMode({ updateMode: 'sometimes' as never, autoUpdates: false })).toBe('notify')
     expect(resolveUpdateMode({ updateMode: '' as never })).toBe('auto')
   })
 

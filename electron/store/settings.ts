@@ -24,19 +24,26 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
   if (out.stickPosition !== 'left' && out.stickPosition !== 'right' && out.stickPosition !== 'top') {
     out.stickPosition = 'left'
   }
-  if (out.triggerAlignment !== 'top' && out.triggerAlignment !== 'center' && out.triggerAlignment !== 'bottom') {
+  if (out.triggerAlignment !== 'top' && out.triggerAlignment !== 'center' && out.triggerAlignment !== 'bottom' && out.triggerAlignment !== 'left' && out.triggerAlignment !== 'right') {
     out.triggerAlignment = 'center'
   }
+  if (typeof out.horizontalOffset !== 'number' || Number.isNaN(out.horizontalOffset)) {
+    out.horizontalOffset = 0.5
+  }
+  out.horizontalOffset = Math.min(1.0, Math.max(0.0, out.horizontalOffset))
   if (typeof out.language !== 'string' || !out.language.trim()) {
     out.language = 'system'
   }
   // Update mode migration + validation. Legacy files carry only autoUpdates;
-  // map them (false -> 'off', anything else -> 'auto') so existing installs
-  // keep byte-identical behavior. Then sync the legacy boolean back from the
-  // mode so downgraded app versions still read a sensible value.
+  // map them (false -> 'notify', anything else -> 'auto') so upgraders who
+  // silenced auto-downloads still hear about new versions without anything
+  // downloading behind their back. Then sync the legacy boolean back from
+  // the mode so downgraded app versions still read a sensible value.
   if (!isUpdateMode(out.updateMode)) {
-    out.updateMode = out.autoUpdates === false ? 'off' : 'auto'
+    out.updateMode = out.autoUpdates === false ? 'notify' : 'auto'
   }
+  // Drop the long-removed bounceAnimation key so old files stop carrying it.
+  delete (out as unknown as Record<string, unknown>).bounceAnimation
   out.autoUpdates = out.updateMode === 'auto'
   // Skip is session-only by contract ("remind me next restart"), so a
   // persisted skip from older builds is self-healed away on load. This also
