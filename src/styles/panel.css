@@ -50,6 +50,7 @@
 }
 .blade-container.blade-top .blade {
   margin: 0 auto;
+  width: min(calc(100vw - 60px), 1080px);
   border-radius: 0 0 24px 24px;
 }
 
@@ -64,6 +65,8 @@
   display: flex;
   background: linear-gradient(to right, #000000 30px, transparent 30px);
   justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 .flare-top.flare-right, .flare-bottom.flare-right {
   left: auto;
@@ -90,6 +93,8 @@
   height: 30px;
   pointer-events: none;
   z-index: -1;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 .flare-horizontal svg {
   width: 32px;
@@ -105,16 +110,26 @@
   top: 0;
 }
 
-/* CSS transition for clip-path (Framer Motion can't interpolate calc() properly).
-   cubic-bezier(0.22, 1, 0.36, 1) is an exponential ease-out — fast initial
-   velocity that decelerates to zero, giving the panel a crisp "snapping open"
-   feel without overshoot or bounce. 0.28s matches Framer Motion's exit curve 1-to-1. */
-.blade-container {
-  transition: clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+.blade-container.is-open .flare-top,
+.blade-container.is-open .flare-bottom,
+.blade-container.is-open .flare-horizontal,
+.blade-container.is-transitioning .flare-top,
+.blade-container.is-transitioning .flare-bottom,
+.blade-container.is-transitioning .flare-horizontal {
+  opacity: 1;
 }
 
 /* Parent container solid block extension to prevent screen edge blur transparency */
 .blade-container::before {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.blade-container.is-open::before,
+.blade-container.is-transitioning::before {
+  opacity: 1;
+}
+
+.blade-container.blade-left::before {
   content: '';
   position: absolute;
   top: 0;
@@ -126,8 +141,16 @@
   z-index: -2;
 }
 .blade-container.blade-right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
   left: auto;
   right: -30px;
+  width: 31px;
+  background: #000000;
+  pointer-events: none;
+  z-index: -2;
 }
 .blade-container.blade-top::before {
   content: '';

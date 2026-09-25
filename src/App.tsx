@@ -313,5 +313,9 @@ export default function App() {
     document.documentElement.style.setProperty('--font-scale', String(scale))
   }, [settings.reduceMotion, settings.fontSizeScale])
 
+  if (!hydrated) {
+    return <div className="root" />
+  }
+
   return <Panel />
 }

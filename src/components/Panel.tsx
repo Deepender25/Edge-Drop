@@ -48,6 +48,17 @@ export function Panel() {
   const emojiMounted = emojiMountedRef.current
   const edgeHintActive = useStore((s) => s.edgeHintActive)
   const edgeTransition = useStore((s) => s.edgeTransition)
+  const [startupBeacon, setStartupBeacon] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    // Graceful startup fade-in intro for the trigger bar on launch
+    const timer = window.setTimeout(() => {
+      setStartupBeacon(false)
+    }, 2200)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (!open) {
@@ -217,24 +228,25 @@ export function Panel() {
   const isTop = settings.stickPosition === 'top'
   const isHorizontal = isTop
 
+  const isTransitioning = !!edgeTransition?.active
+  const isVisuallyOpen = isTransitioning
+    ? edgeTransition.stage === 'expanding'
+    : open
+
   let containerClass = 'blade-container'
   if (isRight) containerClass += ' blade-right'
   else if (isTop) containerClass += ' blade-top'
   else containerClass += ' blade-left'
   if (isHorizontal) containerClass += ' horizontal-dock'
+  if (isVisuallyOpen) containerClass += ' is-open'
+  if (isTransitioning) containerClass += ' is-transitioning'
 
   const reduceMotion = !!settings.reduceMotion
-  const bounceOpen = !!settings.bounceAnimation
+  // Single Apple-like reveal curve (no overshoot branch — bounce was dead
+  // code with no UI surface; the expo ease settles without ringing).
   const clipTransition = reduceMotion
     ? 'clip-path 0.01s linear'
-    : bounceOpen
-      ? 'clip-path 0.44s cubic-bezier(0.175, 0.885, 0.32, 1.08)'
-      : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
-
-  const isTransitioning = !!edgeTransition?.active
-  const isVisuallyOpen = isTransitioning
-    ? edgeTransition.stage === 'expanding'
-    : open
+    : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
 
   let currentTransition = clipTransition
   let currentOpacity = 1
@@ -250,9 +262,7 @@ export function Panel() {
       currentTransition = 'opacity 0.12s ease-out'
       currentOpacity = 1
     } else if (edgeTransition.stage === 'expanding') {
-      currentTransition = bounceOpen
-        ? 'clip-path 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.08)'
-        : 'clip-path 0.30s cubic-bezier(0.16, 1, 0.3, 1)'
+      currentTransition = 'clip-path 0.30s cubic-bezier(0.16, 1, 0.3, 1)'
       currentOpacity = 1
     }
   }
@@ -261,37 +271,28 @@ export function Panel() {
     position: 'absolute',
     zIndex: 10,
     pointerEvents: isTransitioning ? 'none' : open ? 'auto' : 'none',
-    transition: currentTransition,
+    transition: mounted ? currentTransition : 'none',
     opacity: currentOpacity
   }
   if (isTransitioning) {
     containerStyle.willChange = 'clip-path, opacity'
   }
 
-  let originX = 0
-  let originY = 0.5
+  // Static centering via plain CSS transform (framer x/y shorthands removed
+  // with the bounce cleanup — same visual placement, no runtime needed).
   if (isRight) {
     containerStyle.top = topOffset
-    containerStyle.y = '-50%'
+    containerStyle.transform = 'translateY(-50%)'
     containerStyle.right = 0
-    originX = 1
-    originY = 0.5
   } else if (isTop) {
     containerStyle.top = 0
     containerStyle.left = '50%'
-    containerStyle.x = '-50%'
-    containerStyle.y = 0
-    originX = 0.5
-    originY = 0
+    containerStyle.transform = 'translate(-50%, 0)'
   } else {
     containerStyle.top = topOffset
-    containerStyle.y = '-50%'
+    containerStyle.transform = 'translateY(-50%)'
     containerStyle.left = 0
-    originX = 0
-    originY = 0.5
   }
-  containerStyle.originX = originX
-  containerStyle.originY = originY
 
   const alignment = settings.triggerAlignment || 'center'
   let insetTop = `calc(50% - ${halfTrigger}px)`
@@ -342,39 +343,27 @@ export function Panel() {
   return (
     <div className="root">
       <CopyIndicatorCurve />
-      <motion.div
+      <div
         className={containerClass}
-        initial={false}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         style={containerStyle}
-        animate={
-          bounceOpen && !reduceMotion
-            ? isVisuallyOpen
-              ? { scaleX: 1, scaleY: 1 }
-              : { scaleX: 0.97, scaleY: 0.98 }
-            : { scaleX: 1, scaleY: 1 }
-        }
-        transition={
-          reduceMotion
-            ? { duration: 0.01 }
-            : bounceOpen
-              ? { duration: 0.32, ease: [0.16, 1, 0.3, 1] }
-              : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }
-        }
       >
 
-        {/* Edge Location Hint Beacon (Ultra-subtle fast hairline pulse when touching edge at wrong position) */}
+        {/* Edge Trigger Bar & Location Hint Beacon (Startup fade-in intro + pulse on wrong-position touch) */}
         <AnimatePresence>
-          {!open && edgeHintActive && (settings.showEdgeLocationHint ?? false) && (
+          {!open && (startupBeacon || (edgeHintActive && (settings.showEdgeLocationHint ?? false))) && (
             <motion.div
               key="edge-location-beacon"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: startupBeacon ? 0.8 : 0.5 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
+              transition={{
+                duration: reduceMotion ? 0.01 : startupBeacon ? 0.5 : 0.18,
+                ease: [0.16, 1, 0.3, 1]
+              }}
               style={
                 isHorizontal
                   ? {
@@ -384,8 +373,8 @@ export function Panel() {
                       top: 0,
                       height: 2,
                       boxSizing: 'border-box',
-                      background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
-                      boxShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
+                      background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
+                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
                       borderRadius: '999px',
                       pointerEvents: 'none',
                       zIndex: 99
@@ -397,8 +386,8 @@ export function Panel() {
                       [isRight ? 'right' : 'left']: 0,
                       width: 2,
                       boxSizing: 'border-box',
-                      background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
-                      boxShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
+                      background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
+                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
                       borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
                       pointerEvents: 'none',
                       zIndex: 99
@@ -409,12 +398,12 @@ export function Panel() {
         </AnimatePresence>
         {isTop && (
           <>
-            <div className="flare-horizontal flare-top-left">
+            <div className="flare-horizontal flare-top-left" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
                 <path d="M 0 0 C 13.43 0 30 16.57 30 30 L 32 30 L 32 0 Z" fill="#000000" />
               </svg>
             </div>
-            <div className="flare-horizontal flare-top-right">
+            <div className="flare-horizontal flare-top-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
                 <path d="M 2 30 C 2 16.57 18.57 0 32 0 L 0 0 L 0 30 Z" fill="#000000" />
               </svg>
@@ -423,12 +412,12 @@ export function Panel() {
         )}
         {!isHorizontal && (isRight ? (
           <>
-            <div className="flare-top flare-right">
+            <div className="flare-top flare-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 30 0 L 30 30 L 0 30 A 30 30 0 0 0 30 0 Z" fill="#000000" />
               </svg>
             </div>
-            <div className="flare-bottom flare-right">
+            <div className="flare-bottom flare-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 30 30 L 30 0 L 0 0 A 30 30 0 0 1 30 30 Z" fill="#000000" />
               </svg>
@@ -436,12 +425,12 @@ export function Panel() {
           </>
         ) : (
           <>
-            <div className="flare-top">
+            <div className="flare-top" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 0 0 L 0 30 L 30 30 A 30 30 0 0 1 0 0 Z" fill="#000000" />
               </svg>
             </div>
-            <div className="flare-bottom">
+            <div className="flare-bottom" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 0 30 L 0 0 L 30 0 A 30 30 0 0 0 0 30 Z" fill="#000000" />
               </svg>
@@ -568,7 +557,7 @@ export function Panel() {
         <PreviewFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
         <LanguageFlyout isRight={isRight} />
-      </motion.div>
+      </div>
     </div>
   )
 }

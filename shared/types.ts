@@ -172,11 +172,6 @@ export interface Settings {
    */
   stickDisplayScaleFactor?: number
   /**
-   * When true, restores the bouncy overshoot panel-open animation.
-   * Off by default because it requires extra GPU compositing work.
-   */
-  bounceAnimation: boolean
-  /**
    * When true, automatically suppresses edge hover when a fullscreen game or app is active.
    * On by default to prevent accidental opening during PC gameplay.
    */
@@ -238,7 +233,6 @@ export const DEFAULT_SETTINGS: Settings = {
   stickDisplayId: undefined,
   stickDisplayWorkArea: undefined,
   stickDisplayScaleFactor: undefined,
-  bounceAnimation: false,
   suppressInFullscreen: true,
   showCopyIndicator: true,
   copyIndicatorStyle: 'logo',
