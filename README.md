@@ -266,7 +266,7 @@ npm run build:store  # outputs an MSIX package for Microsoft Store submission
 **Shelf Search**
 - Type-to-filter search box in the shelf (full row on the vertical blade, centered box on the horizontal dock). It searches your retained history — 100 to 1000 items, default 250, adjustable in Settings. Typing never steals focus from your active app, and clicking a result pastes straight into it.
 - **Elastic filter controls:** The filter chips and emoji category bar use a rubber-band control with momentum glide and squash-and-settle, fully keyboard navigable with reduced-motion support.
-- **Colors filter & Pantone swatches:** A dedicated Colors tab collects copied color codes, rendered as dynamic Pantone-style swatch cards.
+- **Colors filter:** Copied color codes show up under their own Colors tab as swatch cards painted with the actual color, labeled with the hex code. They behave like text cards: click to paste, no drag-out.
 
 **Selective & Filter-Scoped History Clearing**
 - **Time-Based Preset Windows:** Clear history in convenient time windows (**Last 1 hour**, **6 hours**, **24 hours**, or **Clear all**).
