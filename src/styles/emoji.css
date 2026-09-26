@@ -34,8 +34,6 @@
   padding: 4px var(--pad) 8px;
   scrollbar-width: none;
   overscroll-behavior-y: contain;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 8px, #000 calc(100% - 8px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0px, #000 8px, #000 calc(100% - 8px), transparent 100%);
 }
 .emoji-grid::-webkit-scrollbar {
   display: none;
@@ -252,8 +250,6 @@
 
 .emoji-picker.horizontal .emoji-grid {
   padding: 2px 6px 4px;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 4px, #000 calc(100% - 4px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0px, #000 4px, #000 calc(100% - 4px), transparent 100%);
 }
 
 .emoji-picker.horizontal .emoji-row {

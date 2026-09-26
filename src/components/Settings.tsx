@@ -804,7 +804,7 @@ export function Settings({
           {isStoreBuild ? (
             <button
               type="button"
-              className="shelf-kofi-btn"
+              className="shelf-github-btn"
               onClick={() => {
                 playButtonClickSound()
                 window.open('ms-windows-store://review/?ProductId=9P3JMHN9M4NR', '_blank')
@@ -816,7 +816,7 @@ export function Settings({
           ) : (
             <button
               type="button"
-              className="shelf-kofi-btn"
+              className="shelf-github-btn"
               onClick={() => {
                 playButtonClickSound()
                 window.open('https://github.com/Deepender25/Edge-Drop', '_blank')
@@ -835,23 +835,23 @@ export function Settings({
       <div className="settings-shelf-card about-card">
         <div className="shelf-card-top">
           <div className="setting-group-label">{t('groups.aboutEdgeDrop') || 'ABOUT EDGE-DROP'}</div>
-          <div className="setting-title">Edge-Drop v{currentVersion || '0.3.1'}</div>
+          <div className="setting-title">Edge-Drop v{currentVersion || '0.3.2'}</div>
           <div className="setting-desc">{t('footer.feedbackDesc')}</div>
         </div>
         <div className="shelf-card-bottom">
           <button
             type="button"
             className="pill display-pill"
-            style={{ width: '100%', justifyContent: 'center', height: 32, fontSize: 11.5 }}
+            style={{ width: '100%', justifyContent: 'center', height: 30, fontSize: 11.5, fontWeight: 550, borderRadius: 999 }}
             onClick={() => {
               playButtonClickSound()
               window.open('https://github.com/Deepender25/Edge-Drop/issues/new/choose', '_blank')
             }}
           >
-            💬 {t('footer.submitFeedback')}
+            {t('footer.submitFeedback')}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 2 }}>
             <button
               type="button"
               className="version-changelog-link"
@@ -867,13 +867,12 @@ export function Settings({
             <button
               type="button"
               className="shelf-quit-btn"
-              style={{ width: 'auto', padding: '0 12px', height: 26, fontSize: 11 }}
               onClick={() => {
                 playButtonClickSound()
                 void window.edge.quitApp()
               }}
             >
-              <LogOutIcon width={12} height={12} style={{ marginRight: 4 }} />
+              <LogOutIcon width={11} height={11} />
               <span>{t('tray.quit')}</span>
             </button>
           </div>
