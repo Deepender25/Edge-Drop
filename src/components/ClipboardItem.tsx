@@ -25,17 +25,21 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { LinkPreviewCard } from './LinkPreviewCard'
 import '../styles/item.css'
-
 import { tryPaste } from '../lib/tryPaste'
+import { parseColor } from '../lib/colorUtils'
 import { useTranslation, t } from '../i18n'
+import { useRelativeTimeTick } from '../hooks/useRelativeTimeTick'
+
+export const RelativeTime = memo(function RelativeTime({ capturedAt }: { capturedAt: number }) {
+  useRelativeTimeTick()
+  return <span className="meta-time">{relativeTime(capturedAt)}</span>
+})
 
 interface Props {
   item: ClipboardItemDto
-  /** Shared relative-time clock from ItemList; included in memo so labels age. */
-  timeTick?: number
 }
 
 /**
@@ -52,7 +56,7 @@ export function fileStreamUrl(filePath: string): string {
 /* Main item card                                                      */
 /* ------------------------------------------------------------------ */
 
-const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 0 }, ref) => {
+const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const { t } = useTranslation()
   const copy = useStore.getState().copy
   const paste = useStore.getState().paste
@@ -61,6 +65,10 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
   const setInternalDragReq = useStore.getState().setInternalDragReq
   const startDrag = useDragOut()
   const [copied, setCopied] = useState(false)
+
+  const settings = useStore((s) => s.settings)
+  const isHorizontal = settings.stickPosition === 'top'
+  const colorInfo = item.data.kind === 'text' ? parseColor(item.data.text) : null
 
   // Accordion expansion: ONE stack open at a time, coordinated store-wide
   // (expanding another stack collapses this one; Escape / outside click /
@@ -73,6 +81,17 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
 
   const isPreviewing = useStore((s) => s.previewItemId) === item.id
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
+
+  const bundleCount = item.data.kind === 'image-collection'
+    ? item.data.images.length
+    : item.data.kind === 'files'
+      ? item.data.paths.length
+      : 0
+
+  const screenW = typeof window !== 'undefined' ? window.innerWidth : 1140
+  const expandedWidth = expanded && isHorizontal
+    ? Math.min(screenW - 80, Math.max(300, 36 + bundleCount * 112))
+    : undefined
 
   useEffect(() => {
     if (!isBundle && expanded) setExpandedFlag(false)
@@ -220,13 +239,17 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
   return (
     <motion.div
       ref={ref}
-      layout="position"
-      layoutId={`ed-card-${item.id}`}
       initial={false}
       animate={{ opacity: 1 }}
-      transition={{ layout: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
-      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}`}
+      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
+      style={{
+        ...(expandedWidth ? { width: expandedWidth, minWidth: expandedWidth, maxWidth: expandedWidth } : {}),
+        ...(colorInfo ? {
+          '--card-color': colorInfo.cssColor,
+          backgroundColor: colorInfo.cssColor
+        } as React.CSSProperties : {})
+      }}
     >
       {copied && (
         <motion.div
@@ -238,7 +261,9 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
             position: 'absolute',
             inset: 0,
             borderRadius: 16,
-            background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 45%, transparent 75%)',
+            background: colorInfo?.isLight
+              ? 'radial-gradient(circle at center, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.06) 45%, transparent 75%)'
+              : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 45%, transparent 75%)',
             pointerEvents: 'none',
             zIndex: 15
           }}
@@ -255,7 +280,9 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
           if (pointerStartRef.current) pointerStartRef.current.moved = true
           handleDragStart(e, { id: item.id })
         }}
-        onDragEnd={() => setInternalDragReq(null)}
+        onDragEnd={() => {
+          setInternalDragReq(null)
+        }}
         onDragOver={(e) => {
           const activeDrag = useStore.getState().internalDragReq
           if (activeDrag && activeDrag.id !== item.id) {
@@ -270,9 +297,6 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
           if (activeDrag && activeDrag.id !== item.id) {
             e.preventDefault()
             e.stopPropagation()
-            // If they drop an entire item or a subitem onto another item, we merge them.
-            // Currently our merge logic merges the entire source item. 
-            // In the future we might want to merge just the subitem.
             window.edge.mergeItems(activeDrag.id, item.id)
             setInternalDragReq(null)
           } else if (activeDrag && activeDrag.id === item.id) {
@@ -289,6 +313,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
                 <BundleFluidPreview 
                   item={item} 
                   expanded={expanded} 
+                  isHorizontal={isHorizontal}
                   onDragStart={handleDragStart} 
                   onCopy={onCopy} 
                   onRemove={() => remove(item.id)} 
@@ -306,16 +331,14 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
                 {item.hitCount > 1 && (
                   <>
                     <span>·</span>
-                    <span className="meta-hit-count" title={`Copied ${item.hitCount} times`}>
+                    <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
                       ×{item.hitCount}
                     </span>
                   </>
                 )}
                 {copied && <span className="meta-copied">· {t('item.copied')}</span>}
               </div>
-              <span className="meta-time" key={timeTick}>
-                {relativeTime(item.capturedAt)}
-              </span>
+              <RelativeTime capturedAt={item.capturedAt} />
             </div>
           )}
         </div>
@@ -347,7 +370,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item, timeTick = 
               e.currentTarget.blur()
               playCardExpandSound(!isPreviewing)
               const rect = e.currentTarget.closest('.item-main')?.getBoundingClientRect()
-              const rectData = rect ? { y: rect.y, height: rect.height } : undefined
+              const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
               useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
             }}
           >
@@ -569,9 +592,192 @@ function BundleToolbar({
   )
 }
 
+function HorizontalBundleExpanded({
+  item,
+  onCollapse,
+  onCopy,
+  onRemove,
+  onDragStart
+}: {
+  item: ClipboardItemDto
+  onCollapse: (e?: React.MouseEvent) => void
+  onCopy: (e: React.MouseEvent) => void
+  onRemove: () => void
+  onDragStart: (e: React.DragEvent, req: DragRequest) => void
+}) {
+  const { t } = useTranslation()
+  const isImageCollection = item.data.kind === 'image-collection'
+  const isFiles = item.data.kind === 'files'
+  const images = item.data.kind === 'image-collection' ? item.data.images : []
+  const paths = item.data.kind === 'files' ? item.data.paths : []
+  const entries = item.data.kind === 'files' ? item.data.entries : undefined
+
+  return (
+    <div className="horizontal-bundle-expanded">
+      {/* Top Header Toolbar */}
+      <div
+        className="horizontal-bundle-header"
+        title={t('item.collapsePinned')}
+        onClick={(e) => {
+          e.stopPropagation()
+          onCollapse(e)
+        }}
+      >
+        <button
+          type="button"
+          className="bundle-collapse-hit"
+          title={t('item.collapsePinned')}
+          onClick={(e) => {
+            e.stopPropagation()
+            e.currentTarget.blur()
+            onCollapse(e)
+          }}
+        >
+          <ChevronLeftIcon />
+        </button>
+        <div className="actions-pill" onClick={(e) => e.stopPropagation()}>
+          <button
+            className="act"
+            title={t('item.copy')}
+            onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onCopy(e) }}
+          >
+            <CopyIcon />
+          </button>
+          <button
+            className="act danger"
+            title={t('item.delete')}
+            onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onRemove() }}
+          >
+            <TrashIcon />
+          </button>
+        </div>
+      </div>
+
+      {/* Horizontal Sub-Item Track */}
+      <div className="horizontal-subitem-track" onClick={(e) => e.stopPropagation()}>
+        {isImageCollection && images.map((img) => (
+          <motion.div
+            key={img.imageId}
+            className="horizontal-subitem-tile"
+            variants={rowVariants}
+            draggable
+            onMouseEnter={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
+            onPointerDown={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
+            onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
+            onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
+          >
+            <div className="horizontal-subitem-actions">
+              <button
+                className="act subitem-copy-btn"
+                title={t('item.copy')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.blur()
+                  useStore.getState().copySubitem({ id: item.id, imageId: img.imageId })
+                }}
+              >
+                <CopyIcon width={11} height={11} />
+              </button>
+              <button
+                className="act subitem-delete-btn"
+                title={t('item.ungroup')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.blur()
+                  window.edge.splitItem({ id: item.id, imageId: img.imageId, splitPlacement: 'after' })
+                }}
+              >
+                <MinusIcon width={11} height={11} />
+              </button>
+            </div>
+            <div className="horizontal-subitem-icon-wrap">
+              <img
+                src={img.preview}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className="horizontal-subitem-img"
+              />
+            </div>
+            <div className="horizontal-subitem-meta">
+              <span className="horizontal-subitem-name">{img.width}×{img.height}</span>
+              <span className="horizontal-subitem-sub">{formatBytes(img.bytes)}</span>
+            </div>
+          </motion.div>
+        ))}
+
+        {isFiles && paths.map((filePath, index) => {
+          const entry = entries?.[index]
+          const name = formatImageDisplayName(entry?.name ?? filePath, item.capturedAt)
+          const size = entry?.size ?? 0
+          const isImg = entry?.isImage && entry.preview
+
+          return (
+            <motion.div
+              key={`${item.id}-${filePath}-${index}`}
+              className="horizontal-subitem-tile"
+              variants={rowVariants}
+              draggable
+              onMouseEnter={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
+              onPointerDown={() => window.edge.prestageDrag({ id: item.id, paths: [filePath] })}
+              onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, paths: [filePath] }) }}
+              onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, paths: [filePath] })) }}
+            >
+              <div className="horizontal-subitem-actions">
+                <button
+                  className="act subitem-copy-btn"
+                  title={t('item.copyFilePath')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    useStore.getState().copySubitem({ id: item.id, paths: [filePath] })
+                  }}
+                >
+                  <CopyIcon width={11} height={11} />
+                </button>
+                <button
+                  className="act subitem-delete-btn"
+                  title={t('item.ungroup')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' })
+                  }}
+                >
+                  <MinusIcon width={11} height={11} />
+                </button>
+              </div>
+              <div className="horizontal-subitem-icon-wrap">
+                {isImg ? (
+                  <img
+                    src={entry.preview!}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    className="horizontal-subitem-img"
+                  />
+                ) : (
+                  <FileKindIcon path={filePath} width={40} height={40} isDirectory={entry?.isDirectory} />
+                )}
+              </div>
+              <div className="horizontal-subitem-meta">
+                <span className="horizontal-subitem-name" title={name}>{name}</span>
+                <span className="horizontal-subitem-sub">{size > 0 ? formatBytes(size) : getFileKind(filePath, entry?.isDirectory).label}</span>
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function BundleFluidPreview({
   item,
   expanded,
+  isHorizontal = false,
   onDragStart,
   onCopy,
   onRemove,
@@ -579,44 +785,59 @@ function BundleFluidPreview({
 }: {
   item: ClipboardItemDto
   expanded: boolean
+  isHorizontal?: boolean
   onDragStart: (e: React.DragEvent, req: DragRequest) => void
   onCopy: (e: React.MouseEvent) => void
   onRemove: () => void
   onCollapse: (e?: React.MouseEvent) => void
 }) {
+  if (isHorizontal && expanded) {
+    return (
+      <HorizontalBundleExpanded
+        item={item}
+        onCollapse={onCollapse}
+        onCopy={onCopy}
+        onRemove={onRemove}
+        onDragStart={onDragStart}
+      />
+    )
+  }
+
   if (item.data.kind === 'image-collection') {
     const more = item.data.images.length - 1
+    const photoSize = isHorizontal ? 76 : 124
     return (
       <BundleExpandShell
         expanded={expanded}
         stack={
           <>
-            <div className="bundle-stack-large">
-              {/* Photo stacks wear the same fixed-shape folder tile as file
-                  stacks (FileStackPhoto masks each preview into the SVG
-                  silhouette), fanned with the same CENTER-symmetric spread
-                  math as the files branch so larger stacks stay inside the
-                  container instead of clipping at the card edge. */}
+            <div className="bundle-stack-large" style={isHorizontal ? { height: 82 } : undefined}>
               {item.data.images.slice(0, 4).map((img, pathIndex) => ({ img, pathIndex })).reverse().map(({ img }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
-                const spread = arr.length > 1 ? 22 : 0
-                const rotSpread = arr.length > 1 ? 9 : 0
+                const spread = arr.length > 1 ? (isHorizontal ? 12 : 16) : 0
+                const rotSpread = arr.length > 1 ? (isHorizontal ? 5 : 7) : 0
                 const centerOffset = ((arr.length - 1) * spread) / 2
                 const centerRot = ((arr.length - 1) * rotSpread) / 2
                 const stackMotion = {
                   x: realIndex * spread - centerOffset,
-                  y: realIndex * 5,
+                  y: 0,
                   rotate: realIndex * rotSpread - centerRot,
-                  scale: 1 - realIndex * 0.05
+                  scale: 1 - realIndex * 0.04
                 }
                 return (
                   <motion.div
                     key={img.imageId}
                     className="bundle-stack-icon-item"
                     animate={stackMotion}
-                    style={{ zIndex: 10 - realIndex }}
+                    style={{
+                      zIndex: 10 - realIndex,
+                      width: photoSize,
+                      height: photoSize,
+                      marginTop: -photoSize / 2,
+                      marginLeft: -photoSize / 2
+                    }}
                   >
-                    <FileStackPhoto src={img.preview} width={154} height={154} />
+                    <FileStackPhoto src={img.preview} width={photoSize} height={photoSize} />
                   </motion.div>
                 )
               })}
@@ -634,17 +855,17 @@ function BundleFluidPreview({
               onRemove={onRemove}
               onTogglePin={() => useStore.getState().togglePin(item.id, !item.pinned)}
             />
-              {item.data.images.map((img) => (
-                <motion.div
-                  key={img.imageId}
-                  className="fluid-card-row"
-                  variants={rowVariants}
-                  draggable
-                  onMouseEnter={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
-                  onPointerDown={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
-                  onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
-                  onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
-                >
+            {item.data.images.map((img) => (
+              <motion.div
+                key={img.imageId}
+                className="fluid-card-row"
+                variants={rowVariants}
+                draggable
+                onMouseEnter={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
+                onPointerDown={() => window.edge.prestageDrag({ id: item.id, imageId: img.imageId })}
+                onDragStartCapture={(e: any) => { e.stopPropagation(); onDragStart(e, { id: item.id, imageId: img.imageId }) }}
+                onClick={(e) => { e.stopPropagation(); tryPaste(() => window.edge.pasteSubitem({ id: item.id, imageId: img.imageId })) }}
+              >
                 <div className="fluid-row-icon">
                   <img
                     src={img.preview}
@@ -680,48 +901,50 @@ function BundleFluidPreview({
     const entries = item.data.entries
     const paths = item.data.paths
     const count = paths.length
+    const photoSize = isHorizontal ? 76 : 124
     return (
       <BundleExpandShell
         expanded={expanded}
         stack={
           <>
-            <div className="bundle-stack-large">
+            <div className="bundle-stack-large" style={isHorizontal ? { height: 82 } : undefined}>
               {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
                 const entry = entries?.[pathIndex]
                 const isImg = !!(entry?.isImage && entry.preview)
-                const spread = arr.length > 1 ? 22 : 0
-                const rotSpread = arr.length > 1 ? 9 : 0
+                const spread = arr.length > 1 ? (isHorizontal ? 12 : 16) : 0
+                const rotSpread = arr.length > 1 ? (isHorizontal ? 5 : 7) : 0
                 const centerOffset = ((arr.length - 1) * spread) / 2
                 const centerRot = ((arr.length - 1) * rotSpread) / 2
                 const stackMotion = {
                   x: realIndex * spread - centerOffset,
-                  y: realIndex * 5,
+                  y: 0,
                   rotate: realIndex * rotSpread - centerRot,
-                  scale: 1 - realIndex * 0.05
+                  scale: 1 - realIndex * 0.04
                 }
 
-                // Single unified tile path: photos wear the folder-silhouette
-                // mask (FileStackPhoto), everything else wears its category's
-                // pastel SVG icon — identical geometry for every stack size.
-                // GIF thumbs 415 in the bounded endpoint, so tiles fall back to
-                // streaming the original file (animated) on load failure.
                 return (
                   <motion.div
                     key={`${item.id}-${pathIndex}`}
                     className="bundle-stack-icon-item"
                     animate={stackMotion}
-                    style={{ zIndex: 10 - realIndex }}
+                    style={{
+                      zIndex: 10 - realIndex,
+                      width: photoSize,
+                      height: photoSize,
+                      marginTop: -photoSize / 2,
+                      marginLeft: -photoSize / 2
+                    }}
                   >
                     {isImg ? (
                       <FileStackPhoto
                         src={entry.preview!}
-                        width={154}
-                        height={154}
+                        width={photoSize}
+                        height={photoSize}
                         fallbackSrc={fileStreamUrl(filePath)}
                       />
                     ) : (
-                      <FileKindIcon path={filePath} width={154} height={154} isDirectory={entry?.isDirectory} />
+                      <FileKindIcon path={filePath} width={photoSize} height={photoSize} isDirectory={entry?.isDirectory} />
                     )}
                   </motion.div>
                 )
@@ -762,7 +985,7 @@ function BundleFluidPreview({
                     {entry?.isImage && entry.preview ? (
                       <FileStackPhoto src={entry.preview} width={48} height={48} fallbackSrc={fileStreamUrl(filePath)} />
                     ) : (
-                      <FileKindIcon path={filePath} width={48} height={48} isDirectory={entry?.isDirectory} />
+                      <FileKindIcon path={filePath} width={44} height={44} isDirectory={entry?.isDirectory} />
                     )}
                   </div>
                   <div className="fluid-row-content">
@@ -804,11 +1027,20 @@ function BundleFluidPreview({
 
 function Preview({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
-    case 'text':
+    case 'text': {
       if (item.data.isUrl) {
         return <LinkPreviewCard url={item.data.text} />
       }
+      const colorInfo = parseColor(item.data.text)
+      if (colorInfo) {
+        return (
+          <div className="color-swatch-content">
+            <div className="color-swatch-code">{colorInfo.displayText}</div>
+          </div>
+        )
+      }
       return <div className="preview">{previewText(item.data.text)}</div>
+    }
 
     case 'image':
       return (
@@ -868,19 +1100,16 @@ function Preview({ item }: { item: ClipboardItemDto }) {
           </>
         )
       }
-      // Non-image single file — show big hero icon on top, and name + meta on the bottom!
+      // Non-image single file — show hero icon on top, and name on the bottom!
       const info = getFileKind(first, entry?.isDirectory)
       return (
         <div className="single-file-preview">
           <div className="single-file-hero" style={{ color: info.color }}>
-            <FileKindIcon path={first} width={136} height={136} isDirectory={entry?.isDirectory} />
+            <FileKindIcon path={first} isDirectory={entry?.isDirectory} />
           </div>
           <div className="single-file-meta">
             <div className="preview single single-file-name" title={displayName}>
               {displayName}
-            </div>
-            <div className="single-file-sub">
-              {info.label}{!entry?.isDirectory && entry && entry.size > 0 ? ` · ${formatBytes(entry.size)}` : ''}
             </div>
           </div>
         </div>
@@ -898,6 +1127,8 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
     case 'text':
       if (item.data.isUrl)
         return <span className="kind-badge url">{t('filters.links').toLowerCase()}</span>
+      if (item.data.isColor || parseColor(item.data.text))
+        return <span className="kind-badge color">color</span>
       return <span className="kind-badge">{t('filters.text').toLowerCase()}</span>
     case 'image':
       return (
@@ -951,8 +1182,9 @@ function ItemDetails({ item }: { item: ClipboardItemDto }) {
         return null
       }
 
-      if (item.data.isColor) {
-        return <span className="meta-detail">· {item.data.text.trim()}</span>
+      const colorInfo = parseColor(item.data.text)
+      if (item.data.isColor || colorInfo) {
+        return null
       }
 
       return null
@@ -1003,7 +1235,6 @@ export const ClipboardItemCard = memo(
       prev.pinned === next.pinned &&
       prev.hitCount === next.hitCount &&
       prev.capturedAt === next.capturedAt &&
-      prevProps.timeTick === nextProps.timeTick &&
       itemRenderKey(prev) === itemRenderKey(next)
     )
   }

@@ -95,6 +95,13 @@ export interface InvokeMap {
   /** Start background download of an update in manual mode. */
   'updater:start-download': { args: []; result: void }
 
+  /**
+   * Current update state snapshot (background findings so far). Lets a
+   * freshly subscribed renderer recover pushes it missed (slow load after
+   * the startup check already fired). Null when nothing is known.
+   */
+  'updater:get-state': { args: []; result: { hasUpdate: boolean; latestVersion: string; downloaded: boolean; downloadProgress?: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number } } | null }
+
   /** Quit the application process. */
   'app:quit': { args: []; result: void }
 
@@ -131,7 +138,7 @@ export interface EventMap {
    * Transient user-facing notice (e.g. "Stack is full (10 max)"). The renderer
    * shows it as a toast; `id` lets it dedupe/dismiss.
    */
-  'ui:toast': [toast: { id: string; message: string; tone: 'info' | 'error' }]
+  'ui:toast': [toast: { id: string; message: string; tone: 'info' | 'error'; params?: Record<string, string | number> }]
   /** Fired when an OS copy event (Ctrl+C) is detected by the main process watcher. */
   'ui:copy-flare': []
   /** Fired by electron-updater when a new update is available for GitHub builds. */

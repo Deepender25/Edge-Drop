@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { useStore } from '../store/appStore'
 import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
+import { ShelfSearch } from './ShelfSearch'
 import { ItemList } from './ItemList'
 import { EmojiPicker } from './EmojiPicker'
 import { Settings } from './Settings'
@@ -19,6 +20,7 @@ import { ToastStack } from './Toast'
 import { ClearMenu } from './ClearMenu'
 import { PreviewFlyout } from './PreviewFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
+import { LanguageFlyout } from './LanguageFlyout'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 
@@ -45,6 +47,18 @@ export function Panel() {
   if (emojiOpen) emojiMountedRef.current = true
   const emojiMounted = emojiMountedRef.current
   const edgeHintActive = useStore((s) => s.edgeHintActive)
+  const edgeTransition = useStore((s) => s.edgeTransition)
+  const [startupBeacon, setStartupBeacon] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    // Graceful startup fade-in intro for the trigger bar on launch
+    const timer = window.setTimeout(() => {
+      setStartupBeacon(false)
+    }, 2200)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (!open) {
@@ -134,7 +148,16 @@ export function Panel() {
         }
       }
 
-      if (el.closest('.split-dropzone')) {
+      const isTop = (settings.stickPosition === 'top')
+      const isRight = (settings.stickPosition === 'right')
+      
+      const isInsideSplitZone = 
+        !!el.closest('.split-dropzone') ||
+        (isTop && pos.y <= 80) ||
+        (!isTop && isRight && pos.x >= window.innerWidth - 100) ||
+        (!isTop && !isRight && pos.x <= 100)
+
+      if (isInsideSplitZone) {
         console.log('[Panel] Dropped in split dropzone, splitting')
         if (req.imageId || (req.paths && req.paths.length > 0)) {
           window.edge.splitItem(req)
@@ -202,41 +225,74 @@ export function Panel() {
   }
 
   const isRight = settings.stickPosition === 'right'
+  const isTop = settings.stickPosition === 'top'
+  const isHorizontal = isTop
+
+  const isTransitioning = !!edgeTransition?.active
+  const isVisuallyOpen = isTransitioning
+    ? edgeTransition.stage === 'expanding'
+    : open
 
   let containerClass = 'blade-container'
   if (isRight) containerClass += ' blade-right'
+  else if (isTop) containerClass += ' blade-top'
+  else containerClass += ' blade-left'
+  if (isHorizontal) containerClass += ' horizontal-dock'
+  if (isVisuallyOpen) containerClass += ' is-open'
+  if (isTransitioning) containerClass += ' is-transitioning'
 
   const reduceMotion = !!settings.reduceMotion
-  const bounceOpen = !!settings.bounceAnimation
+  // Single Apple-like reveal curve (no overshoot branch — bounce was dead
+  // code with no UI surface; the expo ease settles without ringing).
   const clipTransition = reduceMotion
     ? 'clip-path 0.01s linear'
-    : bounceOpen
-      ? 'clip-path 0.44s cubic-bezier(0.175, 0.885, 0.32, 1.08)'
-      : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
+    : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
+
+  let currentTransition = clipTransition
+  let currentOpacity = 1
+
+  if (isTransitioning && !reduceMotion) {
+    if (edgeTransition.stage === 'retracting') {
+      currentTransition = 'clip-path 0.26s cubic-bezier(0.22, 1, 0.36, 1)'
+      currentOpacity = 1
+    } else if (edgeTransition.stage === 'bar_fade_out') {
+      currentTransition = 'opacity 0.10s ease-out'
+      currentOpacity = 0
+    } else if (edgeTransition.stage === 'bar_fade_in') {
+      currentTransition = 'opacity 0.12s ease-out'
+      currentOpacity = 1
+    } else if (edgeTransition.stage === 'expanding') {
+      currentTransition = 'clip-path 0.30s cubic-bezier(0.16, 1, 0.3, 1)'
+      currentOpacity = 1
+    }
+  }
 
   const containerStyle: Record<string, unknown> = {
     position: 'absolute',
     zIndex: 10,
-    pointerEvents: open ? 'auto' : 'none',
-    transition: clipTransition
+    pointerEvents: isTransitioning ? 'none' : open ? 'auto' : 'none',
+    transition: mounted ? currentTransition : 'none',
+    opacity: currentOpacity
+  }
+  if (isTransitioning) {
+    containerStyle.willChange = 'clip-path, opacity'
   }
 
-  let originX = 0
-  let originY = 0.5
+  // Static centering via plain CSS transform (framer x/y shorthands removed
+  // with the bounce cleanup — same visual placement, no runtime needed).
   if (isRight) {
     containerStyle.top = topOffset
-    containerStyle.y = '-50%'
+    containerStyle.transform = 'translateY(-50%)'
     containerStyle.right = 0
-    originX = 1
+  } else if (isTop) {
+    containerStyle.top = 0
+    containerStyle.left = '50%'
+    containerStyle.transform = 'translate(-50%, 0)'
   } else {
     containerStyle.top = topOffset
-    containerStyle.y = '-50%'
+    containerStyle.transform = 'translateY(-50%)'
     containerStyle.left = 0
   }
-  containerStyle.originX = originX
-  containerStyle.originY = originY
-
-
 
   const alignment = settings.triggerAlignment || 'center'
   let insetTop = `calc(50% - ${halfTrigger}px)`
@@ -250,16 +306,35 @@ export function Panel() {
     insetBottom = '0px'
   }
 
+  const triggerWidthPx = Math.round(
+    settings.hotZoneHeight >= 0.55 ? 575 : settings.hotZoneHeight >= 0.35 ? 400 : 275
+  )
+  const halfTriggerW = triggerWidthPx / 2
+  let insetLeft = `calc(50% - ${halfTriggerW}px)`
+  let insetRight = `calc(50% - ${halfTriggerW}px)`
+
+  if (alignment === 'top' || alignment === 'left') {
+    insetLeft = '0px'
+    insetRight = `calc(100% - ${triggerWidthPx}px)`
+  } else if (alignment === 'bottom' || alignment === 'right') {
+    insetLeft = `calc(100% - ${triggerWidthPx}px)`
+    insetRight = '0px'
+  }
+
   // Set clipPath via style (not animate) to avoid Framer Motion's broken
   // calc() interpolation — CSS transitions handle it correctly.
   let clipPath: string
   const hotWidth = settings.hotZoneWidth || 3
   if (isRight) {
-    clipPath = open
+    clipPath = isVisuallyOpen
       ? 'inset(calc(0% - 100px) 0px calc(0% - 100px) calc(0% - 800px) round 24px 0px 0px 24px)'
       : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round 24px 0px 0px 24px)`
+  } else if (isTop) {
+    clipPath = isVisuallyOpen
+      ? 'inset(0px calc(0% - 100px) calc(0% - 600px) calc(0% - 100px) round 0px 0px 24px 24px)'
+      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 999px 999px)`
   } else {
-    clipPath = open
+    clipPath = isVisuallyOpen
       ? 'inset(calc(0% - 100px) calc(0% - 800px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
       : `inset(${insetTop} calc(100% - ${hotWidth}px) ${insetBottom} 0px round 0px 24px 24px 0px)`
   }
@@ -268,62 +343,81 @@ export function Panel() {
   return (
     <div className="root">
       <CopyIndicatorCurve />
-      <motion.div
+      <div
         className={containerClass}
-        initial={false}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         style={containerStyle}
-        animate={
-          bounceOpen && !reduceMotion
-            ? open
-              ? { scaleX: 1, scaleY: 1, opacity: 1 }
-              : { scaleX: 0.97, scaleY: 0.98, opacity: 1 }
-            : { scaleX: 1, scaleY: 1, opacity: 1 }
-        }
-        transition={
-          reduceMotion
-            ? { duration: 0.01 }
-            : bounceOpen
-              ? { duration: 0.32, ease: [0.16, 1, 0.3, 1] }
-              : { duration: 0.32, ease: [0.22, 1, 0.36, 1] }
-        }
       >
-        {/* Edge Location Hint Beacon (Ultra-subtle fast hairline pulse when touching edge at wrong position) */}
+
+        {/* Edge Trigger Bar & Location Hint Beacon (Startup fade-in intro + pulse on wrong-position touch) */}
         <AnimatePresence>
-          {!open && edgeHintActive && (settings.showEdgeLocationHint ?? false) && (
+          {!open && (startupBeacon || (edgeHintActive && (settings.showEdgeLocationHint ?? false))) && (
             <motion.div
               key="edge-location-beacon"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: startupBeacon ? 0.8 : 0.5 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
-              style={{
-                position: 'absolute',
-                top: insetTop,
-                bottom: insetBottom,
-                [isRight ? 'right' : 'left']: 0,
-                width: 2,
-                boxSizing: 'border-box',
-                background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.65) 25%, rgba(255, 255, 255, 0.65) 75%, transparent)',
-                boxShadow: '0 0 6px rgba(255, 255, 255, 0.3)',
-                borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
-                pointerEvents: 'none',
-                zIndex: 99
+              transition={{
+                duration: reduceMotion ? 0.01 : startupBeacon ? 0.5 : 0.18,
+                ease: [0.16, 1, 0.3, 1]
               }}
+              style={
+                isHorizontal
+                  ? {
+                      position: 'absolute',
+                      left: insetLeft,
+                      right: insetRight,
+                      top: 0,
+                      height: 2,
+                      boxSizing: 'border-box',
+                      background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
+                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
+                      borderRadius: '999px',
+                      pointerEvents: 'none',
+                      zIndex: 99
+                    }
+                  : {
+                      position: 'absolute',
+                      top: insetTop,
+                      bottom: insetBottom,
+                      [isRight ? 'right' : 'left']: 0,
+                      width: 2,
+                      boxSizing: 'border-box',
+                      background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
+                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
+                      borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
+                      pointerEvents: 'none',
+                      zIndex: 99
+                    }
+              }
             />
           )}
         </AnimatePresence>
-        {isRight ? (
+        {isTop && (
           <>
-            <div className="flare-top flare-right">
+            <div className="flare-horizontal flare-top-left" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
+              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
+                <path d="M 0 0 C 13.43 0 30 16.57 30 30 L 32 30 L 32 0 Z" fill="#000000" />
+              </svg>
+            </div>
+            <div className="flare-horizontal flare-top-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
+              <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
+                <path d="M 2 30 C 2 16.57 18.57 0 32 0 L 0 0 L 0 30 Z" fill="#000000" />
+              </svg>
+            </div>
+          </>
+        )}
+        {!isHorizontal && (isRight ? (
+          <>
+            <div className="flare-top flare-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 30 0 L 30 30 L 0 30 A 30 30 0 0 0 30 0 Z" fill="#000000" />
               </svg>
             </div>
-            <div className="flare-bottom flare-right">
+            <div className="flare-bottom flare-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 30 30 L 30 0 L 0 0 A 30 30 0 0 1 30 30 Z" fill="#000000" />
               </svg>
@@ -331,26 +425,43 @@ export function Panel() {
           </>
         ) : (
           <>
-            <div className="flare-top">
+            <div className="flare-top" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 0 0 L 0 30 L 30 30 A 30 30 0 0 1 0 0 Z" fill="#000000" />
               </svg>
             </div>
-            <div className="flare-bottom">
+            <div className="flare-bottom" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 0 30 L 0 0 L 30 0 A 30 30 0 0 0 0 30 Z" fill="#000000" />
               </svg>
             </div>
           </>
-        )}
+        ))}
         <div
           ref={bladeRef}
           className="blade"
-          style={{ height: panelHeightStr }}
+          style={isHorizontal ? { width: 'min(calc(100vw - 60px), 1080px)', height: 210 } : { height: panelHeightStr }}
         >
-          <Header />
+          <Header
+            isHorizontal={isHorizontal}
+            itemCount={filteredCount}
+            clearProps={{
+              items: filteredItems,
+              disabled: recent.length === 0,
+              panelOpen: open,
+              onClear: (ids) => clear(ids),
+              onClearAll: () => {
+                if (typeFilter === 'all' && !query.trim()) {
+                  clear()
+                } else {
+                  clear(recent.map((it) => it.id))
+                }
+              }
+            }}
+          />
 
           <ToastStack />
+          {!isHorizontal && !emojiOpen && !settingsOpen && <ShelfSearch />}
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
             {/* Main clipboard / emoji view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
             <div
@@ -392,34 +503,36 @@ export function Panel() {
                   }}
                   aria-hidden={!emojiOpen}
                 >
-                  {emojiMounted ? <EmojiPicker active={emojiOpen} /> : null}
+                  {emojiMounted ? <EmojiPicker active={emojiOpen} isHorizontal={isHorizontal} /> : null}
                 </div>
               </div>
-              <div className="footer" style={{ position: 'relative' }}>
-                {!emojiOpen && (
-                  <>
-                    <div className="footer-capsule">
-                      <span className="footer-capsule-count" title={`${filteredCount}`}>
-                        {filteredCount}
-                      </span>
-                    </div>
-                    <div className="spacer" />
-                    <ClearMenu
-                      items={filteredItems}
-                      disabled={recent.length === 0}
-                      panelOpen={open}
-                      onClear={(ids) => clear(ids)}
-                      onClearAll={() => {
-                        if (typeFilter === 'all' && !query.trim()) {
-                          clear()
-                        } else {
-                          clear(recent.map((it) => it.id))
-                        }
-                      }}
-                    />
-                  </>
-                )}
-              </div>
+              {!isHorizontal && (
+                <div className="footer" style={{ position: 'relative', zIndex: 100 }}>
+                  {!emojiOpen && (
+                    <>
+                      <div className="footer-capsule">
+                        <span className="footer-capsule-count" title={`${filteredCount}`}>
+                          {filteredCount}
+                        </span>
+                      </div>
+                      <div className="spacer" />
+                      <ClearMenu
+                        items={filteredItems}
+                        disabled={recent.length === 0}
+                        panelOpen={open}
+                        onClear={(ids) => clear(ids)}
+                        onClearAll={() => {
+                          if (typeFilter === 'all' && !query.trim()) {
+                            clear()
+                          } else {
+                            clear(recent.map((it) => it.id))
+                          }
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Settings view */}
@@ -427,23 +540,24 @@ export function Panel() {
               {settingsOpen && (
                 <motion.div
                   key="settings"
-                  initial={{ opacity: 0, x: isRight ? -8 : 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: isRight ? 8 : -8 }}
+                  initial={{ opacity: 0, x: isHorizontal ? 0 : (isRight ? -8 : 8), y: isHorizontal ? (isTop ? -8 : 8) : 0 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  exit={{ opacity: 0, x: isHorizontal ? 0 : (isRight ? 8 : -8), y: isHorizontal ? (isTop ? -8 : 8) : 0 }}
                   transition={settings.reduceMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 500, damping: 32, mass: 0.5 }}
                   style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
                 >
-                  <Settings />
+                  <Settings isHorizontal={isHorizontal} />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
           <DropOverlay />
-          <SplitDropZone isRight={isRight} />
+          <SplitDropZone stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')} />
         </div>
         <PreviewFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
-      </motion.div>
+        <LanguageFlyout isRight={isRight} />
+      </div>
     </div>
   )
 }
@@ -528,7 +642,7 @@ function DropOverlay() {
   )
 }
 
-function SplitDropZone({ isRight = false }: { isRight?: boolean }) {
+function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'right' | 'top' }) {
   const internalDragReq = useStore((s) => s.internalDragReq)
   const isSubitemDragging = !!(
     internalDragReq &&
@@ -546,23 +660,77 @@ function SplitDropZone({ isRight = false }: { isRight?: boolean }) {
     setIsOver(false)
   }
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsOver(false)
+    const req = useStore.getState().internalDragReq
+    if (req && (req.imageId || (req.paths && req.paths.length > 0))) {
+      window.edge.splitItem(req)
+      useStore.getState().setInternalDragReq(null)
+    }
+  }
+
+  const isTop = stickPosition === 'top'
+  const isRight = stickPosition === 'right'
+
+  // Orientation alignment:
+  // When dock is on LEFT, drop zone is on the LEFT (-15px x-offset)
+  // When dock is on RIGHT, drop zone is on the RIGHT (+15px x-offset)
+  // When dock is on TOP, drop zone is at the TOP (-15px y-offset)
+  const initialMotion = isTop
+    ? { opacity: 0, y: -15 }
+    : isRight
+      ? { opacity: 0, x: 15 }
+      : { opacity: 0, x: -15 }
+
+  const exitMotion = initialMotion
+
+  const styleByPos: React.CSSProperties = isTop
+    ? {
+        top: 0,
+        left: 0,
+        right: 0,
+        height: isOver ? 72 : 56,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start'
+      }
+    : isRight
+      ? {
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: isOver ? 100 : 80,
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }
+      : {
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: isOver ? 100 : 80,
+          justifyContent: 'flex-start',
+          alignItems: 'center'
+        }
+
   return (
     <AnimatePresence>
       {isSubitemDragging && (
         <motion.div
-          className={`split-dropzone${isOver ? ' active' : ''}`}
-          onDragOver={(e) => e.preventDefault()}
+          className={`split-dropzone pos-${stickPosition}${isOver ? ' active' : ''}`}
+          onDragOver={(e) => {
+            e.preventDefault()
+            if (!isOver) setIsOver(true)
+          }}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          initial={{ opacity: 0, x: isRight ? 15 : -15 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: isRight ? 15 : -15 }}
+          onDrop={handleDrop}
+          initial={initialMotion}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          exit={exitMotion}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          style={{
-            left: isRight ? 'auto' : 0,
-            right: isRight ? 0 : 'auto',
-            justifyContent: isRight ? 'flex-end' : 'flex-start'
-          }}
+          style={styleByPos}
         >
           <div className="glow-line" />
         </motion.div>

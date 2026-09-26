@@ -45,7 +45,8 @@ import {
   Trophy,
   Lightbulb,
   Shapes,
-  Flag
+  Flag,
+  Palette
 } from 'lucide-react'
 
 type P = SVGProps<SVGSVGElement>
@@ -142,6 +143,7 @@ export const ClockIcon = (p: P) => {
 export const RecentIcon = ClockIcon
 export const TypeIcon = uiIcon(Type)
 export const FilesIcon = uiIcon(Files)
+export const PaletteIcon = uiIcon(Palette)
 
 export const EmojiSmileIcon = uiIcon(Smile, 18)
 export const EmojiClockIcon = (p: P) => <ClockIcon width={p.width ?? 18} height={p.height ?? 18} {...(p as any)} />

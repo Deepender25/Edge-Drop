@@ -9,48 +9,21 @@
   z-index: 1;
 }
 
-/* Sleek 8-Category Pill Bar (Zero Horizontal Scroll, Zero Arrows, Fits Perfectly) */
+/* Sleek Category Pill Bar (RubberSegment) */
 .emoji-cat-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2px;
+  justify-content: center;
   background: transparent;
   border: none;
   border-radius: 999px;
   padding: 0;
   margin: 2px var(--pad) 8px;
-  height: 36px;
+  height: 32px;
   box-sizing: border-box;
   flex-shrink: 0;
   box-shadow: none;
-}
-
-.emoji-cat-btn {
-  flex: 1;
-  height: 28px;
-  min-width: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: #141414;
-  border: none;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.70);
-  padding: 0;
-  transition: background 0.16s cubic-bezier(0.22, 1, 0.36, 1), color 0.16s ease;
-}
-.emoji-cat-btn:hover {
-  background: #1c1c1c;
-  color: #ffffff;
-}
-.emoji-cat-btn.active {
-  background: #ffffff;
-  color: #000000;
-  box-shadow: none;
-}
-.emoji-cat-btn:active {
-  transform: scale(0.94);
+  overflow: visible;
 }
 
 .emoji-grid {
@@ -61,8 +34,6 @@
   padding: 4px var(--pad) 8px;
   scrollbar-width: none;
   overscroll-behavior-y: contain;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 8px, #000 calc(100% - 8px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0px, #000 8px, #000 calc(100% - 8px), transparent 100%);
 }
 .emoji-grid::-webkit-scrollbar {
   display: none;
@@ -73,6 +44,10 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
   height: 36px;
+  /* Offscreen rows skip layout/paint/decode entirely; the intrinsic size is
+     exact (rows are fixed-height), so the scrollbar never jumps. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 36px;
 }
 
 .emoji-cell {
@@ -241,5 +216,72 @@
   aspect-ratio: 1;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================================================
+   Horizontal Dock Mode (Top & Bottom Edge)
+   ========================================================================== */
+
+.emoji-picker.horizontal {
+  padding: 2px 14px 4px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.emoji-picker.horizontal .emoji-cat-bar {
+  max-width: 100%;
+  width: auto;
+  margin: 0 auto 6px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 0;
+  gap: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.emoji-picker.horizontal .emoji-cat-tooltip {
+  top: 34px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.emoji-picker.horizontal .emoji-grid {
+  padding: 2px 6px 4px;
+}
+
+.emoji-picker.horizontal .emoji-row {
+  gap: 2px;
+  height: 32px;
+  contain-intrinsic-size: auto 32px;
+}
+
+.emoji-picker.horizontal .emoji-cell {
+  height: 32px;
+  border-radius: 7px;
+}
+
+.emoji-picker.horizontal .emoji-recents-footer {
+  position: absolute;
+  top: 3px;
+  right: 14px;
+  padding: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  z-index: 5;
+}
+
+.emoji-picker.horizontal .emoji-recents-clear-btn {
+  height: 24px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+.emoji-picker.horizontal .emoji-skel {
+  padding: 6px 8px;
+  gap: 4px;
 }
 

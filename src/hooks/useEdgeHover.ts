@@ -66,14 +66,69 @@ export function notifyPreviewClosedByUser(): void {
   }, PREVIEW_CLOSE_STAY_MS)
 }
 
+export function getHorizontalDockMetrics(
+  displayWidth: number,
+  horizontalOffset = 0.5,
+  hotZoneHeight = 0.25,
+  triggerAlignment: 'top' | 'center' | 'bottom' | 'left' | 'right' = 'center'
+) {
+  const dockWidth = Math.min(displayWidth - 60, 1080)
+  const pad = displayWidth >= dockWidth + 60 ? 30 : 0
+  const minX = pad
+  const maxX = displayWidth - dockWidth - pad
+  const hOffset = Math.min(1, Math.max(0, horizontalOffset))
+  const dockX = minX + Math.round(Math.max(0, maxX - minX) * hOffset)
+  const dockCenterX = dockX + dockWidth / 2
+  // Trigger bar length scales with hotZoneHeight (+25% increase):
+  // Small (0.25) => 275px, Medium (0.40) => 400px, Large (0.60) => 575px
+  const triggerWidth = Math.round(
+    hotZoneHeight >= 0.55 ? 575 : hotZoneHeight >= 0.35 ? 400 : 275
+  )
+  let triggerLeft = dockCenterX - triggerWidth / 2
+  let triggerRight = dockCenterX + triggerWidth / 2
+
+  if (triggerAlignment === 'top' || triggerAlignment === 'left') {
+    triggerLeft = dockX
+    triggerRight = dockX + triggerWidth
+  } else if (triggerAlignment === 'bottom' || triggerAlignment === 'right') {
+    triggerLeft = dockX + dockWidth - triggerWidth
+    triggerRight = dockX + dockWidth
+  }
+
+  return {
+    dockWidth,
+    dockX,
+    dockCenterX,
+    triggerWidth,
+    triggerLeft,
+    triggerRight
+  }
+}
+
 export function useEdgeHover(): void {
   // Throttle the self-healing setInteractive(true) call.
   // Without this, it fires at 60Hz (every 16ms) via the cursor-edge poll,
   // flooding the IPC queue and starving the messages that open the panel.
   const lastSetInteractiveRef = useRef(0)
 
+  // Track active display dimensions (received from main process cursor poll)
+  const displaySize = useRef({
+    width: typeof window !== 'undefined' && window.screen ? window.screen.width : 1920,
+    height: typeof window !== 'undefined' && window.screen ? window.screen.height : 1080
+  })
+
   // Hot zone and panel bounds, recomputed on resize to avoid reading DOM at 1000Hz
-  const zone = useRef({ top: 0, bottom: 0, midY: 0, panelHalfH: 0 })
+  const zone = useRef<{
+    top: number
+    bottom: number
+    midY: number
+    panelHalfH: number
+    left?: number
+    right?: number
+    midX?: number
+    panelHalfW?: number
+    dockW?: number
+  }>({ top: 0, bottom: 0, midY: 0, panelHalfH: 0 })
 
   // Last known pointer position (updated on every pointermove). Used to vet
   // `panel:leave` events — Framer Motion layout reflows can fire spurious
@@ -84,6 +139,8 @@ export function useEdgeHover(): void {
     const recompute = () => {
       const h = window.innerHeight
       const s = useStore.getState().settings
+      const isHorizontal = s.stickPosition === 'top'
+
       const pFrac = s.panelHeight || 0.6
       const panelH = h * pFrac
       const minY = panelH / 2
@@ -107,12 +164,26 @@ export function useEdgeHover(): void {
         bottom = panelBottom
       }
 
-      const panelHalfH = panelH / 2 + 24
+      // Horizontal dock bounds (for top/bottom) — calculated in DISPLAY coordinates
+      const dispW = displaySize.current.width
+      const dockMetrics = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
+      const left = dockMetrics.triggerLeft
+      const right = dockMetrics.triggerRight
+      const midX = dockMetrics.dockCenterX
+      const dockW = dockMetrics.dockWidth
+      const panelHalfW = dockW / 2 + 24
+
+      const panelHalfH = isHorizontal ? 120 : panelH / 2 + 24
       zone.current = { 
         top, 
         bottom,
         midY,
-        panelHalfH
+        panelHalfH,
+        left,
+        right,
+        midX,
+        panelHalfW,
+        dockW
       }
     }
     recompute()
@@ -122,6 +193,8 @@ export function useEdgeHover(): void {
         state.settings.panelHeight !== prevState.settings.panelHeight ||
         state.settings.hotZoneHeight !== prevState.settings.hotZoneHeight ||
         state.settings.verticalOffset !== prevState.settings.verticalOffset ||
+        state.settings.horizontalOffset !== prevState.settings.horizontalOffset ||
+        state.settings.stickPosition !== prevState.settings.stickPosition ||
         state.settings.triggerAlignment !== prevState.settings.triggerAlignment
       ) {
         recompute()
@@ -142,6 +215,7 @@ export function useEdgeHover(): void {
     const closePanelNow = () => {
       const s = useStore.getState()
       if (s.styleFlyoutOpen) s.setStyleFlyoutOpen(false)
+      if (s.languageFlyoutOpen) s.setLanguageFlyoutOpen(false)
       s.setOpen(false)
       if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
       interactiveTimer = window.setTimeout(() => {
@@ -153,14 +227,15 @@ export function useEdgeHover(): void {
     const closePanel = () => {
       const state = useStore.getState()
       if (!state.open) return
-      if (state.sliderActive) return
+      if (state.sliderActive || state.edgeTransition?.active) return
       if (state.dragActive && !state.internalDragReq) return
 
-      // If the indicator style flyout is open, let it play its exit spring first.
+      // If any flyout is open, let it play its exit spring first.
       // The Electron window resize (inside setOpen) would cut the flyout animation
       // in half if we close both simultaneously — so we sequence it properly.
-      if (state.styleFlyoutOpen) {
-        state.setStyleFlyoutOpen(false)
+      if (state.styleFlyoutOpen || state.languageFlyoutOpen) {
+        if (state.styleFlyoutOpen) state.setStyleFlyoutOpen(false)
+        if (state.languageFlyoutOpen) state.setLanguageFlyoutOpen(false)
         if (graceTimer !== undefined) window.clearTimeout(graceTimer)
         graceTimer = window.setTimeout(() => {
           graceTimer = undefined
@@ -188,7 +263,7 @@ export function useEdgeHover(): void {
 
     const scheduleClose = (delay = GRACE_MS) => {
       const state = useStore.getState()
-      if (state.sliderActive) return
+      if (state.sliderActive || state.edgeTransition?.active) return
       if (state.dragActive && !state.internalDragReq) return
       if (graceTimer !== undefined) return // already closing
 
@@ -214,9 +289,14 @@ export function useEdgeHover(): void {
         window.clearTimeout(interactiveTimer)
         interactiveTimer = undefined
       }
-      // User re-entered the clipboard — clear the preview grace period flags so the
-      // next time they leave, the panel retracts at normal speed (250ms)
-      useStore.getState().resetPositionChangedTime()
+      // User re-entered the clipboard — clear the preview grace period flags only
+      // after the 1750ms position-changed stay window has completed, so the panel
+      // does not close prematurely during edge or display transitions.
+      const state = useStore.getState()
+      const elapsed = state.sliderReleasedTime > 0 ? Date.now() - state.sliderReleasedTime : Infinity
+      if (elapsed >= 1750) {
+        state.resetPositionChangedTime()
+      }
       if (_previewClosedByUser) {
         _previewClosedByUser = false
         if (_previewClosedTimer !== undefined) {
@@ -236,9 +316,29 @@ export function useEdgeHover(): void {
         window.clearTimeout(interactiveTimer)
         interactiveTimer = undefined
       }
-      edge.setInteractive(true)
+      // Sequence the open across two steps so the OS/DWM surface work
+      // (click-through off + always-on-top re-assert over IPC) starts before
+      // the React clip-path/spring commit. Previously both fired in the same
+      // tick, so DWM recomposition contended with layout + first-paint work
+      // and the first open after launch visibly hitched. No visual change:
+      // the same two calls run in the same order, one frame apart.
+      try {
+        void (edge.setInteractive(true) as unknown as Promise<void>)?.catch?.(() => {})
+      } catch { /* ignore IPC errors; close path still governs state */ }
       if (useStore.getState().open) return
-      useStore.getState().setOpen(true)
+      const commitOpen = () => {
+        if (useStore.getState().open) return
+        useStore.getState().setOpen(true)
+      }
+      try {
+        if (typeof window.requestAnimationFrame === 'function') {
+          window.requestAnimationFrame(() => commitOpen())
+        } else {
+          commitOpen()
+        }
+      } catch {
+        commitOpen()
+      }
     }
 
     // ── panel:leave / panel:enter (from Panel.tsx blade div) ──────────────
@@ -248,15 +348,33 @@ export function useEdgeHover(): void {
     // if the last known pointer position is genuinely outside the blade.
     const isInsideBlade = () => {
       const state = useStore.getState()
-      if (state.sliderActive) return true
+      if (state.sliderActive || state.edgeTransition?.active) return true
       const timeSincePositionChange = state.sliderReleasedTime > 0 ? Date.now() - state.sliderReleasedTime : Infinity
       if (timeSincePositionChange < 1750) return true
 
       const { x, y } = lastClient.current
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
       const s = state.settings
-      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen)
+      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
       const currentPanelWide = hasFlyout ? PREVIEW_WIDE : PANEL_WIDE
+
+      if (s.stickPosition === 'top') {
+        const dispW = displaySize.current.width
+        const { dockWidth, dockX } = getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
+        const bladeHeight = 218
+        const inBlade = y >= -BUFFER_PX && y <= bladeHeight && x >= dockX - BUFFER_PX && x <= dockX + dockWidth + BUFFER_PX
+        if (inBlade) return true
+        if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
+          const FLYOUT_BUFFER = 24
+          const flyoutScreenLeft = dockX + state.previewFlyoutRect.left
+          const flyoutScreenRight = dockX + state.previewFlyoutRect.right
+          const inFlyout = y >= (state.previewFlyoutRect.top - FLYOUT_BUFFER) &&
+            y <= (state.previewFlyoutRect.bottom + FLYOUT_BUFFER) &&
+            x >= flyoutScreenLeft - FLYOUT_BUFFER && x <= flyoutScreenRight + FLYOUT_BUFFER
+          if (inFlyout) return true
+        }
+        return false
+      }
 
       let insideX = false
       if (s.stickPosition === 'right') {
@@ -312,14 +430,87 @@ export function useEdgeHover(): void {
     // here with the renderer's own settings so everything stays in sync.
     const unsubCursorEdge = window.edge.onCursorEdge((data) => {
       lastClient.current = { x: data.x, y: data.y }
+      if (data.displayWidth) displaySize.current.width = data.displayWidth
+      if (data.displayHeight) displaySize.current.height = data.displayHeight
       const state = useStore.getState()
       const { stickPosition, displayWidth } = data
       const { top, bottom, midY, panelHalfH } = zone.current
-      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen)
+      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
       const currentKeepOpenPx = hasFlyout ? PREVIEW_WIDE - 15 : KEEP_OPEN_PX
       const currentStartClosePx = hasFlyout ? PREVIEW_WIDE + 20 : START_CLOSE_PX
 
       switch (stickPosition) {
+        case 'top': {
+          const distFromTop = data.y
+          const triggerDepth = Math.max(state.settings.hotZoneWidth ?? 3, 1)
+          const inEdgeNear = distFromTop >= -BUFFER_PX && distFromTop <= (triggerDepth + 25)
+          const dispW = displayWidth || displaySize.current.width
+          const { dockWidth, dockX, triggerLeft, triggerRight } = getHorizontalDockMetrics(dispW, state.settings.horizontalOffset ?? 0.5, state.settings.hotZoneHeight ?? 0.25, state.settings.triggerAlignment || 'center')
+          const inZone = data.x >= triggerLeft && data.x <= triggerRight
+
+          if (!inEdgeNear) {
+            edgeHintFired = false
+          }
+
+          const isHoverEnabled = state.settings.hoverActivation ?? true
+
+          if (inEdgeNear && !inZone && !state.open && isHoverEnabled && (state.settings.showEdgeLocationHint ?? false)) {
+            triggerEdgeHint()
+          }
+
+          if (distFromTop >= -BUFFER_PX && distFromTop <= triggerDepth && inZone && !state.open && isHoverEnabled) {
+            if (state.edgeHintActive) state.setEdgeHintActive(false)
+            cancelClose()
+            if (dwellTimer === undefined) {
+              dwellTimer = window.setTimeout(() => {
+                dwellTimer = undefined
+                openPanel()
+              }, DWELL_MS)
+            }
+            return
+          }
+
+          if (dwellTimer !== undefined) {
+            window.clearTimeout(dwellTimer)
+            dwellTimer = undefined
+          }
+
+          if (!state.open) return
+          if (state.edgeHintActive) state.setEdgeHintActive(false)
+
+          const now = Date.now()
+          if (now - lastSetInteractiveRef.current > 2000) {
+            lastSetInteractiveRef.current = now
+            edge.setInteractive(true)
+          }
+
+          const baseBladeH = 218
+          const keepOpenDepth = baseBladeH
+          const startCloseDepth = baseBladeH + 40
+          const insideX = data.x >= dockX - BUFFER_PX && data.x <= dockX + dockWidth + BUFFER_PX
+          const outsideX = data.x < dockX - (BUFFER_PX + 40) || data.x > dockX + dockWidth + (BUFFER_PX + 40)
+
+          let inFlyout = false
+          if (hasFlyout && state.previewFlyoutRect && state.previewFlyoutRect.left !== undefined && state.previewFlyoutRect.right !== undefined) {
+            const FLYOUT_BUFFER = 24
+            const flyoutScreenLeft = dockX + state.previewFlyoutRect.left
+            const flyoutScreenRight = dockX + state.previewFlyoutRect.right
+            inFlyout = distFromTop >= (state.previewFlyoutRect.top - FLYOUT_BUFFER) &&
+              distFromTop <= (state.previewFlyoutRect.bottom + FLYOUT_BUFFER) &&
+              data.x >= flyoutScreenLeft - FLYOUT_BUFFER && data.x <= flyoutScreenRight + FLYOUT_BUFFER
+          }
+
+          if ((distFromTop >= -BUFFER_PX && distFromTop <= keepOpenDepth && insideX) || inFlyout) {
+            cancelClose()
+            return
+          }
+
+          if (distFromTop > startCloseDepth || distFromTop < -BUFFER_PX || outsideX) {
+            scheduleClose()
+          }
+          break
+        }
+
         case 'right': {
           const distFromRight = displayWidth - data.x
           const inEdgeNear = distFromRight >= -BUFFER_PX && distFromRight <= (TRIGGER_PX + 25)
@@ -447,6 +638,10 @@ export function useEdgeHover(): void {
 
     // ── keyboard ───────────────────────────────────────────────────────────
     const onKeyDown = (e: KeyboardEvent) => {
+      // Never close the panel while the user is typing in a text field
+      // (search owns Escape: clear, then blur).
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
       if (e.key === 'Escape' && useStore.getState().open) scheduleClose(0)
     }
 

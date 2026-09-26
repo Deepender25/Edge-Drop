@@ -2,10 +2,27 @@ import { app, net } from 'electron'
 import { isStoreBuild } from './config'
 import { pushState } from './state'
 import { getSettings } from '../store/settings'
+import { resolveUpdateMode } from '../../shared/types'
 
-// Module-level reference to the single autoUpdater instance.
+export interface CachedUpdateInfo {
+  hasUpdate: boolean
+  latestVersion: string
+  downloaded: boolean
+  downloadProgress?: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }
+}
+
+// Module-level reference to the single autoUpdater instance and cached update state.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _autoUpdater: any = null
+let _cachedUpdateInfo: CachedUpdateInfo | null = null
+
+export function getCachedUpdateState(): CachedUpdateInfo | null {
+  return _cachedUpdateInfo
+}
+
+export function clearCachedUpdateState(): void {
+  _cachedUpdateInfo = null
+}
 
 /**
  * Called from ipc.ts when the renderer clicks "Restart to Update".
@@ -25,15 +42,56 @@ export function quitAndInstallUpdate(): void {
 }
 
 /**
- * Syncs the autoDownload flag on electron-updater whenever user changes settings.
+ * Syncs the download flags on electron-updater whenever user changes settings.
+ * Only 'auto' mode downloads; 'notify' checks without downloading.
  */
 export function syncAutoUpdaterState(): void {
   if (isStoreBuild() || !_autoUpdater) return
-  const settings = getSettings()
-  const enabled = settings.autoUpdates !== false
-  _autoUpdater.autoDownload = enabled
-  _autoUpdater.autoInstallOnAppQuit = enabled
-  console.log('[AutoUpdater] Synced autoDownload =', enabled)
+  const mode = resolveUpdateMode(getSettings())
+  const autoDownload = mode === 'auto'
+  _autoUpdater.autoDownload = autoDownload
+  _autoUpdater.autoInstallOnAppQuit = autoDownload
+  console.log('[AutoUpdater] Synced mode =', mode, 'autoDownload =', autoDownload)
+}
+
+let bgCheckTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * Run a background check outside startup — e.g. right after the user switches
+ * into 'auto' or 'notify' mode. Previously switching modes only flipped flags
+ * and nothing happened until the next restart, which read as "notify never
+ * shows anything". Debounced; switching to 'off' cancels a pending check so
+ * off stays fully network-silent.
+ */
+export function triggerBackgroundCheck(delayMs = 3000): void {
+  if (isStoreBuild()) return
+  if (bgCheckTimer !== null) {
+    clearTimeout(bgCheckTimer)
+    bgCheckTimer = null
+  }
+  let mode: ReturnType<typeof resolveUpdateMode>
+  try {
+    mode = resolveUpdateMode(getSettings())
+  } catch {
+    return
+  }
+  if (mode === 'off' || !_autoUpdater) return
+  console.log('[AutoUpdater] Background check scheduled (mode switch).')
+  bgCheckTimer = setTimeout(() => {
+    bgCheckTimer = null
+    try {
+      const r = _autoUpdater.checkForUpdates() as unknown
+      const p = r as Promise<unknown> | undefined
+      if (p && typeof p.catch === 'function') {
+        p.catch((err: unknown) => {
+          const msg = typeof err === 'string' ? err : (err as { message?: string })?.message
+          console.warn('[AutoUpdater] triggered check failed:', msg)
+        })
+      }
+    } catch (err) {
+      console.warn('[AutoUpdater] triggered check threw:', err)
+    }
+  }, Math.max(0, delayMs))
 }
 
 function semverCompare(v1: string, v2: string): number {
@@ -128,6 +186,7 @@ export async function checkForUpdatesManual(): Promise<{ status: string; version
     const currentVersion = app.getVersion()
     if (semverCompare(latestVersion, currentVersion) > 0) {
       console.log(`[AutoUpdater] Fast check found new version: v${latestVersion} (current: v${currentVersion})`)
+      _cachedUpdateInfo = { hasUpdate: true, latestVersion, downloaded: false }
       pushState.updateAvailable({ version: latestVersion })
       return { status: 'available', version: latestVersion }
     } else {
@@ -145,6 +204,7 @@ export async function checkForUpdatesManual(): Promise<{ status: string; version
       )
       const result = await Promise.race([checkPromise, timeoutPromise])
       if (result && result.updateInfo && semverCompare(result.updateInfo.version, app.getVersion()) > 0) {
+        _cachedUpdateInfo = { hasUpdate: true, latestVersion: result.updateInfo.version, downloaded: false }
         return { status: 'available', version: result.updateInfo.version }
       }
       return { status: 'up-to-date', version: app.getVersion() }
@@ -160,11 +220,32 @@ export async function checkForUpdatesManual(): Promise<{ status: string; version
  * Trigger download of the update when user clicks "Download & Update" in manual mode.
  */
 export async function startUpdateDownload(): Promise<void> {
-  if (isStoreBuild() || !_autoUpdater) return
+  if (isStoreBuild()) return
+  if (!_autoUpdater) {
+    try {
+      const { autoUpdater } = require('electron-updater')
+      _autoUpdater = autoUpdater
+      // Match manual-check semantics: never auto-download as a side effect.
+      // An explicit downloadUpdate() call below is unaffected by these flags.
+      _autoUpdater.autoDownload = false
+      _autoUpdater.autoInstallOnAppQuit = false
+      if (!app.isPackaged) {
+        _autoUpdater.forceDevUpdateConfig = true
+      }
+    } catch {
+      return
+    }
+  }
   try {
     await _autoUpdater.downloadUpdate()
   } catch (err) {
-    console.error('[AutoUpdater] downloadUpdate failed:', err)
+    console.warn('[AutoUpdater] downloadUpdate failed, retrying with checkForUpdates first:', err)
+    try {
+      await _autoUpdater.checkForUpdates()
+      await _autoUpdater.downloadUpdate()
+    } catch (retryErr) {
+      console.error('[AutoUpdater] downloadUpdate retry failed:', retryErr)
+    }
   }
 }
 
@@ -183,11 +264,15 @@ export function initAutoUpdater(): void {
     _autoUpdater = autoUpdater
 
     const settings = getSettings()
-    const autoUpdatesEnabled = settings.autoUpdates !== false
+    const mode = resolveUpdateMode(settings)
+    const autoDownload = mode === 'auto'
+    // 'notify' still checks at launch (tiny version query) but never downloads
+    // on its own; 'off' stays fully network-silent.
+    const shouldCheck = mode !== 'off'
 
     autoUpdater.logger = console
-    autoUpdater.autoDownload = autoUpdatesEnabled
-    autoUpdater.autoInstallOnAppQuit = autoUpdatesEnabled
+    autoUpdater.autoDownload = autoDownload
+    autoUpdater.autoInstallOnAppQuit = autoDownload
 
     if (!app.isPackaged) {
       console.log('[AutoUpdater] Unpackaged dev build detected — enabling forceDevUpdateConfig')
@@ -200,6 +285,7 @@ export function initAutoUpdater(): void {
 
     autoUpdater.on('update-available', (info: { version: string }) => {
       console.log('[AutoUpdater] New update available on GitHub:', info.version)
+      _cachedUpdateInfo = { hasUpdate: true, latestVersion: info.version, downloaded: false }
       pushState.updateAvailable({ version: info.version })
     })
 
@@ -210,6 +296,14 @@ export function initAutoUpdater(): void {
     autoUpdater.on('download-progress', (progressObj: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }) => {
       const percent = Math.min(100, Math.max(0, Math.round(progressObj.percent || 0)))
       console.log(`[AutoUpdater] Download progress: ${percent}%`)
+      if (_cachedUpdateInfo) {
+        _cachedUpdateInfo.downloadProgress = {
+          percent,
+          bytesPerSecond: progressObj.bytesPerSecond,
+          transferred: progressObj.transferred,
+          total: progressObj.total
+        }
+      }
       pushState.updateProgress({
         percent,
         bytesPerSecond: progressObj.bytesPerSecond,
@@ -220,6 +314,7 @@ export function initAutoUpdater(): void {
 
     autoUpdater.on('update-downloaded', (info: { version: string }) => {
       console.log('[AutoUpdater] Update downloaded and ready to install:', info.version)
+      _cachedUpdateInfo = { hasUpdate: true, latestVersion: info.version, downloaded: true }
       pushState.updateDownloaded({ version: info.version })
     })
 
@@ -228,8 +323,13 @@ export function initAutoUpdater(): void {
       console.warn('[AutoUpdater] Update check error:', msg)
     })
 
-    // Initiate background update check ONLY if autoUpdates is enabled!
-    if (autoUpdatesEnabled) {
+    // Background check runs in 'auto' and 'notify' modes; only 'off' stays
+    // fully network-silent. In 'notify' mode autoDownload is off, so a found
+    // update only surfaces the Download/Skip prompt — nothing downloads.
+    if (shouldCheck) {
+      if (!autoDownload) {
+        console.log('[AutoUpdater] Notify mode: background check without auto-download.')
+      }
       setTimeout(() => {
         autoUpdater.checkForUpdates().catch((err: Error | string) => {
           const msg = typeof err === 'string' ? err : err?.message
@@ -237,7 +337,7 @@ export function initAutoUpdater(): void {
         })
       }, 3000)
     } else {
-      console.log('[AutoUpdater] Automatic updates disabled by user setting. Staying network-silent on startup.')
+      console.log('[AutoUpdater] Updates disabled by user setting. Staying network-silent on startup.')
     }
   } catch (err) {
     console.error('[AutoUpdater] Initialization failed:', err)

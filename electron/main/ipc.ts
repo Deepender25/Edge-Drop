@@ -12,14 +12,14 @@ import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
-import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable } from './window'
+import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData, prestageDrag, stageDragFile } from './drag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
-import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState } from './updater'
+import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
 import { isStoreBuild } from './config'
 import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
@@ -48,9 +48,9 @@ function clipboardMatchesItem(item: ClipboardItem): boolean {
   return signatureMatchesItem(clipboardSignature(), item.data, fullText)
 }
 
-/** Fire a transient toast to the renderer (best-effort; renderer may be closed). */
-function toast(message: string, tone: 'info' | 'error' = 'info'): void {
-  sendToMainWindow('ui:toast', { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, message, tone })
+/** Fire a transient toast to the renderer (best-effort; renderer may be closed). Message is a translation key resolved renderer-side; params fill {placeholders}. */
+function toast(message: string, tone: 'info' | 'error' = 'info', params?: Record<string, string | number>): void {
+  sendToMainWindow('ui:toast', { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, message, tone, params })
 }
 
 /** Simulate pressing Ctrl+V via PowerShell after returning focus to the previous active window. */
@@ -193,7 +193,8 @@ export function registerIpc(): void {
       items: getStore().toDto(),
       settings: loadSettings(),
       version: app.getVersion(),
-      isStoreBuild: isStoreBuild()
+      isStoreBuild: isStoreBuild(),
+      updateInfo: getCachedUpdateState()
     }
   })
 
@@ -211,6 +212,11 @@ export function registerIpc(): void {
   handle('updater:start-download', async () => {
     if (isStoreBuild()) return
     await startUpdateDownload()
+  })
+
+  handle('updater:get-state', async () => {
+    if (isStoreBuild()) return null
+    return getCachedUpdateState()
   })
 
   handle('app:quit', () => {
@@ -430,10 +436,19 @@ export function registerIpc(): void {
         getStore().touch(id)
       }
 
-      // 4. Simulate Ctrl+V after 50ms
-      setTimeout(() => {
-        simulatePaste()
-      }, 50)
+      // 4. Keys under the uniform rule: clipboard is already written, so
+      // resolve WHERE they may go. Verified target -> send after settle;
+      // unrecoverable foreground -> toast, never fire blind.
+      const sendDelay = await resolvePasteTarget(50)
+      if (sendDelay < 0) {
+        toast('toast.pasteFallback', 'info')
+      } else {
+        setTimeout(() => {
+          traceFg('sendKeys')
+          simulatePaste()
+          setTimeout(() => traceFg('sendKeys+400ms'), 400)
+        }, sendDelay)
+      }
 
       // 5. Broadcast updated items list after panel has fully closed off-screen (250ms)
       if (settings.movePastedToTop !== false) {
@@ -489,10 +504,17 @@ export function registerIpc(): void {
       // Pass false to explicitly close and avoid toggle race conditions.
       pushState.togglePanel(false)
 
-      // Wait 50ms for layout updates, then simulate Ctrl+V
-      setTimeout(() => {
-        simulatePaste()
-      }, 50)
+      // Wait for layout updates, then keys under the uniform rule.
+      const subSendDelay = await resolvePasteTarget(50)
+      if (subSendDelay < 0) {
+        toast('toast.pasteFallback', 'info')
+      } else {
+        setTimeout(() => {
+          traceFg('sendKeys')
+          simulatePaste()
+          setTimeout(() => traceFg('sendKeys+400ms'), 400)
+        }, subSendDelay)
+      }
     } finally {
       setTimeout(() => {
         watcher.invalidateSignature()
@@ -518,9 +540,16 @@ export function registerIpc(): void {
       // same emoji from another app still lands: signatures include the Win32
       // sequence number, so an outside Ctrl+C is a new seq and is recorded.
       clipboard.writeText(text.trim())
-      setTimeout(() => {
-        simulatePaste()
-      }, 40)
+      const emojiSendDelay = await resolvePasteTarget(40)
+      if (emojiSendDelay < 0) {
+        toast('toast.pasteFallback', 'info')
+      } else {
+        setTimeout(() => {
+          traceFg('sendKeys')
+          simulatePaste()
+          setTimeout(() => traceFg('sendKeys+400ms'), 400)
+        }, emojiSendDelay)
+      }
     } finally {
       setTimeout(() => {
         watcher.resyncSignature()
@@ -535,7 +564,7 @@ export function registerIpc(): void {
     // If a large drop was split into several stacks, let the user know why
     // they suddenly see multiple items instead of one bundle.
     if (result.stacksCreated > 1) {
-      toast(`Split into ${result.stacksCreated} stacks (max 10 each)`, 'info')
+      toast('toast.splitStacks', 'info', { count: result.stacksCreated })
     }
     return getStore().toDto()
   })
@@ -546,7 +575,7 @@ export function registerIpc(): void {
     if (data.kind === 'files' && data.paths && data.paths.length > 0) {
       const result = addFiles(data.paths)
       if (result.stacksCreated > 1) {
-        toast(`Split into ${result.stacksCreated} stacks (max 10 each)`, 'info')
+        toast('toast.splitStacks', 'info', { count: result.stacksCreated })
       }
       return getStore().toDto()
     }
@@ -612,9 +641,9 @@ export function registerIpc(): void {
     if (result.ok) {
       pushState.items()
     } else if (result.reason === 'full') {
-      toast(result.message || 'Collection is full (10 max)', 'info')
+      toast(result.message || 'toast.mergeIncompatible', 'info')
     } else if (result.reason === 'incompatible') {
-      toast(result.message || 'Cannot combine different item types', 'info')
+      toast(result.message || 'toast.mergeIncompatible', 'info')
     }
     // 'notfound' fails silently
     return result
@@ -667,14 +696,21 @@ export function registerIpc(): void {
     if (patch.hotZoneWidth !== undefined) {
       setHotZoneWidth(patch.hotZoneWidth)
     }
-    if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined || patch.verticalOffset !== undefined) {
+    if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined || patch.verticalOffset !== undefined || patch.horizontalOffset !== undefined) {
       repositionWindow()
       if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined) {
         popUpAndRetract(1500)
       }
     }
-    if (patch.autoUpdates !== undefined) {
+    if (patch.autoUpdates !== undefined || patch.updateMode !== undefined) {
       syncAutoUpdaterState()
+    }
+    // Switching into a checking mode checks now — previously nothing happened
+    // until the next restart. Switching to 'off' cancels any pending check.
+    if (patch.updateMode !== undefined) {
+      try {
+        triggerBackgroundCheck()
+      } catch { /* ignore */ }
     }
     if (patch.toggleHotkey !== undefined) {
       registerGlobalHotkey(patch.toggleHotkey)
@@ -710,8 +746,21 @@ export function registerIpc(): void {
     }
   })
 
-  handle('window:focus', (focusable) => {
-    setWindowFocusable(focusable ?? true)
+  handle('window:focus', async (focusable) => {
+    const want = focusable ?? true
+    traceFg(`window:focus(${want})`)
+    if (want) {
+      // Last safe instant: we cannot be foreground yet (still NOACTIVATE /
+      // non-focusable), so whatever is front is the user's app. Re-capture
+      // heals any stale open-time note.
+      try {
+        captureExternalForeground()
+      } catch { /* ignore */ }
+    }
+    // Release path fully handled inside setWindowFocusable (writes, then
+    // before/after-compared verified repair). No pre-restore here: restoring
+    // first would only mask the before-reading the repair depends on.
+    setWindowFocusable(want)
   })
 
   handle('displays:list', () => {

@@ -8,16 +8,41 @@
  */
 import { create } from 'zustand'
 import { edge } from '../lib/edge'
+import { takeSearchEngaged } from '../lib/searchFocus'
+import { t } from '../i18n'
+import { loadRecents } from '../lib/emoji/prefs'
 import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
+import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 let flareTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * Version dismissed this run. Session-only (never persisted): quitting and
+ * relaunching clears it, so a skipped update prompts again next launch —
+ * the "remind me next restart" contract. Manual checks bypass it entirely.
+ */
+let sessionSkippedVersion: string | null = null
+
+export type EdgeTransitionStage =
+  | 'retracting'
+  | 'bar_fade_out'
+  | 'bar_fade_in'
+  | 'expanding'
+
+export interface EdgeTransitionState {
+  active: boolean
+  from: 'left' | 'right' | 'top'
+  to: 'left' | 'right' | 'top'
+  stage: EdgeTransitionStage
+}
 
 /** A transient user-facing notice shown as a toast. */
 export interface ToastMsg {
   id: string
   message: string
   tone: 'info' | 'error'
+  params?: Record<string, string | number>
 }
 
 export interface UpdateProgress {
@@ -69,7 +94,7 @@ interface AppState {
   } | null
   /** Item ID currently being previewed in the flyout. */
   previewItemId: string | null
-  previewItemRect: { y: number; height: number } | null
+  previewItemRect: { x?: number; y?: number; width?: number; height?: number } | null
 
   sliderActive: boolean
   sliderReleasedTime: number
@@ -89,6 +114,12 @@ interface AppState {
   startManualCheck: () => Promise<void>
   startManualDownload: () => Promise<void>
   resetManualCheck: () => void
+  /**
+   * True while the user is driving an update flow by hand (check/download in
+   * progress or a manual result on screen). Decides placement: manual flows
+   * render in place where clicked; background finds promote to the top.
+   */
+  manualUpdateActive: boolean
   setUpdateAvailable: (info: { version: string }) => void
   setUpdateProgress: (progress: UpdateProgress) => void
   setUpdateDownloaded: (info: { version: string }) => void
@@ -101,13 +132,19 @@ interface AppState {
   setQuery: (q: string) => void
   setOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean) => void
+  settingsTab: 'behaviour' | 'position' | 'appearance'
+  setSettingsTab: (tab: 'behaviour' | 'position' | 'appearance') => void
   setDragActive: (active: boolean) => void
   setInternalDragReq: (req: import('../../shared/types').DragRequest | null) => void
-  setPreviewItemId: (id: string | null, rect?: { y: number; height: number }) => void
+  setPreviewItemId: (id: string | null, rect?: { x?: number; y?: number; width?: number; height?: number }) => void
   styleFlyoutOpen: boolean
-  setStyleFlyoutOpen: (open: boolean) => void
-  previewFlyoutRect: { top: number; bottom: number } | null
-  setPreviewFlyoutRect: (rect: { top: number; bottom: number } | null) => void
+  styleFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
+  setStyleFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
+  languageFlyoutOpen: boolean
+  languageFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
+  setLanguageFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
+  previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number } | null
+  setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number } | null) => void
   isInternalCopying: boolean
   copyFlareActive: boolean
   flareKey: number
@@ -129,6 +166,8 @@ interface AppState {
   patchSettings: (patch: Partial<Settings>) => Promise<void>
   refreshLaunchAtLogin: () => Promise<void>
   setTutorialStep: (step: number) => void
+  edgeTransition: EdgeTransitionState | null
+  startEdgeTransition: (to: 'left' | 'right' | 'top') => Promise<void>
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -146,18 +185,30 @@ export const useStore = create<AppState>((set, get) => ({
   },
   open: false,
   settingsOpen: false,
+  settingsTab: 'behaviour',
+  setSettingsTab: (settingsTab) => set({ settingsTab }),
   emojiOpen: false,
   emojiCategory: 'smileys',
   setEmojiCategory: (emojiCategory) => set({ emojiCategory }),
   setEmojiOpen: (emojiOpen) => {
     if (emojiOpen) {
+      // Every open lands on the first page: recents when any exist,
+      // otherwise smileys. Scroll/budget reset happens in the picker.
+      let landing: import('../lib/emoji/catalog').EmojiCategoryId = 'smileys'
+      try {
+        if (loadRecents().length > 0) landing = 'recents'
+      } catch { /* ignore */ }
       set({
         emojiOpen: true,
+        emojiCategory: landing,
         settingsOpen: false,
         previewItemId: null,
         previewItemRect: null,
         previewFlyoutRect: null,
         styleFlyoutOpen: false,
+        styleFlyoutAnchorRect: null,
+        languageFlyoutOpen: false,
+        languageFlyoutAnchorRect: null,
         expandedStackId: null
       })
       edge.setPreviewMode(false)
@@ -187,9 +238,21 @@ export const useStore = create<AppState>((set, get) => ({
   edgeHintActive: false,
   setEdgeHintActive: (active) => set({ edgeHintActive: active }),
   styleFlyoutOpen: false,
-  setStyleFlyoutOpen: (open) => {
-    set({ styleFlyoutOpen: open, ...(open ? {} : { previewFlyoutRect: null }) })
-    if (open) {
+  styleFlyoutAnchorRect: null,
+  setStyleFlyoutOpen: (open, rect) => {
+    const isHorizontal = get().settings.stickPosition === 'top'
+    if (open && get().languageFlyoutOpen) {
+      set({ languageFlyoutOpen: false, languageFlyoutAnchorRect: null })
+    }
+    set({
+      styleFlyoutOpen: open,
+      styleFlyoutAnchorRect: open && rect ? rect : null,
+      ...(open ? {} : { previewFlyoutRect: null })
+    })
+    // In horizontal mode (top), the flyout fits natively inside the 480px dock bounds.
+    // Resizing the Electron window to 720px across IPC takes ~1s in Windows DWM, which caused
+    // the flyout to mount squeezed vertically at 240px and then expand 1s later when the resize event fired.
+    if (open && !isHorizontal) {
       edge.setPreviewMode(true)
     }
     // NOTE: Do NOT call edge.setPreviewMode(false) here when closing.
@@ -198,50 +261,74 @@ export const useStore = create<AppState>((set, get) => ({
     // AnimatePresence.onExitComplete callback is the one that calls setPreviewMode(false)
     // after the exit animation has fully settled.
   },
+  languageFlyoutOpen: false,
+  languageFlyoutAnchorRect: null,
+  setLanguageFlyoutOpen: (open, rect) => {
+    const isHorizontal = get().settings.stickPosition === 'top'
+    if (open && get().styleFlyoutOpen) {
+      set({ styleFlyoutOpen: false, styleFlyoutAnchorRect: null })
+    }
+    set({
+      languageFlyoutOpen: open,
+      languageFlyoutAnchorRect: open && rect ? rect : null,
+      ...(open ? {} : { previewFlyoutRect: null })
+    })
+    if (open && !isHorizontal) {
+      edge.setPreviewMode(true)
+    }
+  },
   isInternalCopying: false,
   copyFlareActive: false,
   flareKey: 0,
 
   async hydrate() {
-    const { items, settings, version, isStoreBuild } = await edge.loadState()
+    const { items, settings, version, isStoreBuild, updateInfo } = await edge.loadState()
+    const skipped = settings?.skippedUpdateVersion
+    const validUpdateInfo = (updateInfo && (!skipped || updateInfo.latestVersion !== skipped)) ? updateInfo : null
     set({ 
       items, 
       settings, 
       currentVersion: version,
       isStoreBuild: isStoreBuild ?? false,
+      updateInfo: validUpdateInfo ?? get().updateInfo,
       hydrated: true
     })
   },
 
   manualCheckState: { status: 'idle' },
+  manualUpdateActive: false,
 
   startManualCheck: async () => {
-    set({ manualCheckState: { status: 'checking' } })
+    set({ manualCheckState: { status: 'checking' }, manualUpdateActive: true })
     try {
       const res = await edge.checkForUpdatesManual()
       if (res.status === 'available') {
         set({
           manualCheckState: { status: 'available', version: res.version },
-          updateInfo: { hasUpdate: true, latestVersion: res.version || '', downloaded: false }
+          updateInfo: { hasUpdate: true, latestVersion: res.version || '', downloaded: false },
+          manualUpdateActive: true
         })
       } else if (res.status === 'up-to-date') {
         set({
-          manualCheckState: { status: 'up-to-date', version: res.version }
+          manualCheckState: { status: 'up-to-date', version: res.version },
+          manualUpdateActive: false
         })
       } else {
         set({
-          manualCheckState: { status: 'error', error: res.error || 'Check failed' }
+          manualCheckState: { status: 'error', error: res.error || 'Check failed' },
+          manualUpdateActive: false
         })
       }
     } catch (err: any) {
       set({
-        manualCheckState: { status: 'error', error: err?.message || 'Check failed' }
+        manualCheckState: { status: 'error', error: err?.message || 'Check failed' },
+        manualUpdateActive: false
       })
     }
   },
 
   startManualDownload: async () => {
-    set({ manualCheckState: { status: 'downloading' } })
+    set({ manualCheckState: { status: 'downloading' }, manualUpdateActive: true })
     try {
       await edge.startUpdateDownload()
     } catch {
@@ -252,6 +339,29 @@ export const useStore = create<AppState>((set, get) => ({
   resetManualCheck: () => set({ manualCheckState: { status: 'idle' } }),
 
   setUpdateAvailable: (info) => {
+    // Session skip: a version dismissed this run is not re-prompted by
+    // background pushes, but WILL prompt again after the next launch (the
+    // "remind me next restart" contract). A different version clears the
+    // session skip and surfaces normally. Manual checks bypass this.
+    if (sessionSkippedVersion && info.version === sessionSkippedVersion) {
+      console.log(`[Updater] Suppressing prompt for session-skipped v${info.version}`)
+      return
+    }
+    if (sessionSkippedVersion && info.version !== sessionSkippedVersion) {
+      sessionSkippedVersion = null
+    }
+    // A background find arriving while no manual flow owns the UI resets the
+    // manual marker, so placement below keys off fresh truth, not stale flags.
+    if (get().manualCheckState.status === 'idle') {
+      set({ manualUpdateActive: false })
+    }
+    // A background find for a DIFFERENT version than a settled manual result
+    // retires the stale manual result — the top card then shows the newer
+    // version instead of two disagreeing prompts.
+    const mc = get().manualCheckState
+    if ((mc.status === 'available' || mc.status === 'up-to-date' || mc.status === 'error') && mc.version && mc.version !== info.version) {
+      set({ manualCheckState: { status: 'idle' }, manualUpdateActive: false })
+    }
     set({
       updateInfo: {
         hasUpdate: true,
@@ -294,7 +404,13 @@ export const useStore = create<AppState>((set, get) => ({
     })
   },
 
-  dismissUpdate: () => set({ updateInfo: null, manualCheckState: { status: 'idle' } }),
+  dismissUpdate: () => {
+    // Skip = "not now": remember for this session only. The next launch
+    // re-prompts (nothing persisted), a newer version always surfaces.
+    const skipped = get().updateInfo?.latestVersion || get().manualCheckState.version
+    sessionSkippedVersion = skipped || null
+    set({ updateInfo: null, manualCheckState: { status: 'idle' }, manualUpdateActive: false })
+  },
 
   async installUpdate() {
     await edge.installUpdate()
@@ -326,6 +442,15 @@ export const useStore = create<AppState>((set, get) => ({
       // compiling under the DOM-less node tsconfig.)
       const active = (globalThis as { document?: { activeElement?: { blur?: () => void } } }).document?.activeElement
       try { active?.blur?.() } catch { /* ignore */ }
+      // If search held temporary OS focusability + paused hotkey through a
+      // close path that skipped the input's blur (tray toggle, cursor
+      // leave), restore both exactly once. No-op when search was never used.
+      try {
+        if (takeSearchEngaged()) {
+          void edge.focusWindow(false)?.catch?.(() => {})
+          void edge.pauseHotkey(false)?.catch?.(() => {})
+        }
+      } catch { /* ignore */ }
       // NOTE: Do NOT reset styleFlyoutOpen here — closePanel() handles the
       // sequencing so the flyout exit animation completes before the panel closes.
       // Only reset previewItemId so the normal preview flyout clears correctly.
@@ -336,10 +461,14 @@ export const useStore = create<AppState>((set, get) => ({
   setSettingsOpen: (settingsOpen) => {
     set({
       settingsOpen,
+      settingsTab: 'behaviour',
       previewItemId: null,
       previewItemRect: null,
       previewFlyoutRect: null,
       styleFlyoutOpen: false,
+      styleFlyoutAnchorRect: null,
+      languageFlyoutOpen: false,
+      languageFlyoutAnchorRect: null,
       expandedStackId: null,
       emojiOpen: settingsOpen ? false : get().emojiOpen
     })
@@ -417,7 +546,7 @@ export const useStore = create<AppState>((set, get) => ({
       // Do not leave the UI claiming an item was deleted when the main-process
       // persistence request failed (for example during a renderer reload).
       set({ items: previousItems })
-      get().pushToast({ id: `delete-${Date.now()}`, message: 'Could not delete this item. Please try again.', tone: 'error' })
+      get().pushToast({ id: `delete-${Date.now()}`, message: t('toast.deleteFailed'), tone: 'error' })
     }
   },
 
@@ -433,7 +562,7 @@ export const useStore = create<AppState>((set, get) => ({
         }
       } catch {
         set({ items: previousItems })
-        get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
+        get().pushToast({ id: `clear-${Date.now()}`, message: t('toast.clearFailed'), tone: 'error' })
       }
     } else {
       const previousItems = get().items
@@ -447,7 +576,7 @@ export const useStore = create<AppState>((set, get) => ({
         }
       } catch {
         set({ items: previousItems })
-        get().pushToast({ id: `clear-${Date.now()}`, message: 'Could not clear history. Please try again.', tone: 'error' })
+        get().pushToast({ id: `clear-${Date.now()}`, message: t('toast.clearFailed'), tone: 'error' })
       }
     }
   },
@@ -513,5 +642,79 @@ export const useStore = create<AppState>((set, get) => ({
   setTutorialStep: (step) => {
     set({ tutorialStep: step })
     edge.broadcastTutorialStep(step)
+  },
+
+  edgeTransition: null,
+  async startEdgeTransition(to) {
+    if (get().edgeTransition?.active) return
+    const current = (get().settings.stickPosition || 'left') as 'left' | 'right' | 'top'
+    if (current === to) return
+
+    const reduceMotion = get().settings.reduceMotion
+
+    if (reduceMotion) {
+      playButtonClickSound()
+      set({ settingsTab: 'position' })
+      await get().patchSettings({ stickPosition: to })
+      get().notifyPositionChanged()
+      return
+    }
+
+    // 1. Edge-drop retracts into the bar (260ms)
+    playEdgeRetractSound()
+    set({
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'retracting'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 260))
+
+    // 2. Edge bar instantly fades away (100ms)
+    set({
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'bar_fade_out'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // 3. Reposition window & patch settings to selected edge while invisible
+    await get().patchSettings({ stickPosition: to })
+    get().notifyPositionChanged()
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    // 4. In selected edge, edge bar fades in (120ms)
+    playEdgeBeaconAppearSound()
+    set({
+      settingsTab: 'position',
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'bar_fade_in'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 120))
+
+    // 5. Clipboard expands from the bar (300ms)
+    playEdgeExpandSound()
+    set({
+      edgeTransition: {
+        active: true,
+        from: current,
+        to,
+        stage: 'expanding'
+      }
+    })
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    // 6. Reset transition state & start stay window from expansion completion
+    set({ edgeTransition: null })
+    get().notifyPositionChanged()
   }
 }))

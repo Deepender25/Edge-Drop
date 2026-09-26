@@ -1,27 +1,18 @@
 /**
- * IndicatorStyleFlyout — Side Flyout Preview Panel for Copy Indicator Styles.
+ * LanguageFlyout — Obsidian Flyout Selection Panel for Display Language in Horizontal Layout.
  *
- * Compact 2-column grid flyout layout for style selection:
- *   - Logo, Tick, Copy preview cards
- *   - No heavy text descriptions
- *   - Clean spring exit/entry matching PreviewFlyout
+ * Provides an elegant, clean single-column list of all application languages
+ * with native scripts, English subnames, and smooth spring entry/exit animations.
  */
 import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import {
-  LogoIndicatorIcon,
-  TickIndicatorIcon,
-  CopyIndicatorIcon,
-  SparkleIndicatorIcon
-} from './CopyIndicatorCurve'
 import { CloseIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { createPortal } from 'react-dom'
 import { useAdaptiveSpring } from '../hooks/useAdaptiveSpring'
 import { useTranslation } from '../i18n'
 
-/** Fast start, soft landing — matching PreviewFlyout */
 const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
 const flyoutEaseClose = [0.3, 0, 0.2, 1] as const
 
@@ -60,10 +51,10 @@ const flyoutVariants = {
   reducedShown: { opacity: 1 },
 }
 
-export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
-  const { t } = useTranslation()
-  const styleFlyoutOpen = useStore((s) => s.styleFlyoutOpen)
-  const setStyleFlyoutOpen = useStore((s) => s.setStyleFlyoutOpen)
+export function LanguageFlyout({ isRight }: { isRight: boolean }) {
+  const { t, language, languages } = useTranslation()
+  const languageFlyoutOpen = useStore((s) => s.languageFlyoutOpen)
+  const setLanguageFlyoutOpen = useStore((s) => s.setLanguageFlyoutOpen)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const open = useStore((s) => s.open)
   const settings = useStore((s) => s.settings)
@@ -74,10 +65,11 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
   const isHorizontal = stickPosition === 'top'
   const isTop = stickPosition === 'top'
 
-  const isVisible = styleFlyoutOpen && settingsOpen && open
+  const isVisible = languageFlyoutOpen && settingsOpen && open
   const reduceMotion = settings.reduceMotion || adaptiveSpring.type === 'tween'
 
   const flyoutRef = useRef<HTMLDivElement | null>(null)
+  const listRef = useRef<HTMLDivElement | null>(null)
 
   const screenW = typeof window !== 'undefined' ? window.innerWidth : 1200
   const screenH = typeof window !== 'undefined' ? window.innerHeight : 800
@@ -89,13 +81,13 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
   const midY = Math.round(minY + vOffset * (maxY - minY))
   const panelTop = midY - panelH / 2
 
-  const styleFlyoutAnchorRect = useStore((s) => s.styleFlyoutAnchorRect)
+  const languageFlyoutAnchorRect = useStore((s) => s.languageFlyoutAnchorRect)
 
   const dockWidth = Math.min(screenW - 60, 1080)
-  const flyoutWidth = isHorizontal ? 320 : 280
+  const flyoutWidth = isHorizontal ? 270 : 280
   const dockLeft = Math.round((screenW - dockWidth) / 2)
-  const anchorCenterX = isHorizontal && styleFlyoutAnchorRect?.x !== undefined
-    ? (styleFlyoutAnchorRect.x + (styleFlyoutAnchorRect.width || 32) / 2) - dockLeft
+  const anchorCenterX = isHorizontal && languageFlyoutAnchorRect?.x !== undefined
+    ? (languageFlyoutAnchorRect.x + (languageFlyoutAnchorRect.width || 32) / 2) - dockLeft
     : dockWidth / 2
   const minLeft = 12
   const maxLeft = Math.max(minLeft, dockWidth - flyoutWidth - 12)
@@ -142,6 +134,20 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
     }
   }, [isVisible, isHorizontal, isTop, screenH, flyoutLeft, flyoutWidth, panelTop, panelH])
 
+  // Auto-scroll to active language on open
+  useEffect(() => {
+    if (isVisible && listRef.current) {
+      const activeBtn = listRef.current.querySelector<HTMLButtonElement>('[data-active="true"]')
+      if (activeBtn) {
+        if ((language || 'system') === 'system') {
+          listRef.current.scrollTop = 0
+        } else {
+          listRef.current.scrollTop = Math.max(0, activeBtn.offsetTop - 36)
+        }
+      }
+    }
+  }, [isVisible, language])
+
   // Dismiss flyout when clicking outside
   useEffect(() => {
     if (!isVisible) return
@@ -150,13 +156,13 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
       const target = e.target as Element | null
       if (!target || typeof target.closest !== 'function') return
 
-      if (target.closest('[data-preview-flyout], .preview-flyout, .style-preview-toggle-btn')) {
+      if (target.closest('[data-language-flyout], .language-flyout, .language-toggle-btn')) {
         return
       }
 
       const inBlade = Boolean(target.closest('.blade') || target.closest('.root') || target.closest('.settings-horizontal-shelf'))
       if (inBlade) {
-        useStore.getState().setStyleFlyoutOpen(false)
+        useStore.getState().setLanguageFlyoutOpen(false)
       }
     }
 
@@ -167,33 +173,24 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
   }, [isVisible])
 
   return createPortal(
-    <AnimatePresence onExitComplete={() => {
-      const s = useStore.getState()
-      const isHoriz = s.settings.stickPosition === 'top'
-      if (!isHoriz && !s.styleFlyoutOpen && !s.previewItemId) {
-        window.edge.setPreviewMode(false)
-      }
-    }}>
+    <AnimatePresence>
       {isVisible && (
         <motion.div
-          key="indicator-style-flyout"
+          key="language-flyout-wrapper"
           custom={stickPosition}
-          variants={flyoutVariants}
-          initial={reduceMotion ? 'reducedHidden' : 'hidden'}
-          animate={reduceMotion ? 'reducedShown' : 'shown'}
-          exit={reduceMotion ? 'reducedHidden' : 'exit'}
-          transition={reduceMotion ? { duration: 0.12, ease: 'linear' } : undefined}
+          variants={reduceMotion ? { hidden: flyoutVariants.reducedHidden, shown: flyoutVariants.reducedShown, exit: flyoutVariants.reducedHidden } : flyoutVariants}
+          initial="hidden"
+          animate="shown"
+          exit="exit"
           style={
             isHorizontal
               ? {
                   position: 'absolute',
+                  top: 222,
                   left: dockLeft + flyoutLeft,
                   width: flyoutWidth,
-                  top: 222,
-                  display: 'flex',
-                  flexDirection: 'column',
                   pointerEvents: 'none',
-                  zIndex: 10,
+                  zIndex: 9999,
                   originX,
                   originY,
                   willChange: 'transform, opacity',
@@ -220,27 +217,34 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
         >
           <div
             ref={flyoutRef}
-            className="preview-flyout"
-            data-preview-flyout="true"
+            className="preview-flyout language-flyout"
+            data-language-flyout="true"
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
               background: '#141414',
-              borderRadius: 20,
+              borderRadius: 18,
               border: 'none',
+              outline: 'none',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
               boxShadow: 'none',
               pointerEvents: 'auto',
               position: 'relative',
-              padding: 12
+              padding: '12px 10px 10px 10px',
+              boxSizing: 'border-box'
             }}
           >
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff', letterSpacing: '-0.01em' }}>
-                {t('flyout.copyBeaconStyleTitle')}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px 8px 4px', borderBottom: 'none' }}>
+              <div>
+                <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255, 255, 255, 0.42)', marginBottom: 2 }}>
+                  LANGUAGE
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff', letterSpacing: '-0.01em' }}>
+                  {t('behaviour.languageTitle')}
+                </div>
               </div>
               <button
                 type="button"
@@ -261,7 +265,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
                 }}
                 onClick={() => {
                   playButtonClickSound()
-                  setStyleFlyoutOpen(false)
+                  setLanguageFlyoutOpen(false)
                 }}
                 title={t('header.close')}
               >
@@ -269,135 +273,76 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
               </button>
             </div>
 
-            {/* 2-Column Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, overflowY: 'visible', padding: 1 }}>
-              {/* Card 1: Logo */}
-              <StyleCard
-                active={(settings.copyIndicatorStyle || 'logo') === 'logo'}
-                onClick={() => {
-                  playButtonClickSound()
-                  patch({ copyIndicatorStyle: 'logo' })
-                  useStore.getState().triggerCopyFlare()
-                }}
-                preview={<LogoIndicatorIcon fillColor="#ffffff" size={30} />}
-                title={t('appearance.logoStyle')}
-              />
-
-              {/* Card 2: Tick */}
-              <StyleCard
-                active={(settings.copyIndicatorStyle || 'logo') === 'check'}
-                onClick={() => {
-                  playButtonClickSound()
-                  patch({ copyIndicatorStyle: 'check' })
-                  useStore.getState().triggerCopyFlare()
-                }}
-                preview={<TickIndicatorIcon fillColor="#ffffff" size={30} />}
-                title={t('appearance.tickStyle')}
-              />
-
-              {/* Card 3: Copy */}
-              <StyleCard
-                active={(settings.copyIndicatorStyle || 'logo') === 'copy'}
-                onClick={() => {
-                  playButtonClickSound()
-                  patch({ copyIndicatorStyle: 'copy' })
-                  useStore.getState().triggerCopyFlare()
-                }}
-                preview={<CopyIndicatorIcon fillColor="#ffffff" size={30} />}
-                title={t('appearance.copyStyle')}
-              />
-
-              {/* Card 4: Sparkle */}
-              <StyleCard
-                active={(settings.copyIndicatorStyle || 'logo') === 'sparkle'}
-                onClick={() => {
-                  playButtonClickSound()
-                  patch({ copyIndicatorStyle: 'sparkle' })
-                  useStore.getState().triggerCopyFlare()
-                }}
-                preview={<SparkleIndicatorIcon fillColor="#ffffff" size={30} />}
-                title={t('appearance.sparkleStyle')}
-              />
+            {/* Clean Single-Column List (No Horizontal Scroll) */}
+            <div
+              ref={listRef}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                paddingTop: 6,
+                paddingRight: 2,
+                maxHeight: 190,
+                scrollbarWidth: 'none',
+                boxSizing: 'border-box'
+              }}
+            >
+              {languages.map((lang) => {
+                const active = lang.code === (language || 'system')
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    data-active={active ? 'true' : 'false'}
+                    onClick={() => {
+                      playButtonClickSound()
+                      patch({ language: lang.code })
+                      setLanguageFlyoutOpen(false)
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '7px 10px',
+                      borderRadius: 8,
+                      background: active ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
+                      border: active ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid transparent',
+                      color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
+                      fontSize: 12,
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.12s ease, border-color 0.12s ease',
+                      flexShrink: 0,
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
+                      <span style={{ fontWeight: active ? 600 : 500, color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.9)', fontSize: 12, whiteSpace: 'nowrap' }}>
+                        {lang.nativeName}
+                      </span>
+                      {lang.code !== 'system' && !lang.nativeName.includes('(') && lang.nativeName !== lang.name && (
+                        <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.42)', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          ({lang.name})
+                        </span>
+                      )}
+                    </div>
+                    {active && (
+                      <span style={{ color: '#ffffff', fontSize: 12, fontWeight: 700, marginLeft: 6, flexShrink: 0 }}>
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </motion.div>
       )}
     </AnimatePresence>,
     document.body
-  )
-}
-
-function StyleCard({
-  active,
-  onClick,
-  preview,
-  title,
-  style
-}: {
-  active: boolean
-  onClick: () => void
-  preview: React.ReactNode
-  title: string
-  style?: React.CSSProperties
-}) {
-  return (
-    <div
-      className={`indicator-card ${active ? 'active' : ''}`}
-      onClick={onClick}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        padding: '10px 8px 8px',
-        background: '#141414',
-        border: active ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 14,
-        position: 'relative',
-        cursor: 'pointer',
-        transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-        userSelect: 'none',
-        overflow: 'hidden',
-        outline: 'none',
-        boxShadow: active ? '0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.12)' : 'none',
-        boxSizing: 'border-box',
-        ...style
-      }}
-    >
-      {active && (
-        <div className="indicator-card-badge" style={{ top: 5, right: 5 }}>
-          ✓
-        </div>
-      )}
-      <div
-        className="indicator-card-stage"
-        style={{
-          width: '100%',
-          height: 48,
-          background: '#000000',
-          borderRadius: 8,
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          border: 'none'
-        }}
-      >
-        {preview}
-      </div>
-      <div
-        style={{
-          fontSize: 11.5,
-          fontWeight: active ? 600 : 500,
-          color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
-          textAlign: 'center',
-          letterSpacing: '-0.01em'
-        }}
-      >
-        {title}
-      </div>
-    </div>
   )
 }

@@ -5,11 +5,18 @@ export interface TranslationKeys {
     links: string
     images: string
     files: string
+    colors?: string
+    title?: string
   }
   tabs: {
     behaviour: string
     position: string
     appearance: string
+    updates?: string
+    generalStartup?: string
+    activationShortcuts?: string
+    clipboardRules?: string
+    storageRetention?: string
   }
   header: {
     searchPlaceholder: string
@@ -46,6 +53,13 @@ export interface TranslationKeys {
     autoUpdatesTitle: string
     autoUpdatesDescOn: string
     autoUpdatesDescOff: string
+    updateModeAuto?: string
+    updateModeNotify?: string
+    updateModeOff?: string
+    updateModeNotifyDesc?: string
+    updateLabelReady?: string
+    updateLabelDownloading?: string
+    updateLabelAvailable?: string
     checkForUpdates: string
     checkingForUpdates: string
     isUpToDate: string
@@ -55,6 +69,9 @@ export interface TranslationKeys {
     updateAvailableTitle: string
     updateAvailableDesc: string
     downloadAndUpdate: string
+    update?: string
+    restart?: string
+    restarting?: string
     skip: string
     downloadingUpdate: string
     downloadingWithPercent?: string
@@ -63,6 +80,7 @@ export interface TranslationKeys {
     restartToUpdate: string
     restartToUpdateBelow: string
     newUpdateAvailableBelow: string
+    restartFailed?: string
     autoDeleteTitle: string
     autoDeleteDesc: string
     never: string
@@ -74,6 +92,10 @@ export interface TranslationKeys {
     edgePlacementDesc: string
     leftEdge: string
     rightEdge: string
+    topEdge?: string
+    bottomEdge?: string
+    horizontalPositionTitle?: string
+    horizontalPositionDesc?: string
     displayTitle: string
     displayDesc: string
     primaryDisplay: string
@@ -83,6 +105,8 @@ export interface TranslationKeys {
     top: string
     center: string
     bottom: string
+    left?: string
+    right?: string
     triggerZone: string
     edgeLocationHintTitle: string
     edgeLocationHintDesc: string
@@ -118,10 +142,13 @@ export interface TranslationKeys {
     tickStyle: string
     copyStyle: string
     sparkleStyle: string
+    openStyleSelector?: string
+    closeStyleSelector?: string
   }
   item: {
     copy: string
     copied?: string
+    copiedTimes?: string
     imagePlaceholder?: string
     pinned: string
     pin: string
@@ -238,6 +265,8 @@ export interface TranslationKeys {
     stickTo: string
     left: string
     right: string
+    top?: string
+    bottom?: string
     display: string
     quit: string
     welcomeTitle: string
@@ -263,7 +292,13 @@ export interface TranslationKeys {
     copyImage: string
     copyFile: string
     clickToPasteDrag: string
+    clickToPasteImageDrag?: string
     openInExplorer: string
+    copied?: string
+    selectItem?: string
+    deselectItem?: string
+    clickToSelect?: string
+    clickToDeselect?: string
     current: string
   }
   toast: {
@@ -277,6 +312,44 @@ export interface TranslationKeys {
     launchBlockedByWindows?: string
     launchUpdateFailed?: string
     shortcutUpdated?: string
+    deleteFailed?: string
+    clearFailed?: string
+    pasteFallback?: string
+    splitStacks?: string
+    mergeTextLinks?: string
+    mergeImagesFull?: string
+    mergeFilesFull?: string
+    mergeIncompatible?: string
+  }
+  groups?: {
+    feedback?: string
+    aboutEdgeDrop?: string
+    general?: string
+    startup?: string
+    privacy?: string
+    hoverActivation?: string
+    keyboardShortcut?: string
+    fullscreenProtection?: string
+    clipboardBehaviour?: string
+    restartCleanup?: string
+    storageCapacity?: string
+    autoDelete?: string
+    updates?: string
+    placement?: string
+    displayMonitor?: string
+    locationHint?: string
+    hoverZoneLength?: string
+    triggerThickness?: string
+    copyBeacon?: string
+    beaconStyle?: string
+    audioFeedback?: string
+    alignment?: string
+    triggerPosition?: string
+    panelHeight?: string
+    textSize?: string
+    languageSelectDesc?: string
+    toggleHotkeyPressDesc?: string
+    edgeHintPulseDesc?: string
   }
   footer: {
     communityAndSupport: string
@@ -286,6 +359,7 @@ export interface TranslationKeys {
     applicationGroup: string
     quitTitle: string
     quitDesc: string
+    supportTagline?: string
     supportPromo: string
     supportOnKofi: string
     starOnGithub: string
@@ -474,12 +548,19 @@ export const en: TranslationKeys = {
     "text": "Text",
     "links": "Links",
     "images": "Images",
-    "files": "Files"
+    "files": "Files",
+    "colors": "Colors",
+    "title": "Filters"
   },
   "tabs": {
     "behaviour": "Behaviour",
     "position": "Position",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "updates": "Updates",
+    "generalStartup": "General & Startup",
+    "activationShortcuts": "Shortcuts & Hover",
+    "clipboardRules": "Clipboard Rules",
+    "storageRetention": "Storage & Retention"
   },
   "header": {
     "searchPlaceholder": "Search history...",
@@ -510,8 +591,15 @@ export const en: TranslationKeys = {
     "soundEffectsTitle": "Sound Effects",
     "soundEffectsDesc": "Play tactile audio feedback for toggles, sliders, and button clicks",
     "autoUpdatesTitle": "Automatic updates",
-    "autoUpdatesDescOn": "Check for and download app updates automatically in background",
-    "autoUpdatesDescOff": "Background update checks paused. Check for updates manually below",
+    "autoUpdatesDescOn": "Automatically download updates in the background",
+    "autoUpdatesDescOff": "Never check automatically. Check manually below",
+    "updateModeAuto": "Automatic",
+    "updateModeNotify": "Notify me",
+    "updateModeOff": "Off",
+    "updateModeNotifyDesc": "Notify when updates are available without downloading",
+    "updateLabelReady": "UPDATE READY TO INSTALL",
+    "updateLabelDownloading": "DOWNLOADING UPDATE",
+    "updateLabelAvailable": "NEW UPDATE AVAILABLE",
     "checkForUpdates": "Check for updates",
     "checkingForUpdates": "Checking GitHub for updates...",
     "isUpToDate": "✓ Edge-Drop is up to date",
@@ -519,8 +607,11 @@ export const en: TranslationKeys = {
     "tryAgain": "Try again",
     "updateCheckFailed": "Update check failed",
     "updateAvailableTitle": "Edge-Drop v{version} is available!",
-    "updateAvailableDesc": "A newer version is ready on GitHub. Would you like to download and update now?",
+    "updateAvailableDesc": "A newer version is ready to download.",
     "downloadAndUpdate": "Download & Update",
+    "update": "Update",
+    "restart": "Restart",
+    "restarting": "Restarting...",
     "skip": "Skip",
     "downloadingUpdate": "Downloading in background...",
     "downloadingWithPercent": "Downloading update... ({percent}%)",
@@ -529,6 +620,7 @@ export const en: TranslationKeys = {
     "restartToUpdate": "Restart to Update",
     "restartToUpdateBelow": "Restart to update below",
     "newUpdateAvailableBelow": "New update available below",
+    "restartFailed": "Restart failed",
     "autoDeleteTitle": "Auto-delete timer",
     "autoDeleteDesc": "Automatically purge copied items (preserves Pinned)",
     "never": "Never",
@@ -544,6 +636,10 @@ export const en: TranslationKeys = {
     "edgePlacementDesc": "Choose which screen edge Edge-Drop anchors to",
     "leftEdge": "Left Edge",
     "rightEdge": "Right Edge",
+    "topEdge": "Top Edge",
+    "bottomEdge": "Bottom Edge",
+    "horizontalPositionTitle": "Horizontal Position",
+    "horizontalPositionDesc": "Adjust horizontal alignment along screen edge",
     "displayTitle": "Display Screen",
     "displayDesc": "Choose which monitor Edge-Drop attaches to",
     "primaryDisplay": "Primary Display",
@@ -553,6 +649,8 @@ export const en: TranslationKeys = {
     "top": "Top",
     "center": "Center",
     "bottom": "Bottom",
+    "left": "Left",
+    "right": "Right",
     "triggerZone": "Trigger Zone",
     "edgeLocationHintTitle": "Edge location hint",
     "edgeLocationHintDesc": "Subtly illuminate beacon on screen edge when touching edge at wrong position",
@@ -586,11 +684,14 @@ export const en: TranslationKeys = {
     "logoStyle": "Logo",
     "tickStyle": "Tick",
     "copyStyle": "Copy",
-    "sparkleStyle": "Sparkle"
+    "sparkleStyle": "Sparkle",
+    "openStyleSelector": "Open Indicator Style Selector",
+    "closeStyleSelector": "Close Indicator Style Selector"
   },
   "item": {
     "copy": "Copy",
     "copied": "copied",
+    "copiedTimes": "Copied {count} times",
     "imagePlaceholder": "image",
     "pinned": "PINNED",
     "pin": "Pin",
@@ -707,6 +808,8 @@ export const en: TranslationKeys = {
     "stickTo": "Stick to",
     "left": "Left",
     "right": "Right",
+    "top": "Top",
+    "bottom": "Bottom",
     "display": "Display",
     "quit": "Quit Edge-Drop",
     "welcomeTitle": "Edge-Drop Clipboard Shelf",
@@ -732,7 +835,13 @@ export const en: TranslationKeys = {
     "copyImage": "Copy Image",
     "copyFile": "Copy File",
     "clickToPasteDrag": "Click to paste · Drag to move",
+    "clickToPasteImageDrag": "Click to paste image · Drag to move",
     "openInExplorer": "Open location in Explorer",
+    "copied": "Copied!",
+    "selectItem": "Select item",
+    "deselectItem": "Deselect item",
+    "clickToSelect": "Click to select",
+    "clickToDeselect": "Click to deselect",
     "current": "Current"
   },
   "toast": {
@@ -745,7 +854,15 @@ export const en: TranslationKeys = {
     "fileUnavailable": "Original file no longer available",
     "launchBlockedByWindows": "Windows blocked launch at login. Enable Edge-Drop in Settings → Apps → Startup.",
     "launchUpdateFailed": "Could not update launch at login.",
-    "shortcutUpdated": "Global shortcut set to {shortcut}"
+    "shortcutUpdated": "Global shortcut set to {shortcut}",
+    "deleteFailed": "Could not delete this item. Please try again.",
+    "clearFailed": "Could not clear history. Please try again.",
+    "pasteFallback": "Clipboard ready — click your app and press Ctrl+V to paste",
+    "splitStacks": "Split into {count} stacks (max 10 each)",
+    "mergeTextLinks": "Text and links cannot be grouped together",
+    "mergeImagesFull": "An image collection can hold a maximum of 10 items",
+    "mergeFilesFull": "A folder bundle can hold a maximum of 10 files",
+    "mergeIncompatible": "Cannot combine different item types"
   },
   "footer": {
     "communityAndSupport": "Community & Support",
@@ -755,17 +872,50 @@ export const en: TranslationKeys = {
     "applicationGroup": "Application",
     "quitTitle": "Quit Edge-Drop",
     "quitDesc": "Close application and stop background process",
+    "supportTagline": "100% free & open-source clipboard",
     "starOnGithub": "Star on GitHub",
     "reviewOnStore": "Review on Microsoft Store",
     "githubPromo": "If you like Edge-Drop, please consider starring the project on GitHub!",
     "version": "Version",
     "supportPromo": "Edge-Drop is 100% free & open-source. If it helps your daily workflow, consider supporting development to make it even better!",
     "supportOnKofi": "Support via Ko-fi / UPI"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "ABOUT EDGE-DROP",
+    "general": "GENERAL",
+    "startup": "STARTUP",
+    "privacy": "PRIVACY",
+    "hoverActivation": "HOVER ACTIVATION",
+    "keyboardShortcut": "KEYBOARD SHORTCUT",
+    "fullscreenProtection": "FULLSCREEN PROTECTION",
+    "clipboardBehaviour": "CLIPBOARD BEHAVIOUR",
+    "restartCleanup": "RESTART CLEANUP",
+    "storageCapacity": "STORAGE CAPACITY",
+    "autoDelete": "AUTO-DELETE",
+    "updates": "UPDATES",
+    "placement": "PLACEMENT",
+    "displayMonitor": "DISPLAY MONITOR",
+    "locationHint": "LOCATION HINT",
+    "hoverZoneLength": "HOVER ZONE LENGTH",
+    "triggerThickness": "TRIGGER THICKNESS",
+    "copyBeacon": "COPY BEACON",
+    "beaconStyle": "BEACON STYLE",
+    "audioFeedback": "AUDIO FEEDBACK",
+    "alignment": "ALIGNMENT",
+    "triggerPosition": "TRIGGER POSITION",
+    "panelHeight": "PANEL HEIGHT",
+    "textSize": "TEXT SIZE",
+    "languageSelectDesc": "Select application display language",
+    "toggleHotkeyPressDesc": "Press anywhere to toggle Edge-Drop",
+    "edgeHintPulseDesc": "Beacon pulse along edge to hint dock position",
+  },
 };
 
 export const es: TranslationKeys = {
   "filters": {
+    "title": "Filtros",
+    "colors": "Colores",
     "all": "Todos",
     "text": "Texto",
     "links": "Enlaces",
@@ -773,6 +923,11 @@ export const es: TranslationKeys = {
     "files": "Archivos"
   },
   "tabs": {
+    "storageRetention": "Almacenamiento y retención",
+    "clipboardRules": "Reglas del portapapeles",
+    "activationShortcuts": "Atajos y activación por desplazamiento",
+    "generalStartup": "General e inicio",
+    "updates": "Actualizaciones",
     "behaviour": "Comportamiento",
     "position": "Posición",
     "appearance": "Apariencia"
@@ -784,6 +939,17 @@ export const es: TranslationKeys = {
     "whatsNew": "Novedades"
   },
   "behaviour": {
+    "restartFailed": "Error al reiniciar",
+    "restarting": "Reiniciando...",
+    "restart": "Reiniciar",
+    "update": "Actualizar",
+    "updateLabelAvailable": "NUEVA ACTUALIZACIÓN DISPONIBLE",
+    "updateLabelDownloading": "DESCARGANDO ACTUALIZACIÓN",
+    "updateLabelReady": "ACTUALIZACIÓN LISTA PARA INSTALAR",
+    "updateModeNotifyDesc": "Notificar cuando haya actualizaciones disponibles sin descargarlas",
+    "updateModeOff": "Desactivado",
+    "updateModeNotify": "Notificarme",
+    "updateModeAuto": "Automático",
     "languageTitle": "Idioma",
     "languageDesc": "Selecciona el idioma de la interfaz para menús y controles del sistema",
     "systemDefault": "Predeterminado del sistema (Auto)",
@@ -836,6 +1002,12 @@ export const es: TranslationKeys = {
     "hotkeyReset": "Restablecer al valor predeterminado ({shortcut})"
   },
   "position": {
+    "right": "Derecha",
+    "left": "Izquierda",
+    "horizontalPositionDesc": "Ajustar la alineación horizontal a lo largo del borde de la pantalla",
+    "horizontalPositionTitle": "Posición horizontal",
+    "bottomEdge": "Borde inferior",
+    "topEdge": "Borde superior",
     "edgePlacementTitle": "Borde de la pantalla",
     "edgePlacementDesc": "Elige a qué borde de la pantalla se ancla Edge-Drop",
     "leftEdge": "Borde izquierdo",
@@ -863,6 +1035,8 @@ export const es: TranslationKeys = {
     "panelHeightDesc": "Tamaño vertical del panel del portapapeles"
   },
   "appearance": {
+    "closeStyleSelector": "Cerrar selector de estilo del indicador",
+    "openStyleSelector": "Abrir selector de estilo del indicador",
     "copyIndicatorTitle": "Indicador de copia",
     "copyIndicatorDesc": "Mostrar un indicador visual sutil en el borde al copiar",
     "indicatorStyleTitle": "Estilo del indicador",
@@ -885,6 +1059,7 @@ export const es: TranslationKeys = {
     "sparkleStyle": "Destello"
   },
   "item": {
+    "copiedTimes": "Copiado {count} veces",
     "copy": "Copiar",
     "copied": "copiado",
     "imagePlaceholder": "imagen",
@@ -996,6 +1171,8 @@ export const es: TranslationKeys = {
     "proTip4": "Haz clic en un cuadro de texto y luego en un elemento del portapapeles para pegarlo automáticamente."
   },
   "tray": {
+    "bottom": "Abajo",
+    "top": "Arriba",
     "showClipboard": "Mostrar portapapeles",
     "settings": "Configuración",
     "incognito": "Incógnito (pausar captura)",
@@ -1009,6 +1186,12 @@ export const es: TranslationKeys = {
     "welcomeBody": "Pasa el cursor por el centro del borde izquierdo de la pantalla o pulsa Alt+C para deslizar y abrir tu panel."
   },
   "flyout": {
+    "clickToDeselect": "Haz clic para deseleccionar",
+    "clickToSelect": "Haz clic para seleccionar",
+    "deselectItem": "Deseleccionar elemento",
+    "selectItem": "Seleccionar elemento",
+    "copied": "¡Copiado!",
+    "clickToPasteImageDrag": "Haz clic para pegar la imagen · Arrastra para mover",
     "copyBeaconStyleTitle": "Estilo del indicador de copia",
     "openLink": "Abrir enlace",
     "copyContent": "Copiar contenido",
@@ -1032,6 +1215,14 @@ export const es: TranslationKeys = {
     "current": "Actual"
   },
   "toast": {
+    "mergeIncompatible": "No se pueden combinar diferentes tipos de elementos",
+    "mergeFilesFull": "Un paquete de carpetas puede contener un máximo de 10 archivos",
+    "mergeImagesFull": "Una colección de imágenes puede contener un máximo de 10 elementos",
+    "mergeTextLinks": "El texto y los enlaces no se pueden agrupar juntos",
+    "splitStacks": "Dividido en {count} grupos (máx. 10 cada uno)",
+    "pasteFallback": "Portapapeles listo — haz clic en tu aplicación y pulsa Ctrl+V para pegar",
+    "clearFailed": "No se pudo borrar el historial. Inténtalo de nuevo.",
+    "deleteFailed": "No se pudo eliminar este elemento. Inténtalo de nuevo.",
     "copiedToClipboard": "Copiado al portapapeles",
     "itemDeleted": "Elemento eliminado",
     "itemPinned": "Elemento fijado",
@@ -1044,6 +1235,7 @@ export const es: TranslationKeys = {
     "shortcutUpdated": "Atajo global establecido en {shortcut}"
   },
   "footer": {
+    "supportTagline": "Portapapeles 100 % gratuito y de código abierto",
     "communityAndSupport": "Comunidad y soporte",
     "feedbackTitle": "Comentarios y problemas",
     "feedbackDesc": "Informa de errores o sugiere funciones en GitHub",
@@ -1057,11 +1249,43 @@ export const es: TranslationKeys = {
     "version": "Versión",
     "supportPromo": "Edge-Drop es 100 % gratuito y de código abierto. Si te ayuda en tu trabajo diario, considera apoyar su desarrollo para hacerlo aún mejor.",
     "supportOnKofi": "Apoyar en Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "COMENTARIOS",
+    "aboutEdgeDrop": "SOBRE EDGE-DROP",
+    "general": "GENERAL",
+    "startup": "INICIO",
+    "privacy": "PRIVACIDAD",
+    "hoverActivation": "ACTIVACIÓN POR DESPLAZAMIENTO",
+    "keyboardShortcut": "ATAJO DE TECLADO",
+    "fullscreenProtection": "PROTECCIÓN DE PANTALLA COMPLETA",
+    "clipboardBehaviour": "COMPORTAMIENTO DEL PORTAPAPELES",
+    "restartCleanup": "LIMPIEZA AL REINICIAR",
+    "storageCapacity": "CAPACIDAD DE ALMACENAMIENTO",
+    "autoDelete": "ELIMINACIÓN AUTOMÁTICA",
+    "updates": "ACTUALIZACIONES",
+    "placement": "UBICACIÓN",
+    "displayMonitor": "MONITOR DE PANTALLA",
+    "locationHint": "INDICADOR DE UBICACIÓN",
+    "hoverZoneLength": "LONGITUD DE LA ZONA DE DESPLAZAMIENTO",
+    "triggerThickness": "GROSOR DEL ACTIVADOR",
+    "copyBeacon": "INDICADOR DE COPIA",
+    "beaconStyle": "ESTILO DEL INDICADOR",
+    "audioFeedback": "RESPUESTA DE AUDIO",
+    "alignment": "ALINEACIÓN",
+    "triggerPosition": "POSICIÓN DEL ACTIVADOR",
+    "panelHeight": "ALTURA DEL PANEL",
+    "textSize": "TAMAÑO DEL TEXTO",
+    "languageSelectDesc": "Seleccionar idioma de visualización de la aplicación",
+    "toggleHotkeyPressDesc": "Pulsa en cualquier lugar para activar o desactivar Edge-Drop",
+    "edgeHintPulseDesc": "Pulso del indicador a lo largo del borde para señalar la posición del panel",
+  },
 };
 
 export const fr: TranslationKeys = {
   "filters": {
+    "title": "Filtres",
+    "colors": "Couleurs",
     "all": "Tout",
     "text": "Texte",
     "links": "Liens",
@@ -1069,6 +1293,11 @@ export const fr: TranslationKeys = {
     "files": "Fichiers"
   },
   "tabs": {
+    "storageRetention": "Stockage et conservation",
+    "clipboardRules": "Règles du presse-papiers",
+    "activationShortcuts": "Raccourcis et survol",
+    "generalStartup": "Général et démarrage",
+    "updates": "Mises à jour",
     "behaviour": "Comportement",
     "position": "Position",
     "appearance": "Apparence"
@@ -1080,6 +1309,17 @@ export const fr: TranslationKeys = {
     "whatsNew": "Nouveautés"
   },
   "behaviour": {
+    "restartFailed": "Échec du redémarrage",
+    "restarting": "Redémarrage...",
+    "restart": "Redémarrer",
+    "update": "Mettre à jour",
+    "updateLabelAvailable": "NOUVELLE MISE À JOUR DISPONIBLE",
+    "updateLabelDownloading": "TÉLÉCHARGEMENT DE LA MISE À JOUR",
+    "updateLabelReady": "MISE À JOUR PRÊTE À ÊTRE INSTALLÉE",
+    "updateModeNotifyDesc": "Me prévenir lorsque des mises à jour sont disponibles sans les télécharger",
+    "updateModeOff": "Désactivé",
+    "updateModeNotify": "Me prévenir",
+    "updateModeAuto": "Automatique",
     "languageTitle": "Langue",
     "languageDesc": "Sélectionner la langue de l'interface pour les menus et contrôles système",
     "systemDefault": "Valeur système par défaut (Auto)",
@@ -1132,6 +1372,12 @@ export const fr: TranslationKeys = {
     "hotkeyReset": "Rétablir par défaut ({shortcut})"
   },
   "position": {
+    "right": "Droite",
+    "left": "Gauche",
+    "horizontalPositionDesc": "Ajuster l'alignement horizontal le long du bord de l'écran",
+    "horizontalPositionTitle": "Position horizontale",
+    "bottomEdge": "Bord inférieur",
+    "topEdge": "Bord supérieur",
     "edgePlacementTitle": "Bord de l'écran",
     "edgePlacementDesc": "Choisir le bord de l'écran auquel Edge-Drop s'ancre",
     "leftEdge": "Bord gauche",
@@ -1159,6 +1405,8 @@ export const fr: TranslationKeys = {
     "panelHeightDesc": "Taille verticale de l'étagère du presse-papiers"
   },
   "appearance": {
+    "closeStyleSelector": "Fermer le sélecteur de style de l'indicateur",
+    "openStyleSelector": "Ouvrir le sélecteur de style de l'indicateur",
     "copyIndicatorTitle": "Indicateur de copie",
     "copyIndicatorDesc": "Afficher une balise visuelle discrète sur le bord de l'écran lors de la copie",
     "indicatorStyleTitle": "Style de l'indicateur",
@@ -1181,6 +1429,7 @@ export const fr: TranslationKeys = {
     "sparkleStyle": "Étincelle"
   },
   "item": {
+    "copiedTimes": "Copié {count} fois",
     "copy": "Copier",
     "copied": "copié",
     "imagePlaceholder": "image",
@@ -1292,6 +1541,8 @@ export const fr: TranslationKeys = {
     "proTip4": "Cliquez sur une zone de texte, puis sur un élément du presse-papiers pour le coller automatiquement."
   },
   "tray": {
+    "bottom": "Bas",
+    "top": "Haut",
     "showClipboard": "Afficher le presse-papiers",
     "settings": "Paramètres",
     "incognito": "Incognito (suspendre la capture)",
@@ -1305,6 +1556,12 @@ export const fr: TranslationKeys = {
     "welcomeBody": "Survolez le milieu du bord gauche de l'écran, ou appuyez sur Alt+C pour ouvrir votre étagère."
   },
   "flyout": {
+    "clickToDeselect": "Cliquer pour désélectionner",
+    "clickToSelect": "Cliquer pour sélectionner",
+    "deselectItem": "Désélectionner l'élément",
+    "selectItem": "Sélectionner l'élément",
+    "copied": "Copié !",
+    "clickToPasteImageDrag": "Cliquer pour coller l'image · Faire glisser pour déplacer",
     "copyBeaconStyleTitle": "Style de l'indicateur de copie",
     "openLink": "Ouvrir le lien",
     "copyContent": "Copier le contenu",
@@ -1328,6 +1585,14 @@ export const fr: TranslationKeys = {
     "current": "Actuel"
   },
   "toast": {
+    "mergeIncompatible": "Impossible de combiner différents types d'éléments",
+    "mergeFilesFull": "Un dossier peut contenir au maximum 10 fichiers",
+    "mergeImagesFull": "Une collection d'images peut contenir au maximum 10 éléments",
+    "mergeTextLinks": "Le texte et les liens ne peuvent pas être regroupés",
+    "splitStacks": "Divisé en {count} groupes (10 maximum chacun)",
+    "pasteFallback": "Presse-papiers prêt — cliquez dans votre application et appuyez sur Ctrl+V pour coller",
+    "clearFailed": "Impossible d'effacer l'historique. Réessayez.",
+    "deleteFailed": "Impossible de supprimer cet élément. Réessayez.",
     "copiedToClipboard": "Copié dans le presse-papiers",
     "itemDeleted": "Élément supprimé",
     "itemPinned": "Élément épinglé",
@@ -1340,6 +1605,7 @@ export const fr: TranslationKeys = {
     "shortcutUpdated": "Raccourci global défini sur {shortcut}"
   },
   "footer": {
+    "supportTagline": "Presse-papiers 100 % gratuit et open source",
     "communityAndSupport": "Communauté et assistance",
     "feedbackTitle": "Commentaires et problèmes",
     "feedbackDesc": "Signaler des bugs ou suggérer des fonctionnalités sur GitHub",
@@ -1353,11 +1619,43 @@ export const fr: TranslationKeys = {
     "version": "Version",
     "supportPromo": "Edge-Drop est 100 % gratuit et open source. S'il améliore votre flux de travail quotidien, pensez à soutenir son développement pour le rendre encore meilleur !",
     "supportOnKofi": "Soutenir sur Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "COMMENTAIRES",
+    "aboutEdgeDrop": "À PROPOS D'EDGE-DROP",
+    "general": "GÉNÉRAL",
+    "startup": "DÉMARRAGE",
+    "privacy": "CONFIDENTIALITÉ",
+    "hoverActivation": "ACTIVATION AU SURVOL",
+    "keyboardShortcut": "RACCOURCI CLAVIER",
+    "fullscreenProtection": "PROTECTION PLEIN ÉCRAN",
+    "clipboardBehaviour": "COMPORTEMENT DU PRESSE-PAPIERS",
+    "restartCleanup": "NETTOYAGE AU REDÉMARRAGE",
+    "storageCapacity": "CAPACITÉ DE STOCKAGE",
+    "autoDelete": "SUPPRESSION AUTOMATIQUE",
+    "updates": "MISES À JOUR",
+    "placement": "POSITIONNEMENT",
+    "displayMonitor": "ÉCRAN",
+    "locationHint": "INDICATION DE POSITION",
+    "hoverZoneLength": "LONGUEUR DE LA ZONE DE SURVOL",
+    "triggerThickness": "ÉPAISSEUR DE L'ACTIVATEUR",
+    "copyBeacon": "INDICATEUR DE COPIE",
+    "beaconStyle": "STYLE DE L'INDICATEUR",
+    "audioFeedback": "RETOUR AUDIO",
+    "alignment": "ALIGNEMENT",
+    "triggerPosition": "POSITION DE L'ACTIVATEUR",
+    "panelHeight": "HAUTEUR DU PANNEAU",
+    "textSize": "TAILLE DU TEXTE",
+    "languageSelectDesc": "Sélectionner la langue d'affichage de l'application",
+    "toggleHotkeyPressDesc": "Appuyer n'importe où pour activer ou désactiver Edge-Drop",
+    "edgeHintPulseDesc": "Impulsion de l'indicateur le long du bord pour signaler la position du panneau",
+  },
 };
 
 export const de: TranslationKeys = {
   "filters": {
+    "title": "Filter",
+    "colors": "Farben",
     "all": "Alle",
     "text": "Text",
     "links": "Links",
@@ -1365,6 +1663,11 @@ export const de: TranslationKeys = {
     "files": "Dateien"
   },
   "tabs": {
+    "storageRetention": "Speicher & Aufbewahrung",
+    "clipboardRules": "Zwischenablage-Regeln",
+    "activationShortcuts": "Tastenkürzel & Hover",
+    "generalStartup": "Allgemein & Start",
+    "updates": "Updates",
     "behaviour": "Verhalten",
     "position": "Position",
     "appearance": "Darstellung"
@@ -1376,6 +1679,17 @@ export const de: TranslationKeys = {
     "whatsNew": "Neuigkeiten"
   },
   "behaviour": {
+    "restartFailed": "Neustart fehlgeschlagen",
+    "restarting": "Wird neu gestartet...",
+    "restart": "Neustart",
+    "update": "Aktualisieren",
+    "updateLabelAvailable": "NEUES UPDATE VERFÜGBAR",
+    "updateLabelDownloading": "UPDATE WIRD HERUNTERGELADEN",
+    "updateLabelReady": "UPDATE ZUR INSTALLATION BEREIT",
+    "updateModeNotifyDesc": "Benachrichtigen, wenn Updates verfügbar sind, ohne sie herunterzuladen",
+    "updateModeOff": "Aus",
+    "updateModeNotify": "Benachrichtigen",
+    "updateModeAuto": "Automatisch",
     "languageTitle": "Sprache",
     "languageDesc": "Sprache der Benutzeroberfläche für Systemmenüs und Steuerelemente wählen",
     "systemDefault": "Systemstandard (Auto)",
@@ -1428,6 +1742,12 @@ export const de: TranslationKeys = {
     "hotkeyReset": "Auf Standard zurücksetzen ({shortcut})"
   },
   "position": {
+    "right": "Rechts",
+    "left": "Links",
+    "horizontalPositionDesc": "Horizontale Ausrichtung am Bildschirmrand anpassen",
+    "horizontalPositionTitle": "Horizontale Position",
+    "bottomEdge": "Unterer Rand",
+    "topEdge": "Oberer Rand",
     "edgePlacementTitle": "Randplatzierung",
     "edgePlacementDesc": "Wählen, an welchem Bildschirmrand Edge-Drop verankert wird",
     "leftEdge": "Linker Rand",
@@ -1455,6 +1775,8 @@ export const de: TranslationKeys = {
     "panelHeightDesc": "Vertikale Größe der Zwischenablage-Ablage"
   },
   "appearance": {
+    "closeStyleSelector": "Anzeigestil-Auswahl schließen",
+    "openStyleSelector": "Anzeigestil-Auswahl öffnen",
     "copyIndicatorTitle": "Kopieranzeige",
     "copyIndicatorDesc": "Dezente visuelle Anzeige am Bildschirmrand beim Kopieren anzeigen",
     "indicatorStyleTitle": "Anzeigestil",
@@ -1477,6 +1799,7 @@ export const de: TranslationKeys = {
     "sparkleStyle": "Funke"
   },
   "item": {
+    "copiedTimes": "{count}-mal kopiert",
     "copy": "Kopieren",
     "copied": "kopiert",
     "imagePlaceholder": "Bild",
@@ -1588,6 +1911,8 @@ export const de: TranslationKeys = {
     "proTip4": "Auf ein Textfeld klicken, dann auf ein Zwischenablage-Element, um automatisch einzufügen."
   },
   "tray": {
+    "bottom": "Unten",
+    "top": "Oben",
     "showClipboard": "Zwischenablage anzeigen",
     "settings": "Einstellungen",
     "incognito": " Inkognito (Erfassung pausieren)",
@@ -1601,6 +1926,12 @@ export const de: TranslationKeys = {
     "welcomeBody": "Fahren Sie mit der Maus an die mittlere linke Bildschirmkante, oder drücken Sie Alt+C, um Ihre Ablage zu öffnen."
   },
   "flyout": {
+    "clickToDeselect": "Zum Aufheben der Auswahl klicken",
+    "clickToSelect": "Zum Auswählen klicken",
+    "deselectItem": "Auswahl aufheben",
+    "selectItem": "Element auswählen",
+    "copied": "Kopiert!",
+    "clickToPasteImageDrag": "Klicken zum Einfügen · Ziehen zum Verschieben",
     "copyBeaconStyleTitle": "Stil der Kopieranzeige",
     "openLink": "Link öffnen",
     "copyContent": "Inhalt kopieren",
@@ -1624,6 +1955,14 @@ export const de: TranslationKeys = {
     "current": "Aktuell"
   },
   "toast": {
+    "mergeIncompatible": "Unterschiedliche Elementtypen können nicht kombiniert werden",
+    "mergeFilesFull": "Ein Ordnerpaket kann maximal 10 Dateien enthalten",
+    "mergeImagesFull": "Eine Bildsammlung kann maximal 10 Elemente enthalten",
+    "mergeTextLinks": "Text und Links können nicht zusammen gruppiert werden",
+    "splitStacks": "In {count} Gruppen aufgeteilt (max. 10 je Gruppe)",
+    "pasteFallback": "Zwischenablage bereit — klicken Sie auf Ihre App und drücken Sie Ctrl+V zum Einfügen",
+    "clearFailed": "Der Verlauf konnte nicht gelöscht werden. Bitte erneut versuchen.",
+    "deleteFailed": "Dieses Element konnte nicht gelöscht werden. Bitte erneut versuchen.",
     "copiedToClipboard": "In Zwischenablage kopiert",
     "itemDeleted": "Element gelöscht",
     "itemPinned": "Element angepinnt",
@@ -1636,6 +1975,7 @@ export const de: TranslationKeys = {
     "shortcutUpdated": "Globaler Tastaturkurzbefehl auf {shortcut} gesetzt"
   },
   "footer": {
+    "supportTagline": "100 % kostenlose Open-Source-Zwischenablage",
     "communityAndSupport": "Community & Support",
     "feedbackTitle": "Feedback & Probleme",
     "feedbackDesc": "Bugs melden oder Funktionen auf GitHub vorschlagen",
@@ -1649,11 +1989,43 @@ export const de: TranslationKeys = {
     "version": "Version",
     "supportPromo": "Edge-Drop ist 100 % kostenlos und Open Source. Wenn es deinen Arbeitsalltag erleichtert, unterstütze gerne die Entwicklung, damit es noch besser wird!",
     "supportOnKofi": "Auf Ko-fi unterstützen"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "ÜBER EDGE-DROP",
+    "general": "ALLGEMEIN",
+    "startup": "START",
+    "privacy": "DATENSCHUTZ",
+    "hoverActivation": "HOVER-AKTIVIERUNG",
+    "keyboardShortcut": "TASTATURKÜRZEL",
+    "fullscreenProtection": "VOLLBILDSCHUTZ",
+    "clipboardBehaviour": "ZWISCHENABLAGEVERHALTEN",
+    "restartCleanup": "BEREINIGUNG BEIM NEUSTART",
+    "storageCapacity": "SPEICHERKAPAZITÄT",
+    "autoDelete": "AUTOMATISCHES LÖSCHEN",
+    "updates": "UPDATES",
+    "placement": "PLATZIERUNG",
+    "displayMonitor": "BILDSCHIRM",
+    "locationHint": "POSITIONSHINWEIS",
+    "hoverZoneLength": "LÄNGE DER HOVER-ZONE",
+    "triggerThickness": "AUSLÖSERDICKE",
+    "copyBeacon": "KOPIERANZEIGE",
+    "beaconStyle": "ANZEIGESTIL",
+    "audioFeedback": "AUDIOFEEDBACK",
+    "alignment": "AUSRICHTUNG",
+    "triggerPosition": "AUSLÖSERPOSITION",
+    "panelHeight": "PANELHÖHE",
+    "textSize": "TEXTGRÖSSE",
+    "languageSelectDesc": "Anzeigesprache der Anwendung auswählen",
+    "toggleHotkeyPressDesc": "Drücken Sie eine beliebige Stelle, um Edge-Drop umzuschalten",
+    "edgeHintPulseDesc": "Signalimpuls am Rand zur Anzeige der Panelposition",
+  },
 };
 
 export const it: TranslationKeys = {
   "filters": {
+    "title": "Filtri",
+    "colors": "Colori",
     "all": "Tutti",
     "text": "Testo",
     "links": "Link",
@@ -1661,6 +2033,11 @@ export const it: TranslationKeys = {
     "files": "File"
   },
   "tabs": {
+    "storageRetention": "Archiviazione e conservazione",
+    "clipboardRules": "Regole degli appunti",
+    "activationShortcuts": "Scorciatoie e passaggio del mouse",
+    "generalStartup": "Generale e avvio",
+    "updates": "Aggiornamenti",
     "behaviour": "Comportamento",
     "position": "Posizione",
     "appearance": "Aspetto"
@@ -1672,6 +2049,17 @@ export const it: TranslationKeys = {
     "whatsNew": "Novità"
   },
   "behaviour": {
+    "restartFailed": "Riavvio non riuscito",
+    "restarting": "Riavvio...",
+    "restart": "Riavvia",
+    "update": "Aggiorna",
+    "updateLabelAvailable": "NUOVO AGGIORNAMENTO DISPONIBILE",
+    "updateLabelDownloading": "DOWNLOAD DELL'AGGIORNAMENTO",
+    "updateLabelReady": "AGGIORNAMENTO PRONTO PER L'INSTALLAZIONE",
+    "updateModeNotifyDesc": "Avvisami quando sono disponibili aggiornamenti senza scaricarli",
+    "updateModeOff": "Disattivato",
+    "updateModeNotify": "Avvisami",
+    "updateModeAuto": "Automatico",
     "languageTitle": "Lingua",
     "languageDesc": "Seleziona la lingua dell'interfaccia per menu e controlli di sistema",
     "systemDefault": "Predefinito del sistema (Auto)",
@@ -1724,6 +2112,12 @@ export const it: TranslationKeys = {
     "hotkeyReset": "Ripristina predefinita ({shortcut})"
   },
   "position": {
+    "right": "Destra",
+    "left": "Sinistra",
+    "horizontalPositionDesc": "Regola l'allineamento orizzontale lungo il bordo dello schermo",
+    "horizontalPositionTitle": "Posizione orizzontale",
+    "bottomEdge": "Bordo inferiore",
+    "topEdge": "Bordo superiore",
     "edgePlacementTitle": "Posizionamento bordo",
     "edgePlacementDesc": "Scegli a quale bordo dello schermo Edge-Drop si ancora",
     "leftEdge": "Bordo sinistro",
@@ -1751,6 +2145,8 @@ export const it: TranslationKeys = {
     "panelHeightDesc": "Dimensione verticale dello scaffale degli appunti"
   },
   "appearance": {
+    "closeStyleSelector": "Chiudi selettore stile indicatore",
+    "openStyleSelector": "Apri selettore stile indicatore",
     "copyIndicatorTitle": "Indicatore di copia",
     "copyIndicatorDesc": "Mostra un segnale visivo discreto sul bordo dello schermo durante la copia",
     "indicatorStyleTitle": "Stile indicatore",
@@ -1773,6 +2169,7 @@ export const it: TranslationKeys = {
     "sparkleStyle": "Scintilla"
   },
   "item": {
+    "copiedTimes": "Copiato {count} volte",
     "copy": "Copia",
     "copied": "copiato",
     "imagePlaceholder": "immagine",
@@ -1884,6 +2281,8 @@ export const it: TranslationKeys = {
     "proTip4": "Fai clic su una casella di testo, poi su un elemento degli appunti per incollarlo automaticamente."
   },
   "tray": {
+    "bottom": "In basso",
+    "top": "In alto",
     "showClipboard": "Mostra appunti",
     "settings": "Impostazioni",
     "incognito": "Incognito (metti in pausa acquisizione)",
@@ -1897,6 +2296,12 @@ export const it: TranslationKeys = {
     "welcomeBody": "Passa il mouse al centro del bordo sinistro dello schermo, o premi Alt+C per aprire lo scaffale."
   },
   "flyout": {
+    "clickToDeselect": "Fai clic per deselezionare",
+    "clickToSelect": "Fai clic per selezionare",
+    "deselectItem": "Deseleziona elemento",
+    "selectItem": "Seleziona elemento",
+    "copied": "Copiato!",
+    "clickToPasteImageDrag": "Fai clic per incollare l'immagine · Trascina per spostare",
     "copyBeaconStyleTitle": "Stile indicatore di copia",
     "openLink": "Apri link",
     "copyContent": "Copia contenuto",
@@ -1920,6 +2325,14 @@ export const it: TranslationKeys = {
     "current": "Corrente"
   },
   "toast": {
+    "mergeIncompatible": "Non è possibile combinare tipi di elementi diversi",
+    "mergeFilesFull": "Un pacchetto di cartelle può contenere al massimo 10 file",
+    "mergeImagesFull": "Una raccolta di immagini può contenere al massimo 10 elementi",
+    "mergeTextLinks": "Testo e link non possono essere raggruppati insieme",
+    "splitStacks": "Diviso in {count} gruppi (massimo 10 ciascuno)",
+    "pasteFallback": "Appunti pronti — fai clic sull'app e premi Ctrl+V per incollare",
+    "clearFailed": "Impossibile cancellare la cronologia. Riprova.",
+    "deleteFailed": "Impossibile eliminare questo elemento. Riprova.",
     "copiedToClipboard": "Copiato negli appunti",
     "itemDeleted": "Elemento eliminato",
     "itemPinned": "Elemento bloccato",
@@ -1932,6 +2345,7 @@ export const it: TranslationKeys = {
     "shortcutUpdated": "Scorciatoia globale impostata su {shortcut}"
   },
   "footer": {
+    "supportTagline": "Appunti 100% gratuiti e open source",
     "communityAndSupport": "Community e supporto",
     "feedbackTitle": "Feedback e problemi",
     "feedbackDesc": "Segnala bug o suggerisci funzionalità su GitHub",
@@ -1945,11 +2359,43 @@ export const it: TranslationKeys = {
     "version": "Versione",
     "supportPromo": "Edge-Drop è completamente gratuito e open source. Se ti aiuta nel tuo lavoro quotidiano, valuta di supportarne lo sviluppo per renderlo ancora migliore!",
     "supportOnKofi": "Supporta su Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "INFORMAZIONI SU EDGE-DROP",
+    "general": "GENERALE",
+    "startup": "AVVIO",
+    "privacy": "PRIVACY",
+    "hoverActivation": "ATTIVAZIONE AL PASSAGGIO",
+    "keyboardShortcut": "SCORCIATOIA DA TASTIERA",
+    "fullscreenProtection": "PROTEZIONE SCHERMO INTERO",
+    "clipboardBehaviour": "COMPORTAMENTO DEGLI APPUNTI",
+    "restartCleanup": "PULIZIA AL RIAVVIO",
+    "storageCapacity": "CAPACITÀ DI ARCHIVIAZIONE",
+    "autoDelete": "ELIMINAZIONE AUTOMATICA",
+    "updates": "AGGIORNAMENTI",
+    "placement": "POSIZIONAMENTO",
+    "displayMonitor": "MONITOR",
+    "locationHint": "INDICAZIONE POSIZIONE",
+    "hoverZoneLength": "LUNGHEZZA ZONA DI PASSAGGIO",
+    "triggerThickness": "SPESSORE ATTIVATORE",
+    "copyBeacon": "INDICATORE DI COPIA",
+    "beaconStyle": "STILE INDICATORE",
+    "audioFeedback": "FEEDBACK AUDIO",
+    "alignment": "ALLINEAMENTO",
+    "triggerPosition": "POSIZIONE ATTIVATORE",
+    "panelHeight": "ALTEZZA PANNELLO",
+    "textSize": "DIMENSIONE TESTO",
+    "languageSelectDesc": "Seleziona la lingua di visualizzazione dell'applicazione",
+    "toggleHotkeyPressDesc": "Premi in un punto qualsiasi per attivare o disattivare Edge-Drop",
+    "edgeHintPulseDesc": "Impulso dell'indicatore lungo il bordo per suggerire la posizione del pannello",
+  },
 };
 
 export const pt: TranslationKeys = {
   "filters": {
+    "title": "Filtros",
+    "colors": "Cores",
     "all": "Tudo",
     "text": "Texto",
     "links": "Links",
@@ -1957,6 +2403,11 @@ export const pt: TranslationKeys = {
     "files": "Arquivos"
   },
   "tabs": {
+    "storageRetention": "Armazenamento e retenção",
+    "clipboardRules": "Regras da área de transferência",
+    "activationShortcuts": "Atalhos e foco ao passar o cursor",
+    "generalStartup": "Geral e inicialização",
+    "updates": "Atualizações",
     "behaviour": "Comportamento",
     "position": "Posição",
     "appearance": "Aparência"
@@ -1968,6 +2419,17 @@ export const pt: TranslationKeys = {
     "whatsNew": "Novidades"
   },
   "behaviour": {
+    "restartFailed": "Falha ao reiniciar",
+    "restarting": "Reiniciando...",
+    "restart": "Reiniciar",
+    "update": "Atualizar",
+    "updateLabelAvailable": "NOVA ATUALIZAÇÃO DISPONÍVEL",
+    "updateLabelDownloading": "BAIXANDO ATUALIZAÇÃO",
+    "updateLabelReady": "ATUALIZAÇÃO PRONTA PARA INSTALAR",
+    "updateModeNotifyDesc": "Notificar quando houver atualizações disponíveis sem baixá-las",
+    "updateModeOff": "Desativado",
+    "updateModeNotify": "Notificar-me",
+    "updateModeAuto": "Automático",
     "languageTitle": "Idioma",
     "languageDesc": "Selecione o idioma da interface para menus e controles do sistema",
     "systemDefault": "Padrão do sistema (Auto)",
@@ -2020,6 +2482,12 @@ export const pt: TranslationKeys = {
     "hotkeyReset": "Redefinir para o padrão ({shortcut})"
   },
   "position": {
+    "right": "Direita",
+    "left": "Esquerda",
+    "horizontalPositionDesc": "Ajustar o alinhamento horizontal ao longo da borda da tela",
+    "horizontalPositionTitle": "Posição horizontal",
+    "bottomEdge": "Borda inferior",
+    "topEdge": "Borda superior",
     "edgePlacementTitle": "Posicionamento da borda",
     "edgePlacementDesc": "Escolha a qual borda da tela o Edge-Drop se ancora",
     "leftEdge": "Borda esquerda",
@@ -2047,6 +2515,8 @@ export const pt: TranslationKeys = {
     "panelHeightDesc": "Tamanho vertical da prateleira da área de transferência"
   },
   "appearance": {
+    "closeStyleSelector": "Fechar seletor de estilo do indicador",
+    "openStyleSelector": "Abrir seletor de estilo do indicador",
     "copyIndicatorTitle": "Indicador de cópia",
     "copyIndicatorDesc": "Mostrar sinal visual discreto na borda da tela ao copiar",
     "indicatorStyleTitle": "Estilo do indicador",
@@ -2069,6 +2539,7 @@ export const pt: TranslationKeys = {
     "sparkleStyle": "Cintilação"
   },
   "item": {
+    "copiedTimes": "Copiado {count} vezes",
     "copy": "Copiar",
     "copied": "copiado",
     "imagePlaceholder": "imagem",
@@ -2180,6 +2651,8 @@ export const pt: TranslationKeys = {
     "proTip4": "Clique em uma caixa de texto, depois em um item da área de transferência para colar automaticamente."
   },
   "tray": {
+    "bottom": "Inferior",
+    "top": "Superior",
     "showClipboard": "Mostrar área de transferência",
     "settings": "Configurações",
     "incognito": "Anônimo (pausar captura)",
@@ -2193,6 +2666,12 @@ export const pt: TranslationKeys = {
     "welcomeBody": "Passe o mouse contra o centro da borda esquerda da tela, ou pressione Alt+C para abrir sua prateleira."
   },
   "flyout": {
+    "clickToDeselect": "Clique para desmarcar",
+    "clickToSelect": "Clique para selecionar",
+    "deselectItem": "Desmarcar item",
+    "selectItem": "Selecionar item",
+    "copied": "Copiado!",
+    "clickToPasteImageDrag": "Clique para colar a imagem · Arraste para mover",
     "copyBeaconStyleTitle": "Estilo do indicador de cópia",
     "openLink": "Abrir link",
     "copyContent": "Copiar conteúdo",
@@ -2216,6 +2695,14 @@ export const pt: TranslationKeys = {
     "current": "Atual"
   },
   "toast": {
+    "mergeIncompatible": "Não é possível combinar tipos de itens diferentes",
+    "mergeFilesFull": "Um pacote de pastas pode conter no máximo 10 arquivos",
+    "mergeImagesFull": "Uma coleção de imagens pode conter no máximo 10 itens",
+    "mergeTextLinks": "Texto e links não podem ser agrupados juntos",
+    "splitStacks": "Dividido em {count} grupos (máx. 10 cada)",
+    "pasteFallback": "Área de transferência pronta — clique no aplicativo e pressione Ctrl+V para colar",
+    "clearFailed": "Não foi possível limpar o histórico. Tente novamente.",
+    "deleteFailed": "Não foi possível excluir este item. Tente novamente.",
     "copiedToClipboard": "Copiado para a área de transferência",
     "itemDeleted": "Item excluído",
     "itemPinned": "Item fixado",
@@ -2228,6 +2715,7 @@ export const pt: TranslationKeys = {
     "shortcutUpdated": "Atalho global definido como {shortcut}"
   },
   "footer": {
+    "supportTagline": "Área de transferência 100% gratuita e de código aberto",
     "communityAndSupport": "Comunidade e suporte",
     "feedbackTitle": "Feedback e problemas",
     "feedbackDesc": "Reporte bugs ou sugira funcionalidades no GitHub",
@@ -2241,11 +2729,43 @@ export const pt: TranslationKeys = {
     "version": "Versão",
     "supportPromo": "O Edge-Drop é 100% gratuito e de código aberto. Se ele ajuda no seu fluxo de trabalho diário, considere apoiar o desenvolvimento para torná-lo ainda melhor!",
     "supportOnKofi": "Apoiar no Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "SOBRE O EDGE-DROP",
+    "general": "GERAL",
+    "startup": "INICIALIZAÇÃO",
+    "privacy": "PRIVACIDADE",
+    "hoverActivation": "ATIVAÇÃO AO PASSAR O CURSOR",
+    "keyboardShortcut": "ATALHO DE TECLADO",
+    "fullscreenProtection": "PROTEÇÃO DE TELA CHEIA",
+    "clipboardBehaviour": "COMPORTAMENTO DA ÁREA DE TRANSFERÊNCIA",
+    "restartCleanup": "LIMPEZA AO REINICIAR",
+    "storageCapacity": "CAPACIDADE DE ARMAZENAMENTO",
+    "autoDelete": "EXCLUSÃO AUTOMÁTICA",
+    "updates": "ATUALIZAÇÕES",
+    "placement": "POSICIONAMENTO",
+    "displayMonitor": "MONITOR DE EXIBIÇÃO",
+    "locationHint": "INDICADOR DE LOCALIZAÇÃO",
+    "hoverZoneLength": "COMPRIMENTO DA ZONA DE HOVER",
+    "triggerThickness": "ESPESSURA DO ATIVADOR",
+    "copyBeacon": "INDICADOR DE CÓPIA",
+    "beaconStyle": "ESTILO DO INDICADOR",
+    "audioFeedback": "FEEDBACK DE ÁUDIO",
+    "alignment": "ALINHAMENTO",
+    "triggerPosition": "POSIÇÃO DO ATIVADOR",
+    "panelHeight": "ALTURA DO PAINEL",
+    "textSize": "TAMANHO DO TEXTO",
+    "languageSelectDesc": "Selecionar o idioma de exibição do aplicativo",
+    "toggleHotkeyPressDesc": "Pressione em qualquer lugar para ativar ou desativar o Edge-Drop",
+    "edgeHintPulseDesc": "Pulso do indicador ao longo da borda para indicar a posição do painel",
+  },
 };
 
 export const ru: TranslationKeys = {
   "filters": {
+    "title": "Фильтры",
+    "colors": "Цвета",
     "all": "Все",
     "text": "Текст",
     "links": "Ссылки",
@@ -2253,6 +2773,11 @@ export const ru: TranslationKeys = {
     "files": "Файлы"
   },
   "tabs": {
+    "storageRetention": "Хранилище и хранение",
+    "clipboardRules": "Правила буфера обмена",
+    "activationShortcuts": "Сочетания клавиш и наведение",
+    "generalStartup": "Общие и запуск",
+    "updates": "Обновления",
     "behaviour": "Поведение",
     "position": "Положение",
     "appearance": "Внешний вид"
@@ -2264,6 +2789,17 @@ export const ru: TranslationKeys = {
     "whatsNew": "Что нового"
   },
   "behaviour": {
+    "restartFailed": "Не удалось перезапустить",
+    "restarting": "Перезапуск...",
+    "restart": "Перезапустить",
+    "update": "Обновить",
+    "updateLabelAvailable": "ДОСТУПНО НОВОЕ ОБНОВЛЕНИЕ",
+    "updateLabelDownloading": "ЗАГРУЗКА ОБНОВЛЕНИЯ",
+    "updateLabelReady": "ОБНОВЛЕНИЕ ГОТОВО К УСТАНОВКЕ",
+    "updateModeNotifyDesc": "Уведомлять о доступных обновлениях без их загрузки",
+    "updateModeOff": "Выкл.",
+    "updateModeNotify": "Уведомлять",
+    "updateModeAuto": "Автоматически",
     "languageTitle": "Язык",
     "languageDesc": "Выберите язык интерфейса для системных меню и элементов управления",
     "systemDefault": "Системный по умолчанию (Авто)",
@@ -2316,6 +2852,12 @@ export const ru: TranslationKeys = {
     "hotkeyReset": "Сбросить на значение по умолчанию ({shortcut})"
   },
   "position": {
+    "right": "Справа",
+    "left": "Слева",
+    "horizontalPositionDesc": "Настройте горизонтальное выравнивание вдоль края экрана",
+    "horizontalPositionTitle": "Горизонтальное положение",
+    "bottomEdge": "Нижний край",
+    "topEdge": "Верхний край",
     "edgePlacementTitle": "Размещение у края",
     "edgePlacementDesc": "Выберите, к какому краю экрана крепится Edge-Drop",
     "leftEdge": "Левый край",
@@ -2343,6 +2885,8 @@ export const ru: TranslationKeys = {
     "panelHeightDesc": "Вертикальный размер полки буфера обмена"
   },
   "appearance": {
+    "closeStyleSelector": "Закрыть выбор стиля индикатора",
+    "openStyleSelector": "Открыть выбор стиля индикатора",
     "copyIndicatorTitle": "Индикатор копирования",
     "copyIndicatorDesc": "Показывать едва заметный визуальный сигнал на краю экрана при копировании",
     "indicatorStyleTitle": "Стиль индикатора",
@@ -2365,6 +2909,7 @@ export const ru: TranslationKeys = {
     "sparkleStyle": "Искра"
   },
   "item": {
+    "copiedTimes": "Скопировано {count} раз",
     "copy": "Копировать",
     "copied": "скопировано",
     "imagePlaceholder": "изображение",
@@ -2476,6 +3021,8 @@ export const ru: TranslationKeys = {
     "proTip4": "Щёлкните текстовое поле, затем элемент буфера обмена для автоматической вставки."
   },
   "tray": {
+    "bottom": "Снизу",
+    "top": "Сверху",
     "showClipboard": "Показать буфер обмена",
     "settings": "Настройки",
     "incognito": "Инкогнито (приостановить захват)",
@@ -2489,6 +3036,12 @@ export const ru: TranslationKeys = {
     "welcomeBody": "Наведите курсор на середину левого края экрана или нажмите Alt+C, чтобы открыть полку."
   },
   "flyout": {
+    "clickToDeselect": "Нажмите, чтобы снять выбор",
+    "clickToSelect": "Нажмите, чтобы выбрать",
+    "deselectItem": "Снять выбор",
+    "selectItem": "Выбрать элемент",
+    "copied": "Скопировано!",
+    "clickToPasteImageDrag": "Нажмите, чтобы вставить изображение · Перетащите, чтобы переместить",
     "copyBeaconStyleTitle": "Стиль индикатора копирования",
     "openLink": "Открыть ссылку",
     "copyContent": "Копировать содержимое",
@@ -2512,6 +3065,14 @@ export const ru: TranslationKeys = {
     "current": "Текущий"
   },
   "toast": {
+    "mergeIncompatible": "Нельзя объединять элементы разных типов",
+    "mergeFilesFull": "Папка может содержать не более 10 файлов",
+    "mergeImagesFull": "Коллекция изображений может содержать не более 10 элементов",
+    "mergeTextLinks": "Текст и ссылки нельзя объединить в одну группу",
+    "splitStacks": "Разделено на {count} групп (макс. 10 в каждой)",
+    "pasteFallback": "Буфер обмена готов — нажмите на приложение и нажмите Ctrl+V для вставки",
+    "clearFailed": "Не удалось очистить историю. Попробуйте ещё раз.",
+    "deleteFailed": "Не удалось удалить этот элемент. Попробуйте ещё раз.",
     "copiedToClipboard": "Скопировано в буфер обмена",
     "itemDeleted": "Элемент удалён",
     "itemPinned": "Элемент закреплён",
@@ -2524,6 +3085,7 @@ export const ru: TranslationKeys = {
     "shortcutUpdated": "Глобальная горячая клавиша установлена: {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% бесплатный буфер обмена с открытым исходным кодом",
     "communityAndSupport": "Сообщество и поддержка",
     "feedbackTitle": "Отзывы и проблемы",
     "feedbackDesc": "Сообщайте об ошибках или предлагайте функции на GitHub",
@@ -2537,11 +3099,43 @@ export const ru: TranslationKeys = {
     "version": "Версия",
     "supportPromo": "Edge-Drop полностью бесплатный и с открытым исходным кодом. Если он помогает вам в повседневной работе, поддержите разработку, чтобы сделать его ещё лучше!",
     "supportOnKofi": "Поддержать на Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "ОБРАТНАЯ СВЯЗЬ",
+    "aboutEdgeDrop": "О EDGE-DROP",
+    "general": "ОБЩИЕ",
+    "startup": "ЗАПУСК",
+    "privacy": "КОНФИДЕНЦИАЛЬНОСТЬ",
+    "hoverActivation": "АКТИВАЦИЯ ПРИ НАВЕДЕНИИ",
+    "keyboardShortcut": "СОЧЕТАНИЕ КЛАВИШ",
+    "fullscreenProtection": "ЗАЩИТА ПОЛНОЭКРАННОГО РЕЖИМА",
+    "clipboardBehaviour": "ПОВЕДЕНИЕ БУФЕРА ОБМЕНА",
+    "restartCleanup": "ОЧИСТКА ПРИ ПЕРЕЗАПУСКЕ",
+    "storageCapacity": "ОБЪЁМ ХРАНИЛИЩА",
+    "autoDelete": "АВТОУДАЛЕНИЕ",
+    "updates": "ОБНОВЛЕНИЯ",
+    "placement": "РАЗМЕЩЕНИЕ",
+    "displayMonitor": "МОНИТОР",
+    "locationHint": "ПОДСКАЗКА ПОЛОЖЕНИЯ",
+    "hoverZoneLength": "ДЛИНА ЗОНЫ НАВЕДЕНИЯ",
+    "triggerThickness": "ТОЛЩИНА ТРИГГЕРА",
+    "copyBeacon": "ИНДИКАТОР КОПИРОВАНИЯ",
+    "beaconStyle": "СТИЛЬ ИНДИКАТОРА",
+    "audioFeedback": "ЗВУКОВАЯ ОБРАТНАЯ СВЯЗЬ",
+    "alignment": "ВЫРАВНИВАНИЕ",
+    "triggerPosition": "ПОЛОЖЕНИЕ ТРИГГЕРА",
+    "panelHeight": "ВЫСОТА ПАНЕЛИ",
+    "textSize": "РАЗМЕР ТЕКСТА",
+    "languageSelectDesc": "Выберите язык отображения приложения",
+    "toggleHotkeyPressDesc": "Нажмите в любом месте, чтобы включить или выключить Edge-Drop",
+    "edgeHintPulseDesc": "Импульс индикатора вдоль края подсказывает положение панели",
+  },
 };
 
 export const ja: TranslationKeys = {
   "filters": {
+    "title": "フィルター",
+    "colors": "色",
     "all": "すべて",
     "text": "テキスト",
     "links": "リンク",
@@ -2549,6 +3143,11 @@ export const ja: TranslationKeys = {
     "files": "ファイル"
   },
   "tabs": {
+    "storageRetention": "ストレージと保持",
+    "clipboardRules": "クリップボードのルール",
+    "activationShortcuts": "ショートカットとホバー",
+    "generalStartup": "一般と起動",
+    "updates": "アップデート",
     "behaviour": "動作",
     "position": "配置",
     "appearance": "外観"
@@ -2560,6 +3159,17 @@ export const ja: TranslationKeys = {
     "whatsNew": "新機能"
   },
   "behaviour": {
+    "restartFailed": "再起動に失敗しました",
+    "restarting": "再起動中...",
+    "restart": "再起動",
+    "update": "アップデート",
+    "updateLabelAvailable": "新しいアップデートがあります",
+    "updateLabelDownloading": "アップデートをダウンロード中",
+    "updateLabelReady": "アップデートのインストール準備完了",
+    "updateModeNotifyDesc": "ダウンロードせず、アップデートが利用可能になったときに通知",
+    "updateModeOff": "オフ",
+    "updateModeNotify": "通知する",
+    "updateModeAuto": "自動",
     "languageTitle": "言語",
     "languageDesc": "UI言語を選択",
     "systemDefault": "システムデフォルト (自動)",
@@ -2612,6 +3222,12 @@ export const ja: TranslationKeys = {
     "hotkeyReset": "デフォルトに戻す（{shortcut}）"
   },
   "position": {
+    "right": "右",
+    "left": "左",
+    "horizontalPositionDesc": "画面端に沿った水平方向の位置を調整",
+    "horizontalPositionTitle": "水平位置",
+    "bottomEdge": "下端",
+    "topEdge": "上端",
     "edgePlacementTitle": "画面端の配置",
     "edgePlacementDesc": "Edge-Drop を配置する画面端を選択",
     "leftEdge": "左端",
@@ -2639,6 +3255,8 @@ export const ja: TranslationKeys = {
     "panelHeightDesc": "クリップボードパネルの垂直サイズ"
   },
   "appearance": {
+    "closeStyleSelector": "インジケータースタイルを閉じる",
+    "openStyleSelector": "インジケータースタイルを開く",
     "copyIndicatorTitle": "コピーインジケーター",
     "copyIndicatorDesc": "コピー時に画面端に視覚的なインジケーターを表示",
     "indicatorStyleTitle": "インジケータースタイル",
@@ -2661,6 +3279,7 @@ export const ja: TranslationKeys = {
     "sparkleStyle": "スパークル"
   },
   "item": {
+    "copiedTimes": "{count}回コピーしました",
     "copy": "コピー",
     "copied": "コピー済み",
     "imagePlaceholder": "画像",
@@ -2772,6 +3391,8 @@ export const ja: TranslationKeys = {
     "proTip4": "テキストボックスをクリックしてからクリップボードのアイテムを押すと自動で貼り付けられます"
   },
   "tray": {
+    "bottom": "下",
+    "top": "上",
     "showClipboard": "パネルを表示",
     "settings": "設定",
     "incognito": "クリップボードの取得を一時的に停止",
@@ -2785,6 +3406,12 @@ export const ja: TranslationKeys = {
     "welcomeBody": "画面左端中央にホバーするか、Alt + C を押してパネルを開きます。"
   },
   "flyout": {
+    "clickToDeselect": "クリックして選択を解除",
+    "clickToSelect": "クリックして選択",
+    "deselectItem": "選択を解除",
+    "selectItem": "項目を選択",
+    "copied": "コピーしました！",
+    "clickToPasteImageDrag": "クリックして画像を貼り付け · ドラッグして移動",
     "copyBeaconStyleTitle": "コピー時のインジケーターのスタイル",
     "openLink": "リンクを開く",
     "copyContent": "コンテンツをコピー",
@@ -2808,6 +3435,14 @@ export const ja: TranslationKeys = {
     "current": "現在"
   },
   "toast": {
+    "mergeIncompatible": "異なる種類の項目を結合できません",
+    "mergeFilesFull": "フォルダには最大10個のファイルを格納できます",
+    "mergeImagesFull": "画像コレクションには最大10個まで登録できます",
+    "mergeTextLinks": "テキストとリンクを同じグループにまとめることはできません",
+    "splitStacks": "{count}個のグループに分割しました（各最大10個）",
+    "pasteFallback": "クリップボードの準備完了 — アプリをクリックしてCtrl+Vで貼り付け",
+    "clearFailed": "履歴を消去できませんでした。もう一度お試しください。",
+    "deleteFailed": "この項目を削除できませんでした。もう一度お試しください。",
     "copiedToClipboard": "クリップボードにコピーしました",
     "itemDeleted": "項目を削除しました",
     "itemPinned": "項目をピン留めしました",
@@ -2820,6 +3455,7 @@ export const ja: TranslationKeys = {
     "shortcutUpdated": "グローバルショートカットを {shortcut} に設定しました"
   },
   "footer": {
+    "supportTagline": "100%無料・オープンソースのクリップボード",
     "communityAndSupport": "コミュニティとサポート",
     "feedbackTitle": "フィードバックと問題",
     "feedbackDesc": "GitHub でバグ報告や機能提案",
@@ -2833,11 +3469,43 @@ export const ja: TranslationKeys = {
     "version": "バージョン",
     "supportPromo": "Edge-Drop は100%無料のオープンソースです。日々の作業に役立っているなら、さらに良くするために開発を応援していただけると嬉しいです！",
     "supportOnKofi": "Ko-fiで支援する"
-  }
+  },
+  "groups": {
+    "feedback": "フィードバック",
+    "aboutEdgeDrop": "EDGE-DROPについて",
+    "general": "一般",
+    "startup": "起動",
+    "privacy": "プライバシー",
+    "hoverActivation": "ホバーでの起動",
+    "keyboardShortcut": "キーボードショートカット",
+    "fullscreenProtection": "フルスクリーン保護",
+    "clipboardBehaviour": "クリップボードの動作",
+    "restartCleanup": "再起動時のクリーンアップ",
+    "storageCapacity": "ストレージ容量",
+    "autoDelete": "自動削除",
+    "updates": "アップデート",
+    "placement": "配置",
+    "displayMonitor": "ディスプレイ",
+    "locationHint": "位置ヒント",
+    "hoverZoneLength": "ホバーゾーンの長さ",
+    "triggerThickness": "トリガーの厚さ",
+    "copyBeacon": "コピーインジケーター",
+    "beaconStyle": "インジケータースタイル",
+    "audioFeedback": "オーディオフィードバック",
+    "alignment": "配置",
+    "triggerPosition": "トリガー位置",
+    "panelHeight": "パネルの高さ",
+    "textSize": "文字サイズ",
+    "languageSelectDesc": "アプリの表示言語を選択",
+    "toggleHotkeyPressDesc": "どこでも押してEdge-Dropを切り替える",
+    "edgeHintPulseDesc": "端に沿ってインジケーターを点滅させ、パネル位置を示します",
+  },
 };
 
 export const ko: TranslationKeys = {
   "filters": {
+    "title": "필터",
+    "colors": "색상",
     "all": "전체",
     "text": "텍스트",
     "links": "링크",
@@ -2845,6 +3513,11 @@ export const ko: TranslationKeys = {
     "files": "파일"
   },
   "tabs": {
+    "storageRetention": "저장 공간 및 보존",
+    "clipboardRules": "클립보드 규칙",
+    "activationShortcuts": "단축키 및 호버",
+    "generalStartup": "일반 및 시작",
+    "updates": "업데이트",
     "behaviour": "동작",
     "position": "위치",
     "appearance": "모양"
@@ -2856,6 +3529,17 @@ export const ko: TranslationKeys = {
     "whatsNew": "새 소식"
   },
   "behaviour": {
+    "restartFailed": "다시 시작하지 못했습니다",
+    "restarting": "다시 시작하는 중...",
+    "restart": "다시 시작",
+    "update": "업데이트",
+    "updateLabelAvailable": "새 업데이트 사용 가능",
+    "updateLabelDownloading": "업데이트 다운로드 중",
+    "updateLabelReady": "업데이트 설치 준비 완료",
+    "updateModeNotifyDesc": "다운로드하지 않고 업데이트가 제공되면 알림",
+    "updateModeOff": "끔",
+    "updateModeNotify": "알림",
+    "updateModeAuto": "자동",
     "languageTitle": "언어",
     "languageDesc": "시스템 메뉴와 컨트롤의 UI 언어 선택",
     "systemDefault": "시스템 기본값 (자동)",
@@ -2908,6 +3592,12 @@ export const ko: TranslationKeys = {
     "hotkeyReset": "기본값으로 재설정 ({shortcut})"
   },
   "position": {
+    "right": "오른쪽",
+    "left": "왼쪽",
+    "horizontalPositionDesc": "화면 가장자리를 따라 가로 정렬 조정",
+    "horizontalPositionTitle": "가로 위치",
+    "bottomEdge": "아래쪽 가장자리",
+    "topEdge": "위쪽 가장자리",
     "edgePlacementTitle": "가장자리 배치",
     "edgePlacementDesc": "Edge-Drop이 고정될 화면 가장자리 선택",
     "leftEdge": "왼쪽 가장자리",
@@ -2935,6 +3625,8 @@ export const ko: TranslationKeys = {
     "panelHeightDesc": "클립보드 선반의 세로 크기"
   },
   "appearance": {
+    "closeStyleSelector": "인디케이터 스타일 선택기 닫기",
+    "openStyleSelector": "인디케이터 스타일 선택기 열기",
     "copyIndicatorTitle": "복사 표시기",
     "copyIndicatorDesc": "복사 시 화면 가장자리에 은은한 시각 신호 표시",
     "indicatorStyleTitle": "표시기 스타일",
@@ -2957,6 +3649,7 @@ export const ko: TranslationKeys = {
     "sparkleStyle": "반짝임"
   },
   "item": {
+    "copiedTimes": "{count}회 복사됨",
     "copy": "복사",
     "copied": "복사됨",
     "imagePlaceholder": "이미지",
@@ -3068,6 +3761,8 @@ export const ko: TranslationKeys = {
     "proTip4": "텍스트 상자를 클릭한 후 클립보드 항목을 누르면 자동 붙여넣기됩니다."
   },
   "tray": {
+    "bottom": "아래",
+    "top": "위",
     "showClipboard": "클립보드 표시",
     "settings": "설정",
     "incognito": "시크릿 (캡처 일시정지)",
@@ -3081,6 +3776,12 @@ export const ko: TranslationKeys = {
     "welcomeBody": "화면 왼쪽 가장자리 중앙에 호버하거나 Alt+C를 눌러 선반을 여세요."
   },
   "flyout": {
+    "clickToDeselect": "클릭하여 선택 해제",
+    "clickToSelect": "클릭하여 선택",
+    "deselectItem": "항목 선택 해제",
+    "selectItem": "항목 선택",
+    "copied": "복사됨!",
+    "clickToPasteImageDrag": "클릭하여 이미지 붙여넣기 · 드래그하여 이동",
     "copyBeaconStyleTitle": "복사 표시기 스타일",
     "openLink": "링크 열기",
     "copyContent": "내용 복사",
@@ -3104,6 +3805,14 @@ export const ko: TranslationKeys = {
     "current": "현재"
   },
   "toast": {
+    "mergeIncompatible": "서로 다른 항목 유형은 결합할 수 없습니다",
+    "mergeFilesFull": "폴더 묶음에는 최대 10개의 파일을 담을 수 있습니다",
+    "mergeImagesFull": "이미지 모음에는 최대 10개의 항목을 담을 수 있습니다",
+    "mergeTextLinks": "텍스트와 링크는 함께 그룹화할 수 없습니다",
+    "splitStacks": "{count}개 그룹으로 분할됨 (각 최대 10개)",
+    "pasteFallback": "클립보드 준비 완료 — 앱을 클릭하고 Ctrl+V를 눌러 붙여넣으세요",
+    "clearFailed": "기록을 지울 수 없습니다. 다시 시도하세요.",
+    "deleteFailed": "이 항목을 삭제할 수 없습니다. 다시 시도하세요.",
     "copiedToClipboard": "클립보드에 복사됨",
     "itemDeleted": "항목 삭제됨",
     "itemPinned": "항목 고정됨",
@@ -3116,6 +3825,7 @@ export const ko: TranslationKeys = {
     "shortcutUpdated": "전역 단축키가 {shortcut}으로 설정되었습니다"
   },
   "footer": {
+    "supportTagline": "100% 무료 오픈 소스 클립보드",
     "communityAndSupport": "커뮤니티 및 지원",
     "feedbackTitle": "피드백 및 이슈",
     "feedbackDesc": "GitHub에서 버그를 보고하거나 기능 제안",
@@ -3129,11 +3839,43 @@ export const ko: TranslationKeys = {
     "version": "버전",
     "supportPromo": "Edge-Drop은 100% 무료 오픈소스입니다. 일상적인 작업에 도움이 된다면, 더 나은 앱을 만들 수 있도록 개발을 후원해 주세요!",
     "supportOnKofi": "Ko-fi에서 후원하기"
-  }
+  },
+  "groups": {
+    "feedback": "피드백",
+    "aboutEdgeDrop": "EDGE-DROP 정보",
+    "general": "일반",
+    "startup": "시작",
+    "privacy": "개인정보 보호",
+    "hoverActivation": "호버 활성화",
+    "keyboardShortcut": "키보드 단축키",
+    "fullscreenProtection": "전체 화면 보호",
+    "clipboardBehaviour": "클립보드 동작",
+    "restartCleanup": "다시 시작 시 정리",
+    "storageCapacity": "저장 공간 용량",
+    "autoDelete": "자동 삭제",
+    "updates": "업데이트",
+    "placement": "배치",
+    "displayMonitor": "디스플레이 모니터",
+    "locationHint": "위치 힌트",
+    "hoverZoneLength": "호버 영역 길이",
+    "triggerThickness": "트리거 두께",
+    "copyBeacon": "복사 표시기",
+    "beaconStyle": "표시기 스타일",
+    "audioFeedback": "오디오 피드백",
+    "alignment": "정렬",
+    "triggerPosition": "트리거 위치",
+    "panelHeight": "패널 높이",
+    "textSize": "텍스트 크기",
+    "languageSelectDesc": "앱 표시 언어 선택",
+    "toggleHotkeyPressDesc": "어디서든 눌러 Edge-Drop 전환",
+    "edgeHintPulseDesc": "가장자리를 따라 표시기가 점멸하여 패널 위치를 안내",
+  },
 };
 
 export const zhCN: TranslationKeys = {
   "filters": {
+    "title": "筛选器",
+    "colors": "颜色",
     "all": "全部",
     "text": "文本",
     "links": "链接",
@@ -3141,6 +3883,11 @@ export const zhCN: TranslationKeys = {
     "files": "文件"
   },
   "tabs": {
+    "storageRetention": "存储与保留",
+    "clipboardRules": "剪贴板规则",
+    "activationShortcuts": "快捷键与悬停",
+    "generalStartup": "常规与启动",
+    "updates": "更新",
     "behaviour": "行为",
     "position": "位置",
     "appearance": "外观"
@@ -3152,6 +3899,17 @@ export const zhCN: TranslationKeys = {
     "whatsNew": "新功能"
   },
   "behaviour": {
+    "restartFailed": "重启失败",
+    "restarting": "正在重启...",
+    "restart": "重启",
+    "update": "更新",
+    "updateLabelAvailable": "有新更新可用",
+    "updateLabelDownloading": "正在下载更新",
+    "updateLabelReady": "更新已准备好安装",
+    "updateModeNotifyDesc": "有可用更新时通知，但不下载更新",
+    "updateModeOff": "关闭",
+    "updateModeNotify": "通知我",
+    "updateModeAuto": "自动",
     "languageTitle": "语言",
     "languageDesc": "选择系统菜单和控件的界面语言",
     "systemDefault": "系统默认（自动）",
@@ -3204,6 +3962,12 @@ export const zhCN: TranslationKeys = {
     "hotkeyReset": "恢复默认值（{shortcut}）"
   },
   "position": {
+    "right": "右",
+    "left": "左",
+    "horizontalPositionDesc": "调整沿屏幕边缘的水平对齐位置",
+    "horizontalPositionTitle": "水平位置",
+    "bottomEdge": "底部边缘",
+    "topEdge": "顶部边缘",
     "edgePlacementTitle": "边缘位置",
     "edgePlacementDesc": "选择 Edge-Drop 锚定到哪个屏幕边缘",
     "leftEdge": "左边缘",
@@ -3231,6 +3995,8 @@ export const zhCN: TranslationKeys = {
     "panelHeightDesc": "剪贴板搁架的垂直尺寸"
   },
   "appearance": {
+    "closeStyleSelector": "关闭指示器样式选择器",
+    "openStyleSelector": "打开指示器样式选择器",
     "copyIndicatorTitle": "复制指示器",
     "copyIndicatorDesc": "复制时在屏幕边缘显示微妙的视觉信标",
     "indicatorStyleTitle": "指示器样式",
@@ -3253,6 +4019,7 @@ export const zhCN: TranslationKeys = {
     "sparkleStyle": "闪光"
   },
   "item": {
+    "copiedTimes": "已复制 {count} 次",
     "copy": "复制",
     "copied": "已复制",
     "imagePlaceholder": "图片",
@@ -3364,6 +4131,8 @@ export const zhCN: TranslationKeys = {
     "proTip4": "先点击文本框，再点击剪贴板项即可自动粘贴。"
   },
   "tray": {
+    "bottom": "底部",
+    "top": "顶部",
     "showClipboard": "显示剪贴板",
     "settings": "设置",
     "incognito": "无痕（暂停捕获）",
@@ -3377,6 +4146,12 @@ export const zhCN: TranslationKeys = {
     "welcomeBody": "将鼠标悬停在屏幕左中边缘，或按 Alt+C 滑出打开您的搁架。"
   },
   "flyout": {
+    "clickToDeselect": "点击取消选择",
+    "clickToSelect": "点击选择",
+    "deselectItem": "取消选择",
+    "selectItem": "选择项目",
+    "copied": "已复制！",
+    "clickToPasteImageDrag": "点击粘贴图片 · 拖动移动",
     "copyBeaconStyleTitle": "复制指示器样式",
     "openLink": "打开链接",
     "copyContent": "复制内容",
@@ -3400,6 +4175,14 @@ export const zhCN: TranslationKeys = {
     "current": "当前"
   },
   "toast": {
+    "mergeIncompatible": "无法组合不同类型的项目",
+    "mergeFilesFull": "文件夹包最多可包含 10 个文件",
+    "mergeImagesFull": "图片集合最多可包含 10 个项目",
+    "mergeTextLinks": "文本和链接无法组合到一起",
+    "splitStacks": "已拆分为 {count} 个组（每组最多 10 个）",
+    "pasteFallback": "剪贴板已就绪 — 点击应用，然后按 Ctrl+V 粘贴",
+    "clearFailed": "无法清除历史记录。请重试。",
+    "deleteFailed": "无法删除此项目。请重试。",
     "copiedToClipboard": "已复制到剪贴板",
     "itemDeleted": "项已删除",
     "itemPinned": "项已固定",
@@ -3412,6 +4195,7 @@ export const zhCN: TranslationKeys = {
     "shortcutUpdated": "全局快捷键已设置为 {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% 免费开源剪贴板",
     "communityAndSupport": "社区和支持",
     "feedbackTitle": "反馈与问题",
     "feedbackDesc": "在 GitHub 上报告 Bug 或建议功能",
@@ -3425,11 +4209,43 @@ export const zhCN: TranslationKeys = {
     "version": "版本",
     "supportPromo": "Edge-Drop 完全免费且开源。如果它能帮助提升您的日常工作效率，欢迎支持开发，让它变得更好！",
     "supportOnKofi": "在 Ko-fi 上支持"
-  }
+  },
+  "groups": {
+    "feedback": "反馈",
+    "aboutEdgeDrop": "关于 EDGE-DROP",
+    "general": "常规",
+    "startup": "启动",
+    "privacy": "隐私",
+    "hoverActivation": "悬停激活",
+    "keyboardShortcut": "键盘快捷键",
+    "fullscreenProtection": "全屏保护",
+    "clipboardBehaviour": "剪贴板行为",
+    "restartCleanup": "重启清理",
+    "storageCapacity": "存储容量",
+    "autoDelete": "自动删除",
+    "updates": "更新",
+    "placement": "位置",
+    "displayMonitor": "显示器",
+    "locationHint": "位置提示",
+    "hoverZoneLength": "悬停区域长度",
+    "triggerThickness": "触发条厚度",
+    "copyBeacon": "复制指示器",
+    "beaconStyle": "指示器样式",
+    "audioFeedback": "音频反馈",
+    "alignment": "对齐",
+    "triggerPosition": "触发条位置",
+    "panelHeight": "面板高度",
+    "textSize": "文字大小",
+    "languageSelectDesc": "选择应用显示语言",
+    "toggleHotkeyPressDesc": "在任意位置按下以切换 Edge-Drop",
+    "edgeHintPulseDesc": "沿边缘显示指示器脉冲，以提示面板位置",
+  },
 };
 
 export const zhTW: TranslationKeys = {
   "filters": {
+    "title": "篩選器",
+    "colors": "顏色",
     "all": "全部",
     "text": "文字",
     "links": "連結",
@@ -3437,6 +4253,11 @@ export const zhTW: TranslationKeys = {
     "files": "檔案"
   },
   "tabs": {
+    "storageRetention": "儲存空間與保留",
+    "clipboardRules": "剪貼簿規則",
+    "activationShortcuts": "快速鍵與懸停",
+    "generalStartup": "一般與啟動",
+    "updates": "更新",
     "behaviour": "行為",
     "position": "位置",
     "appearance": "外觀"
@@ -3448,6 +4269,17 @@ export const zhTW: TranslationKeys = {
     "whatsNew": "新功能"
   },
   "behaviour": {
+    "restartFailed": "重新啟動失敗",
+    "restarting": "正在重新啟動...",
+    "restart": "重新啟動",
+    "update": "更新",
+    "updateLabelAvailable": "有新更新可用",
+    "updateLabelDownloading": "正在下載更新",
+    "updateLabelReady": "更新已準備好安裝",
+    "updateModeNotifyDesc": "有可用更新時通知，但不下載更新",
+    "updateModeOff": "關閉",
+    "updateModeNotify": "通知我",
+    "updateModeAuto": "自動",
     "languageTitle": "語言",
     "languageDesc": "選擇系統選單和控制項的介面語言",
     "systemDefault": "系統預設（自動）",
@@ -3500,6 +4332,12 @@ export const zhTW: TranslationKeys = {
     "hotkeyReset": "重設為預設值（{shortcut}）"
   },
   "position": {
+    "right": "右",
+    "left": "左",
+    "horizontalPositionDesc": "調整沿螢幕邊緣的水平對齊位置",
+    "horizontalPositionTitle": "水平位置",
+    "bottomEdge": "下緣",
+    "topEdge": "上緣",
     "edgePlacementTitle": "邊緣位置",
     "edgePlacementDesc": "選擇 Edge-Drop 錨定到哪個螢幕邊緣",
     "leftEdge": "左邊緣",
@@ -3527,6 +4365,8 @@ export const zhTW: TranslationKeys = {
     "panelHeightDesc": "剪貼簿層架的垂直尺寸"
   },
   "appearance": {
+    "closeStyleSelector": "關閉指示器樣式選擇器",
+    "openStyleSelector": "開啟指示器樣式選擇器",
     "copyIndicatorTitle": "複製指示器",
     "copyIndicatorDesc": "複製時在螢幕邊緣顯示微妙的視覺信標",
     "indicatorStyleTitle": "指示器樣式",
@@ -3549,6 +4389,7 @@ export const zhTW: TranslationKeys = {
     "sparkleStyle": "閃光"
   },
   "item": {
+    "copiedTimes": "已複製 {count} 次",
     "copy": "複製",
     "copied": "已複製",
     "imagePlaceholder": "圖片",
@@ -3660,6 +4501,8 @@ export const zhTW: TranslationKeys = {
     "proTip4": "先點擊文字方塊，再點擊剪貼簿項目即可自動貼上。"
   },
   "tray": {
+    "bottom": "下方",
+    "top": "上方",
     "showClipboard": "顯示剪貼簿",
     "settings": "設定",
     "incognito": "無痕（暫停擷取）",
@@ -3673,6 +4516,12 @@ export const zhTW: TranslationKeys = {
     "welcomeBody": "將滑鼠懸停在螢幕左中邊緣，或按 Alt+C 滑出開啟您的層架。"
   },
   "flyout": {
+    "clickToDeselect": "點擊以取消選取",
+    "clickToSelect": "點擊以選取",
+    "deselectItem": "取消選取",
+    "selectItem": "選取項目",
+    "copied": "已複製！",
+    "clickToPasteImageDrag": "點擊以貼上圖片 · 拖曳以移動",
     "copyBeaconStyleTitle": "複製指示器樣式",
     "openLink": "開啟連結",
     "copyContent": "複製內容",
@@ -3696,6 +4545,14 @@ export const zhTW: TranslationKeys = {
     "current": "目前"
   },
   "toast": {
+    "mergeIncompatible": "無法合併不同類型的項目",
+    "mergeFilesFull": "資料夾套件最多可包含 10 個檔案",
+    "mergeImagesFull": "圖片集合最多可包含 10 個項目",
+    "mergeTextLinks": "文字與連結無法群組在一起",
+    "splitStacks": "已拆分為 {count} 個群組（每組最多 10 個）",
+    "pasteFallback": "剪貼簿已就緒 — 點擊應用程式並按 Ctrl+V 貼上",
+    "clearFailed": "無法清除歷程記錄。請再試一次。",
+    "deleteFailed": "無法刪除此項目。請再試一次。",
     "copiedToClipboard": "已複製到剪貼簿",
     "itemDeleted": "項目已刪除",
     "itemPinned": "項目已固定",
@@ -3708,6 +4565,7 @@ export const zhTW: TranslationKeys = {
     "shortcutUpdated": "全域快速鍵已設為 {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% 免費開源剪貼簿",
     "communityAndSupport": "社群和支援",
     "feedbackTitle": "回饋與問題",
     "feedbackDesc": "在 GitHub 上回報錯誤或建議功能",
@@ -3721,11 +4579,43 @@ export const zhTW: TranslationKeys = {
     "version": "版本",
     "supportPromo": "Edge-Drop 完全免費且開源。如果它能幫助提升您的日常工作效率，歡迎支持開發，讓它變得更好！",
     "supportOnKofi": "在 Ko-fi 上支持"
-  }
+  },
+  "groups": {
+    "feedback": "意見回饋",
+    "aboutEdgeDrop": "關於 EDGE-DROP",
+    "general": "一般",
+    "startup": "啟動",
+    "privacy": "隱私",
+    "hoverActivation": "懸停啟動",
+    "keyboardShortcut": "鍵盤快速鍵",
+    "fullscreenProtection": "全螢幕保護",
+    "clipboardBehaviour": "剪貼簿行為",
+    "restartCleanup": "重新啟動清理",
+    "storageCapacity": "儲存空間容量",
+    "autoDelete": "自動刪除",
+    "updates": "更新",
+    "placement": "位置",
+    "displayMonitor": "顯示器",
+    "locationHint": "位置提示",
+    "hoverZoneLength": "懸停區域長度",
+    "triggerThickness": "觸發條厚度",
+    "copyBeacon": "複製指示器",
+    "beaconStyle": "指示器樣式",
+    "audioFeedback": "音訊回饋",
+    "alignment": "對齊",
+    "triggerPosition": "觸發條位置",
+    "panelHeight": "面板高度",
+    "textSize": "文字大小",
+    "languageSelectDesc": "選擇應用程式顯示語言",
+    "toggleHotkeyPressDesc": "在任何位置按下以切換 Edge-Drop",
+    "edgeHintPulseDesc": "沿邊緣顯示指示器脈衝，以提示面板位置",
+  },
 };
 
 export const hi: TranslationKeys = {
   "filters": {
+    "title": "फ़िल्टर",
+    "colors": "रंग",
     "all": "सभी",
     "text": "टेक्स्ट",
     "links": "लिंक",
@@ -3733,6 +4623,11 @@ export const hi: TranslationKeys = {
     "files": "फ़ाइलें"
   },
   "tabs": {
+    "storageRetention": "स्टोरेज और रिटेंशन",
+    "clipboardRules": "क्लिपबोर्ड नियम",
+    "activationShortcuts": "शॉर्टकट और होवर",
+    "generalStartup": "सामान्य और स्टार्टअप",
+    "updates": "अपडेट",
     "behaviour": "व्यवहार",
     "position": "स्थिति",
     "appearance": "रूप"
@@ -3744,6 +4639,17 @@ export const hi: TranslationKeys = {
     "whatsNew": "नया क्या है"
   },
   "behaviour": {
+    "restartFailed": "रीस्टार्ट विफल",
+    "restarting": "रीस्टार्ट हो रहा है...",
+    "restart": "रीस्टार्ट करें",
+    "update": "अपडेट करें",
+    "updateLabelAvailable": "नया अपडेट उपलब्ध है",
+    "updateLabelDownloading": "अपडेट डाउनलोड हो रहा है",
+    "updateLabelReady": "अपडेट इंस्टॉल करने के लिए तैयार है",
+    "updateModeNotifyDesc": "अपडेट उपलब्ध होने पर डाउनलोड किए बिना सूचित करें",
+    "updateModeOff": "बंद",
+    "updateModeNotify": "मुझे सूचित करें",
+    "updateModeAuto": "स्वचालित",
     "languageTitle": "भाषा",
     "languageDesc": "सिस्टम मेन्यू और नियंत्रणों के लिए UI भाषा चुनें",
     "systemDefault": "सिस्टम डिफ़ॉल्ट (स्वतः)",
@@ -3796,6 +4702,12 @@ export const hi: TranslationKeys = {
     "hotkeyReset": "डिफ़ॉल्ट पर रीसेट करें ({shortcut})"
   },
   "position": {
+    "right": "दाएँ",
+    "left": "बाएँ",
+    "horizontalPositionDesc": "स्क्रीन के किनारे के साथ क्षैतिज संरेखण समायोजित करें",
+    "horizontalPositionTitle": "क्षैतिज स्थिति",
+    "bottomEdge": "निचला किनारा",
+    "topEdge": "ऊपरी किनारा",
     "edgePlacementTitle": "किनारा प्लेसमेंट",
     "edgePlacementDesc": "चुनें कि Edge-Drop किस स्क्रीन किनारे से जुड़ता है",
     "leftEdge": "बायाँ किनारा",
@@ -3823,6 +4735,8 @@ export const hi: TranslationKeys = {
     "panelHeightDesc": "क्लिपबोर्ड शेल्फ़ का वर्टिकल आकार"
   },
   "appearance": {
+    "closeStyleSelector": "इंडिकेटर शैली चयनकर्ता बंद करें",
+    "openStyleSelector": "इंडिकेटर शैली चयनकर्ता खोलें",
     "copyIndicatorTitle": "कॉपी सूचक",
     "copyIndicatorDesc": "कॉपी करते समय स्क्रीन किनारे पर सूक्ष्म दृश्य संकेत दिखाएँ",
     "indicatorStyleTitle": "सूचक शैली",
@@ -3845,6 +4759,7 @@ export const hi: TranslationKeys = {
     "sparkleStyle": "स्पार्कल"
   },
   "item": {
+    "copiedTimes": "{count} बार कॉपी किया गया",
     "copy": "कॉपी",
     "copied": "कॉपी किया गया",
     "imagePlaceholder": "छवि",
@@ -3956,6 +4871,8 @@ export const hi: TranslationKeys = {
     "proTip4": "टेक्स्ट बॉक्स पर क्लिक करें, फिर स्वतः-पेस्ट के लिए क्लिपबोर्ड आइटम पर क्लिक करें।"
   },
   "tray": {
+    "bottom": "नीचे",
+    "top": "ऊपर",
     "showClipboard": "क्लिपबोर्ड दिखाएँ",
     "settings": "सेटिंग्स",
     "incognito": "गुप्त (कैप्चर रोकें)",
@@ -3969,6 +4886,12 @@ export const hi: TranslationKeys = {
     "welcomeBody": "मध्य-बाएँ स्क्रीन किनारे के साथ होवर करें, या अपनी शेल्फ़ खोलने के लिए Alt+C दबाएँ।"
   },
   "flyout": {
+    "clickToDeselect": "चयन हटाने के लिए क्लिक करें",
+    "clickToSelect": "चुनने के लिए क्लिक करें",
+    "deselectItem": "आइटम का चयन हटाएँ",
+    "selectItem": "आइटम चुनें",
+    "copied": "कॉपी किया गया!",
+    "clickToPasteImageDrag": "चित्र पेस्ट करने के लिए क्लिक करें · स्थानांतरित करने के लिए ड्रैग करें",
     "copyBeaconStyleTitle": "कॉपी सूचक शैली",
     "openLink": "लिंक खोलें",
     "copyContent": "सामग्री कॉपी करें",
@@ -3992,6 +4915,14 @@ export const hi: TranslationKeys = {
     "current": "वर्तमान"
   },
   "toast": {
+    "mergeIncompatible": "अलग-अलग प्रकार के आइटम संयोजित नहीं किए जा सकते",
+    "mergeFilesFull": "फ़ोल्डर बंडल में अधिकतम 10 फ़ाइलें हो सकती हैं",
+    "mergeImagesFull": "चित्र संग्रह में अधिकतम 10 आइटम हो सकते हैं",
+    "mergeTextLinks": "टेक्स्ट और लिंक को एक साथ समूहित नहीं किया जा सकता",
+    "splitStacks": "{count} समूहों में विभाजित किया गया (प्रत्येक में अधिकतम 10)",
+    "pasteFallback": "क्लिपबोर्ड तैयार है — अपने ऐप पर क्लिक करें और पेस्ट करने के लिए Ctrl+V दबाएँ",
+    "clearFailed": "इतिहास साफ़ नहीं किया जा सका। कृपया फिर से प्रयास करें।",
+    "deleteFailed": "यह आइटम हटाया नहीं जा सका। कृपया फिर से प्रयास करें।",
     "copiedToClipboard": "क्लिपबोर्ड पर कॉपी किया गया",
     "itemDeleted": "आइटम हटाया गया",
     "itemPinned": "आइटम पिन किया गया",
@@ -4004,6 +4935,7 @@ export const hi: TranslationKeys = {
     "shortcutUpdated": "ग्लोबल शॉर्टकट {shortcut} पर सेट किया गया"
   },
   "footer": {
+    "supportTagline": "100% मुफ़्त और ओपन-सोर्स क्लिपबोर्ड",
     "communityAndSupport": "समुदाय और सहायता",
     "feedbackTitle": "प्रतिक्रिया और समस्याएँ",
     "feedbackDesc": "GitHub पर बग रिपोर्ट करें या सुविधाओं का सुझाव दें",
@@ -4017,11 +4949,43 @@ export const hi: TranslationKeys = {
     "version": "संस्करण",
     "supportPromo": "Edge-Drop 100% मुफ़्त और ओपन-सोर्स है। यदि यह आपके रोज़मर्रा के काम को आसान बनाता है, तो इसे और बेहतर बनाने के लिए विकास का समर्थन करने पर विचार करें!",
     "supportOnKofi": "Ko-fi पर समर्थन करें"
-  }
+  },
+  "groups": {
+    "feedback": "प्रतिक्रिया",
+    "aboutEdgeDrop": "EDGE-DROP के बारे में",
+    "general": "सामान्य",
+    "startup": "स्टार्टअप",
+    "privacy": "गोपनीयता",
+    "hoverActivation": "होवर सक्रियण",
+    "keyboardShortcut": "कीबोर्ड शॉर्टकट",
+    "fullscreenProtection": "फ़ुलस्क्रीन सुरक्षा",
+    "clipboardBehaviour": "क्लिपबोर्ड व्यवहार",
+    "restartCleanup": "रीस्टार्ट क्लीनअप",
+    "storageCapacity": "स्टोरेज क्षमता",
+    "autoDelete": "स्वतः हटाना",
+    "updates": "अपडेट",
+    "placement": "स्थान",
+    "displayMonitor": "डिस्प्ले मॉनिटर",
+    "locationHint": "स्थान संकेत",
+    "hoverZoneLength": "होवर ज़ोन की लंबाई",
+    "triggerThickness": "ट्रिगर की मोटाई",
+    "copyBeacon": "कॉपी इंडिकेटर",
+    "beaconStyle": "इंडिकेटर शैली",
+    "audioFeedback": "ऑडियो प्रतिक्रिया",
+    "alignment": "संरेखण",
+    "triggerPosition": "ट्रिगर स्थिति",
+    "panelHeight": "पैनल की ऊँचाई",
+    "textSize": "टेक्स्ट का आकार",
+    "languageSelectDesc": "ऐप की प्रदर्शन भाषा चुनें",
+    "toggleHotkeyPressDesc": "Edge-Drop को टॉगल करने के लिए कहीं भी दबाएँ",
+    "edgeHintPulseDesc": "पैनल की स्थिति बताने के लिए किनारे पर इंडिकेटर पल्स",
+  },
 };
 
 export const ar: TranslationKeys = {
   "filters": {
+    "title": "الفلاتر",
+    "colors": "الألوان",
     "all": "الكل",
     "text": "نص",
     "links": "روابط",
@@ -4029,6 +4993,11 @@ export const ar: TranslationKeys = {
     "files": "ملفات"
   },
   "tabs": {
+    "storageRetention": "التخزين والاحتفاظ",
+    "clipboardRules": "قواعد الحافظة",
+    "activationShortcuts": "الاختصارات والتمرير",
+    "generalStartup": "عام وبدء التشغيل",
+    "updates": "التحديثات",
     "behaviour": "السلوك",
     "position": "الموضع",
     "appearance": "المظهر"
@@ -4040,6 +5009,17 @@ export const ar: TranslationKeys = {
     "whatsNew": "ما الجديد"
   },
   "behaviour": {
+    "restartFailed": "فشلت إعادة التشغيل",
+    "restarting": "جارٍ إعادة التشغيل...",
+    "restart": "إعادة التشغيل",
+    "update": "تحديث",
+    "updateLabelAvailable": "يتوفر تحديث جديد",
+    "updateLabelDownloading": "جارٍ تنزيل التحديث",
+    "updateLabelReady": "التحديث جاهز للتثبيت",
+    "updateModeNotifyDesc": "إشعاري عند توفر تحديثات دون تنزيلها",
+    "updateModeOff": "إيقاف",
+    "updateModeNotify": "إشعاري",
+    "updateModeAuto": "تلقائي",
     "languageTitle": "اللغة",
     "languageDesc": "اختر لغة الواجهة لقوائم النظام وعناصر التحكم",
     "systemDefault": "افتراضي النظام (تلقائي)",
@@ -4092,6 +5072,12 @@ export const ar: TranslationKeys = {
     "hotkeyReset": "إعادة التعيين إلى الافتراضي ({shortcut})"
   },
   "position": {
+    "right": "يمين",
+    "left": "يسار",
+    "horizontalPositionDesc": "ضبط المحاذاة الأفقية على طول حافة الشاشة",
+    "horizontalPositionTitle": "الموضع الأفقي",
+    "bottomEdge": "الحافة السفلية",
+    "topEdge": "الحافة العلوية",
     "edgePlacementTitle": "موضع الحافة",
     "edgePlacementDesc": "اختر حافة الشاشة التي يرتكز إليها Edge-Drop",
     "leftEdge": "الحافة اليسرى",
@@ -4119,6 +5105,8 @@ export const ar: TranslationKeys = {
     "panelHeightDesc": "الحجم الرأسي لرف الحافظة"
   },
   "appearance": {
+    "closeStyleSelector": "إغلاق محدد نمط المؤشر",
+    "openStyleSelector": "فتح محدد نمط المؤشر",
     "copyIndicatorTitle": "مؤشر النسخ",
     "copyIndicatorDesc": "إظهار منارة بصرية خفية على حافة الشاشة عند النسخ",
     "indicatorStyleTitle": "نمط المؤشر",
@@ -4141,6 +5129,7 @@ export const ar: TranslationKeys = {
     "sparkleStyle": "وميض"
   },
   "item": {
+    "copiedTimes": "تم النسخ {count} مرات",
     "copy": "نسخ",
     "copied": "تم النسخ",
     "imagePlaceholder": "صورة",
@@ -4252,6 +5241,8 @@ export const ar: TranslationKeys = {
     "proTip4": "انقر على مربع نص، ثم على عنصر حافظة للّصق تلقائياً."
   },
   "tray": {
+    "bottom": "أسفل",
+    "top": "أعلى",
     "showClipboard": "إظهار الحافظة",
     "settings": "الإعدادات",
     "incognito": "التخفي (إيقاف الالتقاط)",
@@ -4265,6 +5256,12 @@ export const ar: TranslationKeys = {
     "welcomeBody": "حوّم مقابل منتصف الحافة اليسرى للشاشة، أو اضغط Alt+C لفتح رفك."
   },
   "flyout": {
+    "clickToDeselect": "انقر لإلغاء التحديد",
+    "clickToSelect": "انقر للتحديد",
+    "deselectItem": "إلغاء تحديد العنصر",
+    "selectItem": "تحديد العنصر",
+    "copied": "تم النسخ!",
+    "clickToPasteImageDrag": "انقر للصق الصورة · اسحب للنقل",
     "copyBeaconStyleTitle": "نمط مؤشر النسخ",
     "openLink": "فتح الرابط",
     "copyContent": "نسخ المحتوى",
@@ -4288,6 +5285,14 @@ export const ar: TranslationKeys = {
     "current": "الحالي"
   },
   "toast": {
+    "mergeIncompatible": "لا يمكن دمج أنواع مختلفة من العناصر",
+    "mergeFilesFull": "يمكن لحزمة المجلدات أن تحتوي على 10 ملفات كحد أقصى",
+    "mergeImagesFull": "يمكن لمجموعة الصور أن تحتوي على 10 عناصر كحد أقصى",
+    "mergeTextLinks": "لا يمكن تجميع النصوص والروابط معًا",
+    "splitStacks": "تم التقسيم إلى {count} مجموعات (10 كحد أقصى لكل مجموعة)",
+    "pasteFallback": "الحافظة جاهزة — انقر على تطبيقك واضغط Ctrl+V للصق",
+    "clearFailed": "تعذر مسح السجل. حاول مرة أخرى.",
+    "deleteFailed": "تعذر حذف هذا العنصر. حاول مرة أخرى.",
     "copiedToClipboard": "نُسخ إلى الحافظة",
     "itemDeleted": "حُذف العنصر",
     "itemPinned": "ثُبّت العنصر",
@@ -4300,6 +5305,7 @@ export const ar: TranslationKeys = {
     "shortcutUpdated": "تم تعيين الاختصار العام إلى {shortcut}"
   },
   "footer": {
+    "supportTagline": "حافظة مجانية ومفتوحة المصدر بنسبة 100%",
     "communityAndSupport": "المجتمع والدعم",
     "feedbackTitle": "الملاحظات والمشكلات",
     "feedbackDesc": "أبلغ عن الأخطاء أو اقترح ميزات على GitHub",
@@ -4313,11 +5319,43 @@ export const ar: TranslationKeys = {
     "version": "الإصدار",
     "supportPromo": "Edge-Drop مجاني ومفتوح المصدر بالكامل. إذا كان يساعدك في سير عملك اليومي، ففكر في دعم تطويره ليصبح أفضل!",
     "supportOnKofi": "ادعم عبر Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "الملاحظات",
+    "aboutEdgeDrop": "حول EDGE-DROP",
+    "general": "عام",
+    "startup": "بدء التشغيل",
+    "privacy": "الخصوصية",
+    "hoverActivation": "التنشيط عند التمرير",
+    "keyboardShortcut": "اختصار لوحة المفاتيح",
+    "fullscreenProtection": "حماية ملء الشاشة",
+    "clipboardBehaviour": "سلوك الحافظة",
+    "restartCleanup": "التنظيف عند إعادة التشغيل",
+    "storageCapacity": "سعة التخزين",
+    "autoDelete": "الحذف التلقائي",
+    "updates": "التحديثات",
+    "placement": "الموضع",
+    "displayMonitor": "الشاشة",
+    "locationHint": "تلميح الموقع",
+    "hoverZoneLength": "طول منطقة التمرير",
+    "triggerThickness": "سُمك المشغّل",
+    "copyBeacon": "مؤشر النسخ",
+    "beaconStyle": "نمط المؤشر",
+    "audioFeedback": "التغذية الراجعة الصوتية",
+    "alignment": "المحاذاة",
+    "triggerPosition": "موضع المشغّل",
+    "panelHeight": "ارتفاع اللوحة",
+    "textSize": "حجم النص",
+    "languageSelectDesc": "حدد لغة عرض التطبيق",
+    "toggleHotkeyPressDesc": "اضغط في أي مكان لتبديل Edge-Drop",
+    "edgeHintPulseDesc": "نبض المؤشر على طول الحافة للإشارة إلى موضع اللوحة",
+  },
 };
 
 export const fa: TranslationKeys = {
   "filters": {
+    "title": "فیلترها",
+    "colors": "رنگ‌ها",
     "all": "همه",
     "text": "متن",
     "links": "لینک‌ها",
@@ -4325,6 +5363,11 @@ export const fa: TranslationKeys = {
     "files": "فایل‌ها"
   },
   "tabs": {
+    "storageRetention": "ذخیره‌سازی و نگهداری",
+    "clipboardRules": "قوانین کلیپ‌بورد",
+    "activationShortcuts": "میانبرها و شناور شدن",
+    "generalStartup": "عمومی و راه‌اندازی",
+    "updates": "به‌روزرسانی‌ها",
     "behaviour": "رفتار",
     "position": "جایگاه",
     "appearance": "ظاهر"
@@ -4336,6 +5379,17 @@ export const fa: TranslationKeys = {
     "whatsNew": "تازه‌ها"
   },
   "behaviour": {
+    "restartFailed": "راه‌اندازی مجدد ناموفق بود",
+    "restarting": "در حال راه‌اندازی مجدد...",
+    "restart": "راه‌اندازی مجدد",
+    "update": "به‌روزرسانی",
+    "updateLabelAvailable": "به‌روزرسانی جدید در دسترس است",
+    "updateLabelDownloading": "در حال دانلود به‌روزرسانی",
+    "updateLabelReady": "به‌روزرسانی آماده نصب است",
+    "updateModeNotifyDesc": "هنگام در دسترس بودن به‌روزرسانی‌ها بدون دانلود آن‌ها اطلاع بده",
+    "updateModeOff": "خاموش",
+    "updateModeNotify": "به من اطلاع بده",
+    "updateModeAuto": "خودکار",
     "languageTitle": "زبان",
     "languageDesc": "زبان منوها و بخش‌های برنامه رو انتخاب کن",
     "systemDefault": "پیش‌فرض سیستم (خودکار)",
@@ -4388,6 +5442,12 @@ export const fa: TranslationKeys = {
     "hotkeyReset": "بازنشانی به پیشفرض ({shortcut})"
   },
   "position": {
+    "right": "راست",
+    "left": "چپ",
+    "horizontalPositionDesc": "تراز افقی در امتداد لبه صفحه را تنظیم کنید",
+    "horizontalPositionTitle": "موقعیت افقی",
+    "bottomEdge": "لبه پایین",
+    "topEdge": "لبه بالا",
     "edgePlacementTitle": "لبه برنامه",
     "edgePlacementDesc": "انتخاب کن Edge-Drop به کدوم لبه صفحه بچسبه",
     "leftEdge": "لبه چپ",
@@ -4415,6 +5475,8 @@ export const fa: TranslationKeys = {
     "panelHeightDesc": "قدِ قفسه کلیپ‌بورد"
   },
   "appearance": {
+    "closeStyleSelector": "بستن انتخابگر سبک نشانگر",
+    "openStyleSelector": "باز کردن انتخابگر سبک نشانگر",
     "copyIndicatorTitle": "نشانگر کپی",
     "copyIndicatorDesc": "موقع کپی یه نشانگر ظریف کنار صفحه نشون بده",
     "indicatorStyleTitle": "مدل نشانگر",
@@ -4437,6 +5499,7 @@ export const fa: TranslationKeys = {
     "sparkleStyle": "درخشش"
   },
   "item": {
+    "copiedTimes": "{count} بار کپی شد",
     "copy": "کپی",
     "copied": "کپی شد",
     "imagePlaceholder": "تصویر",
@@ -4548,6 +5611,8 @@ export const fa: TranslationKeys = {
     "proTip4": "اول روی کادر متن کلیک کن، بعد روی یه آیتم کلیپ‌بورد بزن تا خودش جای‌گذاری بشه."
   },
   "tray": {
+    "bottom": "پایین",
+    "top": "بالا",
     "showClipboard": "کلیپ‌بورد رو نشون بده",
     "settings": "تنظیمات",
     "incognito": "حالت ناشناس (فعلاً ذخیره نکن)",
@@ -4561,6 +5626,12 @@ export const fa: TranslationKeys = {
     "welcomeBody": "ماوس رو نزدیک وسط لبه چپ نگه دار یا Alt+C رو بزن تا قفسه باز بشه."
   },
   "flyout": {
+    "clickToDeselect": "برای لغو انتخاب کلیک کنید",
+    "clickToSelect": "برای انتخاب کلیک کنید",
+    "deselectItem": "لغو انتخاب مورد",
+    "selectItem": "انتخاب مورد",
+    "copied": "کپی شد!",
+    "clickToPasteImageDrag": "برای چسباندن تصویر کلیک کنید · برای جابه‌جایی بکشید",
     "copyBeaconStyleTitle": "مدل نشانگر کپی",
     "openLink": "لینک رو باز کن",
     "copyContent": "محتوا رو کپی کن",
@@ -4584,6 +5655,14 @@ export const fa: TranslationKeys = {
     "current": "فعلی"
   },
   "toast": {
+    "mergeIncompatible": "ترکیب انواع مختلف موارد ممکن نیست",
+    "mergeFilesFull": "بسته پوشه حداکثر می‌تواند ۱۰ فایل داشته باشد",
+    "mergeImagesFull": "مجموعه تصاویر حداکثر می‌تواند ۱۰ مورد داشته باشد",
+    "mergeTextLinks": "متن و پیوندها را نمی‌توان با هم گروه‌بندی کرد",
+    "splitStacks": "به {count} گروه تقسیم شد (حداکثر ۱۰ مورد در هر گروه)",
+    "pasteFallback": "کلیپ‌بورد آماده است — روی برنامه کلیک کنید و برای چسباندن Ctrl+V را فشار دهید",
+    "clearFailed": "پاک کردن تاریخچه ممکن نبود. دوباره تلاش کنید.",
+    "deleteFailed": "حذف این مورد ممکن نبود. دوباره تلاش کنید.",
     "copiedToClipboard": "توی کلیپ‌بورد کپی شد",
     "itemDeleted": "آیتم پاک شد",
     "itemPinned": "آیتم سنجاق شد",
@@ -4596,6 +5675,7 @@ export const fa: TranslationKeys = {
     "shortcutUpdated": "میانبر سراسری روی {shortcut} تنظیم شد"
   },
   "footer": {
+    "supportTagline": "کلیپ‌بورد ۱۰۰٪ رایگان و متن‌باز",
     "communityAndSupport": "ارتباط و پشتیبانی",
     "feedbackTitle": "بازخورد و مشکل‌ها",
     "feedbackDesc": "باگ گزارش کن یا توی GitHub قابلیت جدید پیشنهاد بده",
@@ -4609,11 +5689,43 @@ export const fa: TranslationKeys = {
     "version": "نسخه",
     "supportPromo": "Edge-Drop کاملاً رایگان و متن‌بازه. اگه توی کارهای روزمره به دردت می‌خوره، با حمایت از پروژه کمک کن بهترش کنیم!",
     "supportOnKofi": "حمایت از طریق Ko-fi / UPI"
-  }
+  },
+  "groups": {
+    "feedback": "بازخورد",
+    "aboutEdgeDrop": "درباره EDGE-DROP",
+    "general": "عمومی",
+    "startup": "راه‌اندازی",
+    "privacy": "حریم خصوصی",
+    "hoverActivation": "فعال‌سازی با شناور شدن",
+    "keyboardShortcut": "میانبر صفحه‌کلید",
+    "fullscreenProtection": "محافظت از تمام‌صفحه",
+    "clipboardBehaviour": "رفتار کلیپ‌بورد",
+    "restartCleanup": "پاک‌سازی هنگام راه‌اندازی مجدد",
+    "storageCapacity": "ظرفیت ذخیره‌سازی",
+    "autoDelete": "حذف خودکار",
+    "updates": "به‌روزرسانی‌ها",
+    "placement": "جایگذاری",
+    "displayMonitor": "نمایشگر",
+    "locationHint": "راهنمای موقعیت",
+    "hoverZoneLength": "طول ناحیه شناور",
+    "triggerThickness": "ضخامت فعال‌کننده",
+    "copyBeacon": "نشانگر کپی",
+    "beaconStyle": "سبک نشانگر",
+    "audioFeedback": "بازخورد صوتی",
+    "alignment": "تراز",
+    "triggerPosition": "موقعیت فعال‌کننده",
+    "panelHeight": "ارتفاع پنل",
+    "textSize": "اندازه متن",
+    "languageSelectDesc": "زبان نمایش برنامه را انتخاب کنید",
+    "toggleHotkeyPressDesc": "برای تغییر وضعیت Edge-Drop هر جایی فشار دهید",
+    "edgeHintPulseDesc": "پالس نشانگر در امتداد لبه برای نمایش موقعیت پنل",
+  },
 };
 
 export const bn: TranslationKeys = {
   "filters": {
+    "title": "ফিল্টার",
+    "colors": "রং",
     "all": "সব",
     "text": "টেক্সট",
     "links": "লিংক",
@@ -4621,6 +5733,11 @@ export const bn: TranslationKeys = {
     "files": "ফাইল"
   },
   "tabs": {
+    "storageRetention": "স্টোরেজ ও সংরক্ষণ",
+    "clipboardRules": "ক্লিপবোর্ড নিয়ম",
+    "activationShortcuts": "শর্টকাট ও হোভার",
+    "generalStartup": "সাধারণ ও স্টার্টআপ",
+    "updates": "আপডেট",
     "behaviour": "আচরণ",
     "position": "অবস্থান",
     "appearance": "চেহারা"
@@ -4632,6 +5749,17 @@ export const bn: TranslationKeys = {
     "whatsNew": "নতুন কী"
   },
   "behaviour": {
+    "restartFailed": "রিস্টার্ট ব্যর্থ হয়েছে",
+    "restarting": "রিস্টার্ট হচ্ছে...",
+    "restart": "রিস্টার্ট",
+    "update": "আপডেট",
+    "updateLabelAvailable": "নতুন আপডেট উপলব্ধ",
+    "updateLabelDownloading": "আপডেট ডাউনলোড হচ্ছে",
+    "updateLabelReady": "আপডেট ইনস্টল করার জন্য প্রস্তুত",
+    "updateModeNotifyDesc": "আপডেট উপলব্ধ হলে ডাউনলোড না করে জানান",
+    "updateModeOff": "বন্ধ",
+    "updateModeNotify": "আমাকে জানান",
+    "updateModeAuto": "স্বয়ংক্রিয়",
     "languageTitle": "ভাষা",
     "languageDesc": "সিস্টেম মেনু এবং নিয়ন্ত্রণের জন্য UI ভাষা নির্বাচন করুন",
     "systemDefault": "সিস্টেম ডিফল্ট (স্বয়ংক্রিয়)",
@@ -4684,6 +5812,12 @@ export const bn: TranslationKeys = {
     "hotkeyReset": "ডিফল্টে রিসেট করুন ({shortcut})"
   },
   "position": {
+    "right": "ডান",
+    "left": "বাম",
+    "horizontalPositionDesc": "স্ক্রিনের প্রান্ত বরাবর অনুভূমিক সারিবদ্ধতা সামঞ্জস্য করুন",
+    "horizontalPositionTitle": "অনুভূমিক অবস্থান",
+    "bottomEdge": "নিচের প্রান্ত",
+    "topEdge": "উপরের প্রান্ত",
     "edgePlacementTitle": "প্রান্ত স্থাপনা",
     "edgePlacementDesc": "Edge-Drop কোন স্ক্রিন প্রান্তে অ্যাঙ্কর করবে তা বেছে নিন",
     "leftEdge": "বাম প্রান্ত",
@@ -4711,6 +5845,8 @@ export const bn: TranslationKeys = {
     "panelHeightDesc": "ক্লিপবোর্ড শেলফের উল্লম্ব আকার"
   },
   "appearance": {
+    "closeStyleSelector": "ইন্ডিকেটর স্টাইল সিলেক্টর বন্ধ করুন",
+    "openStyleSelector": "ইন্ডিকেটর স্টাইল সিলেক্টর খুলুন",
     "copyIndicatorTitle": "কপি সূচক",
     "copyIndicatorDesc": "কপি করার সময় স্ক্রিন প্রান্তে সূক্ষ্ম ভিজ্যুয়াল বিকন দেখান",
     "indicatorStyleTitle": "সূচক শৈলী",
@@ -4733,6 +5869,7 @@ export const bn: TranslationKeys = {
     "sparkleStyle": "স্পার্কল"
   },
   "item": {
+    "copiedTimes": "{count} বার কপি করা হয়েছে",
     "copy": "কপি",
     "copied": "কপি করা হয়েছে",
     "imagePlaceholder": "ছবি",
@@ -4844,6 +5981,8 @@ export const bn: TranslationKeys = {
     "proTip4": "টেক্সট বক্সে ক্লিক করুন, তারপর স্বয়ংক্রিয় পেস্ট করতে ক্লিপবোর্ড আইটেমে ক্লিক করুন।"
   },
   "tray": {
+    "bottom": "নিচে",
+    "top": "উপরে",
     "showClipboard": "ক্লিপবোর্ড দেখান",
     "settings": "সেটিংস",
     "incognito": "ইনকগনিটো (ক্যাপচার বিরতি)",
@@ -4857,6 +5996,12 @@ export const bn: TranslationKeys = {
     "welcomeBody": "মাঝ-বাম স্ক্রিন প্রান্তে হোভার করুন, বা আপনার শেলফ খুলতে Alt+C চাপুন।"
   },
   "flyout": {
+    "clickToDeselect": "নির্বাচন বাতিল করতে ক্লিক করুন",
+    "clickToSelect": "নির্বাচন করতে ক্লিক করুন",
+    "deselectItem": "আইটেমের নির্বাচন বাতিল করুন",
+    "selectItem": "আইটেম নির্বাচন করুন",
+    "copied": "কপি হয়েছে!",
+    "clickToPasteImageDrag": "ছবি পেস্ট করতে ক্লিক করুন · সরাতে ড্র্যাগ করুন",
     "copyBeaconStyleTitle": "কপি সূচক শৈলী",
     "openLink": "লিংক খুলুন",
     "copyContent": "বিষয়বস্তু কপি করুন",
@@ -4880,6 +6025,14 @@ export const bn: TranslationKeys = {
     "current": "বর্তমান"
   },
   "toast": {
+    "mergeIncompatible": "ভিন্ন ধরনের আইটেম একত্র করা যায় না",
+    "mergeFilesFull": "একটি ফোল্ডার বান্ডেলে সর্বোচ্চ ১০টি ফাইল থাকতে পারে",
+    "mergeImagesFull": "একটি ছবি সংগ্রহে সর্বোচ্চ ১০টি আইটেম থাকতে পারে",
+    "mergeTextLinks": "টেক্সট ও লিংক একসাথে গ্রুপ করা যায় না",
+    "splitStacks": "{count}টি গ্রুপে ভাগ করা হয়েছে (প্রতিটিতে সর্বোচ্চ ১০টি)",
+    "pasteFallback": "ক্লিপবোর্ড প্রস্তুত — আপনার অ্যাপে ক্লিক করুন এবং পেস্ট করতে Ctrl+V চাপুন",
+    "clearFailed": "ইতিহাস মুছে ফেলা যায়নি। আবার চেষ্টা করুন।",
+    "deleteFailed": "এই আইটেমটি মুছে ফেলা যায়নি। আবার চেষ্টা করুন।",
     "copiedToClipboard": "ক্লিপবোর্ডে কপি করা হয়েছে",
     "itemDeleted": "আইটেম মুছে ফেলা হয়েছে",
     "itemPinned": "আইটেম পিন করা হয়েছে",
@@ -4892,6 +6045,7 @@ export const bn: TranslationKeys = {
     "shortcutUpdated": "গ্লোবাল শর্টকাট {shortcut}-এ সেট করা হয়েছে"
   },
   "footer": {
+    "supportTagline": "১০০% বিনামূল্যের ও ওপেন-সোর্স ক্লিপবোর্ড",
     "communityAndSupport": "কমিউনিটি ও সহায়তা",
     "feedbackTitle": "প্রতিক্রিয়া ও সমস্যা",
     "feedbackDesc": "GitHub-এ বাগ রিপোর্ট করুন বা বৈশিষ্ট্য প্রস্তাব করুন",
@@ -4905,11 +6059,43 @@ export const bn: TranslationKeys = {
     "version": "সংস্করণ",
     "supportPromo": "Edge-Drop ১০০% বিনামূল্যে এবং ওপেন-সোর্স। এটি যদি আপনার দৈনন্দিন কাজকে সহজ করে, তাহলে এটিকে আরও উন্নত করতে উন্নয়নে সহায়তা করার কথা বিবেচনা করুন!",
     "supportOnKofi": "Ko-fi-এ সহায়তা করুন"
-  }
+  },
+  "groups": {
+    "feedback": "মতামত",
+    "aboutEdgeDrop": "EDGE-DROP সম্পর্কে",
+    "general": "সাধারণ",
+    "startup": "স্টার্টআপ",
+    "privacy": "গোপনীয়তা",
+    "hoverActivation": "হোভার সক্রিয়করণ",
+    "keyboardShortcut": "কীবোর্ড শর্টকাট",
+    "fullscreenProtection": "ফুলস্ক্রিন সুরক্ষা",
+    "clipboardBehaviour": "ক্লিপবোর্ড আচরণ",
+    "restartCleanup": "রিস্টার্ট ক্লিনআপ",
+    "storageCapacity": "স্টোরেজ ক্ষমতা",
+    "autoDelete": "স্বয়ংক্রিয় মুছে ফেলা",
+    "updates": "আপডেট",
+    "placement": "অবস্থান",
+    "displayMonitor": "ডিসপ্লে মনিটর",
+    "locationHint": "অবস্থান নির্দেশনা",
+    "hoverZoneLength": "হোভার জোনের দৈর্ঘ্য",
+    "triggerThickness": "ট্রিগারের পুরুত্ব",
+    "copyBeacon": "কপি ইন্ডিকেটর",
+    "beaconStyle": "ইন্ডিকেটর স্টাইল",
+    "audioFeedback": "অডিও প্রতিক্রিয়া",
+    "alignment": "সারিবদ্ধতা",
+    "triggerPosition": "ট্রিগারের অবস্থান",
+    "panelHeight": "প্যানেলের উচ্চতা",
+    "textSize": "টেক্সটের আকার",
+    "languageSelectDesc": "অ্যাপের প্রদর্শন ভাষা নির্বাচন করুন",
+    "toggleHotkeyPressDesc": "Edge-Drop টগল করতে যেকোনো জায়গায় চাপুন",
+    "edgeHintPulseDesc": "প্যানেলের অবস্থান নির্দেশ করতে প্রান্ত বরাবর ইন্ডিকেটর পালস",
+  },
 };
 
 export const tr: TranslationKeys = {
   "filters": {
+    "title": "Filtreler",
+    "colors": "Renkler",
     "all": "Tümü",
     "text": "Metin",
     "links": "Bağlantılar",
@@ -4917,6 +6103,11 @@ export const tr: TranslationKeys = {
     "files": "Dosyalar"
   },
   "tabs": {
+    "storageRetention": "Depolama ve Saklama",
+    "clipboardRules": "Pano Kuralları",
+    "activationShortcuts": "Kısayollar ve Üzerine Gelme",
+    "generalStartup": "Genel ve Başlangıç",
+    "updates": "Güncellemeler",
     "behaviour": "Davranış",
     "position": "Konum",
     "appearance": "Görünüm"
@@ -4928,6 +6119,17 @@ export const tr: TranslationKeys = {
     "whatsNew": "Yenilikler"
   },
   "behaviour": {
+    "restartFailed": "Yeniden başlatma başarısız",
+    "restarting": "Yeniden başlatılıyor...",
+    "restart": "Yeniden başlat",
+    "update": "Güncelle",
+    "updateLabelAvailable": "YENİ GÜNCELLEME MEVCUT",
+    "updateLabelDownloading": "GÜNCELLEME İNDİRİLİYOR",
+    "updateLabelReady": "GÜNCELLEME YÜKLEMEYE HAZIR",
+    "updateModeNotifyDesc": "Güncellemeler kullanılabilir olduğunda indirmeden bildir",
+    "updateModeOff": "Kapalı",
+    "updateModeNotify": "Bana bildir",
+    "updateModeAuto": "Otomatik",
     "languageTitle": "Dil",
     "languageDesc": "Sistem menüleri ve denetimler için arayüz dilini seç",
     "systemDefault": "Sistem Varsayılanı (Otomatik)",
@@ -4980,6 +6182,12 @@ export const tr: TranslationKeys = {
     "hotkeyReset": "Varsayılana sıfırla ({shortcut})"
   },
   "position": {
+    "right": "Sağ",
+    "left": "Sol",
+    "horizontalPositionDesc": "Ekran kenarı boyunca yatay hizalamayı ayarla",
+    "horizontalPositionTitle": "Yatay Konum",
+    "bottomEdge": "Alt Kenar",
+    "topEdge": "Üst Kenar",
     "edgePlacementTitle": "Kenar Yerleşimi",
     "edgePlacementDesc": "Edge-Drop'un hangi ekran kenarına bağlanacağını seç",
     "leftEdge": "Sol Kenar",
@@ -5007,6 +6215,8 @@ export const tr: TranslationKeys = {
     "panelHeightDesc": "Pano rafının dikey boyutu"
   },
   "appearance": {
+    "closeStyleSelector": "Gösterge Stili Seçicisini Kapat",
+    "openStyleSelector": "Gösterge Stili Seçicisini Aç",
     "copyIndicatorTitle": "Kopya Göstergesi",
     "copyIndicatorDesc": "Kopyalama sırasında ekran kenarında ince görsel işaret göster",
     "indicatorStyleTitle": "Gösterge Stili",
@@ -5029,6 +6239,7 @@ export const tr: TranslationKeys = {
     "sparkleStyle": "Kıvılcım"
   },
   "item": {
+    "copiedTimes": "{count} kez kopyalandı",
     "copy": "Kopyala",
     "copied": "kopyalandı",
     "imagePlaceholder": "görüntü",
@@ -5140,6 +6351,8 @@ export const tr: TranslationKeys = {
     "proTip4": "Bir metin kutusuna, ardından otomatik yapıştırmak için bir pano öğesine tıklayın."
   },
   "tray": {
+    "bottom": "Alt",
+    "top": "Üst",
     "showClipboard": "Panoyu Göster",
     "settings": "Ayarlar",
     "incognito": "Gizli (yakalamayı duraklat)",
@@ -5153,6 +6366,12 @@ export const tr: TranslationKeys = {
     "welcomeBody": "Ekranın sol-orta kenarına gelin veya rafınızı açmak için Alt+C tuşlarına basın."
   },
   "flyout": {
+    "clickToDeselect": "Seçimi kaldırmak için tıklayın",
+    "clickToSelect": "Seçmek için tıklayın",
+    "deselectItem": "Öğe seçimini kaldır",
+    "selectItem": "Öğe seç",
+    "copied": "Kopyalandı!",
+    "clickToPasteImageDrag": "Resmi yapıştırmak için tıklayın · Taşımak için sürükleyin",
     "copyBeaconStyleTitle": "Kopya Göstergesi Stili",
     "openLink": "Bağlantıyı Aç",
     "copyContent": "İçeriği Kopyala",
@@ -5176,6 +6395,14 @@ export const tr: TranslationKeys = {
     "current": "Geçerli"
   },
   "toast": {
+    "mergeIncompatible": "Farklı öğe türleri birleştirilemez",
+    "mergeFilesFull": "Bir klasör paketi en fazla 10 dosya içerebilir",
+    "mergeImagesFull": "Bir resim koleksiyonu en fazla 10 öğe içerebilir",
+    "mergeTextLinks": "Metin ve bağlantılar birlikte gruplanamaz",
+    "splitStacks": "{count} gruba bölündü (her biri en fazla 10)",
+    "pasteFallback": "Pano hazır — uygulamanıza tıklayın ve yapıştırmak için Ctrl+V tuşlarına basın",
+    "clearFailed": "Geçmiş temizlenemedi. Lütfen tekrar deneyin.",
+    "deleteFailed": "Bu öğe silinemedi. Lütfen tekrar deneyin.",
     "copiedToClipboard": "Panoya kopyalandı",
     "itemDeleted": "Öğe silindi",
     "itemPinned": "Öğe sabitlendi",
@@ -5188,6 +6415,7 @@ export const tr: TranslationKeys = {
     "shortcutUpdated": "Genel kısayol {shortcut} olarak ayarlandı"
   },
   "footer": {
+    "supportTagline": "%100 ücretsiz ve açık kaynaklı pano",
     "communityAndSupport": "Topluluk ve Destek",
     "feedbackTitle": "Geri Bildirim ve Sorunlar",
     "feedbackDesc": "GitHub'da hata bildir veya özellik öner",
@@ -5201,11 +6429,43 @@ export const tr: TranslationKeys = {
     "version": "Sürüm",
     "supportPromo": "Edge-Drop %100 ücretsiz ve açık kaynaklıdır. Günlük iş akışınıza yardımcı oluyorsa, daha da geliştirilmesine destek olmayı düşünebilirsiniz!",
     "supportOnKofi": "Ko-fi üzerinden destek ol"
-  }
+  },
+  "groups": {
+    "feedback": "GERİ BİLDİRİM",
+    "aboutEdgeDrop": "EDGE-DROP HAKKINDA",
+    "general": "GENEL",
+    "startup": "BAŞLANGIÇ",
+    "privacy": "GİZLİLİK",
+    "hoverActivation": "ÜZERİNE GELMEYLE ETKİNLİK",
+    "keyboardShortcut": "KLAVYE KISAYOLU",
+    "fullscreenProtection": "TAM EKRAN KORUMASI",
+    "clipboardBehaviour": "PANO DAVRANIŞI",
+    "restartCleanup": "YENİDEN BAŞLATMA TEMİZLİĞİ",
+    "storageCapacity": "DEPOLAMA KAPASİTESİ",
+    "autoDelete": "OTOMATİK SİLME",
+    "updates": "GÜNCELLEMELER",
+    "placement": "KONUMLANDIRMA",
+    "displayMonitor": "EKRAN MONİTÖRÜ",
+    "locationHint": "KONUM İPUCU",
+    "hoverZoneLength": "ÜZERİNE GELME BÖLGESİ UZUNLUĞU",
+    "triggerThickness": "TETİKLEYİCİ KALINLIĞI",
+    "copyBeacon": "KOPYALAMA GÖSTERGESİ",
+    "beaconStyle": "GÖSTERGE STİLİ",
+    "audioFeedback": "SES GERİ BİLDİRİMİ",
+    "alignment": "HİZALAMA",
+    "triggerPosition": "TETİKLEYİCİ KONUMU",
+    "panelHeight": "PANEL YÜKSEKLİĞİ",
+    "textSize": "METİN BOYUTU",
+    "languageSelectDesc": "Uygulama görüntüleme dilini seçin",
+    "toggleHotkeyPressDesc": "Edge-Drop'u değiştirmek için herhangi bir yere basın",
+    "edgeHintPulseDesc": "Panel konumunu belirtmek için kenar boyunca gösterge darbesi",
+  },
 };
 
 export const vi: TranslationKeys = {
   "filters": {
+    "title": "Bộ lọc",
+    "colors": "Màu sắc",
     "all": "Tất cả",
     "text": "Văn bản",
     "links": "Liên kết",
@@ -5213,6 +6473,11 @@ export const vi: TranslationKeys = {
     "files": "Tệp"
   },
   "tabs": {
+    "storageRetention": "Lưu trữ & Lưu giữ",
+    "clipboardRules": "Quy tắc bảng nhớ tạm",
+    "activationShortcuts": "Phím tắt & Di chuột",
+    "generalStartup": "Chung & Khởi động",
+    "updates": "Cập nhật",
     "behaviour": "Hành vi",
     "position": "Vị trí",
     "appearance": "Giao diện"
@@ -5224,6 +6489,17 @@ export const vi: TranslationKeys = {
     "whatsNew": "Có gì mới"
   },
   "behaviour": {
+    "restartFailed": "Khởi động lại thất bại",
+    "restarting": "Đang khởi động lại...",
+    "restart": "Khởi động lại",
+    "update": "Cập nhật",
+    "updateLabelAvailable": "CÓ BẢN CẬP NHẬT MỚI",
+    "updateLabelDownloading": "ĐANG TẢI BẢN CẬP NHẬT",
+    "updateLabelReady": "BẢN CẬP NHẬT SẴN SÀNG CÀI ĐẶT",
+    "updateModeNotifyDesc": "Thông báo khi có bản cập nhật mà không tải xuống",
+    "updateModeOff": "Tắt",
+    "updateModeNotify": "Thông báo cho tôi",
+    "updateModeAuto": "Tự động",
     "languageTitle": "Ngôn ngữ",
     "languageDesc": "Chọn ngôn ngữ giao diện cho menu hệ thống và điều khiển",
     "systemDefault": "Mặc định hệ thống (Tự động)",
@@ -5276,6 +6552,12 @@ export const vi: TranslationKeys = {
     "hotkeyReset": "Đặt lại về mặc định ({shortcut})"
   },
   "position": {
+    "right": "Phải",
+    "left": "Trái",
+    "horizontalPositionDesc": "Điều chỉnh căn chỉnh ngang dọc theo cạnh màn hình",
+    "horizontalPositionTitle": "Vị trí ngang",
+    "bottomEdge": "Cạnh dưới",
+    "topEdge": "Cạnh trên",
     "edgePlacementTitle": "Vị trí mép",
     "edgePlacementDesc": "Chọn mép màn hình mà Edge-Drop neo vào",
     "leftEdge": "Mép trái",
@@ -5303,6 +6585,8 @@ export const vi: TranslationKeys = {
     "panelHeightDesc": "Kích thước dọc của giá bảng tạm"
   },
   "appearance": {
+    "closeStyleSelector": "Đóng bộ chọn kiểu chỉ báo",
+    "openStyleSelector": "Mở bộ chọn kiểu chỉ báo",
     "copyIndicatorTitle": "Chỉ báo sao chép",
     "copyIndicatorDesc": "Hiển thị tín hiệu trực quan tinh tế ở mép màn hình khi sao chép",
     "indicatorStyleTitle": "Kiểu chỉ báo",
@@ -5325,6 +6609,7 @@ export const vi: TranslationKeys = {
     "sparkleStyle": "Lấp lánh"
   },
   "item": {
+    "copiedTimes": "Đã sao chép {count} lần",
     "copy": "Sao chép",
     "copied": "đã sao chép",
     "imagePlaceholder": "hình ảnh",
@@ -5436,6 +6721,8 @@ export const vi: TranslationKeys = {
     "proTip4": "Nhấp vào hộp văn bản, sau đó nhấp vào một mục bảng tạm để tự động dán."
   },
   "tray": {
+    "bottom": "Dưới",
+    "top": "Trên",
     "showClipboard": "Hiển thị Bảng tạm",
     "settings": "Cài đặt",
     "incognito": "Ẩn danh (tạm dừng chụp)",
@@ -5449,6 +6736,12 @@ export const vi: TranslationKeys = {
     "welcomeBody": "Di chuột vào giữa mép trái màn hình hoặc nhấn Alt+C để mở giá."
   },
   "flyout": {
+    "clickToDeselect": "Nhấp để bỏ chọn",
+    "clickToSelect": "Nhấp để chọn",
+    "deselectItem": "Bỏ chọn mục",
+    "selectItem": "Chọn mục",
+    "copied": "Đã sao chép!",
+    "clickToPasteImageDrag": "Nhấp để dán hình ảnh · Kéo để di chuyển",
     "copyBeaconStyleTitle": "Kiểu Chỉ báo Sao chép",
     "openLink": "Mở liên kết",
     "copyContent": "Sao chép Nội dung",
@@ -5472,6 +6765,14 @@ export const vi: TranslationKeys = {
     "current": "Hiện tại"
   },
   "toast": {
+    "mergeIncompatible": "Không thể kết hợp các loại mục khác nhau",
+    "mergeFilesFull": "Một gói thư mục có thể chứa tối đa 10 tệp",
+    "mergeImagesFull": "Một bộ sưu tập hình ảnh có thể chứa tối đa 10 mục",
+    "mergeTextLinks": "Không thể nhóm văn bản và liên kết cùng nhau",
+    "splitStacks": "Đã chia thành {count} nhóm (tối đa 10 nhóm mỗi nhóm)",
+    "pasteFallback": "Bảng nhớ tạm đã sẵn sàng — nhấp vào ứng dụng và nhấn Ctrl+V để dán",
+    "clearFailed": "Không thể xóa lịch sử. Vui lòng thử lại.",
+    "deleteFailed": "Không thể xóa mục này. Vui lòng thử lại.",
     "copiedToClipboard": "Đã sao chép vào bảng tạm",
     "itemDeleted": "Đã xóa mục",
     "itemPinned": "Đã ghim mục",
@@ -5484,6 +6785,7 @@ export const vi: TranslationKeys = {
     "shortcutUpdated": "Phím tắt toàn cục đã được đặt thành {shortcut}"
   },
   "footer": {
+    "supportTagline": "Bảng nhớ tạm miễn phí 100% và mã nguồn mở",
     "communityAndSupport": "Cộng đồng & Hỗ trợ",
     "feedbackTitle": "Phản hồi & Vấn đề",
     "feedbackDesc": "Báo cáo lỗi hoặc đề xuất tính năng trên GitHub",
@@ -5497,11 +6799,43 @@ export const vi: TranslationKeys = {
     "version": "Phiên bản",
     "supportPromo": "Edge-Drop hoàn toàn miễn phí và mã nguồn mở. Nếu ứng dụng giúp ích cho công việc hằng ngày của bạn, hãy cân nhắc ủng hộ quá trình phát triển để ứng dụng ngày càng tốt hơn!",
     "supportOnKofi": "Ủng hộ trên Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "PHẢN HỒI",
+    "aboutEdgeDrop": "GIỚI THIỆU EDGE-DROP",
+    "general": "CHUNG",
+    "startup": "KHỞI ĐỘNG",
+    "privacy": "QUYỀN RIÊNG TƯ",
+    "hoverActivation": "KÍCH HOẠT KHI DI CHUỘT",
+    "keyboardShortcut": "PHÍM TẮT BÀN PHÍM",
+    "fullscreenProtection": "BẢO VỆ TOÀN MÀN HÌNH",
+    "clipboardBehaviour": "HÀNH VI BẢNG NHỚ TẠM",
+    "restartCleanup": "DỌN DẸP KHI KHỞI ĐỘNG LẠI",
+    "storageCapacity": "DUNG LƯỢNG LƯU TRỮ",
+    "autoDelete": "TỰ ĐỘNG XÓA",
+    "updates": "CẬP NHẬT",
+    "placement": "VỊ TRÍ",
+    "displayMonitor": "MÀN HÌNH",
+    "locationHint": "GỢI Ý VỊ TRÍ",
+    "hoverZoneLength": "ĐỘ DÀI VÙNG DI CHUỘT",
+    "triggerThickness": "ĐỘ DÀY BỘ KÍCH HOẠT",
+    "copyBeacon": "CHỈ BÁO SAO CHÉP",
+    "beaconStyle": "KIỂU CHỈ BÁO",
+    "audioFeedback": "PHẢN HỒI ÂM THANH",
+    "alignment": "CĂN CHỈNH",
+    "triggerPosition": "VỊ TRÍ BỘ KÍCH HOẠT",
+    "panelHeight": "CHIỀU CAO BẢNG",
+    "textSize": "CỠ CHỮ",
+    "languageSelectDesc": "Chọn ngôn ngữ hiển thị của ứng dụng",
+    "toggleHotkeyPressDesc": "Nhấn ở bất kỳ đâu để bật/tắt Edge-Drop",
+    "edgeHintPulseDesc": "Xung chỉ báo dọc theo cạnh để gợi ý vị trí bảng",
+  },
 };
 
 export const pl: TranslationKeys = {
   "filters": {
+    "title": "Filtry",
+    "colors": "Kolory",
     "all": "Wszystko",
     "text": "Tekst",
     "links": "Linki",
@@ -5509,6 +6843,11 @@ export const pl: TranslationKeys = {
     "files": "Pliki"
   },
   "tabs": {
+    "storageRetention": "Pamięć i przechowywanie",
+    "clipboardRules": "Reguły schowka",
+    "activationShortcuts": "Skróty i najechanie",
+    "generalStartup": "Ogólne i uruchamianie",
+    "updates": "Aktualizacje",
     "behaviour": "Zachowanie",
     "position": "Pozycja",
     "appearance": "Wygląd"
@@ -5520,6 +6859,17 @@ export const pl: TranslationKeys = {
     "whatsNew": "Nowości"
   },
   "behaviour": {
+    "restartFailed": "Ponowne uruchomienie nie powiodło się",
+    "restarting": "Ponowne uruchamianie...",
+    "restart": "Uruchom ponownie",
+    "update": "Aktualizuj",
+    "updateLabelAvailable": "DOSTĘPNA NOWA AKTUALIZACJA",
+    "updateLabelDownloading": "POBIERANIE AKTUALIZACJI",
+    "updateLabelReady": "AKTUALIZACJA GOTOWA DO INSTALACJI",
+    "updateModeNotifyDesc": "Powiadamiaj o dostępnych aktualizacjach bez ich pobierania",
+    "updateModeOff": "Wyłączone",
+    "updateModeNotify": "Powiadom mnie",
+    "updateModeAuto": "Automatycznie",
     "languageTitle": "Język",
     "languageDesc": "Wybierz język interfejsu dla menu i kontrolek systemu",
     "systemDefault": "Domyślny systemowy (Auto)",
@@ -5572,6 +6922,12 @@ export const pl: TranslationKeys = {
     "hotkeyReset": "Przywróć domyślny ({shortcut})"
   },
   "position": {
+    "right": "Prawo",
+    "left": "Lewo",
+    "horizontalPositionDesc": "Dostosuj poziome wyrównanie wzdłuż krawędzi ekranu",
+    "horizontalPositionTitle": "Pozycja pozioma",
+    "bottomEdge": "Dolna krawędź",
+    "topEdge": "Górna krawędź",
     "edgePlacementTitle": "Położenie krawędzi",
     "edgePlacementDesc": "Wybierz, do której krawędzi ekranu przyczepia się Edge-Drop",
     "leftEdge": "Lewa krawędź",
@@ -5599,6 +6955,8 @@ export const pl: TranslationKeys = {
     "panelHeightDesc": "Pionowy rozmiar półki schowka"
   },
   "appearance": {
+    "closeStyleSelector": "Zamknij wybór stylu wskaźnika",
+    "openStyleSelector": "Otwórz wybór stylu wskaźnika",
     "copyIndicatorTitle": "Wskaźnik kopiowania",
     "copyIndicatorDesc": "Pokaż subtelny wizualny sygnał na krawędzi ekranu podczas kopiowania",
     "indicatorStyleTitle": "Styl wskaźnika",
@@ -5621,10 +6979,11 @@ export const pl: TranslationKeys = {
     "sparkleStyle": "Iskra"
   },
   "item": {
+    "copiedTimes": "Skopiowano {count} razy",
     "copy": "Kopiuj",
     "copied": "skopiowano",
     "imagePlaceholder": "obraz",
-    "pinned": "PRZYPINIĘTE",
+    "pinned": "PRZYPIĘTE",
     "pin": "Przypnij",
     "unpin": "Odepnij",
     "delete": "Usuń",
@@ -5732,6 +7091,8 @@ export const pl: TranslationKeys = {
     "proTip4": "Kliknij pole tekstowe, a następnie element schowka, aby automatycznie wkleić."
   },
   "tray": {
+    "bottom": "Dół",
+    "top": "Góra",
     "showClipboard": "Pokaż schowek",
     "settings": "Ustawienia",
     "incognito": "Incognito (wstrzymaj przechwytywanie)",
@@ -5745,6 +7106,12 @@ export const pl: TranslationKeys = {
     "welcomeBody": "Najedź na środek lewej krawędzi ekranu lub naciśnij Alt+C, aby wysunąć półkę."
   },
   "flyout": {
+    "clickToDeselect": "Kliknij, aby odznaczyć",
+    "clickToSelect": "Kliknij, aby wybrać",
+    "deselectItem": "Odznacz element",
+    "selectItem": "Wybierz element",
+    "copied": "Skopiowano!",
+    "clickToPasteImageDrag": "Kliknij, aby wkleić obraz · Przeciągnij, aby przenieść",
     "copyBeaconStyleTitle": "Styl wskaźnika kopiowania",
     "openLink": "Otwórz link",
     "copyContent": "Kopiuj treść",
@@ -5768,6 +7135,14 @@ export const pl: TranslationKeys = {
     "current": "Bieżący"
   },
   "toast": {
+    "mergeIncompatible": "Nie można łączyć elementów różnych typów",
+    "mergeFilesFull": "Pakiet folderów może zawierać maksymalnie 10 plików",
+    "mergeImagesFull": "Kolekcja obrazów może zawierać maksymalnie 10 elementów",
+    "mergeTextLinks": "Tekstu i linków nie można grupować razem",
+    "splitStacks": "Podzielono na {count} grup (maks. 10 w każdej)",
+    "pasteFallback": "Schowek gotowy — kliknij aplikację i naciśnij Ctrl+V, aby wkleić",
+    "clearFailed": "Nie można wyczyścić historii. Spróbuj ponownie.",
+    "deleteFailed": "Nie można usunąć tego elementu. Spróbuj ponownie.",
     "copiedToClipboard": "Skopiowano do schowka",
     "itemDeleted": "Element usunięty",
     "itemPinned": "Element przypięty",
@@ -5780,6 +7155,7 @@ export const pl: TranslationKeys = {
     "shortcutUpdated": "Globalny skrót ustawiono na {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% darmowy schowek open source",
     "communityAndSupport": "Społeczność i wsparcie",
     "feedbackTitle": "Opinie i problemy",
     "feedbackDesc": "Zgłaszaj błędy lub sugeruj funkcje na GitHub",
@@ -5793,11 +7169,43 @@ export const pl: TranslationKeys = {
     "version": "Wersja",
     "supportPromo": "Edge-Drop jest w 100% darmowy i otwartoźródłowy. Jeśli pomaga Ci w codziennej pracy, rozważ wsparcie jego rozwoju, aby był jeszcze lepszy!",
     "supportOnKofi": "Wesprzyj na Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "OPINIE",
+    "aboutEdgeDrop": "O EDGE-DROP",
+    "general": "OGÓLNE",
+    "startup": "URUCHAMIANIE",
+    "privacy": "PRYWATNOŚĆ",
+    "hoverActivation": "AKTYWACJA PRZY NAJECHANIU",
+    "keyboardShortcut": "SKRÓT KLAWIATUROWY",
+    "fullscreenProtection": "OCHRONA PEŁNEGO EKRANU",
+    "clipboardBehaviour": "ZACHOWANIE SCHOWKA",
+    "restartCleanup": "CZYSZCZENIE PRZY PONOWNYM URUCHOMIENIU",
+    "storageCapacity": "POJEMNOŚĆ PAMIĘCI",
+    "autoDelete": "AUTOMATYCZNE USUWANIE",
+    "updates": "AKTUALIZACJE",
+    "placement": "POŁOŻENIE",
+    "displayMonitor": "MONITOR EKRANU",
+    "locationHint": "WSKAZÓWKA POŁOŻENIA",
+    "hoverZoneLength": "DŁUGOŚĆ STREFY NAJECHANIA",
+    "triggerThickness": "GRUBOŚĆ WYZWALACZA",
+    "copyBeacon": "WSKAŹNIK KOPIOWANIA",
+    "beaconStyle": "STYL WSKAŹNIKA",
+    "audioFeedback": "INFORMACJA DŹWIĘKOWA",
+    "alignment": "WYRÓWNANIE",
+    "triggerPosition": "POZYCJA WYZWALACZA",
+    "panelHeight": "WYSOKOŚĆ PANELU",
+    "textSize": "ROZMIAR TEKSTU",
+    "languageSelectDesc": "Wybierz język wyświetlania aplikacji",
+    "toggleHotkeyPressDesc": "Naciśnij w dowolnym miejscu, aby przełączyć Edge-Drop",
+    "edgeHintPulseDesc": "Puls wskaźnika wzdłuż krawędzi wskazuje położenie panelu",
+  },
 };
 
 export const nl: TranslationKeys = {
   "filters": {
+    "title": "Filters",
+    "colors": "Kleuren",
     "all": "Alle",
     "text": "Tekst",
     "links": "Links",
@@ -5805,6 +7213,11 @@ export const nl: TranslationKeys = {
     "files": "Bestanden"
   },
   "tabs": {
+    "storageRetention": "Opslag en bewaarbeleid",
+    "clipboardRules": "Klembordregels",
+    "activationShortcuts": "Sneltoetsen en zweven",
+    "generalStartup": "Algemeen en opstarten",
+    "updates": "Updates",
     "behaviour": "Gedrag",
     "position": "Positie",
     "appearance": "Weergave"
@@ -5816,6 +7229,17 @@ export const nl: TranslationKeys = {
     "whatsNew": "Wat is er nieuw"
   },
   "behaviour": {
+    "restartFailed": "Opnieuw starten mislukt",
+    "restarting": "Opnieuw starten...",
+    "restart": "Opnieuw starten",
+    "update": "Bijwerken",
+    "updateLabelAvailable": "NIEUWE UPDATE BESCHIKBAAR",
+    "updateLabelDownloading": "UPDATE WORDT GEDOWNLOAD",
+    "updateLabelReady": "UPDATE KLAAR OM TE INSTALLEREN",
+    "updateModeNotifyDesc": "Mij informeren wanneer updates beschikbaar zijn zonder ze te downloaden",
+    "updateModeOff": "Uit",
+    "updateModeNotify": "Mij informeren",
+    "updateModeAuto": "Automatisch",
     "languageTitle": "Taal",
     "languageDesc": "Selecteer UI-taal voor systeemmenu's en bediening",
     "systemDefault": "Systeemstandaard (Auto)",
@@ -5868,6 +7292,12 @@ export const nl: TranslationKeys = {
     "hotkeyReset": "Terugzetten naar standaard ({shortcut})"
   },
   "position": {
+    "right": "Rechts",
+    "left": "Links",
+    "horizontalPositionDesc": "Horizontale uitlijning langs de schermrand aanpassen",
+    "horizontalPositionTitle": "Horizontale positie",
+    "bottomEdge": "Onderrand",
+    "topEdge": "Bovenrand",
     "edgePlacementTitle": "Randplaatsing",
     "edgePlacementDesc": "Kies aan welke schermrand Edge-Drop zich vastklikt",
     "leftEdge": "Linkerrand",
@@ -5895,6 +7325,8 @@ export const nl: TranslationKeys = {
     "panelHeightDesc": "Verticale afmeting van de klembordplank"
   },
   "appearance": {
+    "closeStyleSelector": "Stijlkeuze voor indicator sluiten",
+    "openStyleSelector": "Stijlkeuze voor indicator openen",
     "copyIndicatorTitle": "Kopieer-indicator",
     "copyIndicatorDesc": "Subtiele visuele baken op de schermrand tonen bij kopiëren",
     "indicatorStyleTitle": "Indicatorstijl",
@@ -5917,6 +7349,7 @@ export const nl: TranslationKeys = {
     "sparkleStyle": "Sprankel"
   },
   "item": {
+    "copiedTimes": "{count} keer gekopieerd",
     "copy": "Kopiëren",
     "copied": "gekopieerd",
     "imagePlaceholder": "afbeelding",
@@ -6028,6 +7461,8 @@ export const nl: TranslationKeys = {
     "proTip4": "Klik op een tekstvak en vervolgens op een klemborditem om automatisch te plakken."
   },
   "tray": {
+    "bottom": "Onder",
+    "top": "Boven",
     "showClipboard": "Klembord tonen",
     "settings": "Instellingen",
     "incognito": "Incognito (vastleggen pauzeren)",
@@ -6041,6 +7476,12 @@ export const nl: TranslationKeys = {
     "welcomeBody": "Beweeg tegen het midden van de linkerschermrand of druk op Alt+C om je plank te openen."
   },
   "flyout": {
+    "clickToDeselect": "Klik om selectie op te heffen",
+    "clickToSelect": "Klik om te selecteren",
+    "deselectItem": "Selectie opheffen",
+    "selectItem": "Item selecteren",
+    "copied": "Gekopieerd!",
+    "clickToPasteImageDrag": "Klik om afbeelding te plakken · Sleep om te verplaatsen",
     "copyBeaconStyleTitle": "Stijl van kopieer-indicator",
     "openLink": "Link openen",
     "copyContent": "Inhoud kopiëren",
@@ -6064,6 +7505,14 @@ export const nl: TranslationKeys = {
     "current": "Huidig"
   },
   "toast": {
+    "mergeIncompatible": "Verschillende itemtypen kunnen niet worden gecombineerd",
+    "mergeFilesFull": "Een mappakket kan maximaal 10 bestanden bevatten",
+    "mergeImagesFull": "Een afbeeldingsverzameling kan maximaal 10 items bevatten",
+    "mergeTextLinks": "Tekst en links kunnen niet samen worden gegroepeerd",
+    "splitStacks": "Gesplitst in {count} groepen (max. 10 per groep)",
+    "pasteFallback": "Klembord gereed — klik op je app en druk op Ctrl+V om te plakken",
+    "clearFailed": "Geschiedenis kon niet worden gewist. Probeer het opnieuw.",
+    "deleteFailed": "Dit item kon niet worden verwijderd. Probeer het opnieuw.",
     "copiedToClipboard": "Gekopieerd naar klembord",
     "itemDeleted": "Item verwijderd",
     "itemPinned": "Item vastgezet",
@@ -6076,6 +7525,7 @@ export const nl: TranslationKeys = {
     "shortcutUpdated": "Globale sneltoets ingesteld op {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% gratis en open-source klembord",
     "communityAndSupport": "Community en ondersteuning",
     "feedbackTitle": "Feedback en problemen",
     "feedbackDesc": "Meld bugs of stel functies voor op GitHub",
@@ -6089,11 +7539,43 @@ export const nl: TranslationKeys = {
     "version": "Versie",
     "supportPromo": "Edge-Drop is 100% gratis en open source. Als het je dagelijkse workflow makkelijker maakt, overweeg dan de ontwikkeling te steunen zodat het nog beter wordt!",
     "supportOnKofi": "Steun op Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "OVER EDGE-DROP",
+    "general": "ALGEMEEN",
+    "startup": "OPSTARTEN",
+    "privacy": "PRIVACY",
+    "hoverActivation": "ACTIVERING BIJ HOVEREN",
+    "keyboardShortcut": "TOETSENBORDSNELTOETS",
+    "fullscreenProtection": "VOLLEDIGSCHERMBESCHERMING",
+    "clipboardBehaviour": "KLEMBORDGEDRAG",
+    "restartCleanup": "OPRUIMEN BIJ HERSTART",
+    "storageCapacity": "OPSLAGCAPACITEIT",
+    "autoDelete": "AUTOMATISCH VERWIJDEREN",
+    "updates": "UPDATES",
+    "placement": "PLAATSING",
+    "displayMonitor": "BEELDSCHERM",
+    "locationHint": "LOCATIEAANWIJZING",
+    "hoverZoneLength": "LENGTE VAN HOVERGEBIED",
+    "triggerThickness": "DIKTE VAN TRIGGER",
+    "copyBeacon": "KOPIEERINDICATOR",
+    "beaconStyle": "INDICATORSTIJL",
+    "audioFeedback": "AUDIOFEEDBACK",
+    "alignment": "UITLIJNING",
+    "triggerPosition": "TRIGGERPOSITIE",
+    "panelHeight": "PANEELHOOGTE",
+    "textSize": "TEKSTGROOTTE",
+    "languageSelectDesc": "Selecteer de weergavetaal van de toepassing",
+    "toggleHotkeyPressDesc": "Druk ergens om Edge-Drop in of uit te schakelen",
+    "edgeHintPulseDesc": "Indicatorpuls langs de rand om de paneelpositie aan te geven",
+  },
 };
 
 export const sv: TranslationKeys = {
   "filters": {
+    "title": "Filter",
+    "colors": "Färger",
     "all": "Alla",
     "text": "Text",
     "links": "Länkar",
@@ -6101,6 +7583,11 @@ export const sv: TranslationKeys = {
     "files": "Filer"
   },
   "tabs": {
+    "storageRetention": "Lagring och bevarande",
+    "clipboardRules": "Urklippsregler",
+    "activationShortcuts": "Genvägar och hovring",
+    "generalStartup": "Allmänt och start",
+    "updates": "Uppdateringar",
     "behaviour": "Beteende",
     "position": "Position",
     "appearance": "Utseende"
@@ -6112,6 +7599,17 @@ export const sv: TranslationKeys = {
     "whatsNew": "Nyheter"
   },
   "behaviour": {
+    "restartFailed": "Omstart misslyckades",
+    "restarting": "Startar om...",
+    "restart": "Starta om",
+    "update": "Uppdatera",
+    "updateLabelAvailable": "NY UPPDATERING TILLGÄNGLIG",
+    "updateLabelDownloading": "LADDAR NER UPPDATERING",
+    "updateLabelReady": "UPPDATERING REDO ATT INSTALLERAS",
+    "updateModeNotifyDesc": "Meddela när uppdateringar finns tillgängliga utan att ladda ner dem",
+    "updateModeOff": "Av",
+    "updateModeNotify": "Meddela mig",
+    "updateModeAuto": "Automatiskt",
     "languageTitle": "Språk",
     "languageDesc": "Välj gränssnittsspråk för systemmenyer och kontroller",
     "systemDefault": "Systemstandard (Auto)",
@@ -6164,6 +7662,12 @@ export const sv: TranslationKeys = {
     "hotkeyReset": "Återställ till standard ({shortcut})"
   },
   "position": {
+    "right": "Höger",
+    "left": "Vänster",
+    "horizontalPositionDesc": "Justera horisontell placering längs skärmkanten",
+    "horizontalPositionTitle": "Horisontell position",
+    "bottomEdge": "Nedre kant",
+    "topEdge": "Övre kant",
     "edgePlacementTitle": "Kantplacering",
     "edgePlacementDesc": "Välj vilken skärmkant Edge-Drop förankras vid",
     "leftEdge": "Vänster kant",
@@ -6191,6 +7695,8 @@ export const sv: TranslationKeys = {
     "panelHeightDesc": "Vertikal storlek på urklippshyllan"
   },
   "appearance": {
+    "closeStyleSelector": "Stäng väljare för indikatorstil",
+    "openStyleSelector": "Öppna väljare för indikatorstil",
     "copyIndicatorTitle": "Kopieringsindikator",
     "copyIndicatorDesc": "Visa en subtil visuell beacon vid skärmkanten vid kopiering",
     "indicatorStyleTitle": "Indikatorstil",
@@ -6213,6 +7719,7 @@ export const sv: TranslationKeys = {
     "sparkleStyle": "Gnista"
   },
   "item": {
+    "copiedTimes": "Kopierat {count} gånger",
     "copy": "Kopiera",
     "copied": "kopierat",
     "imagePlaceholder": "bild",
@@ -6324,6 +7831,8 @@ export const sv: TranslationKeys = {
     "proTip4": "Klicka på en textruta, sedan på ett urklippsobjekt för att klistra in automatiskt."
   },
   "tray": {
+    "bottom": "Nederst",
+    "top": "Överst",
     "showClipboard": "Visa urklipp",
     "settings": "Inställningar",
     "incognito": "Inkognito (pausa infångning)",
@@ -6337,6 +7846,12 @@ export const sv: TranslationKeys = {
     "welcomeBody": "Sväv mot mitten av den vänstra skärmkanten eller tryck Alt+C för att skjuta ut din hylla."
   },
   "flyout": {
+    "clickToDeselect": "Klicka för att avmarkera",
+    "clickToSelect": "Klicka för att välja",
+    "deselectItem": "Avmarkera objekt",
+    "selectItem": "Välj objekt",
+    "copied": "Kopierat!",
+    "clickToPasteImageDrag": "Klicka för att klistra in bilden · Dra för att flytta",
     "copyBeaconStyleTitle": "Stil för kopieringsindikator",
     "openLink": "Öppna länk",
     "copyContent": "Kopiera innehåll",
@@ -6360,6 +7875,14 @@ export const sv: TranslationKeys = {
     "current": "Aktuell"
   },
   "toast": {
+    "mergeIncompatible": "Olika objekttyper kan inte kombineras",
+    "mergeFilesFull": "Ett mappaket kan innehålla högst 10 filer",
+    "mergeImagesFull": "En bildsamling kan innehålla högst 10 objekt",
+    "mergeTextLinks": "Text och länkar kan inte grupperas tillsammans",
+    "splitStacks": "Delat i {count} grupper (max 10 i varje)",
+    "pasteFallback": "Urklipp klart — klicka på appen och tryck på Ctrl+V för att klistra in",
+    "clearFailed": "Det gick inte att rensa historiken. Försök igen.",
+    "deleteFailed": "Det gick inte att ta bort objektet. Försök igen.",
     "copiedToClipboard": "Kopierad till urklipp",
     "itemDeleted": "Objekt borttaget",
     "itemPinned": "Objekt fäst",
@@ -6372,6 +7895,7 @@ export const sv: TranslationKeys = {
     "shortcutUpdated": "Globalt kortkommando inställt på {shortcut}"
   },
   "footer": {
+    "supportTagline": "100 % gratis och öppen källkod för urklipp",
     "communityAndSupport": "Community och support",
     "feedbackTitle": "Feedback och problem",
     "feedbackDesc": "Rapportera buggar eller föreslå funktioner på GitHub",
@@ -6385,11 +7909,43 @@ export const sv: TranslationKeys = {
     "version": "Version",
     "supportPromo": "Edge-Drop är 100 % gratis och med öppen källkod. Om det hjälper dig i ditt dagliga arbete kan du överväga att stödja utvecklingen så att det blir ännu bättre!",
     "supportOnKofi": "Stöd på Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "OM EDGE-DROP",
+    "general": "ALLMÄNT",
+    "startup": "START",
+    "privacy": "INTEGRITET",
+    "hoverActivation": "HOVRINGSAKTIVERING",
+    "keyboardShortcut": "TANGENTBORDSGENVÄG",
+    "fullscreenProtection": "HELSKÄRMSSKYDD",
+    "clipboardBehaviour": "URKLIPPSBETEENDE",
+    "restartCleanup": "RENSNING VID OMSTART",
+    "storageCapacity": "LAGRINGSKAPACITET",
+    "autoDelete": "AUTOMATISK RADERING",
+    "updates": "UPPDATERINGAR",
+    "placement": "PLACERING",
+    "displayMonitor": "SKÄRM",
+    "locationHint": "PLATSINDIKERING",
+    "hoverZoneLength": "HOVRINGSZONENS LÄNGD",
+    "triggerThickness": "TRIGGERNS TJOCKLEK",
+    "copyBeacon": "KOPIERINGSINDIKATOR",
+    "beaconStyle": "INDIKATORSTIL",
+    "audioFeedback": "LJUDÅTERKOPPLING",
+    "alignment": "JUSTERING",
+    "triggerPosition": "TRIGGERPOSITION",
+    "panelHeight": "PANELHÖJD",
+    "textSize": "TEXTSTORLEK",
+    "languageSelectDesc": "Välj programmets visningsspråk",
+    "toggleHotkeyPressDesc": "Tryck var som helst för att växla Edge-Drop",
+    "edgeHintPulseDesc": "Indikatorpuls längs kanten för att visa panelens position",
+  },
 };
 
 export const id: TranslationKeys = {
   "filters": {
+    "title": "Filter",
+    "colors": "Warna",
     "all": "Semua",
     "text": "Teks",
     "links": "Tautan",
@@ -6397,6 +7953,11 @@ export const id: TranslationKeys = {
     "files": "Berkas"
   },
   "tabs": {
+    "storageRetention": "Penyimpanan & Retensi",
+    "clipboardRules": "Aturan Clipboard",
+    "activationShortcuts": "Pintasan & Hover",
+    "generalStartup": "Umum & Startup",
+    "updates": "Pembaruan",
     "behaviour": "Perilaku",
     "position": "Posisi",
     "appearance": "Tampilan"
@@ -6408,6 +7969,17 @@ export const id: TranslationKeys = {
     "whatsNew": "Apa yang baru"
   },
   "behaviour": {
+    "restartFailed": "Gagal memulai ulang",
+    "restarting": "Memulai ulang...",
+    "restart": "Mulai ulang",
+    "update": "Perbarui",
+    "updateLabelAvailable": "PEMBARUAN BARU TERSEDIA",
+    "updateLabelDownloading": "MENGUNDUH PEMBARUAN",
+    "updateLabelReady": "PEMBARUAN SIAP DIINSTAL",
+    "updateModeNotifyDesc": "Beri tahu saat pembaruan tersedia tanpa mengunduhnya",
+    "updateModeOff": "Mati",
+    "updateModeNotify": "Beri tahu saya",
+    "updateModeAuto": "Otomatis",
     "languageTitle": "Bahasa",
     "languageDesc": "Pilih bahasa antarmuka untuk menu dan kontrol sistem",
     "systemDefault": "Default sistem (Otomatis)",
@@ -6460,6 +8032,12 @@ export const id: TranslationKeys = {
     "hotkeyReset": "Atur ulang ke default ({shortcut})"
   },
   "position": {
+    "right": "Kanan",
+    "left": "Kiri",
+    "horizontalPositionDesc": "Sesuaikan perataan horizontal di sepanjang tepi layar",
+    "horizontalPositionTitle": "Posisi Horizontal",
+    "bottomEdge": "Tepi Bawah",
+    "topEdge": "Tepi Atas",
     "edgePlacementTitle": "Penempatan Tepi",
     "edgePlacementDesc": "Pilih tepi layar mana Edge-Drop berlabuh",
     "leftEdge": "Tepi Kiri",
@@ -6487,6 +8065,8 @@ export const id: TranslationKeys = {
     "panelHeightDesc": "Ukuran vertikal rak papan klip"
   },
   "appearance": {
+    "closeStyleSelector": "Tutup Pemilih Gaya Indikator",
+    "openStyleSelector": "Buka Pemilih Gaya Indikator",
     "copyIndicatorTitle": "Indikator Salin",
     "copyIndicatorDesc": "Tampilkan suar visual halus di tepi layar saat menyalin",
     "indicatorStyleTitle": "Gaya Indikator",
@@ -6509,6 +8089,7 @@ export const id: TranslationKeys = {
     "sparkleStyle": "Kilau"
   },
   "item": {
+    "copiedTimes": "Disalin {count} kali",
     "copy": "Salin",
     "copied": "disalin",
     "imagePlaceholder": "gambar",
@@ -6620,6 +8201,8 @@ export const id: TranslationKeys = {
     "proTip4": "Klik kotak teks, lalu item papan klip untuk menempel otomatis."
   },
   "tray": {
+    "bottom": "Bawah",
+    "top": "Atas",
     "showClipboard": "Tampilkan Papan Klip",
     "settings": "Pengaturan",
     "incognito": "Penyamaran (jeda penangkapan)",
@@ -6633,6 +8216,12 @@ export const id: TranslationKeys = {
     "welcomeBody": "Hover di tepi tengah-kiri layar, atau tekan Alt+C untuk membuka rak Anda."
   },
   "flyout": {
+    "clickToDeselect": "Klik untuk membatalkan pilihan",
+    "clickToSelect": "Klik untuk memilih",
+    "deselectItem": "Batalkan pilihan item",
+    "selectItem": "Pilih item",
+    "copied": "Disalin!",
+    "clickToPasteImageDrag": "Klik untuk menempelkan gambar · Seret untuk memindahkan",
     "copyBeaconStyleTitle": "Gaya Indikator Salin",
     "openLink": "Buka Tautan",
     "copyContent": "Salin Konten",
@@ -6656,6 +8245,14 @@ export const id: TranslationKeys = {
     "current": "Saat ini"
   },
   "toast": {
+    "mergeIncompatible": "Tidak dapat menggabungkan jenis item yang berbeda",
+    "mergeFilesFull": "Paket folder dapat berisi maksimal 10 file",
+    "mergeImagesFull": "Koleksi gambar dapat berisi maksimal 10 item",
+    "mergeTextLinks": "Teks dan tautan tidak dapat dikelompokkan bersama",
+    "splitStacks": "Dibagi menjadi {count} grup (maks. 10 masing-masing)",
+    "pasteFallback": "Clipboard siap — klik aplikasi Anda dan tekan Ctrl+V untuk menempelkan",
+    "clearFailed": "Tidak dapat menghapus riwayat. Silakan coba lagi.",
+    "deleteFailed": "Tidak dapat menghapus item ini. Silakan coba lagi.",
     "copiedToClipboard": "Disalin ke papan klip",
     "itemDeleted": "Item dihapus",
     "itemPinned": "Item disematkan",
@@ -6668,6 +8265,7 @@ export const id: TranslationKeys = {
     "shortcutUpdated": "Pintasan global diatur ke {shortcut}"
   },
   "footer": {
+    "supportTagline": "Clipboard 100% gratis & open-source",
     "communityAndSupport": "Komunitas & Dukungan",
     "feedbackTitle": "Umpan Balik & Masalah",
     "feedbackDesc": "Laporkan bug atau sarankan fitur di GitHub",
@@ -6681,11 +8279,43 @@ export const id: TranslationKeys = {
     "version": "Versi",
     "supportPromo": "Edge-Drop 100% gratis dan bersifat open-source. Jika aplikasi ini membantu alur kerja harian Anda, pertimbangkan untuk mendukung pengembangannya agar menjadi lebih baik lagi!",
     "supportOnKofi": "Dukung di Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "UMPAN BALIK",
+    "aboutEdgeDrop": "TENTANG EDGE-DROP",
+    "general": "UMUM",
+    "startup": "STARTUP",
+    "privacy": "PRIVASI",
+    "hoverActivation": "AKTIVASI HOVER",
+    "keyboardShortcut": "PINTASAN KEYBOARD",
+    "fullscreenProtection": "PERLINDUNGAN LAYAR PENUH",
+    "clipboardBehaviour": "PERILAKU CLIPBOARD",
+    "restartCleanup": "PEMBERSIHAN SAAT MULAI ULANG",
+    "storageCapacity": "KAPASITAS PENYIMPANAN",
+    "autoDelete": "HAPUS OTOMATIS",
+    "updates": "PEMBARUAN",
+    "placement": "PENEMPATAN",
+    "displayMonitor": "MONITOR TAMPILAN",
+    "locationHint": "PETUNJUK LOKASI",
+    "hoverZoneLength": "PANJANG ZONA HOVER",
+    "triggerThickness": "KETEBALAN PEMICU",
+    "copyBeacon": "INDIKATOR SALIN",
+    "beaconStyle": "GAYA INDIKATOR",
+    "audioFeedback": "UMPAN BALIK AUDIO",
+    "alignment": "PERATAAN",
+    "triggerPosition": "POSISI PEMICU",
+    "panelHeight": "TINGGI PANEL",
+    "textSize": "UKURAN TEKS",
+    "languageSelectDesc": "Pilih bahasa tampilan aplikasi",
+    "toggleHotkeyPressDesc": "Tekan di mana saja untuk mengaktifkan atau menonaktifkan Edge-Drop",
+    "edgeHintPulseDesc": "Denyut indikator di sepanjang tepi untuk menunjukkan posisi panel",
+  },
 };
 
 export const uk: TranslationKeys = {
   "filters": {
+    "title": "Фільтри",
+    "colors": "Кольори",
     "all": "Все",
     "text": "Текст",
     "links": "Лінки",
@@ -6693,6 +8323,11 @@ export const uk: TranslationKeys = {
     "files": "Файли"
   },
   "tabs": {
+    "storageRetention": "Сховище та зберігання",
+    "clipboardRules": "Правила буфера обміну",
+    "activationShortcuts": "Ярлики та наведення",
+    "generalStartup": "Загальні та запуск",
+    "updates": "Оновлення",
     "behaviour": "Поведінка",
     "position": "Позиція",
     "appearance": "Вигляд"
@@ -6704,6 +8339,17 @@ export const uk: TranslationKeys = {
     "whatsNew": "Що нового"
   },
   "behaviour": {
+    "restartFailed": "Не вдалося перезапустити",
+    "restarting": "Перезапуск...",
+    "restart": "Перезапустити",
+    "update": "Оновити",
+    "updateLabelAvailable": "ДОСТУПНЕ НОВЕ ОНОВЛЕННЯ",
+    "updateLabelDownloading": "ЗАВАНТАЖЕННЯ ОНОВЛЕННЯ",
+    "updateLabelReady": "ОНОВЛЕННЯ ГОТОВЕ ДО ВСТАНОВЛЕННЯ",
+    "updateModeNotifyDesc": "Повідомляти про доступні оновлення без їх завантаження",
+    "updateModeOff": "Вимкнено",
+    "updateModeNotify": "Повідомляти мене",
+    "updateModeAuto": "Автоматично",
     "languageTitle": "Мова",
     "languageDesc": "Виберіть мову інтерфейсу для системних меню та елементів керування",
     "systemDefault": "Системна (Авто)",
@@ -6756,6 +8402,12 @@ export const uk: TranslationKeys = {
     "hotkeyReset": "Скинути до стандартної ({shortcut})"
   },
   "position": {
+    "right": "Праворуч",
+    "left": "Ліворуч",
+    "horizontalPositionDesc": "Налаштувати горизонтальне вирівнювання вздовж краю екрана",
+    "horizontalPositionTitle": "Горизонтальне положення",
+    "bottomEdge": "Нижній край",
+    "topEdge": "Верхній край",
     "edgePlacementTitle": "Розміщення краю",
     "edgePlacementDesc": "Виберіть, до якого краю екрана кріпиться Edge-Drop",
     "leftEdge": "Лівий край",
@@ -6783,6 +8435,8 @@ export const uk: TranslationKeys = {
     "panelHeightDesc": "Вертикальний розмір полиці буфера обміну"
   },
   "appearance": {
+    "closeStyleSelector": "Закрити вибір стилю індикатора",
+    "openStyleSelector": "Відкрити вибір стилю індикатора",
     "copyIndicatorTitle": "Індикатор копіювання",
     "copyIndicatorDesc": "Показувати ледь помітний візуальний маячок на краю екрана під час копіювання",
     "indicatorStyleTitle": "Стиль індикатора",
@@ -6805,6 +8459,7 @@ export const uk: TranslationKeys = {
     "sparkleStyle": "Іскра"
   },
   "item": {
+    "copiedTimes": "Скопійовано {count} разів",
     "copy": "Копіювати",
     "copied": "скопійовано",
     "imagePlaceholder": "зображення",
@@ -6916,6 +8571,8 @@ export const uk: TranslationKeys = {
     "proTip4": "Натисніть на текстове поле, потім на елемент буфера обміну для автоматичного вставлення."
   },
   "tray": {
+    "bottom": "Внизу",
+    "top": "Вгорі",
     "showClipboard": "Показати буфер обміну",
     "settings": "Налаштування",
     "incognito": "Інкогніто (призупинити захоплення)",
@@ -6929,6 +8586,12 @@ export const uk: TranslationKeys = {
     "welcomeBody": "Наведіть курсор на середину лівого краю екрана або натисніть Alt+C, щоб відкрити полицю."
   },
   "flyout": {
+    "clickToDeselect": "Натисніть, щоб скасувати вибір",
+    "clickToSelect": "Натисніть, щоб вибрати",
+    "deselectItem": "Скасувати вибір",
+    "selectItem": "Вибрати елемент",
+    "copied": "Скопійовано!",
+    "clickToPasteImageDrag": "Натисніть, щоб вставити зображення · Перетягніть, щоб перемістити",
     "copyBeaconStyleTitle": "Стиль індикатора копіювання",
     "openLink": "Відкрити посилання",
     "copyContent": "Копіювати вміст",
@@ -6952,6 +8615,14 @@ export const uk: TranslationKeys = {
     "current": "Поточний"
   },
   "toast": {
+    "mergeIncompatible": "Не можна об'єднувати елементи різних типів",
+    "mergeFilesFull": "Пакет папки може містити максимум 10 файлів",
+    "mergeImagesFull": "Колекція зображень може містити максимум 10 елементів",
+    "mergeTextLinks": "Текст і посилання не можна об'єднати в одну групу",
+    "splitStacks": "Розділено на {count} груп (макс. 10 у кожній)",
+    "pasteFallback": "Буфер обміну готовий — натисніть на програму та натисніть Ctrl+V, щоб вставити",
+    "clearFailed": "Не вдалося очистити історію. Спробуйте ще раз.",
+    "deleteFailed": "Не вдалося видалити цей елемент. Спробуйте ще раз.",
     "copiedToClipboard": "Скопійовано в буфер обміну",
     "itemDeleted": "Елемент видалено",
     "itemPinned": "Елемент прикріплено",
@@ -6964,6 +8635,7 @@ export const uk: TranslationKeys = {
     "shortcutUpdated": "Глобальну комбінацію клавіш встановлено: {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% безкоштовний буфер обміну з відкритим кодом",
     "communityAndSupport": "Спільнота та підтримка",
     "feedbackTitle": "Відгуки та проблеми",
     "feedbackDesc": "Повідомляйте про помилки або пропонуйте функції на GitHub",
@@ -6977,11 +8649,43 @@ export const uk: TranslationKeys = {
     "version": "Версія",
     "supportPromo": "Edge-Drop є повністю безкоштовним і відкритим. Якщо він допомагає вам у щоденній роботі, підтримайте його розвиток, щоб зробити його ще кращим!",
     "supportOnKofi": "Підтримати на Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "ВІДГУК",
+    "aboutEdgeDrop": "ПРО EDGE-DROP",
+    "general": "ЗАГАЛЬНІ",
+    "startup": "ЗАПУСК",
+    "privacy": "КОНФІДЕНЦІЙНІСТЬ",
+    "hoverActivation": "АКТИВАЦІЯ ПРИ НАВЕДЕННІ",
+    "keyboardShortcut": "КЛАВІАТУРНИЙ ЯРЛИК",
+    "fullscreenProtection": "ЗАХИСТ ПОВНОЕКРАННОГО РЕЖИМУ",
+    "clipboardBehaviour": "ПОВЕДІНКА БУФЕРА ОБМІНУ",
+    "restartCleanup": "ОЧИЩЕННЯ ПРИ ПЕРЕЗАПУСКУ",
+    "storageCapacity": "ЄМНІСТЬ СХОВИЩА",
+    "autoDelete": "АВТОМАТИЧНЕ ВИДАЛЕННЯ",
+    "updates": "ОНОВЛЕННЯ",
+    "placement": "РОЗТАШУВАННЯ",
+    "displayMonitor": "МОНІТОР",
+    "locationHint": "ПІДКАЗКА ПОЛОЖЕННЯ",
+    "hoverZoneLength": "ДОВЖИНА ЗОНИ НАВЕДЕННЯ",
+    "triggerThickness": "ТОВЩИНА ТРИГЕРА",
+    "copyBeacon": "ІНДИКАТОР КОПІЮВАННЯ",
+    "beaconStyle": "СТИЛЬ ІНДИКАТОРА",
+    "audioFeedback": "ЗВУКОВИЙ ВІДГУК",
+    "alignment": "ВИРІВНЮВАННЯ",
+    "triggerPosition": "ПОЛОЖЕННЯ ТРИГЕРА",
+    "panelHeight": "ВИСОТА ПАНЕЛІ",
+    "textSize": "РОЗМІР ТЕКСТУ",
+    "languageSelectDesc": "Виберіть мову відображення програми",
+    "toggleHotkeyPressDesc": "Натисніть будь-де, щоб перемкнути Edge-Drop",
+    "edgeHintPulseDesc": "Імпульс індикатора вздовж краю підказує положення панелі",
+  },
 };
 
 export const el: TranslationKeys = {
   "filters": {
+    "title": "Φίλτρα",
+    "colors": "Χρώματα",
     "all": "Όλα",
     "text": "Κείμενο",
     "links": "Σύνδ.",
@@ -6989,6 +8693,11 @@ export const el: TranslationKeys = {
     "files": "Αρχεία"
   },
   "tabs": {
+    "storageRetention": "Αποθήκευση και διατήρηση",
+    "clipboardRules": "Κανόνες προχείρου",
+    "activationShortcuts": "Συντομεύσεις και αιώρηση",
+    "generalStartup": "Γενικά και εκκίνηση",
+    "updates": "Ενημερώσεις",
     "behaviour": "Συμπεριφορά",
     "position": "Θέση",
     "appearance": "Εμφάνιση"
@@ -7000,6 +8709,17 @@ export const el: TranslationKeys = {
     "whatsNew": "Τι νέο υπάρχει"
   },
   "behaviour": {
+    "restartFailed": "Η επανεκκίνηση απέτυχε",
+    "restarting": "Γίνεται επανεκκίνηση...",
+    "restart": "Επανεκκίνηση",
+    "update": "Ενημέρωση",
+    "updateLabelAvailable": "ΔΙΑΘΕΣΙΜΗ ΝΕΑ ΕΝΗΜΕΡΩΣΗ",
+    "updateLabelDownloading": "ΛΗΨΗ ΕΝΗΜΕΡΩΣΗΣ",
+    "updateLabelReady": "Η ΕΝΗΜΕΡΩΣΗ ΕΙΝΑΙ ΕΤΟΙΜΗ ΓΙΑ ΕΓΚΑΤΑΣΤΑΣΗ",
+    "updateModeNotifyDesc": "Να με ειδοποιείς όταν υπάρχουν διαθέσιμες ενημερώσεις χωρίς να τις κατεβάζεις",
+    "updateModeOff": "Απενεργοποιημένο",
+    "updateModeNotify": "Να με ειδοποιείς",
+    "updateModeAuto": "Αυτόματα",
     "languageTitle": "Γλώσσα",
     "languageDesc": "Επιλέξτε γλώσσα διεπαφής για μενού και στοιχεία ελέγχου συστήματος",
     "systemDefault": "Προεπιλογή συστήματος (Αυτόματο)",
@@ -7052,6 +8772,12 @@ export const el: TranslationKeys = {
     "hotkeyReset": "Επαναφορά στην προεπιλογή ({shortcut})"
   },
   "position": {
+    "right": "Δεξιά",
+    "left": "Αριστερά",
+    "horizontalPositionDesc": "Προσαρμογή της οριζόντιας ευθυγράμμισης κατά μήκος της άκρης της οθόνης",
+    "horizontalPositionTitle": "Οριζόντια θέση",
+    "bottomEdge": "Κάτω άκρο",
+    "topEdge": "Πάνω άκρο",
     "edgePlacementTitle": "Τοποθέτηση άκρης",
     "edgePlacementDesc": "Επιλέξτε σε ποια άκρη οθόνης αγκυρώνεται το Edge-Drop",
     "leftEdge": "Αριστερή άκρη",
@@ -7079,6 +8805,8 @@ export const el: TranslationKeys = {
     "panelHeightDesc": "Κάθετο μέγεθος του ραφιού πρόχειρου"
   },
   "appearance": {
+    "closeStyleSelector": "Κλείσιμο επιλογέα στυλ ένδειξης",
+    "openStyleSelector": "Άνοιγμα επιλογέα στυλ ένδειξης",
     "copyIndicatorTitle": "Ένδειξη αντιγραφής",
     "copyIndicatorDesc": "Εμφάνιση διακριτικής οπτικής ένδειξης στην άκρη οθόνης κατά την αντιγραφή",
     "indicatorStyleTitle": "Στυλ ένδειξης",
@@ -7101,6 +8829,7 @@ export const el: TranslationKeys = {
     "sparkleStyle": "Σπίθα"
   },
   "item": {
+    "copiedTimes": "Αντιγράφηκε {count} φορές",
     "copy": "Αντιγραφή",
     "copied": "αντιγράφηκε",
     "imagePlaceholder": "εικόνα",
@@ -7212,6 +8941,8 @@ export const el: TranslationKeys = {
     "proTip4": "Κάντε κλικ σε ένα πλαίσιο κειμένου και έπειτα σε ένα στοιχείο πρόχειρου για αυτόματη επικόλληση."
   },
   "tray": {
+    "bottom": "Κάτω",
+    "top": "Πάνω",
     "showClipboard": "Εμφάνιση Προχείρου",
     "settings": "Ρυθμίσεις",
     "incognito": "Υποκρυπτό (παύση καταγραφής)",
@@ -7225,6 +8956,12 @@ export const el: TranslationKeys = {
     "welcomeBody": "Αιωρηθείτε against τη μέση-αριστερή άκρη οθόνης ή πατήστε Alt+C για να ανοίξετε το ράφι σας."
   },
   "flyout": {
+    "clickToDeselect": "Κάντε κλικ για αποεπιλογή",
+    "clickToSelect": "Κάντε κλικ για επιλογή",
+    "deselectItem": "Αποεπιλογή στοιχείου",
+    "selectItem": "Επιλογή στοιχείου",
+    "copied": "Αντιγράφηκε!",
+    "clickToPasteImageDrag": "Κάντε κλικ για επικόλληση εικόνας · Σύρετε για μετακίνηση",
     "copyBeaconStyleTitle": "Στυλ Ένδειξης Αντιγραφής",
     "openLink": "Άνοιγμα Συνδέσμου",
     "copyContent": "Αντιγραφή Περιεχομένου",
@@ -7248,6 +8985,14 @@ export const el: TranslationKeys = {
     "current": "Τρέχον"
   },
   "toast": {
+    "mergeIncompatible": "Δεν είναι δυνατός ο συνδυασμός διαφορετικών τύπων στοιχείων",
+    "mergeFilesFull": "Ένα πακέτο φακέλου μπορεί να περιέχει έως 10 αρχεία",
+    "mergeImagesFull": "Μια συλλογή εικόνων μπορεί να περιέχει έως 10 στοιχεία",
+    "mergeTextLinks": "Το κείμενο και οι σύνδεσμοι δεν μπορούν να ομαδοποιηθούν μαζί",
+    "splitStacks": "Χωρίστηκε σε {count} ομάδες (έως 10 η καθεμία)",
+    "pasteFallback": "Το πρόχειρο είναι έτοιμο — κάντε κλικ στην εφαρμογή σας και πατήστε Ctrl+V για επικόλληση",
+    "clearFailed": "Δεν ήταν δυνατή η εκκαθάριση του ιστορικού. Δοκιμάστε ξανά.",
+    "deleteFailed": "Δεν ήταν δυνατή η διαγραφή αυτού του στοιχείου. Δοκιμάστε ξανά.",
     "copiedToClipboard": "Αντιγράφηκε στο πρόχειρο",
     "itemDeleted": "Το στοιχείο διαγράφηκε",
     "itemPinned": "Το στοιχείο καρφιτσώθηκε",
@@ -7260,6 +9005,7 @@ export const el: TranslationKeys = {
     "shortcutUpdated": "Η καθολική συντόμευση ορίστηκε σε {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% δωρεάν και ανοιχτού κώδικα πρόχειρο",
     "communityAndSupport": "Κοινότητα και Υποστήριξη",
     "feedbackTitle": "Σχόλια και Προβλήματα",
     "feedbackDesc": "Αναφέρετε σφάλματα ή προτείνετε λειτουργίες στο GitHub",
@@ -7273,11 +9019,43 @@ export const el: TranslationKeys = {
     "version": "Έκδοση",
     "supportPromo": "Το Edge-Drop είναι 100% δωρεάν και ανοιχτού κώδικα. Αν σας βοηθά στην καθημερινή εργασία σας, σκεφτείτε να υποστηρίξετε την ανάπτυξή του ώστε να γίνει ακόμη καλύτερο!",
     "supportOnKofi": "Υποστήριξη στο Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "ΣΧΟΛΙΑ",
+    "aboutEdgeDrop": "ΣΧΕΤΙΚΑ ΜΕ ΤΟ EDGE-DROP",
+    "general": "ΓΕΝΙΚΑ",
+    "startup": "ΕΚΚΙΝΗΣΗ",
+    "privacy": "ΑΠΟΡΡΗΤΟ",
+    "hoverActivation": "ΕΝΕΡΓΟΠΟΙΗΣΗ ΜΕ ΑΙΩΡΗΣΗ",
+    "keyboardShortcut": "ΣΥΝΤΟΜΕΥΣΗ ΠΛΗΚΤΡΟΛΟΓΙΟΥ",
+    "fullscreenProtection": "ΠΡΟΣΤΑΣΙΑ ΠΛΗΡΟΥΣ ΟΘΟΝΗΣ",
+    "clipboardBehaviour": "ΣΥΜΠΕΡΙΦΟΡΑ ΠΡΟΧΕΙΡΟΥ",
+    "restartCleanup": "ΕΚΚΑΘΑΡΙΣΗ ΚΑΤΑ ΤΗΝ ΕΠΑΝΕΚΚΙΝΗΣΗ",
+    "storageCapacity": "ΧΩΡΗΤΙΚΟΤΗΤΑ ΑΠΟΘΗΚΕΥΣΗΣ",
+    "autoDelete": "ΑΥΤΟΜΑΤΗ ΔΙΑΓΡΑΦΗ",
+    "updates": "ΕΝΗΜΕΡΩΣΕΙΣ",
+    "placement": "ΤΟΠΟΘΕΤΗΣΗ",
+    "displayMonitor": "ΟΘΟΝΗ",
+    "locationHint": "ΥΠΟΔΕΙΞΗ ΘΕΣΗΣ",
+    "hoverZoneLength": "ΜΗΚΟΣ ΖΩΝΗΣ ΑΙΩΡΗΣΗΣ",
+    "triggerThickness": "ΠΑΧΟΣ ΕΝΕΡΓΟΠΟΙΗΤΗ",
+    "copyBeacon": "ΕΝΔΕΙΞΗ ΑΝΤΙΓΡΑΦΗΣ",
+    "beaconStyle": "ΣΤΥΛ ΕΝΔΕΙΞΗΣ",
+    "audioFeedback": "ΗΧΗΤΙΚΗ ΑΝΑΤΡΟΦΟΔΟΤΗΣΗ",
+    "alignment": "ΕΥΘΥΓΡΑΜΜΙΣΗ",
+    "triggerPosition": "ΘΕΣΗ ΕΝΕΡΓΟΠΟΙΗΤΗ",
+    "panelHeight": "ΥΨΟΣ ΠΙΝΑΚΑ",
+    "textSize": "ΜΕΓΕΘΟΣ ΚΕΙΜΕΝΟΥ",
+    "languageSelectDesc": "Επιλέξτε τη γλώσσα εμφάνισης της εφαρμογής",
+    "toggleHotkeyPressDesc": "Πατήστε οπουδήποτε για εναλλαγή του Edge-Drop",
+    "edgeHintPulseDesc": "Παλμός ένδειξης κατά μήκος της άκρης για υπόδειξη της θέσης του πίνακα",
+  },
 };
 
 export const cs: TranslationKeys = {
   "filters": {
+    "title": "Filtry",
+    "colors": "Barvy",
     "all": "Vše",
     "text": "Text",
     "links": "Odkazy",
@@ -7285,6 +9063,11 @@ export const cs: TranslationKeys = {
     "files": "Soubory"
   },
   "tabs": {
+    "storageRetention": "Úložiště a uchovávání",
+    "clipboardRules": "Pravidla schránky",
+    "activationShortcuts": "Zkratky a najetí",
+    "generalStartup": "Obecné a spuštění",
+    "updates": "Aktualizace",
     "behaviour": "Chování",
     "position": "Pozice",
     "appearance": "Vzhled"
@@ -7296,6 +9079,17 @@ export const cs: TranslationKeys = {
     "whatsNew": "Co je nového"
   },
   "behaviour": {
+    "restartFailed": "Restart se nezdařil",
+    "restarting": "Restartování...",
+    "restart": "Restartovat",
+    "update": "Aktualizovat",
+    "updateLabelAvailable": "JE K DISPOZICI NOVÁ AKTUALIZACE",
+    "updateLabelDownloading": "STAHOVÁNÍ AKTUALIZACE",
+    "updateLabelReady": "AKTUALIZACE PŘIPRAVENA K INSTALACI",
+    "updateModeNotifyDesc": "Upozornit, když jsou dostupné aktualizace, bez jejich stažení",
+    "updateModeOff": "Vypnuto",
+    "updateModeNotify": "Upozornit mě",
+    "updateModeAuto": "Automaticky",
     "languageTitle": "Jazyk",
     "languageDesc": "Vyberte jazyk rozhraní pro systémové nabídky a ovládací prvky",
     "systemDefault": "Systémový výchozí (Auto)",
@@ -7348,6 +9142,12 @@ export const cs: TranslationKeys = {
     "hotkeyReset": "Obnovit výchozí ({shortcut})"
   },
   "position": {
+    "right": "Vpravo",
+    "left": "Vlevo",
+    "horizontalPositionDesc": "Upravit vodorovné zarovnání podél okraje obrazovky",
+    "horizontalPositionTitle": "Vodorovná poloha",
+    "bottomEdge": "Dolní okraj",
+    "topEdge": "Horní okraj",
     "edgePlacementTitle": "Umístění na okraji",
     "edgePlacementDesc": "Vyberte, ke kterému okraji obrazovky se Edge-Drop ukotví",
     "leftEdge": "Levý okraj",
@@ -7375,6 +9175,8 @@ export const cs: TranslationKeys = {
     "panelHeightDesc": "Svislá velikost police schránky"
   },
   "appearance": {
+    "closeStyleSelector": "Zavřít výběr stylu indikátoru",
+    "openStyleSelector": "Otevřít výběr stylu indikátoru",
     "copyIndicatorTitle": "Indikátor kopírování",
     "copyIndicatorDesc": "Při kopírování zobrazit jemný vizuální maják na okraji obrazovky",
     "indicatorStyleTitle": "Styl indikátoru",
@@ -7397,6 +9199,7 @@ export const cs: TranslationKeys = {
     "sparkleStyle": "Jiskra"
   },
   "item": {
+    "copiedTimes": "Zkopírováno {count}krát",
     "copy": "Kopírovat",
     "copied": "zkopírováno",
     "imagePlaceholder": "obrázek",
@@ -7508,6 +9311,8 @@ export const cs: TranslationKeys = {
     "proTip4": "Klikněte na textové pole a poté na položku schránky pro automatické vložení."
   },
   "tray": {
+    "bottom": "Dolů",
+    "top": "Nahoru",
     "showClipboard": "Zobrazit schránku",
     "settings": "Nastavení",
     "incognito": "Inkognito (pozastavit zachytávání)",
@@ -7521,6 +9326,12 @@ export const cs: TranslationKeys = {
     "welcomeBody": "Najeďte na střed levého okraje obrazovky nebo stiskněte Alt+C pro vysunutí vaší police."
   },
   "flyout": {
+    "clickToDeselect": "Kliknutím zrušíte výběr",
+    "clickToSelect": "Kliknutím vyberete",
+    "deselectItem": "Zrušit výběr položky",
+    "selectItem": "Vybrat položku",
+    "copied": "Zkopírováno!",
+    "clickToPasteImageDrag": "Kliknutím vložíte obrázek · Přetažením přesunete",
     "copyBeaconStyleTitle": "Styl indikátoru kopírování",
     "openLink": "Otevřít odkaz",
     "copyContent": "Kopírovat obsah",
@@ -7544,6 +9355,14 @@ export const cs: TranslationKeys = {
     "current": "Aktuální"
   },
   "toast": {
+    "mergeIncompatible": "Nelze kombinovat různé typy položek",
+    "mergeFilesFull": "Balíček složky může obsahovat maximálně 10 souborů",
+    "mergeImagesFull": "Kolekce obrázků může obsahovat maximálně 10 položek",
+    "mergeTextLinks": "Text a odkazy nelze seskupit dohromady",
+    "splitStacks": "Rozděleno do {count} skupin (max. 10 v každé)",
+    "pasteFallback": "Schránka je připravena — klikněte do aplikace a stisknutím Ctrl+V vložte",
+    "clearFailed": "Historii se nepodařilo vymazat. Zkuste to znovu.",
+    "deleteFailed": "Tuto položku se nepodařilo odstranit. Zkuste to znovu.",
     "copiedToClipboard": "Zkopírováno do schránky",
     "itemDeleted": "Položka smazána",
     "itemPinned": "Položka připnuta",
@@ -7556,6 +9375,7 @@ export const cs: TranslationKeys = {
     "shortcutUpdated": "Globální klávesová zkratka nastavena na {shortcut}"
   },
   "footer": {
+    "supportTagline": "100% bezplatná schránka s otevřeným zdrojovým kódem",
     "communityAndSupport": "Komunita a podpora",
     "feedbackTitle": "Zpětná vazba a problémy",
     "feedbackDesc": "Hlaste chyby nebo navrhujte funkce na GitHub",
@@ -7569,11 +9389,43 @@ export const cs: TranslationKeys = {
     "version": "Verze",
     "supportPromo": "Edge-Drop je 100% zdarma a s otevřeným zdrojovým kódem. Pokud vám usnadňuje každodenní práci, zvažte podporu jeho vývoje, aby byl ještě lepší!",
     "supportOnKofi": "Podpořit na Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "ZPĚTNÁ VAZBA",
+    "aboutEdgeDrop": "O EDGE-DROP",
+    "general": "OBECNÉ",
+    "startup": "SPUŠTĚNÍ",
+    "privacy": "SOUKROMÍ",
+    "hoverActivation": "AKTIVACE NAJETÍM",
+    "keyboardShortcut": "KLÁVESOVÁ ZKRATKA",
+    "fullscreenProtection": "OCHRANA CELOOBRAZOVKOVÉHO REŽIMU",
+    "clipboardBehaviour": "CHOVÁNÍ SCHRÁNKY",
+    "restartCleanup": "ČIŠTĚNÍ PŘI RESTARTU",
+    "storageCapacity": "KAPACITA ÚLOŽIŠTĚ",
+    "autoDelete": "AUTOMATICKÉ MAZÁNÍ",
+    "updates": "AKTUALIZACE",
+    "placement": "UMÍSTĚNÍ",
+    "displayMonitor": "MONITOR",
+    "locationHint": "NÁPOVĚDA UMÍSTĚNÍ",
+    "hoverZoneLength": "DÉLKA ZÓNY NAJETÍ",
+    "triggerThickness": "TLOUŠŤKA SPOUŠTĚČE",
+    "copyBeacon": "INDIKÁTOR KOPÍROVÁNÍ",
+    "beaconStyle": "STYL INDIKÁTORU",
+    "audioFeedback": "ZVUKOVÁ ZPĚTNÁ VAZBA",
+    "alignment": "ZAROVNÁNÍ",
+    "triggerPosition": "POZICE SPOUŠTĚČE",
+    "panelHeight": "VÝŠKA PANELU",
+    "textSize": "VELIKOST TEXTU",
+    "languageSelectDesc": "Vyberte jazyk zobrazení aplikace",
+    "toggleHotkeyPressDesc": "Stisknutím kdekoli přepnete Edge-Drop",
+    "edgeHintPulseDesc": "Pulz indikátoru podél okraje napovídá polohu panelu",
+  },
 };
 
 export const ro: TranslationKeys = {
   "filters": {
+    "title": "Filtre",
+    "colors": "Culori",
     "all": "Toate",
     "text": "Text",
     "links": "Linkuri",
@@ -7581,6 +9433,11 @@ export const ro: TranslationKeys = {
     "files": "Fișiere"
   },
   "tabs": {
+    "storageRetention": "Stocare și păstrare",
+    "clipboardRules": "Reguli clipboard",
+    "activationShortcuts": "Comenzi rapide și trecere cu cursorul",
+    "generalStartup": "General și pornire",
+    "updates": "Actualizări",
     "behaviour": "Comportament",
     "position": "Poziție",
     "appearance": "Aspect"
@@ -7592,6 +9449,17 @@ export const ro: TranslationKeys = {
     "whatsNew": "Noutăți"
   },
   "behaviour": {
+    "restartFailed": "Repornirea a eșuat",
+    "restarting": "Se repornește...",
+    "restart": "Repornește",
+    "update": "Actualizează",
+    "updateLabelAvailable": "ACTUALIZARE NOUĂ DISPONIBILĂ",
+    "updateLabelDownloading": "SE DESCARCĂ ACTUALIZAREA",
+    "updateLabelReady": "ACTUALIZARE GATA DE INSTALARE",
+    "updateModeNotifyDesc": "Anunță-mă când sunt disponibile actualizări fără a le descărca",
+    "updateModeOff": "Dezactivat",
+    "updateModeNotify": "Anunță-mă",
+    "updateModeAuto": "Automat",
     "languageTitle": "Limbă",
     "languageDesc": "Selectează limba interfeței pentru meniurile și comenzile sistemului",
     "systemDefault": "Implicit sistem (Auto)",
@@ -7644,6 +9512,12 @@ export const ro: TranslationKeys = {
     "hotkeyReset": "Resetează la valoarea implicită ({shortcut})"
   },
   "position": {
+    "right": "Dreapta",
+    "left": "Stânga",
+    "horizontalPositionDesc": "Ajustează alinierea orizontală de-a lungul marginii ecranului",
+    "horizontalPositionTitle": "Poziție orizontală",
+    "bottomEdge": "Marginea de jos",
+    "topEdge": "Marginea de sus",
     "edgePlacementTitle": "Plasare margine",
     "edgePlacementDesc": "Alege la ce margine de ecran se ancorează Edge-Drop",
     "leftEdge": "Margine stânga",
@@ -7671,6 +9545,8 @@ export const ro: TranslationKeys = {
     "panelHeightDesc": "Dimensiune verticală a raftului clipboard"
   },
   "appearance": {
+    "closeStyleSelector": "Închide selectorul de stil al indicatorului",
+    "openStyleSelector": "Deschide selectorul de stil al indicatorului",
     "copyIndicatorTitle": "Indicator de copiere",
     "copyIndicatorDesc": "Afișează o baliză vizuală subtilă pe marginea ecranului la copiere",
     "indicatorStyleTitle": "Stil indicator",
@@ -7693,6 +9569,7 @@ export const ro: TranslationKeys = {
     "sparkleStyle": "Scânteie"
   },
   "item": {
+    "copiedTimes": "Copiat de {count} ori",
     "copy": "Copiază",
     "copied": "copiat",
     "imagePlaceholder": "imagine",
@@ -7804,6 +9681,8 @@ export const ro: TranslationKeys = {
     "proTip4": "Dă clic pe o casetă de text, apoi pe un element din clipboard pentru a-l lipi automat."
   },
   "tray": {
+    "bottom": "Jos",
+    "top": "Sus",
     "showClipboard": "Arată clipboard",
     "settings": "Setări",
     "incognito": "Incognito (pauză captură)",
@@ -7817,6 +9696,12 @@ export const ro: TranslationKeys = {
     "welcomeBody": "Survolează marginea stângă-centrală a ecranului sau apasă Alt+C pentru a-ți glisa raftul."
   },
   "flyout": {
+    "clickToDeselect": "Clic pentru deselectare",
+    "clickToSelect": "Clic pentru selectare",
+    "deselectItem": "Deselectează elementul",
+    "selectItem": "Selectează elementul",
+    "copied": "Copiat!",
+    "clickToPasteImageDrag": "Clic pentru a lipi imaginea · Trage pentru a muta",
     "copyBeaconStyleTitle": "Stil indicator copiere",
     "openLink": "Deschide link",
     "copyContent": "Copiază conținut",
@@ -7840,6 +9725,14 @@ export const ro: TranslationKeys = {
     "current": "Curent"
   },
   "toast": {
+    "mergeIncompatible": "Tipurile diferite de elemente nu pot fi combinate",
+    "mergeFilesFull": "Un pachet de dosare poate conține maximum 10 fișiere",
+    "mergeImagesFull": "O colecție de imagini poate conține maximum 10 elemente",
+    "mergeTextLinks": "Textul și linkurile nu pot fi grupate împreună",
+    "splitStacks": "Împărțit în {count} grupuri (max. 10 fiecare)",
+    "pasteFallback": "Clipboard pregătit — fă clic în aplicație și apasă Ctrl+V pentru lipire",
+    "clearFailed": "Istoricul nu a putut fi șters. Încearcă din nou.",
+    "deleteFailed": "Elementul nu a putut fi șters. Încearcă din nou.",
     "copiedToClipboard": "Copiat în clipboard",
     "itemDeleted": "Element șters",
     "itemPinned": "Element pinat",
@@ -7852,6 +9745,7 @@ export const ro: TranslationKeys = {
     "shortcutUpdated": "Comanda rapidă globală a fost setată la {shortcut}"
   },
   "footer": {
+    "supportTagline": "Clipboard 100% gratuit și open-source",
     "communityAndSupport": "Comunitate și suport",
     "feedbackTitle": "Feedback și probleme",
     "feedbackDesc": "Raportează bug-uri sau sugerează funcții pe GitHub",
@@ -7865,11 +9759,43 @@ export const ro: TranslationKeys = {
     "version": "Versiune",
     "supportPromo": "Edge-Drop este 100% gratuit și open-source. Dacă îți este util în activitatea de zi cu zi, ia în considerare susținerea dezvoltării pentru a-l face și mai bun!",
     "supportOnKofi": "Susține pe Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "DESPRE EDGE-DROP",
+    "general": "GENERAL",
+    "startup": "PORNIRE",
+    "privacy": "CONFIDENȚIALITATE",
+    "hoverActivation": "ACTIVARE LA TRECERE",
+    "keyboardShortcut": "COMANDĂ RAPIDĂ DE LA TASTATURĂ",
+    "fullscreenProtection": "PROTECȚIE ECRAN COMPLET",
+    "clipboardBehaviour": "COMPORTAMENT CLIPBOARD",
+    "restartCleanup": "CURĂȚARE LA REPORNIRE",
+    "storageCapacity": "CAPACITATE DE STOCARE",
+    "autoDelete": "ȘTERGERE AUTOMATĂ",
+    "updates": "ACTUALIZĂRI",
+    "placement": "AMPLASARE",
+    "displayMonitor": "MONITOR",
+    "locationHint": "INDICAȚIE DE POZIȚIE",
+    "hoverZoneLength": "LUNGIMEA ZONEI DE TRECERE",
+    "triggerThickness": "GROSIMEA DECLANȘATORULUI",
+    "copyBeacon": "INDICATOR DE COPIERE",
+    "beaconStyle": "STIL INDICATOR",
+    "audioFeedback": "FEEDBACK AUDIO",
+    "alignment": "ALINIERE",
+    "triggerPosition": "POZIȚIA DECLANȘATORULUI",
+    "panelHeight": "ÎNĂLȚIMEA PANOURILOR",
+    "textSize": "DIMENSIUNEA TEXTULUI",
+    "languageSelectDesc": "Selectează limba de afișare a aplicației",
+    "toggleHotkeyPressDesc": "Apasă oriunde pentru a comuta Edge-Drop",
+    "edgeHintPulseDesc": "Puls al indicatorului de-a lungul marginii pentru a indica poziția panoului",
+  },
 };
 
 export const hu: TranslationKeys = {
   "filters": {
+    "title": "Szűrők",
+    "colors": "Színek",
     "all": "Összes",
     "text": "Szöveg",
     "links": "Hivatkozások",
@@ -7877,6 +9803,11 @@ export const hu: TranslationKeys = {
     "files": "Fájlok"
   },
   "tabs": {
+    "storageRetention": "Tárolás és megőrzés",
+    "clipboardRules": "Vágólapszabályok",
+    "activationShortcuts": "Gyorsbillentyűk és rámutatás",
+    "generalStartup": "Általános és indítás",
+    "updates": "Frissítések",
     "behaviour": "Viselkedés",
     "position": "Pozíció",
     "appearance": "Megjelenés"
@@ -7888,6 +9819,17 @@ export const hu: TranslationKeys = {
     "whatsNew": "Újdonságok"
   },
   "behaviour": {
+    "restartFailed": "Az újraindítás sikertelen",
+    "restarting": "Újraindítás...",
+    "restart": "Újraindítás",
+    "update": "Frissítés",
+    "updateLabelAvailable": "ÚJ FRISSÍTÉS ÉRHETŐ EL",
+    "updateLabelDownloading": "FRISSÍTÉS LETÖLTÉSE",
+    "updateLabelReady": "A FRISSÍTÉS TELEPÍTÉSRE KÉSZ",
+    "updateModeNotifyDesc": "Értesítsen, ha frissítés érhető el, letöltés nélkül",
+    "updateModeOff": "Ki",
+    "updateModeNotify": "Értesítsen",
+    "updateModeAuto": "Automatikus",
     "languageTitle": "Nyelv",
     "languageDesc": "Válassza a rendszer menüinek és vezérlőinek felületi nyelvét",
     "systemDefault": "Rendszer alapértelmezett (Auto)",
@@ -7940,6 +9882,12 @@ export const hu: TranslationKeys = {
     "hotkeyReset": "Visszaállítás alapértelmezettre ({shortcut})"
   },
   "position": {
+    "right": "Jobb",
+    "left": "Bal",
+    "horizontalPositionDesc": "A képernyő széle mentén állítsa be a vízszintes igazítást",
+    "horizontalPositionTitle": "Vízszintes pozíció",
+    "bottomEdge": "Alsó szél",
+    "topEdge": "Felső szél",
     "edgePlacementTitle": "Szél-elhelyezés",
     "edgePlacementDesc": "Válassza ki, melyik képernyőszélhez horgonyozza az Edge-Drop",
     "leftEdge": "Bal szél",
@@ -7967,6 +9915,8 @@ export const hu: TranslationKeys = {
     "panelHeightDesc": "A vágólap-polc függőleges mérete"
   },
   "appearance": {
+    "closeStyleSelector": "Jelzőstílus-választó bezárása",
+    "openStyleSelector": "Jelzőstílus-választó megnyitása",
     "copyIndicatorTitle": "Másolásjelző",
     "copyIndicatorDesc": "Finom vizuális jelzés megjelenítése a képernyő szélén másoláskor",
     "indicatorStyleTitle": "Jelző stílusa",
@@ -7989,6 +9939,7 @@ export const hu: TranslationKeys = {
     "sparkleStyle": "Szikra"
   },
   "item": {
+    "copiedTimes": "{count} alkalommal másolva",
     "copy": "Másolás",
     "copied": "másolva",
     "imagePlaceholder": "kép",
@@ -8100,6 +10051,8 @@ export const hu: TranslationKeys = {
     "proTip4": "Kattintson egy szövegdobozra, majd egy vágólap-elemre az automatikus beillesztéshez."
   },
   "tray": {
+    "bottom": "Alul",
+    "top": "Felül",
     "showClipboard": "Vágólap megjelenítése",
     "settings": "Beállítások",
     "incognito": "Inkognitó (rögzítés szüneteltetése)",
@@ -8113,6 +10066,12 @@ export const hu: TranslationKeys = {
     "welcomeBody": "Húzza az egeret a képernyő bal-középső széle mentén, vagy nyomja meg az Alt+C billentyűt a polc kinyitásához."
   },
   "flyout": {
+    "clickToDeselect": "Kattintson a kijelölés megszüntetéséhez",
+    "clickToSelect": "Kattintson a kiválasztáshoz",
+    "deselectItem": "Elem kijelölésének megszüntetése",
+    "selectItem": "Elem kiválasztása",
+    "copied": "Másolva!",
+    "clickToPasteImageDrag": "Kattintson a kép beillesztéséhez · Húzza az áthelyezéshez",
     "copyBeaconStyleTitle": "Másolásjelző stílusa",
     "openLink": "Hivatkozás megnyitása",
     "copyContent": "Tartalom másolása",
@@ -8136,6 +10095,14 @@ export const hu: TranslationKeys = {
     "current": "Jelenlegi"
   },
   "toast": {
+    "mergeIncompatible": "Különböző típusú elemek nem kombinálhatók",
+    "mergeFilesFull": "Egy mappacsomag legfeljebb 10 fájlt tartalmazhat",
+    "mergeImagesFull": "Egy képgyűjtemény legfeljebb 10 elemet tartalmazhat",
+    "mergeTextLinks": "A szöveg és a hivatkozások nem csoportosíthatók együtt",
+    "splitStacks": "{count} csoportra osztva (csoportonként legfeljebb 10)",
+    "pasteFallback": "A vágólap készen áll — kattintson az alkalmazásra, majd nyomja meg a Ctrl+V billentyűket a beillesztéshez",
+    "clearFailed": "Az előzmények nem törölhetők. Próbálja újra.",
+    "deleteFailed": "Az elem nem törölhető. Próbálja újra.",
     "copiedToClipboard": "Vágólapra másolva",
     "itemDeleted": "Elem törölve",
     "itemPinned": "Elem rögzítve",
@@ -8148,6 +10115,7 @@ export const hu: TranslationKeys = {
     "shortcutUpdated": "A globális billentyűparancs beállítva: {shortcut}"
   },
   "footer": {
+    "supportTagline": "100%-ban ingyenes és nyílt forráskódú vágólap",
     "communityAndSupport": "Közösség és támogatás",
     "feedbackTitle": "Visszajelzés és problémák",
     "feedbackDesc": "Jelentsen hibákat vagy javasoljon funkciókat a GitHubon",
@@ -8161,11 +10129,43 @@ export const hu: TranslationKeys = {
     "version": "Verzió",
     "supportPromo": "Az Edge-Drop 100%-ban ingyenes és nyílt forráskódú. Ha megkönnyíti a mindennapi munkádat, fontold meg a fejlesztés támogatását, hogy még jobb lehessen!",
     "supportOnKofi": "Támogatás a Ko-fi oldalon"
-  }
+  },
+  "groups": {
+    "feedback": "VISSZAJELZÉS",
+    "aboutEdgeDrop": "AZ EDGE-DROP RENDSZERRŐL",
+    "general": "ÁLTALÁNOS",
+    "startup": "INDÍTÁS",
+    "privacy": "ADATVÉDELEM",
+    "hoverActivation": "RÁMUTATÁSOS AKTIVÁLÁS",
+    "keyboardShortcut": "BILLENTYŰPARANCS",
+    "fullscreenProtection": "TELJES KÉPERNYŐS VÉDELEM",
+    "clipboardBehaviour": "VÁGÓLAP VISELKEDÉSE",
+    "restartCleanup": "ÚJRAINDÍTÁSI TISZTÍTÁS",
+    "storageCapacity": "TÁROLÓKAPACITÁS",
+    "autoDelete": "AUTOMATIKUS TÖRLÉS",
+    "updates": "FRISSÍTÉSEK",
+    "placement": "ELHELYEZÉS",
+    "displayMonitor": "KIJELZŐ",
+    "locationHint": "POZÍCIÓJELZÉS",
+    "hoverZoneLength": "RÁMUTATÁSI ZÓNA HOSSZA",
+    "triggerThickness": "KIOLDÓ VASTAGSÁGA",
+    "copyBeacon": "MÁSOLÁSI JELZŐ",
+    "beaconStyle": "JELZŐSTÍLUS",
+    "audioFeedback": "HANGVISSZAJELZÉS",
+    "alignment": "IGAZÍTÁS",
+    "triggerPosition": "KIOLDÓ POZÍCIÓJA",
+    "panelHeight": "PANELMAGASSÁG",
+    "textSize": "SZÖVEGMÉRET",
+    "languageSelectDesc": "Válassza ki az alkalmazás megjelenítési nyelvét",
+    "toggleHotkeyPressDesc": "Nyomjon meg bárhol egy billentyűt az Edge-Drop váltásához",
+    "edgeHintPulseDesc": "A szél mentén pulzáló jelző mutatja a panel helyét",
+  },
 };
 
 export const da: TranslationKeys = {
   "filters": {
+    "title": "Filtre",
+    "colors": "Farver",
     "all": "Alle",
     "text": "Tekst",
     "links": "Links",
@@ -8173,6 +10173,11 @@ export const da: TranslationKeys = {
     "files": "Filer"
   },
   "tabs": {
+    "storageRetention": "Lagring og opbevaring",
+    "clipboardRules": "Udklipsholderregler",
+    "activationShortcuts": "Genveje og markøren over",
+    "generalStartup": "Generelt og opstart",
+    "updates": "Opdateringer",
     "behaviour": "Adfærd",
     "position": "Position",
     "appearance": "Udseende"
@@ -8184,6 +10189,17 @@ export const da: TranslationKeys = {
     "whatsNew": "Nyheder"
   },
   "behaviour": {
+    "restartFailed": "Genstart mislykkedes",
+    "restarting": "Genstarter...",
+    "restart": "Genstart",
+    "update": "Opdater",
+    "updateLabelAvailable": "NY OPDATERING TILGÆNGELIG",
+    "updateLabelDownloading": "DOWNLOADER OPDATERING",
+    "updateLabelReady": "OPDATERING KLAR TIL INSTALLATION",
+    "updateModeNotifyDesc": "Giv besked, når opdateringer er tilgængelige, uden at downloade dem",
+    "updateModeOff": "Fra",
+    "updateModeNotify": "Giv mig besked",
+    "updateModeAuto": "Automatisk",
     "languageTitle": "Sprog",
     "languageDesc": "Vælg UI-sprog til systemmenuer og kontrolelementer",
     "systemDefault": "Systemstandard (Auto)",
@@ -8236,6 +10252,12 @@ export const da: TranslationKeys = {
     "hotkeyReset": "Nulstil til standard ({shortcut})"
   },
   "position": {
+    "right": "Højre",
+    "left": "Venstre",
+    "horizontalPositionDesc": "Juster vandret justering langs skærmkanten",
+    "horizontalPositionTitle": "Vandret position",
+    "bottomEdge": "Nederste kant",
+    "topEdge": "Øverste kant",
     "edgePlacementTitle": "Kantplacering",
     "edgePlacementDesc": "Vælg hvilken skærmkant Edge-Drop forankrer til",
     "leftEdge": "Venstre kant",
@@ -8263,6 +10285,8 @@ export const da: TranslationKeys = {
     "panelHeightDesc": "Lodret størrelse af udklipsholder-hylden"
   },
   "appearance": {
+    "closeStyleSelector": "Luk vælger til indikatorstil",
+    "openStyleSelector": "Åbn vælger til indikatorstil",
     "copyIndicatorTitle": "Kopieringsindikator",
     "copyIndicatorDesc": "Vis subtilt visuelt fyrtårn på skærmkanten ved kopiering",
     "indicatorStyleTitle": "Indikatorstil",
@@ -8285,6 +10309,7 @@ export const da: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
+    "copiedTimes": "Kopieret {count} gange",
     "copy": "Kopier",
     "copied": "kopieret",
     "imagePlaceholder": "billede",
@@ -8396,6 +10421,8 @@ export const da: TranslationKeys = {
     "proTip4": "Klik på en tekstboks, og derefter et udklipsholder-element for at indsætte automatisk."
   },
   "tray": {
+    "bottom": "Bund",
+    "top": "Top",
     "showClipboard": "Vis udklipsholder",
     "settings": "Indstillinger",
     "incognito": "Incognito (sæt optagelse på pause)",
@@ -8409,6 +10436,12 @@ export const da: TranslationKeys = {
     "welcomeBody": "Svæv mod midten af venstre skærmkant, eller tryk Alt+C for at åbne din hylde."
   },
   "flyout": {
+    "clickToDeselect": "Klik for at fravælge",
+    "clickToSelect": "Klik for at vælge",
+    "deselectItem": "Fravælg element",
+    "selectItem": "Vælg element",
+    "copied": "Kopieret!",
+    "clickToPasteImageDrag": "Klik for at indsætte billede · Træk for at flytte",
     "copyBeaconStyleTitle": "Stil for kopieringsindikator",
     "openLink": "Åbn link",
     "copyContent": "Kopier indhold",
@@ -8432,6 +10465,14 @@ export const da: TranslationKeys = {
     "current": "Nuværende"
   },
   "toast": {
+    "mergeIncompatible": "Forskellige elementtyper kan ikke kombineres",
+    "mergeFilesFull": "En mappepakke kan indeholde højst 10 filer",
+    "mergeImagesFull": "En billedsamling kan indeholde højst 10 elementer",
+    "mergeTextLinks": "Tekst og links kan ikke grupperes sammen",
+    "splitStacks": "Opdelt i {count} grupper (maks. 10 hver)",
+    "pasteFallback": "Udklipsholder klar — klik på din app, og tryk på Ctrl+V for at indsætte",
+    "clearFailed": "Historikken kunne ikke ryddes. Prøv igen.",
+    "deleteFailed": "Dette element kunne ikke slettes. Prøv igen.",
     "copiedToClipboard": "Kopieret til udklipsholder",
     "itemDeleted": "Element slettet",
     "itemPinned": "Element fastgjort",
@@ -8444,6 +10485,7 @@ export const da: TranslationKeys = {
     "shortcutUpdated": "Global genvej indstillet til {shortcut}"
   },
   "footer": {
+    "supportTagline": "100 % gratis og open source-udklipsholder",
     "communityAndSupport": "Fællesskab og support",
     "feedbackTitle": "Feedback og problemer",
     "feedbackDesc": "Rapporter fejl eller foreslå funktioner på GitHub",
@@ -8457,11 +10499,43 @@ export const da: TranslationKeys = {
     "version": "Version",
     "supportPromo": "Edge-Drop er 100 % gratis og open source. Hvis det hjælper dig i din daglige arbejdsgang, kan du overveje at støtte udviklingen, så det bliver endnu bedre!",
     "supportOnKofi": "Støt på Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "FEEDBACK",
+    "aboutEdgeDrop": "OM EDGE-DROP",
+    "general": "GENERELT",
+    "startup": "OPSTART",
+    "privacy": "PRIVATLIV",
+    "hoverActivation": "AKTIVERING VED HOVER",
+    "keyboardShortcut": "TASTATURGENVEJ",
+    "fullscreenProtection": "FULD SKÆRM-BESKYTTELSE",
+    "clipboardBehaviour": "UDKLIPSHOLDERADFÆRD",
+    "restartCleanup": "RENSNING VED GENSTART",
+    "storageCapacity": "LAGERKAPACITET",
+    "autoDelete": "AUTOMATISK SLETNING",
+    "updates": "OPDATERINGER",
+    "placement": "PLACERING",
+    "displayMonitor": "SKÆRM",
+    "locationHint": "PLACERINGSINDIKATOR",
+    "hoverZoneLength": "LÆNGDE PÅ HOVERZONE",
+    "triggerThickness": "TRIGGER-TYKKELSE",
+    "copyBeacon": "KOPIINDIKATOR",
+    "beaconStyle": "INDIKATORSTIL",
+    "audioFeedback": "LYD FEEDBACK",
+    "alignment": "JUSTERING",
+    "triggerPosition": "TRIGGERPOSITION",
+    "panelHeight": "PANELHØJDE",
+    "textSize": "TEKSTSTØRRELSE",
+    "languageSelectDesc": "Vælg programmets visningssprog",
+    "toggleHotkeyPressDesc": "Tryk et vilkårligt sted for at skifte Edge-Drop",
+    "edgeHintPulseDesc": "Indikatorpuls langs kanten viser panelets placering",
+  },
 };
 
 export const fi: TranslationKeys = {
   "filters": {
+    "title": "Suodattimet",
+    "colors": "Värit",
     "all": "Kaikki",
     "text": "Teksti",
     "links": "Linkit",
@@ -8469,6 +10543,11 @@ export const fi: TranslationKeys = {
     "files": "Tiedostot"
   },
   "tabs": {
+    "storageRetention": "Tallennus ja säilytys",
+    "clipboardRules": "Leikepöydän säännöt",
+    "activationShortcuts": "Pikakuvakkeet ja osoitus",
+    "generalStartup": "Yleiset ja käynnistys",
+    "updates": "Päivitykset",
     "behaviour": "Toiminta",
     "position": "Sijainti",
     "appearance": "Ulkoasu"
@@ -8480,6 +10559,17 @@ export const fi: TranslationKeys = {
     "whatsNew": "Uutta"
   },
   "behaviour": {
+    "restartFailed": "Uudelleenkäynnistys epäonnistui",
+    "restarting": "Käynnistetään uudelleen...",
+    "restart": "Käynnistä uudelleen",
+    "update": "Päivitä",
+    "updateLabelAvailable": "UUSI PÄIVITYS SAATAVILLA",
+    "updateLabelDownloading": "LADATAAN PÄIVITYSTÄ",
+    "updateLabelReady": "PÄIVITYS VALMIS ASENNETTAVAKSI",
+    "updateModeNotifyDesc": "Ilmoita saatavilla olevista päivityksistä lataamatta niitä",
+    "updateModeOff": "Pois",
+    "updateModeNotify": "Ilmoita minulle",
+    "updateModeAuto": "Automaattinen",
     "languageTitle": "Kieli",
     "languageDesc": "Valitse järjestelmän valikoiden ja ohjausobjektien käyttöliittymän kieli",
     "systemDefault": "Järjestelmän oletus (Auto)",
@@ -8532,6 +10622,12 @@ export const fi: TranslationKeys = {
     "hotkeyReset": "Palauta oletusasetukseksi ({shortcut})"
   },
   "position": {
+    "right": "Oikea",
+    "left": "Vasen",
+    "horizontalPositionDesc": "Säädä vaakasuoraa kohdistusta näytön reunaa pitkin",
+    "horizontalPositionTitle": "Vaakasuora sijainti",
+    "bottomEdge": "Alareuna",
+    "topEdge": "Yläreuna",
     "edgePlacementTitle": "Reunan sijoitus",
     "edgePlacementDesc": "Valitse mihin näytön reunaan Edge-Drop ankkuroituu",
     "leftEdge": "Vasen reuna",
@@ -8559,6 +10655,8 @@ export const fi: TranslationKeys = {
     "panelHeightDesc": "Leikepöydän hyllyn pystysuuntainen koko"
   },
   "appearance": {
+    "closeStyleSelector": "Sulje ilmaisintyylin valitsin",
+    "openStyleSelector": "Avaa ilmaisintyylin valitsin",
     "copyIndicatorTitle": "Kopiointi-indikaattori",
     "copyIndicatorDesc": "Näytä hienovarainen visuaalinen majakka näytön reunassa kopioitaessa",
     "indicatorStyleTitle": "Indikaattorin tyyli",
@@ -8581,6 +10679,7 @@ export const fi: TranslationKeys = {
     "sparkleStyle": "Kipinä"
   },
   "item": {
+    "copiedTimes": "Kopioitu {count} kertaa",
     "copy": "Kopioi",
     "copied": "kopioitu",
     "imagePlaceholder": "kuva",
@@ -8692,6 +10791,8 @@ export const fi: TranslationKeys = {
     "proTip4": "Napsauta tekstikenttää, sitten leikepöydän kohdetta liittääksesi automaattisesti."
   },
   "tray": {
+    "bottom": "Alas",
+    "top": "Ylös",
     "showClipboard": "Näytä leikepöytä",
     "settings": "Asetukset",
     "incognito": "Incognito (keskeytä kaappaus)",
@@ -8705,6 +10806,12 @@ export const fi: TranslationKeys = {
     "welcomeBody": "Vie osoitin näytön vasemman reunan keskikohtaan tai paina Alt+C avataksesi hylly."
   },
   "flyout": {
+    "clickToDeselect": "Napsauta poistaaksesi valinnan",
+    "clickToSelect": "Napsauta valitaksesi",
+    "deselectItem": "Poista kohteen valinta",
+    "selectItem": "Valitse kohde",
+    "copied": "Kopioitu!",
+    "clickToPasteImageDrag": "Napsauta liittääksesi kuvan · Vedä siirtääksesi",
     "copyBeaconStyleTitle": "Kopiointi-indikaattorin tyyli",
     "openLink": "Avaa linkki",
     "copyContent": "Kopioi sisältö",
@@ -8728,6 +10835,14 @@ export const fi: TranslationKeys = {
     "current": "Nykyinen"
   },
   "toast": {
+    "mergeIncompatible": "Eri kohdetyyppejä ei voi yhdistää",
+    "mergeFilesFull": "Kansiopaketti voi sisältää enintään 10 tiedostoa",
+    "mergeImagesFull": "Kuvakokoelma voi sisältää enintään 10 kohdetta",
+    "mergeTextLinks": "Tekstiä ja linkkejä ei voi ryhmitellä yhteen",
+    "splitStacks": "Jaettu {count} ryhmään (enintään 10 kussakin)",
+    "pasteFallback": "Leikepöytä valmis — napsauta sovellustasi ja paina Ctrl+V liittääksesi",
+    "clearFailed": "Historiaa ei voitu tyhjentää. Yritä uudelleen.",
+    "deleteFailed": "Tätä kohdetta ei voitu poistaa. Yritä uudelleen.",
     "copiedToClipboard": "Kopioitu leikepöydälle",
     "itemDeleted": "Kohde poistettu",
     "itemPinned": "Kohde kiinnitetty",
@@ -8740,6 +10855,7 @@ export const fi: TranslationKeys = {
     "shortcutUpdated": "Yleinen pikanäppäin asetettu: {shortcut}"
   },
   "footer": {
+    "supportTagline": "100 % ilmainen ja avoimen lähdekoodin leikepöytä",
     "communityAndSupport": "Yhteisö ja tuki",
     "feedbackTitle": "Palaute ja ongelmat",
     "feedbackDesc": "Raportoi virheitä tai ehdota ominaisuuksia GitHubissa",
@@ -8753,11 +10869,43 @@ export const fi: TranslationKeys = {
     "version": "Versio",
     "supportPromo": "Edge-Drop on 100 % ilmainen ja avoimen lähdekoodin ohjelmisto. Jos se helpottaa päivittäistä työnkulkuasi, harkitse kehityksen tukemista, jotta siitä tulee vielä parempi!",
     "supportOnKofi": "Tue Ko-fi:ssa"
-  }
+  },
+  "groups": {
+    "feedback": "PALAUTE",
+    "aboutEdgeDrop": "TIETOA EDGE-DROP:ISTA",
+    "general": "YLEISET",
+    "startup": "KÄYNNISTYS",
+    "privacy": "YKSITYISYYS",
+    "hoverActivation": "AKTIVOINTI OSOITTAMALLA",
+    "keyboardShortcut": "NÄPPÄIMISTÖPIKAKUVAKKE",
+    "fullscreenProtection": "KOKO NÄYTÖN SUOJAUS",
+    "clipboardBehaviour": "LEIKEPÖYDÄN TOIMINTA",
+    "restartCleanup": "PUHDISTUS UUDELLEENKÄYNNISTYKSEN YHTEYDESSÄ",
+    "storageCapacity": "TALLENNUSTILA",
+    "autoDelete": "AUTOMAATTINEN POISTO",
+    "updates": "PÄIVITYKSET",
+    "placement": "SIJOITTELU",
+    "displayMonitor": "NÄYTTÖ",
+    "locationHint": "SIJAINTIVIHJE",
+    "hoverZoneLength": "OSOITUSALUEEN PITUUS",
+    "triggerThickness": "LAUKAISIMEN PAKSUUS",
+    "copyBeacon": "KOPIOINTI-ILMAISIN",
+    "beaconStyle": "ILMAISIMEN TYYLI",
+    "audioFeedback": "ÄÄNIPALAUTE",
+    "alignment": "KOHDISTUS",
+    "triggerPosition": "LAUKAISIMEN SIJAINTI",
+    "panelHeight": "PANEELIN KORKEUS",
+    "textSize": "TEKSTIN KOKO",
+    "languageSelectDesc": "Valitse sovelluksen näyttökieli",
+    "toggleHotkeyPressDesc": "Vaihda Edge-Drop painamalla missä tahansa",
+    "edgeHintPulseDesc": "Reunaa pitkin kulkeva ilmaisinpulssi osoittaa paneelin sijainnin",
+  },
 };
 
 export const th: TranslationKeys = {
   "filters": {
+    "title": "ตัวกรอง",
+    "colors": "สี",
     "all": "ทั้งหมด",
     "text": "ข้อความ",
     "links": "ลิงก์",
@@ -8765,6 +10913,11 @@ export const th: TranslationKeys = {
     "files": "ไฟล์"
   },
   "tabs": {
+    "storageRetention": "พื้นที่จัดเก็บและการเก็บรักษา",
+    "clipboardRules": "กฎคลิปบอร์ด",
+    "activationShortcuts": "ทางลัดและโฮเวอร์",
+    "generalStartup": "ทั่วไปและการเริ่มต้น",
+    "updates": "การอัปเดต",
     "behaviour": "พฤติกรรม",
     "position": "ตำแหน่ง",
     "appearance": "ลักษณะ"
@@ -8776,6 +10929,17 @@ export const th: TranslationKeys = {
     "whatsNew": "มีอะไรใหม่"
   },
   "behaviour": {
+    "restartFailed": "เริ่มใหม่ไม่สำเร็จ",
+    "restarting": "กำลังเริ่มใหม่...",
+    "restart": "เริ่มใหม่",
+    "update": "อัปเดต",
+    "updateLabelAvailable": "มีการอัปเดตใหม่",
+    "updateLabelDownloading": "กำลังดาวน์โหลดการอัปเดต",
+    "updateLabelReady": "การอัปเดตพร้อมติดตั้ง",
+    "updateModeNotifyDesc": "แจ้งเตือนเมื่อมีการอัปเดตโดยไม่ดาวน์โหลด",
+    "updateModeOff": "ปิด",
+    "updateModeNotify": "แจ้งเตือนฉัน",
+    "updateModeAuto": "อัตโนมัติ",
     "languageTitle": "ภาษา",
     "languageDesc": "เลือกภาษาส่วนติดต่อผู้ใช้สำหรับเมนูระบบและตัวควบคุม",
     "systemDefault": "ค่าเริ่มต้นระบบ (อัตโนมัติ)",
@@ -8828,6 +10992,12 @@ export const th: TranslationKeys = {
     "hotkeyReset": "รีเซ็ตเป็นค่าเริ่มต้น ({shortcut})"
   },
   "position": {
+    "right": "ขวา",
+    "left": "ซ้าย",
+    "horizontalPositionDesc": "ปรับการจัดแนวแนวนอนตามขอบหน้าจอ",
+    "horizontalPositionTitle": "ตำแหน่งแนวนอน",
+    "bottomEdge": "ขอบด้านล่าง",
+    "topEdge": "ขอบด้านบน",
     "edgePlacementTitle": "ตำแหน่งขอบ",
     "edgePlacementDesc": "เลือกขอบจอที่ Edge-Drop จะยึด",
     "leftEdge": "ขอบซ้าย",
@@ -8855,6 +11025,8 @@ export const th: TranslationKeys = {
     "panelHeightDesc": "ขนาดแนวตั้งของชั้นวางคลิปบอร์ด"
   },
   "appearance": {
+    "closeStyleSelector": "ปิดตัวเลือกสไตล์ตัวบ่งชี้",
+    "openStyleSelector": "เปิดตัวเลือกสไตล์ตัวบ่งชี้",
     "copyIndicatorTitle": "ตัวบ่งชี้การคัดลอก",
     "copyIndicatorDesc": "แสดงบีคอนภาพที่ละเอียดอ่อนบนขอบจอเมื่อคัดลอก",
     "indicatorStyleTitle": "สไตล์ตัวบ่งชี้",
@@ -8877,6 +11049,7 @@ export const th: TranslationKeys = {
     "sparkleStyle": "ประกาย"
   },
   "item": {
+    "copiedTimes": "คัดลอกแล้ว {count} ครั้ง",
     "copy": "คัดลอก",
     "copied": "คัดลอกแล้ว",
     "imagePlaceholder": "รูปภาพ",
@@ -8988,6 +11161,8 @@ export const th: TranslationKeys = {
     "proTip4": "คลิกที่กล่องข้อความ แล้วคลิกรายการคลิปบอร์ดเพื่อวางอัตโนมัติ"
   },
   "tray": {
+    "bottom": "ด้านล่าง",
+    "top": "ด้านบน",
     "showClipboard": "แสดงคลิปบอร์ด",
     "settings": "การตั้งค่า",
     "incognito": "ไม่ระบุตัวตน (หยุดการจับภาพ)",
@@ -9001,6 +11176,12 @@ export const th: TranslationKeys = {
     "welcomeBody": "เลื่อนเมาส์ไปที่กึ่งกลางขอบซ้ายของหน้าจอ หรือกด Alt+C เพื่อเปิดชั้นวางของคุณ"
   },
   "flyout": {
+    "clickToDeselect": "คลิกเพื่อยกเลิกการเลือก",
+    "clickToSelect": "คลิกเพื่อเลือก",
+    "deselectItem": "ยกเลิกการเลือกไอเท็ม",
+    "selectItem": "เลือกไอเท็ม",
+    "copied": "คัดลอกแล้ว!",
+    "clickToPasteImageDrag": "คลิกเพื่อวางรูปภาพ · ลากเพื่อย้าย",
     "copyBeaconStyleTitle": "สไตล์ตัวบ่งชี้การคัดลอก",
     "openLink": "เปิดลิงก์",
     "copyContent": "คัดลอกเนื้อหา",
@@ -9024,6 +11205,14 @@ export const th: TranslationKeys = {
     "current": "ปัจจุบัน"
   },
   "toast": {
+    "mergeIncompatible": "ไม่สามารถรวมไอเท็มต่างประเภทกันได้",
+    "mergeFilesFull": "ชุดโฟลเดอร์มีได้สูงสุด 10 ไฟล์",
+    "mergeImagesFull": "คอลเลกชันรูปภาพมีได้สูงสุด 10 รายการ",
+    "mergeTextLinks": "ไม่สามารถจัดกลุ่มข้อความและลิงก์เข้าด้วยกันได้",
+    "splitStacks": "แบ่งเป็น {count} กลุ่มแล้ว (สูงสุดกลุ่มละ 10 รายการ)",
+    "pasteFallback": "คลิปบอร์ดพร้อมแล้ว — คลิกแอปของคุณแล้วกด Ctrl+V เพื่อวาง",
+    "clearFailed": "ไม่สามารถล้างประวัติได้ โปรดลองอีกครั้ง",
+    "deleteFailed": "ไม่สามารถลบไอเท็มนี้ได้ โปรดลองอีกครั้ง",
     "copiedToClipboard": "คัดลอกไปยังคลิปบอร์ดแล้ว",
     "itemDeleted": "ลบรายการแล้ว",
     "itemPinned": "ปักหมุดรายการแล้ว",
@@ -9036,6 +11225,7 @@ export const th: TranslationKeys = {
     "shortcutUpdated": "ตั้งค่าปุ่มลัดส่วนกลางเป็น {shortcut} แล้ว"
   },
   "footer": {
+    "supportTagline": "คลิปบอร์ดฟรีและโอเพนซอร์ส 100%",
     "communityAndSupport": "ชุมชนและการสนับสนุน",
     "feedbackTitle": "ผลตอบรับและปัญหา",
     "feedbackDesc": "รายงานบั๊กหรือเสนอฟีเจอร์บน GitHub",
@@ -9049,11 +11239,43 @@ export const th: TranslationKeys = {
     "version": "เวอร์ชัน",
     "supportPromo": "Edge-Drop ฟรี 100% และเป็นโอเพนซอร์ส หากแอปนี้ช่วยให้การทำงานประจำวันของคุณสะดวกขึ้น โปรดพิจารณาสนับสนุนการพัฒนาเพื่อให้ดียิ่งขึ้น!",
     "supportOnKofi": "สนับสนุนผ่าน Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "ความคิดเห็น",
+    "aboutEdgeDrop": "เกี่ยวกับ EDGE-DROP",
+    "general": "ทั่วไป",
+    "startup": "การเริ่มต้น",
+    "privacy": "ความเป็นส่วนตัว",
+    "hoverActivation": "การเปิดใช้งานเมื่อโฮเวอร์",
+    "keyboardShortcut": "แป้นพิมพ์ลัด",
+    "fullscreenProtection": "การป้องกันเต็มหน้าจอ",
+    "clipboardBehaviour": "พฤติกรรมคลิปบอร์ด",
+    "restartCleanup": "ล้างข้อมูลเมื่อเริ่มใหม่",
+    "storageCapacity": "ความจุพื้นที่จัดเก็บ",
+    "autoDelete": "ลบอัตโนมัติ",
+    "hoverZoneLength": "ความยาวโซนโฮเวอร์",
+    "updates": "การอัปเดต",
+    "placement": "ตำแหน่ง",
+    "displayMonitor": "จอแสดงผล",
+    "locationHint": "คำแนะนำตำแหน่ง",
+    "triggerThickness": "ความหนาตัวกระตุ้น",
+    "copyBeacon": "ตัวบ่งชี้การคัดลอก",
+    "beaconStyle": "สไตล์ตัวบ่งชี้",
+    "audioFeedback": "เสียงตอบรับ",
+    "alignment": "การจัดแนว",
+    "triggerPosition": "ตำแหน่งตัวกระตุ้น",
+    "panelHeight": "ความสูงแผง",
+    "textSize": "ขนาดข้อความ",
+    "languageSelectDesc": "เลือกภาษาที่ใช้แสดงผลของแอปพลิเคชัน",
+    "toggleHotkeyPressDesc": "กดที่ใดก็ได้เพื่อสลับ Edge-Drop",
+    "edgeHintPulseDesc": "ตัวบ่งชี้กะพริบตามขอบเพื่อบอกตำแหน่งแผง",
+  },
 };
 
 export const he: TranslationKeys = {
   "filters": {
+    "title": "מסננים",
+    "colors": "צבעים",
     "all": "הכל",
     "text": "טקסט",
     "links": "קישורים",
@@ -9061,6 +11283,11 @@ export const he: TranslationKeys = {
     "files": "קבצים"
   },
   "tabs": {
+    "storageRetention": "אחסון ושמירה",
+    "clipboardRules": "כללי לוח הגזירים",
+    "activationShortcuts": "קיצורים וריחוף",
+    "generalStartup": "כללי והפעלה",
+    "updates": "עדכונים",
     "behaviour": "התנהגות",
     "position": "מיקום",
     "appearance": "מראה"
@@ -9072,6 +11299,17 @@ export const he: TranslationKeys = {
     "whatsNew": "מה חדש"
   },
   "behaviour": {
+    "restartFailed": "ההפעלה מחדש נכשלה",
+    "restarting": "מפעיל מחדש...",
+    "restart": "הפעלה מחדש",
+    "update": "עדכון",
+    "updateLabelAvailable": "עדכון חדש זמין",
+    "updateLabelDownloading": "מוריד עדכון",
+    "updateLabelReady": "העדכון מוכן להתקנה",
+    "updateModeNotifyDesc": "הודע כאשר עדכונים זמינים מבלי להוריד אותם",
+    "updateModeOff": "כבוי",
+    "updateModeNotify": "הודע לי",
+    "updateModeAuto": "אוטומטי",
     "languageTitle": "שפה",
     "languageDesc": "בחר שפת ממשק עבור תפריטי מערכת ופקדים",
     "systemDefault": "ברירת מחדל של המערכת (אוטומטי)",
@@ -9124,6 +11362,12 @@ export const he: TranslationKeys = {
     "hotkeyReset": "איפוס לברירת המחדל ({shortcut})"
   },
   "position": {
+    "right": "ימין",
+    "left": "שמאל",
+    "horizontalPositionDesc": "התאם את היישור האופקי לאורך קצה המסך",
+    "horizontalPositionTitle": "מיקום אופקי",
+    "bottomEdge": "הקצה התחתון",
+    "topEdge": "הקצה העליון",
     "edgePlacementTitle": "מיקום קצה",
     "edgePlacementDesc": "בחר לאיזה קצה מסך Edge-Drop מעוגן",
     "leftEdge": "קצה שמאלי",
@@ -9151,6 +11395,8 @@ export const he: TranslationKeys = {
     "panelHeightDesc": "גודל אנכי של מדף הלוח"
   },
   "appearance": {
+    "closeStyleSelector": "סגור את בורר סגנון המחוון",
+    "openStyleSelector": "פתח את בורר סגנון המחוון",
     "copyIndicatorTitle": "מחוון העתקה",
     "copyIndicatorDesc": "הצג משואה חזותית עדינה בקצה המסך בעת העתקה",
     "indicatorStyleTitle": "סגנון מחוון",
@@ -9173,6 +11419,7 @@ export const he: TranslationKeys = {
     "sparkleStyle": "ניצוץ"
   },
   "item": {
+    "copiedTimes": "הועתק {count} פעמים",
     "copy": "העתק",
     "copied": "הועתק",
     "imagePlaceholder": "תמונה",
@@ -9284,6 +11531,8 @@ export const he: TranslationKeys = {
     "proTip4": "לחץ על תיבת טקסט, ואז על פריט לוח כדי להדביק אוטומטית."
   },
   "tray": {
+    "bottom": "למטה",
+    "top": "למעלה",
     "showClipboard": "הצג לוח",
     "settings": "הגדרות",
     "incognito": "גלישה בסתר (השהה לכידה)",
@@ -9297,6 +11546,12 @@ export const he: TranslationKeys = {
     "welcomeBody": "רחף מול קצה שמאל-אמצע המסך, או לחץ Alt+C כדי להחליק ולפתוח את המדף שלך."
   },
   "flyout": {
+    "clickToDeselect": "לחץ כדי לבטל בחירה",
+    "clickToSelect": "לחץ כדי לבחור",
+    "deselectItem": "בטל בחירת פריט",
+    "selectItem": "בחר פריט",
+    "copied": "הועתק!",
+    "clickToPasteImageDrag": "לחץ כדי להדביק תמונה · גרור כדי להזיז",
     "copyBeaconStyleTitle": "סגנון מחוון העתקה",
     "openLink": "פתח קישור",
     "copyContent": "העתק תוכן",
@@ -9320,6 +11575,14 @@ export const he: TranslationKeys = {
     "current": "נוכחי"
   },
   "toast": {
+    "mergeIncompatible": "לא ניתן לשלב סוגי פריטים שונים",
+    "mergeFilesFull": "חבילת תיקייה יכולה להכיל עד 10 קבצים",
+    "mergeImagesFull": "אוסף תמונות יכול להכיל עד 10 פריטים",
+    "mergeTextLinks": "לא ניתן לקבץ טקסט וקישורים יחד",
+    "splitStacks": "פוצל ל-{count} קבוצות (10 לכל היותר)",
+    "pasteFallback": "לוח הגזירים מוכן — לחץ על האפליקציה שלך והקש Ctrl+V כדי להדביק",
+    "clearFailed": "לא ניתן לנקות את ההיסטוריה. נסה שוב.",
+    "deleteFailed": "לא ניתן למחוק פריט זה. נסה שוב.",
     "copiedToClipboard": "הועתק ללוח",
     "itemDeleted": "פריט נמחק",
     "itemPinned": "פריט הוצמד",
@@ -9332,6 +11595,7 @@ export const he: TranslationKeys = {
     "shortcutUpdated": "קיצור המקשים הגלובלי הוגדר ל־{shortcut}"
   },
   "footer": {
+    "supportTagline": "לוח גזירים חינמי וקוד פתוח ב-100%",
     "communityAndSupport": "קהילה ותמיכה",
     "feedbackTitle": "משוב ובעיות",
     "feedbackDesc": "דווח על באגים או הצע תכונות ב-GitHub",
@@ -9345,11 +11609,43 @@ export const he: TranslationKeys = {
     "version": "גרסה",
     "supportPromo": "Edge-Drop הוא חינמי לחלוטין ובקוד פתוח. אם הוא עוזר לכם בעבודה היומיומית, שקלו לתמוך בפיתוח כדי להפוך אותו לטוב אפילו יותר!",
     "supportOnKofi": "תמכו ב-Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "משוב",
+    "aboutEdgeDrop": "אודות EDGE-DROP",
+    "general": "כללי",
+    "startup": "הפעלה",
+    "privacy": "פרטיות",
+    "hoverActivation": "הפעלה בריחוף",
+    "keyboardShortcut": "קיצור מקלדת",
+    "fullscreenProtection": "הגנת מסך מלא",
+    "clipboardBehaviour": "התנהגות לוח הגזירים",
+    "restartCleanup": "ניקוי בהפעלה מחדש",
+    "storageCapacity": "קיבולת אחסון",
+    "autoDelete": "מחיקה אוטומטית",
+    "updates": "עדכונים",
+    "placement": "מיקום",
+    "displayMonitor": "צג",
+    "locationHint": "רמז למיקום",
+    "hoverZoneLength": "אורך אזור הריחוף",
+    "triggerThickness": "עובי ההפעלה",
+    "copyBeacon": "מחוון העתקה",
+    "beaconStyle": "סגנון מחוון",
+    "audioFeedback": "משוב שמע",
+    "alignment": "יישור",
+    "triggerPosition": "מיקום ההפעלה",
+    "panelHeight": "גובה הלוח",
+    "textSize": "גודל טקסט",
+    "languageSelectDesc": "בחר את שפת התצוגה של היישום",
+    "toggleHotkeyPressDesc": "לחץ בכל מקום כדי להחליף את Edge-Drop",
+    "edgeHintPulseDesc": "פעימת מחוון לאורך הקצה מציינת את מיקום הלוח",
+  },
 };
 
 export const no: TranslationKeys = {
   "filters": {
+    "title": "Filtre",
+    "colors": "Farger",
     "all": "Alle",
     "text": "Tekst",
     "links": "Lenker",
@@ -9357,6 +11653,11 @@ export const no: TranslationKeys = {
     "files": "Filer"
   },
   "tabs": {
+    "storageRetention": "Lagring og oppbevaring",
+    "clipboardRules": "Utklippsregler",
+    "activationShortcuts": "Snarveier og pek",
+    "generalStartup": "Generelt og oppstart",
+    "updates": "Oppdateringer",
     "behaviour": "Oppførsel",
     "position": "Posisjon",
     "appearance": "Utseende"
@@ -9368,6 +11669,17 @@ export const no: TranslationKeys = {
     "whatsNew": "Hva er nytt"
   },
   "behaviour": {
+    "restartFailed": "Omstart mislyktes",
+    "restarting": "Starter på nytt...",
+    "restart": "Start på nytt",
+    "update": "Oppdater",
+    "updateLabelAvailable": "NY OPPDATERING TILGJENGELIG",
+    "updateLabelDownloading": "LASTER NED OPPDATERING",
+    "updateLabelReady": "OPPDATERING KLAR TIL INSTALLASJON",
+    "updateModeNotifyDesc": "Varsle når oppdateringer er tilgjengelige uten å laste dem ned",
+    "updateModeOff": "Av",
+    "updateModeNotify": "Varsle meg",
+    "updateModeAuto": "Automatisk",
     "languageTitle": "Språk",
     "languageDesc": "Velg UI-språk for systemmenyer og kontroller",
     "systemDefault": "Systemstandard (Auto)",
@@ -9420,6 +11732,12 @@ export const no: TranslationKeys = {
     "hotkeyReset": "Tilbakestill til standard ({shortcut})"
   },
   "position": {
+    "right": "Høyre",
+    "left": "Venstre",
+    "horizontalPositionDesc": "Juster horisontal plassering langs skjermkanten",
+    "horizontalPositionTitle": "Horisontal posisjon",
+    "bottomEdge": "Nedre kant",
+    "topEdge": "Øvre kant",
     "edgePlacementTitle": "Kant-plassering",
     "edgePlacementDesc": "Velg hvilken skjermkant Edge-Drop forankrer til",
     "leftEdge": "Venstre kant",
@@ -9447,6 +11765,8 @@ export const no: TranslationKeys = {
     "panelHeightDesc": "Vertikal størrelse på utklippstavle-hyllen"
   },
   "appearance": {
+    "closeStyleSelector": "Lukk velger for indikatorstil",
+    "openStyleSelector": "Åpne velger for indikatorstil",
     "copyIndicatorTitle": "Kopieringsindikator",
     "copyIndicatorDesc": "Vis subtilt visuelt fyr på skjermkanten ved kopiering",
     "indicatorStyleTitle": "Indikatorstil",
@@ -9469,6 +11789,7 @@ export const no: TranslationKeys = {
     "sparkleStyle": "Gnist"
   },
   "item": {
+    "copiedTimes": "Kopiert {count} ganger",
     "copy": "Kopier",
     "copied": "kopiert",
     "imagePlaceholder": "bilde",
@@ -9580,6 +11901,8 @@ export const no: TranslationKeys = {
     "proTip4": "Klikk på en tekstboks, deretter et utklippstavle-element for å lime inn automatisk."
   },
   "tray": {
+    "bottom": "Bunn",
+    "top": "Topp",
     "showClipboard": "Vis utklippstavle",
     "settings": "Innstillinger",
     "incognito": "Inkognito (pause opptak)",
@@ -9593,6 +11916,12 @@ export const no: TranslationKeys = {
     "welcomeBody": "Hold markøren mot midten av venstre skjermkant, eller trykk Alt+C for å skyve ut hyllen din."
   },
   "flyout": {
+    "clickToDeselect": "Klikk for å fjerne valg",
+    "clickToSelect": "Klikk for å velge",
+    "deselectItem": "Fjern valg",
+    "selectItem": "Velg element",
+    "copied": "Kopiert!",
+    "clickToPasteImageDrag": "Klikk for å lime inn bilde · Dra for å flytte",
     "copyBeaconStyleTitle": "Stil for kopieringsindikator",
     "openLink": "Åpne lenke",
     "copyContent": "Kopier innhold",
@@ -9616,6 +11945,14 @@ export const no: TranslationKeys = {
     "current": "Gjeldende"
   },
   "toast": {
+    "mergeIncompatible": "Ulike elementtyper kan ikke kombineres",
+    "mergeFilesFull": "En mappepakke kan inneholde maksimalt 10 filer",
+    "mergeImagesFull": "En bildesamling kan inneholde maksimalt 10 elementer",
+    "mergeTextLinks": "Tekst og lenker kan ikke grupperes sammen",
+    "splitStacks": "Delt inn i {count} grupper (maks. 10 i hver)",
+    "pasteFallback": "Utklippstavlen er klar — klikk på appen og trykk Ctrl+V for å lime inn",
+    "clearFailed": "Kunne ikke tømme historikken. Prøv igjen.",
+    "deleteFailed": "Kunne ikke slette dette elementet. Prøv igjen.",
     "copiedToClipboard": "Kopiert til utklippstavle",
     "itemDeleted": "Element slettet",
     "itemPinned": "Element festet",
@@ -9628,6 +11965,7 @@ export const no: TranslationKeys = {
     "shortcutUpdated": "Global hurtigtast satt til {shortcut}"
   },
   "footer": {
+    "supportTagline": "100 % gratis utklippstavle med åpen kildekode",
     "communityAndSupport": "Fellesskap og støtte",
     "feedbackTitle": "Tilbakemelding og problemer",
     "feedbackDesc": "Rapporter feil eller foreslå funksjoner på GitHub",
@@ -9641,7 +11979,37 @@ export const no: TranslationKeys = {
     "version": "Versjon",
     "supportPromo": "Edge-Drop er 100 % gratis og åpen kildekode. Hvis det hjelper deg i den daglige arbeidsflyten, kan du vurdere å støtte utviklingen for å gjøre det enda bedre!",
     "supportOnKofi": "Støtt på Ko-fi"
-  }
+  },
+  "groups": {
+    "feedback": "TILBAKEMELDING",
+    "aboutEdgeDrop": "OM EDGE-DROP",
+    "general": "GENERELT",
+    "startup": "OPPSTART",
+    "privacy": "PERSONVERN",
+    "hoverActivation": "AKTIVERING VED PEKING",
+    "keyboardShortcut": "TASTATURSNARVEI",
+    "fullscreenProtection": "FULLSKJERMBESKYTTELSE",
+    "clipboardBehaviour": "UTKLIPPSATFERD",
+    "restartCleanup": "OPPRYDDING VED OMSTART",
+    "storageCapacity": "LAGRINGSKAPASITET",
+    "autoDelete": "AUTOMATISK SLETTING",
+    "updates": "OPPDATERINGER",
+    "placement": "PLASSERING",
+    "displayMonitor": "SKJERM",
+    "locationHint": "PLASSERINGSHINT",
+    "hoverZoneLength": "LENGDE PÅ PEKEOMRÅDE",
+    "triggerThickness": "UTLØSERENS TYKKELSE",
+    "copyBeacon": "KOPIINDIKATOR",
+    "beaconStyle": "INDIKATORSTIL",
+    "audioFeedback": "LYDTILBAKEMELDING",
+    "alignment": "JUSTERING",
+    "triggerPosition": "UTLØSERPOSISJON",
+    "panelHeight": "PANELHØYDE",
+    "textSize": "TEKSTSTØRRELSE",
+    "languageSelectDesc": "Velg programmets visningsspråk",
+    "toggleHotkeyPressDesc": "Trykk hvor som helst for å bytte Edge-Drop",
+    "edgeHintPulseDesc": "Indikatorpuls langs kanten viser panelets plassering",
+  },
 };
 
 export const TRANSLATIONS: Record<string, TranslationKeys> = {

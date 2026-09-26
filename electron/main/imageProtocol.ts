@@ -47,6 +47,16 @@ export function emojiAssetDir(opts: { packaged: boolean; resourcesPath: string; 
 }
 
 /**
+ * Cache of validated emoji asset paths. The 64px PNG set is static at
+ * runtime, so a resolved filename never changes its answer. Caching skips a
+ * `resolve` + `existsSync` disk stat per glyph — the first emoji grid mounts
+ * ~100 `<img>` tags at once, and without this every one of them stats the
+ * disk inside the click. Only positive hits are cached, so the map is bounded
+ * by the real file count and invalid names never accumulate.
+ */
+const emojiAssetCache = new Map<string, string>()
+
+/**
  * Resolve a picker glyph filename to an on-disk PNG. Rejects anything that
  * is not a lowercase hex-and-hyphen name so the protocol cannot escape the
  * emoji asset directory.
@@ -55,9 +65,13 @@ export function resolveEmojiAsset(assetDir: string, fileName: string): string | 
   const name = fileName.toLowerCase()
   if (!EMOJI_FILE_RE.test(name)) return null
   const baseDir = resolve(assetDir)
+  const cacheKey = `${baseDir}${name}`
+  const cached = emojiAssetCache.get(cacheKey)
+  if (cached !== undefined) return cached
   const filePath = resolve(join(baseDir, name))
   if (dirname(filePath) !== baseDir) return null
   if (!existsSync(filePath)) return null
+  emojiAssetCache.set(cacheKey, filePath)
   return filePath
 }
 

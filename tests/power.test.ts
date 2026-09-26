@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 // ──────────────────────────────────────────────────────────────────────────────
 
 /** Build a minimal cursor tick input object. */
-function makeTick(clientX: number, clientY: number, displayWidth = 1920, stickPosition: 'left' | 'right' = 'left') {
+function makeTick(clientX: number, clientY: number, displayWidth = 1920, stickPosition: 'left' | 'right' | 'top' = 'left') {
   return { clientX, clientY, displayWidth, stickPosition }
 }
 
@@ -66,6 +66,12 @@ describe('Fix 1 — adaptive poll rate constants', () => {
     const { clientX, displayWidth, stickPosition } = makeTick(1000, 500, 1920, 'right')
     const distFromEdge = displayWidth - clientX
     expect(distFromEdge).toBeGreaterThan(FAST_POLL_PROXIMITY_PX)
+  })
+
+  it('cursor within PROXIMITY triggers fast mode (top panel)', () => {
+    const { clientY } = makeTick(500, 50, 1920, 'top')
+    const distFromEdge = clientY
+    expect(distFromEdge).toBeLessThanOrEqual(FAST_POLL_PROXIMITY_PX)
   })
 
   it('SLOW_COOLDOWN_MS is long enough to avoid mode thrashing (>= 500ms)', () => {

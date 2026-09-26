@@ -1,13 +1,29 @@
-/** Panel header: title + settings toggle. */
-import { motion } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, EmojiSmileIcon } from './icons'
+import RubberSegment from './RubberSegment'
+import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon, EmojiSmileIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { loadEmojiCatalog } from '../lib/emoji/load'
+import { ShelfSearch } from './ShelfSearch'
+import { EmojiCategoryBar } from './EmojiCategoryBar'
 
 import { useTranslation } from '../i18n'
+import { ClearMenu } from './ClearMenu'
+import type { ClipboardItemDto, TypeFilter } from '../../shared/types'
 
-export function Header() {
+export interface HeaderProps {
+  isHorizontal?: boolean
+  itemCount?: number
+  clearProps?: {
+    items: ClipboardItemDto[]
+    disabled: boolean
+    panelOpen: boolean
+    onClear: (ids: string[]) => void
+    onClearAll: () => void
+  }
+}
+
+export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderProps = {}) {
+  const isStoreBuild = useStore((s) => s.isStoreBuild)
   const { t } = useTranslation()
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const settingsOpen = useStore((s) => s.settingsOpen)
@@ -15,6 +31,8 @@ export function Header() {
   const settings = useStore((s) => s.settings)
   const patchSettings = useStore((s) => s.patchSettings)
   const currentVersion = useStore((s) => s.currentVersion)
+  const settingsTab = useStore((s) => s.settingsTab)
+  const setSettingsTab = useStore((s) => s.setSettingsTab)
 
   const isChangelogUnread = settingsOpen && (
     !settings.lastSeenChangelogVersion ||
@@ -43,18 +61,32 @@ export function Header() {
     { id: 'links', label: t('filters.links'), Icon: LinkIcon },
     { id: 'images', label: t('filters.images'), Icon: ImageIcon },
     { id: 'files', label: t('filters.files'), Icon: FilesIcon },
+    { id: 'colors', label: t('filters.colors') || 'Colors', Icon: PaletteIcon },
     { id: 'emoji', label: t('emoji.open'), Icon: EmojiSmileIcon }
   ]
 
   const activeId: (typeof FILTERS)[number]['id'] = emojiOpen ? 'emoji' : typeFilter
-  const activeIndex = Math.max(0, FILTERS.findIndex((f) => f.id === activeId))
-  const ActiveIcon = FILTERS[activeIndex]?.Icon || FILTERS[0].Icon
-  const filterChipWidth = 28
+  const filterSlotSize = isHorizontal ? 26 : 24
+  const filterTrackHeight = isHorizontal ? 30 : 28
+  const filterIconSize = isHorizontal ? 14 : 13
   const reduceMotion = !!settings.reduceMotion
   const headerFade = `opacity ${reduceMotion ? '0.01s' : '0.16s'} ease`
 
   return (
-    <div className="header" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', height: 40, padding: '0 14px', boxSizing: 'border-box' }}>
+    <div
+      className={`header${isHorizontal ? ' header-horizontal' : ''}`}
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        width: '100%',
+        alignItems: 'center',
+        height: 40,
+        padding: isHorizontal ? '0 16px' : '0 14px',
+        boxSizing: 'border-box',
+        position: 'relative',
+        zIndex: isHorizontal ? 250 : 100
+      }}
+    >
       <div
         style={{
           display: 'grid',
@@ -62,8 +94,8 @@ export function Header() {
           alignItems: 'center',
           minWidth: 0,
           flex: 1,
-          height: 28,
-          overflow: 'hidden'
+          height: 32,
+          overflow: 'visible'
         }}
       >
         <div
@@ -78,7 +110,6 @@ export function Header() {
             border: 'none',
             borderRadius: 999,
             padding: 0,
-            gap: 4,
             marginLeft: 0,
             maxWidth: '100%',
             overflow: 'visible',
@@ -87,88 +118,134 @@ export function Header() {
             transition: headerFade
           }}
         >
-            {/* Single Persistent Sliding Pill Indicator (ABOVE the buttons) */}
-            <motion.div
-              initial={false}
-              animate={{ x: activeIndex * (filterChipWidth + 4) }}
-              transition={{
-                type: 'spring',
-                stiffness: 440,
-                damping: 34,
-                mass: 0.7
-              }}
+          <RubberSegment
+            items={FILTERS.map((f) => ({
+              value: f.id,
+              label: f.label,
+              title: f.label,
+              icon: <f.Icon width={filterIconSize} height={filterIconSize} />
+            }))}
+            value={activeId}
+            onChange={(val) => {
+              playButtonClickSound()
+              if (val === 'emoji') setEmojiOpen(true)
+              else setTypeFilter(val as TypeFilter)
+            }}
+            onHoverItem={(val) => {
+              if (val === 'emoji') void loadEmojiCatalog()
+            }}
+            trackColor="#141414"
+            thumbColor="#ffffff"
+            textColor="rgba(255, 255, 255, 0.72)"
+            activeTextColor="#000000"
+            size="custom"
+            height={filterTrackHeight}
+            minWidth={filterSlotSize}
+            radius={9999}
+            inset={2}
+            equalSlots={true}
+            stretch={80}
+            squash={2}
+            glide={60}
+            draggable={true}
+            tabIndex={settingsOpen ? -1 : undefined}
+            aria-label={t('filters.title') || 'Filters'}
+          />
+        </div>
+        {isHorizontal ? (
+          <div
+            aria-hidden={!settingsOpen}
+            style={{
+              gridArea: '1 / 1 / 2 / 2',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              opacity: settingsOpen ? 1 : 0,
+              pointerEvents: settingsOpen ? 'auto' : 'none',
+              transition: headerFade
+            }}
+          >
+            <span
               style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                width: filterChipWidth,
-                height: 28,
-                borderRadius: 999,
-                background: 'linear-gradient(180deg, #ffffff 0%, #ebebeb 100%)',
-                border: 'none',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 #ffffff',
-                pointerEvents: 'none',
-                zIndex: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#000000',
-                willChange: 'transform'
+                fontSize: 12,
+                fontWeight: 700,
+                color: '#ffffff',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                marginRight: 2
               }}
             >
-              <ActiveIcon width={14} height={14} />
-            </motion.div>
-
-            {FILTERS.map((f) => {
-              const active = activeId === f.id
-              const Icon = f.Icon
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  className={`filter-chip${active ? ' active' : ''}`}
-                  title={f.label}
-                  aria-label={f.label}
-                  aria-pressed={active}
-                  tabIndex={settingsOpen ? -1 : 0}
-                  onPointerEnter={() => {
-                    if (f.id === 'emoji') void loadEmojiCatalog()
-                  }}
-                  onClick={() => {
-                    playButtonClickSound()
-                    if (f.id === 'emoji') setEmojiOpen(true)
-                    else setTypeFilter(f.id)
-                  }}
-                >
-                  <Icon width={14} height={14} />
-                </button>
-              )
-            })}
-        </div>
-        <span
-          aria-hidden={!settingsOpen}
-          style={{
-            gridArea: '1 / 1 / 2 / 2',
-            fontSize: 13,
-            fontWeight: 600,
-            color: '#8e8e93',
-            letterSpacing: '0.01em',
-            paddingLeft: 0,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxWidth: 170,
-            lineHeight: '28px',
-            opacity: settingsOpen ? 1 : 0,
-            pointerEvents: 'none',
-            transition: headerFade
-          }}
-        >
-          {t('header.settings')}
-        </span>
+              {t('header.settings')}
+            </span>
+            <div className="settings-header-pills" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              {[
+                { id: 'behaviour' as const, label: t('tabs.behaviour') },
+                { id: 'position' as const, label: t('tabs.position') },
+                { id: 'appearance' as const, label: t('tabs.appearance') }
+              ].map((tab) => {
+                const active = settingsTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`settings-header-pill${active ? ' active' : ''}`}
+                    onClick={() => {
+                      playButtonClickSound()
+                      setSettingsTab(tab.id)
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <span
+            aria-hidden={!settingsOpen}
+            style={{
+              gridArea: '1 / 1 / 2 / 2',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#8e8e93',
+              letterSpacing: '0.01em',
+              paddingLeft: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: 170,
+              lineHeight: '28px',
+              opacity: settingsOpen ? 1 : 0,
+              pointerEvents: 'none',
+              transition: headerFade
+            }}
+          >
+            {t('header.settings')}
+          </span>
+        )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, paddingRight: 2 }}>
+      {isHorizontal && !settingsOpen && !emojiOpen && (
+        <div className="header-search header-search-center">
+          <ShelfSearch />
+        </div>
+      )}
+      {isHorizontal && !settingsOpen && emojiOpen && (
+        <div className="header-search header-search-center">
+          <EmojiCategoryBar isHorizontal={true} />
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 2, position: 'relative', zIndex: 260 }}>
+        {isHorizontal && !settingsOpen && itemCount != null && (
+          <div className="footer-capsule" style={{ marginRight: 2 }}>
+            <span className="footer-capsule-count" title={`${itemCount}`}>
+              {itemCount}
+            </span>
+          </div>
+        )}
+        {isHorizontal && clearProps && !settingsOpen && (
+          <ClearMenu {...clearProps} menuDirection="down" />
+        )}
         {settingsOpen && (
           <button
             type="button"
@@ -278,17 +355,18 @@ export function Header() {
           >
             <CloseIcon />
           </span>
-          {!settingsOpen && (updateInfo?.downloaded || ((settings.autoUpdates ?? true) && updateInfo?.hasUpdate)) && (
+          {!settingsOpen && !isStoreBuild && (updateInfo?.downloaded || updateInfo?.hasUpdate) && (
             <span
               style={{
                 position: 'absolute',
-                top: 5,
-                right: 5,
-                width: 8,
-                height: 8,
+                top: 6,
+                right: 6,
+                width: 6,
+                height: 6,
                 borderRadius: '50%',
-                backgroundColor: '#4caf50',
+                backgroundColor: '#30d158',
                 border: '1.5px solid #000000',
+                boxShadow: '0 0 8px rgba(48, 209, 88, 0.7)',
                 pointerEvents: 'none'
               }}
             />

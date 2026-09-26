@@ -71,7 +71,7 @@ class StickController {
   currentStickDisplayId: number | undefined
   windowBounds: { x: number; y: number } | null = null
   lastProbe: ReturnType<typeof probeStickEdge> | null = null
-  stickPosition: 'left' | 'right' = 'left'
+  stickPosition: 'left' | 'right' | 'top' = 'left'
   hotZoneWidth = 3
   windowWidth = 384
 
@@ -221,6 +221,24 @@ describe('SIMULATION — right-stick on the secondary', () => {
   })
 })
 
+describe('SIMULATION — top-stick dock', () => {
+  it('triggers only at the top edge with correct vertical distance math', () => {
+    const ctl = new StickController(sideBySideDesktop())
+    ctl.stickPosition = 'top'
+    ctl.applyStickDisplay(1)
+
+    // Top edge of primary (y=0..2)
+    const inside = ctl.tick({ x: 500, y: 1 })!
+    expect(inside.inEdge).toBe(true)
+    expect(inside.distFromEdge).toBe(1)
+    expect(inside.clientY).toBe(1)
+
+    // 10px down: outside trigger band
+    const outside = ctl.tick({ x: 500, y: 10 })!
+    expect(outside.inEdge).toBe(false)
+  })
+})
+
 describe('SIMULATION — vertically stacked secondary', () => {
   it('detects its own edge with correct Y translation', () => {
     const desktop = new VirtualDesktop([
@@ -333,7 +351,7 @@ describe('SIMULATION — adaptive proximity thresholds (unchanged feel)', () => 
 /* ------------------------------------------------------------------ */
 
 const SEC_X = 1920
-function seamController(stickPosition: 'left' | 'right' = 'left') {
+function seamController(stickPosition: 'left' | 'right' | 'top' = 'left') {
   const ctl = new StickController(sideBySideDesktop())
   ctl.stickPosition = stickPosition
   ctl.applyStickDisplay(2)
@@ -477,6 +495,45 @@ describe('SEAM POLICY - primary interior regression guard while stuck to seconda
     r = c.tick(SEC_X + 2)!       // rest 3 -> forgiven
     expect(r.lockedOut).toBe(false)
     expect(r.slowEnough).toBe(true)
+    expect(r.armedInEdge).toBe(true)
+  })
+})
+
+describe('SEAM POLICY - vertically stacked displays with top stick', () => {
+  it('vertical crossing from upper display suppresses until cursor rests on own top pixels', () => {
+    const desktop = new VirtualDesktop([
+      display(1, 0, 0, 1920, 1080, true),
+      display(2, 0, 1080, 1920, 1440)
+    ])
+    const ctl = new StickController(desktop)
+    ctl.stickPosition = 'top'
+    ctl.applyStickDisplay(2)
+    const wa = ctl.cache.get(2)!
+
+    let state: SeamTickState = {}
+    let t = 1000
+    const tick = (y: number) => {
+      t += 16
+      const r = probeSeamAware({ cursor: { x: 500, y }, workArea: wa, stickPosition: 'top', hotZoneWidth: 3, now: t }, state)
+      state = r.nextState
+      return r
+    }
+
+    // Upper display hover (y = 1075) does not arm
+    let r = tick(1075)
+    for (let i = 0; i < 5; i++) r = tick(1075)
+    expect(r.armedInEdge).toBe(false)
+
+    // Arrive on own pixels (y = 1081): crossing suppressed
+    r = tick(1081)
+    expect(r.crossedNow).toBe(true)
+    expect(r.armedInEdge).toBe(false)
+
+    // Rest for 3 frames -> arms!
+    r = tick(1081)
+    r = tick(1081)
+    r = tick(1081)
+    expect(r.lockedOut).toBe(false)
     expect(r.armedInEdge).toBe(true)
   })
 })

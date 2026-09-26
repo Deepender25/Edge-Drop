@@ -71,4 +71,25 @@ describe('type filters: image files live in Images only', () => {
     expect(itemMatchesTypeFilter(note, 'links')).toBe(false)
     expect(itemMatchesTypeFilter(pngFile, 'text')).toBe(false)
   })
+
+  it('colors: matches color codes and separates them from text', () => {
+    const colorHex = dto({ kind: 'text', text: '#ebd5ad', isUrl: false, isColor: true })
+    const colorRgb = dto({ kind: 'text', text: 'rgb(235, 213, 173)', isUrl: false })
+    const plainText = dto({ kind: 'text', text: 'just normal notes', isUrl: false })
+
+    expect(itemMatchesTypeFilter(colorHex, 'colors')).toBe(true)
+    expect(itemMatchesTypeFilter(colorRgb, 'colors')).toBe(true)
+    expect(itemMatchesTypeFilter(plainText, 'colors')).toBe(false)
+    expect(itemMatchesTypeFilter(screenshot, 'colors')).toBe(false)
+    expect(itemMatchesTypeFilter(pngFile, 'colors')).toBe(false)
+
+    // Text filter excludes colors so color codes do not clutter text notes
+    expect(itemMatchesTypeFilter(plainText, 'text')).toBe(true)
+    expect(itemMatchesTypeFilter(colorHex, 'text')).toBe(false)
+    expect(itemMatchesTypeFilter(colorRgb, 'text')).toBe(false)
+
+    // All filter still shows colors
+    expect(itemMatchesTypeFilter(colorHex, 'all')).toBe(true)
+    expect(itemMatchesTypeFilter(colorRgb, 'all')).toBe(true)
+  })
 })

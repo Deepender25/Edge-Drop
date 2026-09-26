@@ -9,8 +9,17 @@ export function EmptyState({ filtered }: { filtered: boolean }) {
   let hint = filtered ? t('emptyState.noResultsHint') : t('emptyState.shelfEmptyHint')
 
   if (typeFilter !== 'all') {
-    const labelKey = typeFilter === 'text' ? 'emptyState.textClips' : typeFilter === 'links' ? 'emptyState.links' : typeFilter === 'images' ? 'emptyState.images' : 'emptyState.files'
-    const label = t(labelKey)
+    const labelKey =
+      typeFilter === 'text'
+        ? 'emptyState.textClips'
+        : typeFilter === 'links'
+          ? 'emptyState.links'
+          : typeFilter === 'images'
+            ? 'emptyState.images'
+            : typeFilter === 'colors'
+              ? 'filters.colors'
+              : 'emptyState.files'
+    const label = (t(labelKey) || 'colors').toLowerCase()
     title = t('emptyState.noClipsFound', { type: label })
     hint = t('emptyState.copyTypeHint', { type: label })
   }

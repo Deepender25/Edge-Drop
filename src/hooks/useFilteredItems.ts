@@ -8,6 +8,7 @@ import { useMemo } from 'react'
 import { useStore } from '../store/appStore'
 import type { ClipboardItemDto, TypeFilter } from '../../shared/types'
 import { basename, isImagePath } from '../lib/format'
+import { parseColor } from '../lib/colorUtils'
 
 function matches(it: ClipboardItemDto, q: string): boolean {
   if (!q) return true
@@ -42,7 +43,7 @@ export function itemMatchesTypeFilter(it: ClipboardItemDto, filter: TypeFilter):
   if (filter === 'all') return true
   switch (filter) {
     case 'text':
-      return it.data.kind === 'text' && !it.data.isUrl
+      return it.data.kind === 'text' && !it.data.isUrl && !it.data.isColor && !parseColor(it.data.text)
     case 'links':
       return it.data.kind === 'text' && !!it.data.isUrl
     case 'images':
@@ -50,6 +51,8 @@ export function itemMatchesTypeFilter(it: ClipboardItemDto, filter: TypeFilter):
       return isImageOnlyFileItem(it)
     case 'files':
       return it.data.kind === 'files' && !isImageOnlyFileItem(it)
+    case 'colors':
+      return it.data.kind === 'text' && (!!it.data.isColor || !!parseColor(it.data.text))
   }
 }
 

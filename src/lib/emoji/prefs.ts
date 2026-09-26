@@ -3,9 +3,14 @@
 const RECENTS_KEY = 'edge-drop.emoji.recents'
 const TONE_KEY = 'edge-drop.emoji.skinTone'
 
-function storage(): Storage | null {
+interface MinimalStorage {
+  getItem(key: string): string | null
+  setItem(key: string, value: string): void
+}
+
+function storage(): MinimalStorage | null {
   try {
-    const g = globalThis as { localStorage?: Storage }
+    const g = globalThis as { localStorage?: MinimalStorage }
     return g.localStorage ?? null
   } catch {
     return null

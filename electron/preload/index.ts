@@ -191,6 +191,7 @@ const api = {
   installUpdate: () => invoke('app:install-update'),
   checkForUpdatesManual: () => invoke('updater:check-manual'),
   startUpdateDownload: () => invoke('updater:start-download'),
+  getUpdateState: () => invoke('updater:get-state'),
   quitApp: () => invoke('app:quit'),
   startDrag: (req: DragRequest) => {
     setInternalDragState(true)

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applySkin,
   buildCatalog,
+  entriesForCategory,
   hasSkinTones,
   isPasteableEmoji,
   pushRecent,
@@ -134,5 +135,36 @@ describe('emoji asset protocol', () => {
       cwd: 'C:\\cwd'
     })
     expect(dir.replace(/\\/g, '/')).toBe('C:/res/emoji/64')
+  })
+})
+
+describe('horizontal emoji picker layout calculations', () => {
+  it('entriesForCategory matches the grid memo for every category', () => {
+    const cat = buildCatalog(sample)
+    // smileys merges two source categories in sort order
+    const smileys = entriesForCategory(cat, 'smileys', [])
+    expect(smileys.map((e) => e.key)).toEqual(['1F600', '1F44B'])
+    expect(smileys[0]).toMatchObject({ file: '1f600.png' })
+    // recents resolve through glyphs, unknown codes dropped
+    const recents = entriesForCategory(cat, 'recents', ['1F44B', 'NOPE'])
+    expect(recents.map((e) => e.key)).toEqual(['1F44B'])
+    // null catalog and empty recents are safe
+    expect(entriesForCategory(null, 'smileys', [])).toEqual([])
+    expect(entriesForCategory(cat, 'recents', [])).toEqual([])
+  })
+
+  it('calculates responsive columns matching horizontal viewport width', () => {
+    const calcCols = (viewW: number, isHorizontal: boolean) => {
+      if (!isHorizontal) return 7
+      if (viewW <= 0) return 24
+      return Math.max(8, Math.floor((viewW - 16) / 36))
+    }
+
+    expect(calcCols(0, false)).toBe(7)
+    expect(calcCols(300, false)).toBe(7)
+    expect(calcCols(0, true)).toBe(24)
+    expect(calcCols(1000, true)).toBe(27)
+    expect(calcCols(720, true)).toBe(19)
+    expect(calcCols(1440, true)).toBe(39)
   })
 })

@@ -185,7 +185,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     const src = read('src/components/Settings.tsx')
     expect(src).toContain('{!isStoreBuild && (')
     expect(src).toContain('behaviour.autoUpdatesTitle')
-    expect(src).toContain('hasUpdatePrompt = !isStoreBuild &&')
+    expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild &&')
+    expect(src).toContain('if (isStoreBuild) return null')
   })
 
   it('Settings renders Store review button on Store builds and GitHub star on GitHub builds', () => {

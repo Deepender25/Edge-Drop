@@ -149,9 +149,10 @@ export function createTray(): Tray {
     const settings = loadSettings()
     return ([
       { pos: 'left' as const, labelKey: 'left' as const },
-      { pos: 'right' as const, labelKey: 'right' as const }
+      { pos: 'right' as const, labelKey: 'right' as const },
+      { pos: 'top' as const, labelKey: 'top' as const }
     ]).map(({ pos, labelKey }) => ({
-      label: getTrayText(settings.language, labelKey),
+      label: getTrayText(settings.language, labelKey as any) || (pos === 'top' ? 'Top' : pos),
       type: 'radio' as const,
       checked: current === pos,
       click: () => {
@@ -175,9 +176,30 @@ function getTrayText(settingsLang: string | undefined, key: keyof typeof en['tra
     else if (first.startsWith('fr')) langCode = 'fr'
     else if (first.startsWith('de')) langCode = 'de'
     else if (first.startsWith('hi')) langCode = 'hi'
-    else if (first.startsWith('fa')) langCode = 'fa'
     else if (first.startsWith('ja')) langCode = 'ja'
     else if (first.startsWith('ru')) langCode = 'ru'
+    else if (first.startsWith('it')) langCode = 'it'
+    else if (first.startsWith('pt')) langCode = 'pt'
+    else if (first.startsWith('ko')) langCode = 'ko'
+    else if (first.startsWith('ar')) langCode = 'ar'
+    else if (first.startsWith('fa')) langCode = 'fa'
+    else if (first.startsWith('bn')) langCode = 'bn'
+    else if (first.startsWith('tr')) langCode = 'tr'
+    else if (first.startsWith('vi')) langCode = 'vi'
+    else if (first.startsWith('pl')) langCode = 'pl'
+    else if (first.startsWith('nl')) langCode = 'nl'
+    else if (first.startsWith('sv')) langCode = 'sv'
+    else if (first.startsWith('id')) langCode = 'id'
+    else if (first.startsWith('uk')) langCode = 'uk'
+    else if (first.startsWith('el')) langCode = 'el'
+    else if (first.startsWith('cs')) langCode = 'cs'
+    else if (first.startsWith('ro')) langCode = 'ro'
+    else if (first.startsWith('hu')) langCode = 'hu'
+    else if (first.startsWith('da')) langCode = 'da'
+    else if (first.startsWith('fi')) langCode = 'fi'
+    else if (first.startsWith('th')) langCode = 'th'
+    else if (first.startsWith('he')) langCode = 'he'
+    else if (first.startsWith('no') || first.startsWith('nb') || first.startsWith('nn')) langCode = 'no'
     else langCode = 'en'
   }
   const dict = TRANSLATIONS[langCode]

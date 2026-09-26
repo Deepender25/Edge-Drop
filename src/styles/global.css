@@ -36,10 +36,10 @@ body {
   color: var(--text-primary);
   background: transparent;
   overflow: hidden;
-  /* Real face is loaded; grayscale AA on dark UI is the sharp path. */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
+  /* No font-smoothing/rendering overrides: the OS default (ClearType on
+     Windows) is the sharp path, matching every native element next to us.
+     Forced grayscale AA + geometricPrecision visibly softens glyphs,
+     worst on high-DPI displays. */
   font-feature-settings: 'ss01' 1;
   user-select: none;
   -webkit-user-select: none;
@@ -77,6 +77,24 @@ svg {
 .style-card {
   -webkit-background-clip: padding-box;
   background-clip: padding-box;
+}
+
+/* All flyout preview containers hide visible scrollbars while maintaining scroll functionality */
+.preview-flyout,
+.preview-flyout *,
+.language-flyout,
+.language-flyout * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.preview-flyout::-webkit-scrollbar,
+.preview-flyout *::-webkit-scrollbar,
+.language-flyout::-webkit-scrollbar,
+.language-flyout *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 img,

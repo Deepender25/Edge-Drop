@@ -15,6 +15,8 @@ interface ClearMenuProps {
   onClear: (ids: string[]) => void
   /** Clear all unpinned history. */
   onClearAll: () => void
+  /** Direction menu flies out. Defaults to 'up' for bottom footer, 'down' for header. */
+  menuDirection?: 'up' | 'down'
 }
 
 const WINDOWS: { key: '1h' | '6h' | '24h'; hours: number }[] = [
@@ -39,7 +41,14 @@ const menuItemStyle: CSSProperties = {
   transition: 'background 0.12s ease'
 }
 
-export function ClearMenu({ items, disabled, panelOpen, onClear, onClearAll }: ClearMenuProps) {
+export function ClearMenu({
+  items,
+  disabled,
+  panelOpen,
+  onClear,
+  onClearAll,
+  menuDirection = 'up'
+}: ClearMenuProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [confirmAll, setConfirmAll] = useState(false)
@@ -88,8 +97,10 @@ export function ClearMenu({ items, disabled, panelOpen, onClear, onClearAll }: C
     onClearAll()
   }
 
+  const isMenuDown = menuDirection === 'down'
+
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative', zIndex: open ? 350 : 'auto' }}>
       <button
         className={`text-btn${open ? ' active' : ''}`}
         onClick={() => {
@@ -108,21 +119,22 @@ export function ClearMenu({ items, disabled, panelOpen, onClear, onClearAll }: C
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            initial={{ opacity: 0, y: isMenuDown ? -6 : 6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            exit={{ opacity: 0, y: isMenuDown ? -6 : 6, scale: 0.98 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
             style={{
               position: 'absolute',
-              bottom: 'calc(100% + 6px)',
+              top: isMenuDown ? 'calc(100% + 6px)' : undefined,
+              bottom: isMenuDown ? undefined : 'calc(100% + 6px)',
               right: 0,
               minWidth: 190,
               background: '#141414',
-              border: 'none',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: 16,
               padding: 4,
-              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6)',
-              zIndex: 100
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(0, 0, 0, 0.5)',
+              zIndex: 350
             }}
           >
             {WINDOWS.map((w) => (
