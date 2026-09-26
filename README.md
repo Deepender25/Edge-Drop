@@ -31,24 +31,16 @@
 </p>
 
 <p align="center">
-  <a href="https://apps.microsoft.com/detail/9P3JMHN9M4NR"><img alt="Microsoft Store" src="https://img.shields.io/badge/Microsoft%20Store-Edge--Drop-0078D4?style=flat-square&logo=microsoft-store&logoColor=white" /></a>
-  <a href="https://github.com/Deepender25/Edge-Drop/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=f6c7d6" /></a>
-  <a href="https://github.com/Deepender25/Edge-Drop/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=c7e7f6" /></a>
   <a href="https://github.com/Deepender25/Edge-Drop/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=d2f4e8" /></a>
-  <img src="https://img.shields.io/badge/tests-444%20passing-8ca77b?style=flat-square&logo=vitest&logoColor=white&labelColor=23272e" alt="Tests" />
+  <a href="https://github.com/Deepender25/Edge-Drop/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=f6c7d6" /></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=ffe6b3" /></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-93a4fc?style=flat-square&logo=windows&logoColor=white&labelColor=23272e" alt="Platform" />
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Electron-v34-53caf7?style=flat-square&logo=electron&logoColor=white&labelColor=23272e" alt="Electron" />
-  <img src="https://img.shields.io/badge/React-v19-52d7a4?style=flat-square&logo=react&logoColor=white&labelColor=23272e" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-5.7-60a5fa?style=flat-square&logo=typescript&logoColor=white&labelColor=23272e" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Framer%20Motion-v11-e879f9?style=flat-square&logo=framer&logoColor=white&labelColor=23272e" alt="Framer Motion" />
-  <a href="https://github.com/Deepender25/Edge-Drop/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/Deepender25/Edge-Drop?style=flat-square&labelColor=23272e&color=f2d2f4" /></a>
-</p>
-
 ---
+
+> [!IMPORTANT]
+> Edge-Drop is an independent open-source project. It is not affiliated with, endorsed by, sponsored by, or connected to Microsoft or the Microsoft Edge browser in any way.
 
 ## Why
 
@@ -207,7 +199,7 @@ A huge thank you to the incredible sponsors and products actively sponsoring Edg
   </tr>
   <tr>
     <td align="center" style="border: none; padding: 0 25px 15px; vertical-align: top;">
-      <sub>Automatic background updates & native sandbox</sub>
+      <sub>Updates delivered via the Microsoft Store · native sandbox</sub>
     </td>
     <td align="center" style="border: none; padding: 0 25px 15px; vertical-align: top;">
       <sub>Standalone setup with built-in auto-updater</sub>
@@ -239,7 +231,7 @@ npm run typecheck    # runs tsc --noEmit against both node and web configs
 ### Build Windows installers
 ```bash
 npm run build:github # outputs an NSIS .exe for GitHub releases
-npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
+npm run build:store  # outputs an MSIX package for Microsoft Store submission
 ```
 
 > [!NOTE]
@@ -272,7 +264,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Zero OS Focus Stealing:** Dynamically toggles window focusability exclusively during active key recording, keeping normal shelf clicks non-intrusive.
 
 **Shelf Search**
-- Type-to-filter search box in the shelf (full row on the vertical blade, centered box on the horizontal dock). Typing never steals focus from your active app, and clicking a result pastes straight into it.
+- Type-to-filter search box in the shelf (full row on the vertical blade, centered box on the horizontal dock). It searches your retained history — 100 to 1000 items, default 250, adjustable in Settings. Typing never steals focus from your active app, and clicking a result pastes straight into it.
 - **Elastic filter controls:** The filter chips and emoji category bar use a rubber-band control with momentum glide and squash-and-settle, fully keyboard navigable with reduced-motion support.
 - **Colors filter & Pantone swatches:** A dedicated Colors tab collects copied color codes, rendered as dynamic Pantone-style swatch cards.
 
@@ -300,23 +292,23 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Stationary Header & Independent Scroll Area:** Fixed top tab bar (`.settings-fixed-header`) stays 100% stationary while settings controls scroll independently underneath it.
 - **Independent Scroll Position Memory:** Each category section maintains its own separate `scrollTop` state across tab switches (`tabScrollPositions`).
 - **Pure CSS Selection Synchronization:** Native CSS active tab styling (`.settings-tab-btn.active`) eliminating layout projection glitches during panel position adjustments.
-- **5% Magnetic Tick Slider:** Smooth `0.002` real-time 1-to-1 continuous tracking during drag with 60fps/120fps precision, featuring 21 visual tick dashes, live percentage badge (`50%`), percentage quick-jump buttons (`0%`, `50%`, `100%`), and magnetic 5% snapping on pointer release.
+- **5% Magnetic Tick Slider:** Smooth real-time 1-to-1 continuous tracking during drag with 60fps/120fps precision, featuring visual tick dashes, a live percentage badge, percentage quick-jump buttons, and magnetic 5% snapping on pointer release.
 - **Position & Display Switch Preview:** 1.75s temporary interactive preview window when changing `Stick position` (`Left` / `Right`) or `Display` monitor in settings.
 - **CPU Performance Optimization & Zero Blur Jank:** Replaced heavy `backdrop-filter: blur()` calls across UI components with high-performance solid/semi-transparent dark fills, eliminating CPU rasterization overhead for 60fps/120fps butter-smooth panel opening and scrolling.
 - **Sharper text on every display:** The app now uses Windows native ClearType text rendering instead of forced grayscale smoothing, so text looks crisp next to native apps — most noticeable on 4K monitors.
-- **Prominent Support Section & Matching Pill Buttons:** Re-ordered settings footer placing the Support & Sponsor card prominently above the Quit button, linking to official domain `www.edgedrop.app`. Features matching 40px height pill buttons for Support and GitHub Star.
-- **Low-Profile Bottom Quit Pill:** Compact, subtle Quit pill button (`.subtle-quit-btn`) centered at the very bottom of the settings view without noisy header text.
+- **Prominent Support Section & Matching Pill Buttons:** Re-ordered settings footer placing the Support & Sponsor card prominently above the Quit button, linking to official domain `www.edgedrop.app`. Support ships as a white primary pill with Store/GitHub as dark secondary pills in one shared pill language.
+- **Low-Profile Quit Pill:** Compact, subtle Quit pill centered at the very bottom of the settings view — dim by default, hinting red only on hover.
 
 **Silent Background Auto-Updates**
 - **Zero-Friction Updates (`electron-updater`):** GitHub releases feature background downloading, live download progress streaming, and a single-click "Restart to Update" button.
 - **Interactive Floating Update Badge:** Displays live download percentages, transferred byte counts, and a one-click restart action on the shelf without layout obstruction.
-- **Windows Light Theme Adaptive System Tray:** Dynamically detects Windows taskbar theme changes and automatically swaps between pure-white and high-contrast dark vector tray icons.
-- **Monochrome Glassmorphic Banner:** Prominently positioned at the top of the scrollable content area across all category tabs. Styled with a dark-mode glassmorphic 4% white card fill (`rgba(255, 255, 255, 0.04)`), 12% white border, and high-contrast white button.
+- **Monochrome Banner:** Prominently positioned at the top of the scrollable content area across all category tabs. Styled as a dark-mode 4% white card fill (`rgba(255, 255, 255, 0.04)`) with a 12% white border and high-contrast white button — no backdrop blur, so it never costs a raster pass.
 - **Microsoft Store Isolation:** Isolated build pipelines ensure Microsoft Store (MSIX) builds remain 100% compliant with Store terms and conditions without integrated update mechanisms (`isStoreBuild()`).
 - **Three update modes:** Choose **Automatic** (check + download + one-click restart), **Notify me** (check at launch, prompt with Download/Skip, never downloads on its own), or **Off** (fully silent). Update prompts sit at the top of Settings, manual checks behave the same in every mode, and skipped versions remind you on next launch.
 
 **Multi-format clipboard engine**
 - Captures plain text, URLs, rich HTML, raw images, spreadsheets, and multi-file selections
+- **Every file type, any file size:** file cards store disk references — never file bytes — so anything from a 1 KB `.txt` to a multi-GB video ingests instantly and drags back out intact. Only previews are bounded (240px thumbnails, 300-char snippets).
 - Win32 `FileNameW` / HDROP parsing via PowerShell to bypass Electron's single-file limit
 - Respects password-manager and dictation-tool privacy flags (case-insensitive matching)
 - Smart deduplication — re-copies bump `hitCount`, trigger a subtle glowing copy flare, and move the item to the top
@@ -331,18 +323,18 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **Quick Action Links & Browser Launch:** Clicking the external link launcher button on URL cards or flyouts opens links directly in your default web browser. Click-outside dismisses the flyout without pasting.
 
 **Universal Native OS Drag & Drop Vault**
-- **0ms Instant Drag-out (Hover Pre-staging):** Background hover pre-staging (`window.edge.prestageDrag`) loads temp file handles and generates pastel vector drag ghosts before mouse drag begins, yielding 0ms drag latency.
+- **0ms Instant Drag-out (Background Pre-staging):** The bridge exposes a pre-stage call that runs in the background on hover or pointerdown, so temp file handles and pastel vector drag ghosts are ready before the mouse drag begins — yielding effectively 0ms drag latency.
 - **Return-to-Shelf Integrity (Self-Drop Protection):** Returning dragged items back onto the shelf is a clean no-op. The capturing preload drop filter prevents accidental re-ingestion, card duplication, usage count increments, or card splitting.
-- **Click vs. Drag Gesture Discrimination:** Intelligent 5px movement guard prevents mouse drags across text and link cards from triggering accidental click-to-paste actions, while preserving instant single-click copy/paste.
+- **Click vs. Drag Gesture Discrimination:** A small pointer-movement guard prevents mouse drags across text and link cards from triggering accidental click-to-paste actions, while preserving instant single-click copy/paste.
 - **External Usage Accounting:** Item usage counts (`hitCount`) and move-to-top reordering are strictly gated to drops that land in external applications (e.g. Word, Photoshop, Discord, Explorer).
 - **Original Filename Preservation:** Images and files captured or dropped into Edge-Drop preserve their original source filenames across clipboard transfers, drag operations, and disk exports.
 - **Dynamic Z-Band Demotion:** Temporarily demotes window Z-band during active drags (`setAlwaysOnTop(true, 'normal')`) to ensure smooth drag-out into all Windows desktop software.
 - **Universal Drag-in Vault:** Drag text, web images, links, and local files directly into the Edge-Drop shelf.
 
 **Fluid collections & stacks**
-- **20% Larger 154px Stack Fan Tiles:** Collapsed file bundles feature 154px presentation cards with folder-silhouette masks and category-specific pastel vector badges.
+- **Stack Fan Tiles:** Collapsed file bundles feature wide presentation cards with folder-silhouette masks and category-specific pastel vector badges.
 - **Animated GIF Streaming:** Integrated fallback streaming via the internal protocol (`edgelocal://`), providing full animated playback for GIF files directly within stack tiles.
-- **Fluid Outside-Click Folding:** Expanding and collapsing bundles is completely seamless—clicking anywhere outside an open stack neatly folds it back into place without layout shifting.
+- **Fluid Outside-Click Folding:** Expanding and collapsing bundles is completely seamless — clicking anywhere outside an open stack neatly folds it back into place without layout shifting.
 - Auto-group multi-file drag-ins and multi-image copies into 3D card stacks (max 10).
 - **Preview Flyout Drag-to-Stack:** Drag any shelf item directly onto an open Preview Flyout to stack and merge them seamlessly.
 - Expand stacks with a single click on the Expand action button or Preview Flyout; drag a sub-item to the screen edge or click the ungroup button to split it back out.
@@ -358,7 +350,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - Eliminates false Copy Indicator beacon flares when opening the laptop lid or unlocking the screen.
 
 **Customizable Text Size Scale Setting**
-- Select between **Small**, **Normal**, **Medium**, and **Large** typography scaling in Settings (`Appearance` tab), dynamically driving `--font-scale` across all components.
+- Select between **Small**, **Normal**, and **Large** typography scaling in Settings (`Appearance` tab), driving `--font-scale` (0.85 / 1.0 / 1.15) across all components.
 
 **Multi-File Selection & Obsidian Glass Action Bar**
 - Tap-to-toggle multi-select mode in Preview Flyout with vector checkmarks (`✓`).
@@ -370,8 +362,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 **UI / UX & Hardware Compositor Motion**
 - **Hardware Compositor-Only Transitions**: Converted card pinning, unpinning, and category tab transitions to GPU-accelerated transforms (`transform` & `opacity`), eliminating layout reflows during rapid interactions.
 - **Virtualized Scroll Performance**: Implemented list virtualization with `content-visibility: auto`, `itemRenderKey` value signatures, and a shared 30-second relative-time tick for smooth 60 FPS scrolling across large history databases.
-- **Obsidian Light-Reflection Filter Tiles**: Header category filters feature hardware-accelerated dual-stop specular reflection borders (`22%` white at 12 o'clock tapering to `3%` at 6 o'clock) matching item card rims, built on neutral `#141414` / `#1c1c1c` obsidian bases with zero blue tint.
-- **Satin White Sliding Pill**: Single persistent indicator pill with tactile spring physics (`stiffness: 440`, `damping: 34`), satin pearl gradient (`#ffffff` to `#ebebeb`), and top bevel highlight.
+- **Elastic Filter Track:** Header category filters and the emoji category bar live on a rubber-band control (`RubberSegment`) with momentum glide and squash-and-settle selection, built on neutral `#141414` / `#1c1c1c` obsidian bases with zero blue tint — fully keyboard navigable with reduced-motion support.
 - **Smart Copy Indicator Discrimination**: The sine-curve copy indicator badge appears instantly when copying across external desktop apps, but is smartly suppressed when using in-shelf copy buttons to prevent redundant flashes.
 - **Zero-Gap Layout Exit Animation**: Smooth physical height and margin collapse during item deletion, completely preventing empty phantom gaps or frozen offsets in the list.
 - **Independent Pinned Section State per Filter**: Each filter category tab maintains its own independent pinned section collapse/expand state (`collapsedMap`), persisted across sessions in `localStorage`.
@@ -379,7 +370,7 @@ npm run build:store  # outputs an MSIX .appx for Microsoft Store submission
 - **HD Anti-Aliased Curved Edges**: GPU layer promotion (`transform: translateZ(0)`), `-webkit-background-clip: padding-box`, and smooth vector rasterization delivering 100% HD anti-aliased curved borders across all display scales.
 - **Tactile Micro-Interactions & Spring Motion**: Card hover 2px lift with ambient backlight glow, micro radial copy ripple effect, and smooth Framer Motion `layoutId` spring list reflow (`stiffness: 500`, `damping: 32`).
 - **Refined Obsidian Aesthetics & Multi-Layer Depth**: Dual-layer 3D glass hairline highlights (`inset 0 1px 0 rgba(255, 255, 255, 0.12)`) and dual typography hierarchy (monospaced *JetBrains Mono* metadata + *Inter/SF Pro* system title font stack).
-- **What's New Web Changelog**: Direct link from the header and settings footer to the official release notes and changelog timeline at [edgedrop.app/changelog](https://www.edgedrop.app/changelog).
+- **Windows Light Theme Adaptive System Tray:** Dynamically detects Windows taskbar theme changes and automatically swaps between pure-white and high-contrast dark vector tray icons.
 - **Dynamic Preview Flyout**: Responsive layout for single files and multi-file collections with calibrated hover boundary tracking.
 - **Customizable Copy Indicator Styles**: Select from 4 vector copy indicators (**Edge-Drop Logo**, **Tick**, **Copy**, and **Sparkle**) in a 2x2 grid flyout selector.
 - **Universal Click-to-Paste**: Click any text snippet, image thumbnail, or file tile inside Preview Flyout to instantly paste into active desktop applications.
@@ -394,7 +385,7 @@ Edge-Drop is organized into three strictly isolated layers:
 
 1. **Main Process (`electron/main/`)**: Node.js runtime handling OS integrations, Win32 OLE drag pipelines, Windows DPAPI encryption (`safeStorage`), native `ClipboardWatcher` polling, and background auto-updates (`updater.ts`).
 2. **Preload Sandbox (`electron/preload/`)**: Context-isolated bridge (`contextBridge.exposeInMainWorld('edge', api)`). Consumes single-source-of-truth contracts in `shared/ipc.ts` (`InvokeMap`, `EventMap`, `SendMap`) and `shared/bridge.ts` (`EdgeApi`).
-3. **Renderer Process (`src/`)**: React 19 UI powered by Zustand state management (`appStore.ts`), Web Audio synthesis (`soundEffects.ts`), and Framer Motion spring physics (`useAdaptiveSpring.ts`).
+3. **Renderer Process (`src/`)**: React 18 UI powered by Zustand state management (`appStore.ts`), Web Audio synthesis (`soundEffects.ts`), and Framer Motion spring physics (`useAdaptiveSpring.ts`).
 
 ### Key Engine Components
 - **`ClipboardWatcher.ts`**: Polls system clipboard every 600ms. Computes cheap FNV-1a hashes over BGRA bitmap bytes for zero-overhead image deduplication.
@@ -432,7 +423,7 @@ Edge-Drop touches the OS clipboard, the filesystem, and the Win32 OLE drag pipel
 |---|---|---|
 | Desktop runtime | **Electron 34+** | Only way to access Win32 OLE drag pipelines and native clipboard formats from JS |
 | Build tooling | **electron-vite** | Separate Main / Preload / Renderer builds with Vite HMR |
-| UI | **React 19 + TypeScript 5.7** | Strongly typed component hierarchy |
+| UI | **React 18 + TypeScript 5.4** | Strongly typed component hierarchy |
 | Audio | **Web Audio API** | Synthesized haptic audio feedback (ticks, clicks, pops, thuds) with 0 audio asset overhead |
 | Animation | **Framer Motion** | Adaptive spring physics (`useAdaptiveSpring`), layout transitions, gesture animations |
 | State | **Zustand** | Selector-optimized, zero cascading re-renders during drags |
@@ -456,7 +447,10 @@ Edge-Drop/
 │  │  ├─ updater.ts        Background auto-update engine (electron-updater)
 │  │  ├─ tray.ts           System tray icon & context menus
 │  │  ├─ fullscreen.ts     Windows SHQueryUserNotificationState game detection
-│  │  └─ drag.ts           OLE startDrag, temp-file staging, hover pre-staging, icon generation
+│  │  ├─ drag.ts           OLE startDrag, temp-file staging, icon generation
+│  │  ├─ stickProbe.ts     Pure geometric screen probe, versioned display cache
+│  │  ├─ imageProtocol.ts  edgelocal:// image + thumbnail protocol
+│  │  └─ stagedTemp.ts     Staged-temp artifact lifecycle manager
 │  ├─ preload/             Sandbox bridge exposing window.edge
 │  ├─ clipboard/
 │  │  ├─ ClipboardWatcher.ts   600ms poll loop, transient-copy rejection
@@ -466,11 +460,11 @@ Edge-Drop/
 │     ├─ settings.ts       User config & startup registration
 │     └─ paths.ts          AppData + temp directory resolution
 ├─ src/                    React renderer
-│  ├─ components/          Panel, ItemList, ClipboardItem, SearchBar, Settings, HotkeyRecorder, Icons
-│  ├─ hooks/               useEdgeHover (hysteresis), useDragOut, useFilteredItems
-│  ├─ lib/                 soundEffects (Web Audio API), theme tokens, format helpers
+│  ├─ components/          Panel, Header, ItemList, ClipboardItem, ShelfSearch, RubberSegment, EmojiPicker, EmojiCategoryBar, PreviewFlyout, Settings, HotkeyRecorder, Toast, Icons
+│  ├─ hooks/               useEdgeHover (hysteresis), useDragOut, useFilteredItems, useAdaptiveSpring, useRelativeTimeTick
+│  ├─ lib/                 soundEffects (Web Audio API), theme tokens, format helpers, urlPreview, colorUtils, tryPaste, searchFocus
 │  ├─ store/               Zustand appStore
-│  └─ styles/              tokens.css, panel.css, settings.css, item.css, global.css
+│  └─ styles/              tokens.css, panel.css, settings.css, item.css, emoji.css, RubberSegment.css, global.css
 ```
 
 ---
@@ -490,10 +484,12 @@ Edge-Drop is in **public beta**. The following are planned, in rough priority or
 - [x] **Synthesized Web Audio Haptic Suite** — real-time sound effects for ticks, toggles, clicks, and deletes
 - [x] **Segmented Settings Architecture** — 3 stationary category tabs with independent scroll positions
 - [x] **31-language internationalization** — 100% native localization with RTL support
-- [ ] **Linux port** — replace Win32-specific paths with cross-platform equivalents
+- [x] **Top-edge dock** — horizontal shelf layout up to 1080px wide with its own trigger zone and settings layouts
+- [x] **Three-mode updates** — Automatic / Notify me / Off with skip-version memory and manual checks in every mode
+- [x] **In-shelf search** — type-to-filter without stealing focus, click-to-paste straight into the active app
+- [ ] **Linux & macOS ports** — replace Win32-specific paths (OLE drag, registry login, PowerShell HDROP) with cross-platform equivalents
 - [ ] **Plugin SDK** — let users write custom format readers and drag-out targets
 - [ ] **Cloud sync (opt-in, E2E encrypted)** — sync pinned items across machines
-- [ ] **Search across full history** — currently capped at `historyLimit` (default 500)
 
 ---
 
@@ -512,7 +508,7 @@ npm install
 npm run dev          # Electron + Vite HMR
 npm run typecheck    # tsc --noEmit (node + web configs)
 npm run build:github # build Windows NSIS installer for GitHub
-npm run build:store  # build Windows AppX package for Microsoft Store
+npm run build:store  # build Windows MSIX package for Microsoft Store
 ```
 
 ---
