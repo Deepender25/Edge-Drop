@@ -6,7 +6,8 @@
 
 <p align="center">
   <strong>Zero-click, hover-activated clipboard shelf and desktop file-transfer hub with native OS integration.</strong><br/>
-  <em>Lives invisibly on the screen edge. Approach it, and it springs open. Drag anything out — anywhere.</em>
+  <em>Lives invisibly on the screen edge. Approach it, and it springs open. Drag anything out — anywhere.</em><br/>
+  <a href="https://www.edgedrop.app"><strong>Live site: edgedrop.app</strong></a>
 </p>
 
 <p align="center">
