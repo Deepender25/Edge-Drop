@@ -502,6 +502,8 @@ Edge-Drop is Apache-2.0 licensed and open to contributions. As a solo-maintained
 3. **Suggest format readers** — if you copy from an app whose content Edge-Drop mis-categorizes, open an issue with the available formats list (`clipboard.availableFormats()` output)
 4. **Pick up a roadmap item** — open an issue first to discuss scope, then send a PR against a feature branch
 
+All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ### Development workflow
 ```bash
 npm install
