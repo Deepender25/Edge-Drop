@@ -1443,9 +1443,9 @@ export function Settings({
                       min={1}
                       max={7}
                       step={1}
-                      bars={14}
-                      height={26}
-                      restHeight={7}
+                      bars={28}
+                      height={28}
+                      restHeight={8}
                       gap={3}
                       value={settings.hotZoneWidth ?? 3}
                       onStart={() => {
@@ -2221,9 +2221,9 @@ export function Settings({
                           min={1}
                           max={7}
                           step={1}
-                          bars={14}
+                          bars={28}
                           height={28}
-                          restHeight={7}
+                          restHeight={8}
                           gap={3}
                           value={settings.hotZoneWidth ?? 3}
                           onStart={() => {

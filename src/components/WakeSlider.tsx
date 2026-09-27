@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useMotionValue, useMotionValueEvent, useReducedMotion, useSpring, useVelocity } from 'framer-motion'
+import { frameSteps, useMotionValue, useMotionValueEvent, useReducedMotion, useSpring, useVelocity } from 'framer-motion'
 import { playDialTickSound } from '../lib/soundEffects'
+
+import './WakeSlider.css'
 
 const SETTLE = 9.23
 const FULL_SPEED = 320
@@ -55,13 +57,13 @@ export function WakeSlider({
   min = 0,
   max = 100,
   step = 1,
-  bars = 28,
-  height = 28,
-  restHeight = 8,
-  gap = 3,
-  fillColor = '#ffffff',
-  trackColor = 'rgba(255, 255, 255, 0.12)',
-  crestColor = '#ffffff',
+  bars = 32,
+  height = 56,
+  restHeight = 12,
+  gap = 4,
+  fillColor = '#f5f5f5',
+  trackColor = '#27272a',
+  crestColor = '',
   sensitivity = 1,
   reach = 6,
   skew = 0.6,
@@ -126,31 +128,15 @@ export function WakeSlider({
     }
     lastAmp.current = amp
   }
-
   const paintRef = useRef(paint)
   paintRef.current = paint
-
-  const rafId = useRef<number | null>(null)
-  const schedule = useCallback(() => {
-    if (rafId.current !== null) return
-    rafId.current = requestAnimationFrame(() => {
-      rafId.current = null
-      paintRef.current()
-    })
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (rafId.current !== null) {
-        cancelAnimationFrame(rafId.current)
-        rafId.current = null
-      }
-    }
-  }, [])
-
+  const run = useCallback(() => paintRef.current(), [])
+  // NOTE: the reference implementation targets `motion` v12 (`frame.render(...)`).
+  // This repo runs framer-motion v11, where the same render-step scheduler lives at
+  // `frameSteps.render.schedule(callback, keepAlive, immediate)`.
+  const schedule = useCallback(() => frameSteps.render.schedule(run, false, true), [run])
   useMotionValueEvent(head, 'change', schedule)
   useMotionValueEvent(speed, 'change', schedule)
-
   useLayoutEffect(() => {
     paintRef.current(true)
   })
@@ -163,7 +149,6 @@ export function WakeSlider({
     playDialTickSound()
     onChange?.(clean)
   }
-
   const commitFromX = (x: number) => {
     const track = trackRef.current
     if (!track) return
@@ -173,7 +158,6 @@ export function WakeSlider({
     if (getComputedStyle(track).direction === 'rtl') ratio = 1 - ratio
     commit(min + ratio * (max - min))
   }
-
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (disabled || pointerId.current !== null) return
     pointerId.current = e.pointerId
@@ -185,11 +169,9 @@ export function WakeSlider({
     onStart?.()
     commitFromX(e.clientX)
   }
-
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerId === pointerId.current) commitFromX(e.clientX)
   }
-
   const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerId !== pointerId.current) return
     try {
@@ -198,7 +180,6 @@ export function WakeSlider({
     pointerId.current = null
     onRelease?.(latest.current)
   }
-
   const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (disabled) return
     const jumps: Record<string, number> = {
@@ -295,3 +276,5 @@ export function WakeSlider({
     </div>
   )
 }
+
+export default WakeSlider
