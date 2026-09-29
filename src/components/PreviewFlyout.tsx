@@ -309,7 +309,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
-              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#141414',
+              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#000000',
               borderRadius: 20,
               border: dragOver ? '2px dashed #4caf50' : 'none',
               overflow: 'hidden',
@@ -527,66 +527,32 @@ function QuickActionButton({
   title,
   icon: Icon,
   onClick,
-  activeColor = '#4caf50',
-  solidDark = false,
   size = 28
 }: {
   title: string
   icon: any
   onClick: () => any
-  activeColor?: string
-  solidDark?: boolean
   size?: number
 }) {
   const [copied, setCopied] = useState(false)
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    e.preventDefault()
+    e.currentTarget.blur()
     await onClick()
     setCopied(true)
     setTimeout(() => setCopied(false), 1200)
   }
 
-  const defaultBg = solidDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.06)'
-  const defaultBorder = solidDark ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)'
-  const defaultColor = solidDark ? '#ffffff' : 'rgba(255, 255, 255, 0.75)'
-
-  const hoverBg = solidDark ? 'rgba(0, 0, 0, 0.98)' : 'rgba(255, 255, 255, 0.18)'
-  const hoverColor = '#ffffff'
-  const iconSize = size === 24 ? 12 : 14
-  const borderRadius = size === 24 ? 6 : 8
+  const iconSize = size <= 26 ? 13 : 15
 
   return (
     <button
+      className={`act${copied ? ' active' : ''}`}
       title={copied ? t('flyout.copied') : title}
       onClick={handleClick}
-      style={{
-        width: size,
-        height: size,
-        background: copied ? (solidDark ? '#4caf50' : 'rgba(76, 175, 80, 0.2)') : defaultBg,
-        border: copied ? (solidDark ? '1px solid #4caf50' : '1px solid rgba(76, 175, 80, 0.4)') : defaultBorder,
-        color: copied ? (solidDark ? '#ffffff' : activeColor) : defaultColor,
-        borderRadius,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.15s ease',
-        flexShrink: 0,
-        boxShadow: solidDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : undefined
-      }}
-      onMouseEnter={(e) => {
-        if (!copied) {
-          e.currentTarget.style.background = hoverBg
-          e.currentTarget.style.color = hoverColor
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!copied) {
-          e.currentTarget.style.background = defaultBg
-          e.currentTarget.style.color = defaultColor
-        }
-      }}
+      style={{ width: size, height: size }}
     >
       {copied ? <CheckIcon width={iconSize} height={iconSize} /> : <Icon width={iconSize} height={iconSize} />}
     </button>
@@ -596,53 +562,26 @@ function QuickActionButton({
 function ExplorerButton({
   path,
   title,
-  size = 28,
-  solidDark = false
+  size = 28
 }: {
   path: string
   title?: string
   size?: number
-  solidDark?: boolean
 }) {
   const { t } = useTranslation()
-  const defaultBg = solidDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.06)'
-  const defaultBorder = solidDark ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)'
-  const defaultColor = solidDark ? '#ffffff' : 'rgba(255, 255, 255, 0.75)'
-  const hoverBg = solidDark ? 'rgba(0, 0, 0, 0.98)' : 'rgba(255, 255, 255, 0.18)'
-  const hoverColor = '#ffffff'
-  const iconSize = size === 24 ? 12 : 14
-  const borderRadius = size === 24 ? 6 : 8
+  const iconSize = size <= 26 ? 13 : 15
 
   return (
     <button
+      className="act"
       title={title || t('flyout.openInExplorer')}
       onClick={(e) => {
         e.stopPropagation()
+        e.preventDefault()
+        e.currentTarget.blur()
         window.edge.revealFile(path)
       }}
-      style={{
-        width: size,
-        height: size,
-        background: defaultBg,
-        border: defaultBorder,
-        color: defaultColor,
-        borderRadius,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.15s ease',
-        flexShrink: 0,
-        boxShadow: solidDark ? '0 4px 12px rgba(0, 0, 0, 0.5)' : undefined
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = hoverBg
-        e.currentTarget.style.color = hoverColor
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = defaultBg
-        e.currentTarget.style.color = defaultColor
-      }}
+      style={{ width: size, height: size }}
     >
       <FolderOpenIcon width={iconSize} height={iconSize} />
     </button>
@@ -654,48 +593,25 @@ const CODE_FONT = 'var(--font-ui)'
 
 function SelectionBadge({
   isSelected,
+  forceVisible,
   onToggle
 }: {
   isSelected: boolean
+  forceVisible?: boolean
   onToggle: (e: React.MouseEvent) => void
 }) {
   return (
     <div
+      className={`subitem-select-badge${isSelected ? ' selected' : ''}${forceVisible ? ' force-visible' : ''}`}
       onClick={(e) => {
         e.stopPropagation()
         onToggle(e)
       }}
-                      title={isSelected ? t('flyout.deselectItem') : t('flyout.selectItem')}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 4,
-        margin: -4,
-        cursor: 'pointer',
-        zIndex: 6,
-        flexShrink: 0
-      }}
+      title={isSelected ? t('flyout.deselectItem') : t('flyout.selectItem')}
     >
-      <div
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: 5,
-          background: isSelected ? '#ffffff' : 'rgba(0, 0, 0, 0.75)',
-          border: isSelected ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.5)',
-          color: isSelected ? '#000000' : 'transparent',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.6)' : '0 2px 6px rgba(0, 0, 0, 0.4)',
-          transition: 'background 0.15s ease, border-color 0.15s ease, color 0.15s ease'
-        }}
-      >
-        {isSelected && (
-          <CheckIcon width={14} height={14} />
-        )}
-      </div>
+      {isSelected && (
+        <CheckIcon width={12} height={12} style={{ color: '#000', strokeWidth: 3 }} />
+      )}
     </div>
   )
 }
@@ -913,12 +829,13 @@ function PreviewContent({
 
   if (item.data.kind === 'image-collection') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {item.data.images.map((img: any, idx: number) => {
           const isSelected = selectedKeys?.has(img.imageId) ?? false
           return (
             <div
               key={img.imageId}
+              className={`item flyout-subitem${isSelected ? ' is-selected' : ''}`}
               draggable={true}
               onDragStart={(e) => {
                 e.preventDefault()
@@ -939,38 +856,43 @@ function PreviewContent({
                 }
               }}
               title={selectedKeys && selectedKeys.size > 0 ? (isSelected ? t('flyout.clickToDeselect') : t('flyout.clickToSelect')) : t('flyout.clickToPasteImageDrag')}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                position: 'relative',
-                cursor: 'grab',
-                padding: 4,
-                borderRadius: 10,
-                border: isSelected ? '2px solid #ffffff' : '2px solid transparent',
-                background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                boxShadow: isSelected ? '0 0 16px rgba(255, 255, 255, 0.2)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
             >
-              <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 3 }}>
-                <SelectionBadge
-                  isSelected={isSelected}
-                  onToggle={(e) => onToggleSelectKey?.(img.imageId, e)}
-                />
-              </div>
+              <div className="item-main">
+                <div className="body">
+                  <div className="item-content">
+                    <div className="thumb-wrap">
+                      <img
+                        className="thumb"
+                        src={`edgelocal://${img.imageId}`}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                        style={{ maxHeight: '60vh' }}
+                      />
+                    </div>
+                  </div>
+                  <div className="item-footer">
+                    <span className="kind-badge">{idx + 1} / {item.data.images.length} · {img.width} × {img.height}</span>
+                    <span className="meta-size">{formatBytes(img.bytes)}</span>
+                  </div>
+                </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-                <QuickActionButton
-                  title={t('flyout.copyImage')}
-                  icon={CopyIcon}
-                  onClick={() => useStore.getState().copySubitem({ id: item.id, imageId: img.imageId })}
-                  solidDark={true}
-                />
-              </div>
-              <img src={`edgelocal://${img.imageId}`} alt="" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                {idx + 1} / {item.data.images.length} · {img.width} × {img.height} · {formatBytes(img.bytes)}
+                <div className="actions" onClick={(e) => e.stopPropagation()}>
+                  <QuickActionButton
+                    title={t('flyout.copyImage')}
+                    icon={CopyIcon}
+                    onClick={() => useStore.getState().copySubitem({ id: item.id, imageId: img.imageId })}
+                  />
+                </div>
+
+                {onToggleSelectKey && (
+                  <SelectionBadge
+                    isSelected={isSelected}
+                    forceVisible={selectedKeys && selectedKeys.size > 0}
+                    onToggle={(e) => onToggleSelectKey(img.imageId, e)}
+                  />
+                )}
               </div>
             </div>
           )
@@ -988,6 +910,7 @@ function PreviewContent({
       const fullResUrl = `edgelocal://file/${encodeURIComponent(p.replace(/\\/g, '/'))}`
       return (
         <div
+          className="item flyout-subitem single-hero-card"
           draggable={true}
           onDragStart={(e) => {
             e.preventDefault()
@@ -1001,37 +924,44 @@ function PreviewContent({
             tryPaste(() => useStore.getState().paste(item.id))
           }}
           title={t('flyout.clickToPasteDrag')}
-          style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', cursor: 'grab' }}
         >
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
-            <QuickActionButton
-              title={t('flyout.copyFile')}
-              icon={CopyIcon}
-              onClick={() => useStore.getState().copy(item.id)}
-              solidDark={true}
-              size={28}
-            />
-            <ExplorerButton
-              path={p}
-              title={t('flyout.openInExplorer')}
-              solidDark={true}
-              size={28}
-            />
-          </div>
-          <img
-            src={fullResUrl}
-            onError={(e) => {
-              if (entry?.preview) {
-                e.currentTarget.src = entry.preview
-              }
-            }}
-            alt={fileName}
-            style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
-            draggable={false}
-          />
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontFamily: SYS_FONT, letterSpacing: '0.02em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>{fileName}</span>
-            {entry?.size ? <span>{formatBytes(entry.size)}</span> : null}
+          <div className="item-main">
+            <div className="body">
+              <div className="item-content">
+                <div className="thumb-wrap">
+                  <img
+                    className="thumb"
+                    src={fullResUrl}
+                    onError={(e) => {
+                      if (entry?.preview) {
+                        e.currentTarget.src = entry.preview
+                      }
+                    }}
+                    alt={fileName}
+                    loading="lazy"
+                    decoding="async"
+                    draggable={false}
+                    style={{ maxHeight: '60vh' }}
+                  />
+                </div>
+              </div>
+              <div className="item-footer">
+                <span className="kind-badge">{fileName}</span>
+                {entry?.size ? <span className="meta-size">{formatBytes(entry.size)}</span> : null}
+              </div>
+            </div>
+
+            <div className="actions" onClick={(e) => e.stopPropagation()}>
+              <QuickActionButton
+                title={t('flyout.copyFile')}
+                icon={CopyIcon}
+                onClick={() => useStore.getState().copy(item.id)}
+              />
+              <ExplorerButton
+                path={p}
+                title={t('flyout.openInExplorer')}
+              />
+            </div>
           </div>
         </div>
       )
@@ -1045,6 +975,7 @@ function PreviewContent({
       const fileName = formatImageDisplayName(entry?.name || p, item.capturedAt)
       return (
         <div
+          className="item flyout-subitem single-hero-card"
           draggable={true}
           onDragStart={(e) => {
             e.preventDefault()
@@ -1058,62 +989,41 @@ function PreviewContent({
             tryPaste(() => useStore.getState().paste(item.id))
           }}
           title={t('flyout.clickToPasteDrag')}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            gap: 16,
-            padding: '36px 20px 28px',
-            background: 'rgba(255, 255, 255, 0.035)',
-            borderRadius: 14,
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            position: 'relative',
-            cursor: 'grab'
-          }}
         >
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-            <QuickActionButton
-              title={t('flyout.copyFile')}
-              icon={CopyIcon}
-              onClick={() => useStore.getState().copy(item.id)}
-              size={28}
-            />
-            <ExplorerButton
-              path={p}
-              title={t('flyout.openInExplorer')}
-              size={28}
-            />
-          </div>
-
-          <div style={{
-            width: 104,
-            height: 104,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.55))',
-            marginTop: 4
-          }}>
-            <FileKindIcon path={p} width={104} height={104} isDirectory={entry?.isDirectory} />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: '100%', padding: '0 10px' }}>
-            <div
-              title={fileName}
-              style={{
-                fontSize: 15,
-                fontWeight: 600,
-                color: '#ffffff',
-                wordBreak: 'break-word',
-                lineHeight: 1.4,
-                fontFamily: SYS_FONT
-              }}
-            >
-              {fileName}
+          <div className="item-main">
+            <div className="body">
+              <div className="item-content" style={{ padding: '24px 20px 12px 20px' }}>
+                <div className="single-file-preview">
+                  <div className="single-file-hero" style={{ color: info.color }}>
+                    <FileKindIcon path={p} width={120} height={120} isDirectory={entry?.isDirectory} />
+                  </div>
+                  <div className="single-file-meta" style={{ marginTop: 8 }}>
+                    <div className="preview single single-file-name" title={fileName} style={{ fontSize: 15, WebkitLineClamp: 3, whiteSpace: 'normal', lineHeight: 1.4 }}>
+                      {fileName}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="item-footer" style={{ padding: '8px 18px 12px 18px' }}>
+                <span className="kind-badge" style={{ color: info.color, fontSize: 12 }}>
+                  {info.label.toLowerCase()}
+                </span>
+                {!entry?.isDirectory && entry?.size ? (
+                  <span className="meta-size" style={{ fontSize: 12 }}>{formatBytes(entry.size)}</span>
+                ) : null}
+              </div>
             </div>
-            <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.45)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-              {!entry?.isDirectory && entry?.size ? `${formatBytes(entry.size)} · ` : ''}{info.label}
+
+            <div className="actions" onClick={(e) => e.stopPropagation()}>
+              <QuickActionButton
+                title={t('flyout.copyFile')}
+                icon={CopyIcon}
+                onClick={() => useStore.getState().copy(item.id)}
+              />
+              <ExplorerButton
+                path={p}
+                title={t('flyout.openInExplorer')}
+              />
             </div>
           </div>
         </div>
@@ -1127,7 +1037,7 @@ function PreviewContent({
     const useSingleColumn = hasImageFiles
 
     return (
-      <div style={{ display: useSingleColumn ? 'flex' : 'grid', flexDirection: useSingleColumn ? 'column' : undefined, gridTemplateColumns: useSingleColumn ? undefined : 'repeat(2, minmax(0, 1fr))', gap: 12, width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: useSingleColumn ? 'flex' : 'grid', flexDirection: useSingleColumn ? 'column' : undefined, gridTemplateColumns: useSingleColumn ? undefined : 'repeat(2, minmax(0, 1fr))', gap: 10, width: '100%', boxSizing: 'border-box' }}>
         {item.data.paths.map((p: string, i: number) => {
           const entry = item.data.entries?.[i]
           const info = getFileKind(p, entry?.isDirectory)
@@ -1140,6 +1050,7 @@ function PreviewContent({
             return (
               <div
                 key={i}
+                className={`item flyout-subitem${isSelected ? ' is-selected' : ''}`}
                 draggable={true}
                 onDragStart={(e) => {
                   e.preventDefault()
@@ -1160,57 +1071,52 @@ function PreviewContent({
                   }
                 }}
                 title={t('flyout.clickToPasteDrag')}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  padding: 4,
-                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                  borderRadius: 10,
-                  border: isSelected ? '2px solid #ffffff' : '2px solid transparent',
-                  cursor: 'grab',
-                  position: 'relative',
-                  minWidth: 0,
-                  width: '100%',
-                  boxSizing: 'border-box'
-                }}
               >
-                {onToggleSelectKey && (
-                  <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 3 }}>
-                    <SelectionBadge
-                      isSelected={isSelected}
-                      onToggle={(e) => onToggleSelectKey(p, e)}
+                <div className="item-main">
+                  <div className="body">
+                    <div className="item-content">
+                      <div className="thumb-wrap">
+                        <img
+                          className="thumb"
+                          src={fullResUrl}
+                          onError={(e) => {
+                            if (entry?.preview) e.currentTarget.src = entry.preview
+                          }}
+                          alt={fileName}
+                          loading="lazy"
+                          decoding="async"
+                          draggable={false}
+                          style={{ maxHeight: useSingleColumn ? '50vh' : 110 }}
+                        />
+                      </div>
+                    </div>
+                    <div className="item-footer">
+                      <span className="kind-badge">{t('filters.images').toLowerCase().slice(0, -1)}</span>
+                      {entry?.size ? <span className="meta-size">{formatBytes(entry.size)}</span> : null}
+                    </div>
+                  </div>
+
+                  <div className="actions" onClick={(e) => e.stopPropagation()}>
+                    <QuickActionButton
+                      title={t('flyout.copyFile')}
+                      icon={CopyIcon}
+                      onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
+                      size={26}
+                    />
+                    <ExplorerButton
+                      path={p}
+                      title={t('flyout.openInExplorer')}
+                      size={26}
                     />
                   </div>
-                )}
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 12, right: 12, zIndex: 2 }}>
-                  <QuickActionButton
-                    title={t('flyout.copyFile')}
-                    icon={CopyIcon}
-                    onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
-                    solidDark={true}
-                  />
-                  <ExplorerButton
-                    path={p}
-                    title={t('flyout.openInExplorer')}
-                    solidDark={true}
-                  />
-                </div>
-
-                <img
-                  src={fullResUrl}
-                  onError={(e) => {
-                    if (entry?.preview) e.currentTarget.src = entry.preview
-                  }}
-                  alt={fileName}
-                  loading="lazy"
-                  decoding="async"
-                  draggable={false}
-                  style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }}
-                />
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                  {fileName}{entry?.size ? ` · ${formatBytes(entry.size)}` : ''}
+                  {onToggleSelectKey && (
+                    <SelectionBadge
+                      isSelected={isSelected}
+                      forceVisible={selectedKeys && selectedKeys.size > 0}
+                      onToggle={(e) => onToggleSelectKey(p, e)}
+                    />
+                  )}
                 </div>
               </div>
             )
@@ -1220,6 +1126,7 @@ function PreviewContent({
           return (
             <div
               key={i}
+              className={`item flyout-subitem${isSelected ? ' is-selected' : ''}`}
               draggable={true}
               onDragStart={(e) => {
                 e.preventDefault()
@@ -1240,101 +1147,52 @@ function PreviewContent({
                 }
               }}
               title={t('flyout.clickToPasteDrag')}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                gap: 8,
-                padding: '14px 10px 12px',
-                background: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.035)',
-                borderRadius: 12,
-                border: isSelected ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
-                cursor: 'grab',
-                position: 'relative',
-                minWidth: 0,
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
             >
-              {/* Top Controls: Checkbox (left) + Action Buttons (right) */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 4 }}>
-                {onToggleSelectKey ? (
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onToggleSelectKey(p, e)
-                    }}
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 4,
-                      border: isSelected ? '1.5px solid #fff' : '1.5px solid rgba(255, 255, 255, 0.3)',
-                      background: isSelected ? '#fff' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      flexShrink: 0
-                    }}
-                  >
-                    {isSelected && (
-                      <CheckIcon width={12} height={12} style={{ color: '#000', strokeWidth: 3 }} />
-                    )}
+              <div className="item-main">
+                <div className="body">
+                  <div className="item-content">
+                    <div className="single-file-preview">
+                      <div className="single-file-hero" style={{ color: info.color }}>
+                        <FileKindIcon path={p} width={88} height={88} isDirectory={entry?.isDirectory} />
+                      </div>
+                      <div className="single-file-meta">
+                        <div className="preview single single-file-name" title={fileName}>
+                          {fileName}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                ) : <div />}
+                  <div className="item-footer">
+                    <span className="kind-badge" style={{ color: info.color }}>
+                      {info.label.toLowerCase()}
+                    </span>
+                    {!entry?.isDirectory && entry?.size ? (
+                      <span className="meta-size">{formatBytes(entry.size)}</span>
+                    ) : null}
+                  </div>
+                </div>
 
-                <div style={{ display: 'flex', gap: 4 }}>
+                <div className="actions" onClick={(e) => e.stopPropagation()}>
                   <QuickActionButton
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
-                    size={24}
+                    size={26}
                   />
                   <ExplorerButton
                     path={p}
                     title={t('flyout.openInExplorer')}
-                    size={24}
+                    size={26}
                   />
                 </div>
-              </div>
 
-              {/* Centered Large 3D Pastel Vector Icon */}
-              <div style={{
-                width: 64,
-                height: 64,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45))',
-                marginTop: 8
-              }}>
-                <FileKindIcon path={p} width={64} height={64} isDirectory={entry?.isDirectory} />
-              </div>
-
-              {/* File Name & Metadata below icon */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', minWidth: 0, padding: '0 4px', boxSizing: 'border-box' }}>
-                <span
-                  title={fileName}
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: 'rgba(255, 255, 255, 0.92)',
-                    wordBreak: 'break-word',
-                    overflowWrap: 'anywhere',
-                    lineHeight: 1.35,
-                    fontFamily: SYS_FONT,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}
-                >
-                  {fileName}
-                </span>
-                <span style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.42)', fontFamily: SYS_FONT, letterSpacing: '0.02em' }}>
-                  {!entry?.isDirectory && entry?.size ? formatBytes(entry.size) : info.label}
-                </span>
+                {onToggleSelectKey && (
+                  <SelectionBadge
+                    isSelected={isSelected}
+                    forceVisible={selectedKeys && selectedKeys.size > 0}
+                    onToggle={(e) => onToggleSelectKey(p, e)}
+                  />
+                )}
               </div>
             </div>
           )

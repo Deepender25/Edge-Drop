@@ -17,7 +17,7 @@ describe('Stack Features: SVG Folder Silhouette, Sizing, Horizontal Expansion & 
   it('ClipboardItem.tsx uses FileStackPhoto for image stacks with responsive photoSize', () => {
     const src = read('src/components/ClipboardItem.tsx')
     expect(src).toContain('<FileStackPhoto src={img.preview} width={photoSize} height={photoSize} />')
-    expect(src).toContain('photoSize = isHorizontal ? 76 : 124')
+    expect(src).toContain('photoSize = isHorizontal ? 88 : 132')
     expect(src).toContain('HorizontalBundleExpanded')
   })
 

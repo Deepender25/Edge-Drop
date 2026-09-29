@@ -14,7 +14,7 @@
  * clamped preview; file items list names or bundle badge. Motion is handled by
  * the parent list (layout/AnimatePresence), so this component stays presentational.
  */
-import { memo, useState, useCallback, useEffect, useRef, forwardRef, type ReactNode } from 'react'
+import { memo, useState, useCallback, useEffect, useLayoutEffect, useRef, forwardRef, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import type { ClipboardItemDto } from '../../shared/types'
 import { MAX_STACK } from '../../shared/types'
@@ -25,7 +25,7 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon, ImageIcon } from './icons'
 import { LinkPreviewCard } from './LinkPreviewCard'
 import '../styles/item.css'
 import { tryPaste } from '../lib/tryPaste'
@@ -81,6 +81,18 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   const isPreviewing = useStore((s) => s.previewItemId) === item.id
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
+  const isSingleImage = item.data.kind === 'image' || (
+    item.data.kind === 'files' &&
+    item.data.paths.length === 1 &&
+    !item.data.entries?.[0]?.isDirectory &&
+    (item.data.entries?.[0]?.isImage || getFileKind(item.data.paths[0]).kind === 'image')
+  )
+  const isImageStack = item.data.kind === 'image-collection' || (
+    item.data.kind === 'files' &&
+    item.data.paths.length > 1 &&
+    item.data.paths.every((p, i) => !item.data.entries?.[i]?.isDirectory && (item.data.entries?.[i]?.isImage || getFileKind(p).kind === 'image'))
+  )
+  const isImageFolderCard = isSingleImage || isImageStack
 
   const bundleCount = item.data.kind === 'image-collection'
     ? item.data.images.length
@@ -90,21 +102,21 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   const screenW = typeof window !== 'undefined' ? window.innerWidth : 1140
   const expandedWidth = expanded && isHorizontal
-    ? Math.min(screenW - 80, Math.max(300, 36 + bundleCount * 112))
+    ? (isImageFolderCard
+        ? Math.min(screenW - 80, Math.max(210, 14 + bundleCount * 121))
+        : Math.min(screenW - 80, Math.max(300, 48 + bundleCount * 124)))
     : undefined
+
+  const cardRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!isBundle && expanded) setExpandedFlag(false)
   }, [isBundle, expanded, setExpandedFlag])
 
   // ── Intuitive collapse affordances ──────────────────────────────────────
-  // While THIS stack is the open one, a pointerdown anywhere OUTSIDE this
-  // card (other cards, empty shelf space) collapses it — standard disclosure
-  // behavior. Everything INSIDE this card is exempt, including its empty
-  // padding/margins: a partial-boundary exemption caused the infamous
-  // collapse→re-expand bounce, because the follow-up click event dispatched
-  // against freshly-collapsed state and the body contract re-opened it.
-  // The preview flyout is exempt too, so interacting there never surprises.
+  // While THIS stack is the open one, a pointerdown anywhere OUTSIDE all cards
+  // (e.g. empty shelf space) collapses it. Clicks on any card (.item) or inside
+  // this card/flyout are exempt so the clicked card can expand/paste immediately on 1 click!
   useEffect(() => {
     if (!expanded) return
 
@@ -113,6 +125,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       if (!target || typeof target.closest !== 'function') return
       if (target.closest('[data-expanded-stack]')) return
       if (target.closest('[data-preview-flyout], .preview-flyout')) return
+      if (target.closest('.item')) return
       setExpandedFlag(false)
     }
 
@@ -121,6 +134,42 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       document.removeEventListener('pointerdown', onPointerDown, true)
     }
   }, [expanded, setExpandedFlag])
+
+  // Smooth scroll stabilization when a stack expands
+  useLayoutEffect(() => {
+    if (!expanded) return
+    const el = cardRef.current
+    if (!el) return
+    const container = el.closest('.list')
+    if (!container) return
+
+    const rafId = requestAnimationFrame(() => {
+      const containerRect = container.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+
+      if (isHorizontal) {
+        const leftDiff = elRect.left - containerRect.left
+        const rightDiff = elRect.right - containerRect.right
+
+        if (leftDiff < 0) {
+          container.scrollBy({ left: leftDiff - 16, behavior: 'smooth' })
+        } else if (rightDiff > 0) {
+          container.scrollBy({ left: rightDiff + 16, behavior: 'smooth' })
+        }
+      } else {
+        const topDiff = elRect.top - containerRect.top
+        const bottomDiff = elRect.bottom - containerRect.bottom
+
+        if (topDiff < 0) {
+          container.scrollBy({ top: topDiff - 16, behavior: 'smooth' })
+        } else if (bottomDiff > 0) {
+          container.scrollBy({ top: bottomDiff + 16, behavior: 'smooth' })
+        }
+      }
+    })
+
+    return () => cancelAnimationFrame(rafId)
+  }, [expanded, isHorizontal])
 
   const onCopy = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -232,16 +281,23 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     if (isBundle && !expanded) {
       onExpand(e)
     } else if (!isBundle) {
+      if (useStore.getState().expandedStackId) {
+        useStore.getState().setExpandedStackId(null)
+      }
       onPaste(e)
     }
   }, [isPreviewing, isBundle, expanded, onExpand, onPaste, item.id])
 
   return (
     <motion.div
-      ref={ref}
+      ref={(node: HTMLDivElement | null) => {
+        cardRef.current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) (ref as any).current = node
+      }}
       initial={false}
       animate={{ opacity: 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}`}
+      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard ? ' is-image-folder-card' : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
       style={{
         ...(expandedWidth ? { width: expandedWidth, minWidth: expandedWidth, maxWidth: expandedWidth } : {}),
@@ -307,41 +363,54 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
         }}
         onClick={handleCardClick}
       >
-        <div className="body">
-          <div className="item-content">
-            {isBundle ? (
-                <BundleFluidPreview 
-                  item={item} 
-                  expanded={expanded} 
-                  isHorizontal={isHorizontal}
-                  onDragStart={handleDragStart} 
-                  onCopy={onCopy} 
-                  onRemove={() => remove(item.id)} 
-                  onCollapse={onCollapse}
-                />
-            ) : (
-              <Preview item={item} />
+        {isImageFolderCard ? (
+          <ImageFolderCard
+            item={item}
+            copied={copied}
+            expanded={expanded}
+            isHorizontal={isHorizontal}
+            onDragStart={handleDragStart}
+            onCopy={onCopy}
+            onRemove={() => remove(item.id)}
+            onCollapse={onCollapse}
+          />
+        ) : (
+          <div className="body">
+            <div className="item-content">
+              {isBundle ? (
+                  <BundleFluidPreview 
+                    item={item} 
+                    expanded={expanded} 
+                    isHorizontal={isHorizontal}
+                    onDragStart={handleDragStart} 
+                    onCopy={onCopy} 
+                    onRemove={() => remove(item.id)} 
+                    onCollapse={onCollapse}
+                  />
+              ) : (
+                <Preview item={item} />
+              )}
+            </div>
+            {(!isBundle || !expanded) && (
+              <div className="item-footer">
+                <div className="meta">
+                  <KindBadge item={item} />
+                  <ItemDetails item={item} />
+                  {item.hitCount > 1 && (
+                    <>
+                      <span>·</span>
+                      <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                        ×{item.hitCount}
+                      </span>
+                    </>
+                  )}
+                  {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+                </div>
+                <RelativeTime capturedAt={item.capturedAt} />
+              </div>
             )}
           </div>
-          {(!isBundle || !expanded) && (
-            <div className="item-footer">
-              <div className="meta">
-                <KindBadge item={item} />
-                <ItemDetails item={item} />
-                {item.hitCount > 1 && (
-                  <>
-                    <span>·</span>
-                    <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
-                      ×{item.hitCount}
-                    </span>
-                  </>
-                )}
-                {copied && <span className="meta-copied">· {t('item.copied')}</span>}
-              </div>
-              <RelativeTime capturedAt={item.capturedAt} />
-            </div>
-          )}
-        </div>
+        )}
 
         <div 
           className="actions" 
@@ -606,6 +675,7 @@ function HorizontalBundleExpanded({
   onDragStart: (e: React.DragEvent, req: DragRequest) => void
 }) {
   const { t } = useTranslation()
+  const isPreviewing = useStore((s) => s.previewItemId) === item.id
   const isImageCollection = item.data.kind === 'image-collection'
   const isFiles = item.data.kind === 'files'
   const images = item.data.kind === 'image-collection' ? item.data.images : []
@@ -637,18 +707,45 @@ function HorizontalBundleExpanded({
         </button>
         <div className="actions-pill" onClick={(e) => e.stopPropagation()}>
           <button
+            className={`act${item.pinned ? ' active' : ''}`}
+            title={item.pinned ? t('item.unpin') : t('item.pin')}
+            onClick={(e) => {
+              e.stopPropagation()
+              e.currentTarget.blur()
+              playToggleSound(!item.pinned)
+              useStore.getState().togglePin(item.id, !item.pinned)
+            }}
+          >
+            {item.pinned ? <PinFillIcon width={12} height={12} /> : <PinIcon width={12} height={12} />}
+          </button>
+          <button
+            className={`act${isPreviewing ? ' preview-contract active' : ' preview-expand'}`}
+            title={isPreviewing ? t('header.close') : t('item.expand')}
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              e.currentTarget.blur()
+              playCardExpandSound(!isPreviewing)
+              const rect = e.currentTarget.closest('.item-main, .item')?.getBoundingClientRect()
+              const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
+              useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+            }}
+          >
+            {isPreviewing ? <ContractIcon width={12} height={12} /> : <ExpandIcon width={12} height={12} />}
+          </button>
+          <button
             className="act"
             title={t('item.copy')}
             onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onCopy(e) }}
           >
-            <CopyIcon />
+            <CopyIcon width={12} height={12} />
           </button>
           <button
             className="act danger"
             title={t('item.delete')}
             onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onRemove() }}
           >
-            <TrashIcon />
+            <TrashIcon width={12} height={12} />
           </button>
         </div>
       </div>
@@ -805,13 +902,13 @@ function BundleFluidPreview({
 
   if (item.data.kind === 'image-collection') {
     const more = item.data.images.length - 1
-    const photoSize = isHorizontal ? 76 : 124
+    const photoSize = isHorizontal ? 88 : 132
     return (
       <BundleExpandShell
         expanded={expanded}
         stack={
           <>
-            <div className="bundle-stack-large" style={isHorizontal ? { height: 82 } : undefined}>
+            <div className="bundle-stack-large" style={isHorizontal ? { height: 90 } : undefined}>
               {item.data.images.slice(0, 4).map((img, pathIndex) => ({ img, pathIndex })).reverse().map(({ img }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
                 const spread = arr.length > 1 ? (isHorizontal ? 12 : 16) : 0
@@ -901,13 +998,13 @@ function BundleFluidPreview({
     const entries = item.data.entries
     const paths = item.data.paths
     const count = paths.length
-    const photoSize = isHorizontal ? 76 : 124
+    const photoSize = isHorizontal ? 88 : 132
     return (
       <BundleExpandShell
         expanded={expanded}
         stack={
           <>
-            <div className="bundle-stack-large" style={isHorizontal ? { height: 82 } : undefined}>
+            <div className="bundle-stack-large" style={isHorizontal ? { height: 90 } : undefined}>
               {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
                 const entry = entries?.[pathIndex]
@@ -1019,6 +1116,454 @@ function BundleFluidPreview({
     )
   }
   return null
+}
+
+/* ------------------------------------------------------------------ */
+/* Image Folder Card (Framed single image or fanned photo stack)      */
+/* ------------------------------------------------------------------ */
+
+interface ImageCardEntry {
+  id: string
+  src?: string
+  fallbackSrc?: string
+  name?: string
+  width?: number
+  height?: number
+  bytes?: number
+}
+
+function getImageEntries(item: ClipboardItemDto): ImageCardEntry[] {
+  if (item.data.kind === 'image') {
+    return [{
+      id: item.id,
+      src: item.data.preview,
+      name: item.data.fileName || item.data.source || 'clipboard',
+      width: item.data.width,
+      height: item.data.height,
+      bytes: item.data.bytes
+    }]
+  }
+  if (item.data.kind === 'image-collection') {
+    return item.data.images.map((img, i) => ({
+      id: img.imageId || `${item.id}-${i}`,
+      src: img.preview,
+      name: `image-${i + 1}`,
+      width: img.width,
+      height: img.height,
+      bytes: img.bytes
+    }))
+  }
+  if (item.data.kind === 'files') {
+    return item.data.paths.map((filePath, i) => {
+      const entry = item.data.entries?.[i]
+      const fallback = fileStreamUrl(filePath)
+      return {
+        id: `${item.id}-${filePath}-${i}`,
+        src: entry?.preview || fallback,
+        fallbackSrc: fallback,
+        name: formatImageDisplayName(filePath, item.capturedAt) || entry?.name || basename(filePath),
+        width: entry?.width,
+        height: entry?.height,
+        bytes: entry?.size
+      }
+    })
+  }
+  return []
+}
+
+/* ------------------------------------------------------------------ */
+/* Mini Image Folder Card (For Expanded Collections / Stacks)        */
+/* ------------------------------------------------------------------ */
+
+function MiniImageFolderCard({
+  item,
+  img,
+  isHorizontal,
+  onDragStart
+}: {
+  item: ClipboardItemDto
+  img: ImageCardEntry
+  isHorizontal: boolean
+  onDragStart?: (e: React.DragEvent, req: DragRequest) => void
+}) {
+  const { t } = useTranslation()
+  const [copied, setCopied] = useState(false)
+  const isImgCol = item.data.kind === 'image-collection'
+  const subReq = isImgCol ? { id: item.id, imageId: img.id } : { id: item.id, paths: [img.id] }
+  const dims = img.width && img.height ? `${img.width}×${img.height}` : ''
+  const size = img.bytes ? formatBytes(img.bytes) : ''
+  const displayName = img.name && img.name !== 'clipboard' && !img.name.startsWith('image-') ? img.name : dims || 'image'
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.currentTarget.blur()
+    playButtonClickSound()
+    if (isImgCol) {
+      useStore.getState().copySubitem({ id: item.id, imageId: img.id })
+    } else {
+      useStore.getState().copySubitem({ id: item.id, paths: [img.id] })
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 900)
+  }
+
+  const handleUngroup = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.currentTarget.blur()
+    playDeleteSound()
+    if (isImgCol) {
+      window.edge.splitItem({ id: item.id, imageId: img.id, splitPlacement: 'after' })
+    } else {
+      window.edge.splitItem({ id: item.id, paths: [img.id], splitPlacement: 'after' })
+    }
+  }
+
+  const handlePaste = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    tryPaste(() => {
+      if (isImgCol) {
+        window.edge.pasteSubitem({ id: item.id, imageId: img.id })
+      } else {
+        window.edge.pasteSubitem({ id: item.id, paths: [img.id] })
+      }
+    })
+  }
+
+  return (
+    <motion.div
+      className="mini-image-folder-card"
+      variants={rowVariants}
+      draggable
+      onMouseEnter={() => window.edge.prestageDrag(subReq)}
+      onPointerDown={() => window.edge.prestageDrag(subReq)}
+      onDragStartCapture={(e: any) => {
+        e.stopPropagation()
+        onDragStart?.(e, subReq)
+      }}
+      onClick={handlePaste}
+    >
+      {copied && (
+        <motion.div
+          key="copy-ripple"
+          initial={{ opacity: 0.75, scale: 0.2 }}
+          animate={{ opacity: 0, scale: 1.6 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 12,
+            background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 45%, transparent 75%)',
+            pointerEvents: 'none',
+            zIndex: 15
+          }}
+        />
+      )}
+      <div className="mini-image-folder-card-inner">
+        {/* Blue Gradient Viewport */}
+        <div className="mini-image-folder-viewport">
+          <img
+            className="mini-image-folder-thumb"
+            src={img.src}
+            onError={(e) => {
+              if (img.fallbackSrc && e.currentTarget.src !== img.fallbackSrc) {
+                e.currentTarget.src = img.fallbackSrc
+              }
+            }}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+          />
+        </div>
+
+        {/* Solid Black Curved Flap */}
+        <div className="mini-image-folder-flap-wrap">
+          <svg 
+            className="mini-image-folder-flap-svg" 
+            viewBox="0 0 240 74" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M 0,74 L 0,6 Q 0,0 6,0 L 46,0 C 56,0 63,6 68,12 C 73,18 80,24 90,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+            />
+          </svg>
+
+          <div className="mini-image-folder-flap-content">
+            <div className="mini-image-folder-flap-header" />
+            <div className="mini-image-folder-flap-footer">
+              <div className="mini-image-folder-meta">
+                <span className="kind-badge">{t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}</span>
+                {displayName && (
+                  <span className="mini-image-folder-source-name" title={displayName}>
+                    · {displayName}
+                  </span>
+                )}
+                {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+              </div>
+              {size && <span className="mini-image-folder-size">{size}</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Hover Action Buttons (Copy, Ungroup) */}
+        <div className="mini-image-folder-actions" onClick={(e) => e.stopPropagation()}>
+          <button
+            className="act"
+            title={isImgCol ? t('item.copy') : t('item.copyFilePath')}
+            onClick={handleCopy}
+          >
+            <CopyIcon width={11} height={11} />
+          </button>
+          <button
+            className="act danger"
+            title={t('item.ungroup')}
+            onClick={handleUngroup}
+          >
+            <MinusIcon width={11} height={11} />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function ImageFolderCard({
+  item,
+  copied = false,
+  expanded = false,
+  isHorizontal = false,
+  onDragStart,
+  onCopy,
+  onRemove,
+  onCollapse
+}: {
+  item: ClipboardItemDto
+  copied?: boolean
+  expanded?: boolean
+  isHorizontal?: boolean
+  onDragStart?: (e: React.DragEvent, req: DragRequest) => void
+  onCopy?: (e: React.MouseEvent) => void
+  onRemove?: () => void
+  onCollapse?: (e?: React.MouseEvent) => void
+}) {
+  const { t } = useTranslation()
+  const isPreviewing = useStore((s) => s.previewItemId) === item.id
+  const images = getImageEntries(item)
+  const count = images.length
+
+  if (count === 0) return null
+
+  const isStack = count > 1
+  const displayCount = Math.min(count, 4)
+  const displayImages = isStack ? images.slice(0, 4) : images
+
+  // Meta details for footer
+  let badgeText = ''
+  let metaDetail = ''
+
+  if (!isStack) {
+    badgeText = t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()
+    const sourceName = images[0].name
+    if (sourceName && sourceName !== 'clipboard' && sourceName !== 'image') {
+      metaDetail = sourceName
+    }
+  } else {
+    badgeText = `${count} ${t('filters.images').toLowerCase()}`
+    const totalBytes = images.reduce((sum, img) => sum + (img.bytes || 0), 0)
+    if (totalBytes > 0) {
+      metaDetail = formatBytes(totalBytes)
+    }
+  }
+
+  return (
+    <div className={`image-folder-card-inner${expanded && isStack ? ' is-expanded-folder' : ''}`}>
+      <div className={`image-folder-viewport${expanded && isStack ? ' is-expanded-viewport' : ''}`}>
+        {!isStack ? (
+          displayImages[0].src ? (
+            <img
+              className="image-folder-thumb"
+              src={displayImages[0].src}
+              onError={(e) => {
+                if (displayImages[0].fallbackSrc && e.currentTarget.src !== displayImages[0].fallbackSrc) {
+                  e.currentTarget.src = displayImages[0].fallbackSrc
+                }
+              }}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+          ) : (
+            <div className="preview">[{t('item.imageItem')}]</div>
+          )
+        ) : !expanded ? (
+          <div className="image-folder-stack-deck" data-count={displayCount}>
+            {displayImages.map((img, idx) => (
+              <div
+                key={img.id}
+                className={`image-folder-stack-item pos-${idx}`}
+              >
+                <img
+                  src={img.src}
+                  onError={(e) => {
+                    if (img.fallbackSrc && e.currentTarget.src !== img.fallbackSrc) {
+                      e.currentTarget.src = img.fallbackSrc
+                    }
+                  }}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="image-folder-expanded-content">
+            {/* Top Header inside Expanded Blue Viewport */}
+            <div
+              className="image-folder-expanded-top-bar"
+              title={t('item.collapsePinned')}
+              onClick={(e) => {
+                e.stopPropagation()
+                onCollapse?.(e)
+              }}
+            >
+              <button
+                type="button"
+                className="image-folder-collapse-btn"
+                title={t('item.collapsePinned')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.blur()
+                  onCollapse?.(e)
+                }}
+              >
+                {isHorizontal ? <ChevronLeftIcon width={13} height={13} /> : <ChevronUpIcon width={13} height={13} />}
+              </button>
+              <span className="image-folder-expanded-title">
+                {count} {t('filters.images').toLowerCase()}
+              </span>
+              <div className="actions-pill" onClick={(e) => e.stopPropagation()}>
+                <button
+                  className={`act${item.pinned ? ' active' : ''}`}
+                  title={item.pinned ? t('item.unpin') : t('item.pin')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    playToggleSound(!item.pinned)
+                    useStore.getState().togglePin(item.id, !item.pinned)
+                  }}
+                >
+                  {item.pinned ? <PinFillIcon width={12} height={12} /> : <PinIcon width={12} height={12} />}
+                </button>
+                <button
+                  className={`act${isPreviewing ? ' preview-contract active' : ' preview-expand'}`}
+                  title={isPreviewing ? t('header.close') : t('item.expand')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    e.currentTarget.blur()
+                    playCardExpandSound(!isPreviewing)
+                    const rect = e.currentTarget.closest('.item-main, .item')?.getBoundingClientRect()
+                    const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
+                    useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+                  }}
+                >
+                  {isPreviewing ? <ContractIcon width={12} height={12} /> : <ExpandIcon width={12} height={12} />}
+                </button>
+                <button
+                  className="act"
+                  title={t('item.copy')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    onCopy?.(e)
+                  }}
+                >
+                  <CopyIcon width={12} height={12} />
+                </button>
+                <button
+                  className="act danger"
+                  title={t('item.delete')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    playDeleteSound()
+                    onRemove?.()
+                  }}
+                >
+                  <TrashIcon width={12} height={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* List / Track of Mini Image Folder Cards */}
+            {isHorizontal ? (
+              <div className="image-stack-expanded-track" onClick={(e) => e.stopPropagation()}>
+                {images.map((img) => (
+                  <MiniImageFolderCard
+                    key={img.id}
+                    item={item}
+                    img={img}
+                    isHorizontal={isHorizontal}
+                    onDragStart={onDragStart}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="image-stack-expanded-list" onClick={(e) => e.stopPropagation()}>
+                {images.map((img) => (
+                  <MiniImageFolderCard
+                    key={img.id}
+                    item={item}
+                    img={img}
+                    isHorizontal={isHorizontal}
+                    onDragStart={onDragStart}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Solid Black Folder Flap (NO stroke/borders, smooth curved silhouette) */}
+      <div className="image-folder-flap-wrap">
+        <svg 
+          className="image-folder-flap-svg" 
+          viewBox="0 0 240 74" 
+          preserveAspectRatio="none"
+        >
+          <path 
+            d="M 0,74 L 0,6 Q 0,0 6,0 L 46,0 C 56,0 63,6 68,12 C 73,18 80,24 90,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+          />
+        </svg>
+
+        <div className="image-folder-flap-content">
+          <div className="image-folder-flap-header" />
+
+          <div className="image-folder-flap-footer">
+            <div className="image-folder-meta">
+              <span className="kind-badge">{badgeText}</span>
+              {metaDetail && (
+                <span className="image-folder-source-name" title={metaDetail}>
+                  · {metaDetail}
+                </span>
+              )}
+              {item.hitCount > 1 && (
+                <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                  · ×{item.hitCount}
+                </span>
+              )}
+              {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+            </div>
+            <RelativeTime capturedAt={item.capturedAt} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */

@@ -270,7 +270,7 @@
 }
 
 .bundle-stack-large {
-  height: 124px;
+  height: 132px;
   position: relative;
   width: 100%;
   margin-top: 4px;
@@ -283,13 +283,10 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  /* Wrapper is the centering pivot only; the masked tiles render slightly
-     larger than it (154px inside a 140px box) so the fan keeps breathing
-     room inside the fixed 124px stack area without growing the card. */
-  margin-top: -70px;
-  margin-left: -70px;
-  width: 140px;
-  height: 140px;
+  margin-top: -66px;
+  margin-left: -66px;
+  width: 132px;
+  height: 132px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,7 +294,7 @@
   border: none;
   box-shadow: none;
   transform-origin: center center;
-  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.42));
 }
 
 .kind-badge {
@@ -438,6 +435,824 @@
 .item-main:hover .thumb {
   transform: scale(1.01);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+/* Single Image Folder Card (Framed image in folder card + borderless folder flap) */
+.item.is-image-folder-card {
+  height: 205px;
+  background: var(--bg-card, #141414);
+  border-radius: var(--radius-card, 18px);
+  overflow: hidden;
+  padding: 5px;
+  box-sizing: border-box;
+  transition: background 0.16s ease;
+}
+
+
+.item.is-image-folder-card:hover {
+  background: var(--bg-card-hover, #1c1c1c);
+}
+
+.item.is-image-folder-card .item-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
+.image-folder-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: calc(var(--radius-card, 18px) - 5px);
+  overflow: hidden;
+  background: var(--bg-card, #141414);
+  transition: background 0.16s ease;
+}
+
+
+.item.is-image-folder-card:hover .image-folder-card-inner,
+.item-main:hover .image-folder-card-inner {
+  background: var(--bg-card-hover, #1c1c1c);
+}
+
+.image-folder-viewport {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  background: linear-gradient(
+    115deg, 
+    #a8def5 0%, 
+    #288ef6 25%, 
+    #0b64f6 52%, 
+    #1b57f6 78%, 
+    #769cf5 100%
+  );
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: calc(var(--radius-card, 18px) - 5px) calc(var(--radius-card, 18px) - 5px) 0 0;
+}
+
+.image-folder-thumb {
+  position: relative;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  object-fit: contain;
+  border-radius: 6px;
+  z-index: 2;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease;
+  pointer-events: none;
+}
+
+.item.is-image-folder-card:hover .image-folder-thumb,
+.item-main:hover .image-folder-thumb {
+  transform: scale(1.03) translateY(-1px);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.65));
+}
+
+/* Image Stack Deck within Image Folder Card */
+.image-folder-stack-deck {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  margin-top: -10px; /* Shifts stack up into the visible sky above the flap */
+}
+
+.image-folder-stack-item {
+  position: absolute;
+  width: 146px;
+  height: 98px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #18181b;
+  border: none;
+  box-shadow: 
+    0 12px 28px rgba(0, 0, 0, 0.55),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+  transform-origin: 50% 90%;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, opacity 0.28s ease;
+  will-change: transform;
+}
+
+.image-folder-stack-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 2-Card Stack */
+.image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-0 {
+  z-index: 2;
+  transform: translate(-6px, 2px) rotate(-4.5deg) scale(1);
+}
+.image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-1 {
+  z-index: 1;
+  transform: translate(12px, -4px) rotate(8.5deg) scale(0.96);
+  opacity: 0.94;
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-0,
+.item-main:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-0 {
+  transform: translate(-10px, 0px) rotate(-7deg) scale(1.03);
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-1,
+.item-main:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-1 {
+  transform: translate(18px, -8px) rotate(13deg) scale(0.98);
+  opacity: 1;
+}
+
+/* 3-Card Stack */
+.image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-0 {
+  z-index: 3;
+  transform: translate(-1px, 3px) rotate(-1.5deg) scale(1);
+}
+.image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-1 {
+  z-index: 2;
+  transform: translate(14px, -3px) rotate(8deg) scale(0.96);
+  opacity: 0.94;
+}
+.image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-2 {
+  z-index: 1;
+  transform: translate(-15px, -6px) rotate(-9.5deg) scale(0.92);
+  opacity: 0.88;
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-0,
+.item-main:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-0 {
+  transform: translate(-1px, 0px) rotate(-2deg) scale(1.03);
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-1,
+.item-main:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-1 {
+  transform: translate(22px, -6px) rotate(14deg) scale(0.98);
+  opacity: 1;
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-2,
+.item-main:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-2 {
+  transform: translate(-24px, -10px) rotate(-15deg) scale(0.94);
+  opacity: 0.95;
+}
+
+/* 4-Card Stack */
+.image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-0 {
+  z-index: 4;
+  transform: translate(2px, 3px) rotate(2deg) scale(1);
+}
+.image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-1 {
+  z-index: 3;
+  transform: translate(-10px, -2px) rotate(-6deg) scale(0.96);
+  opacity: 0.95;
+}
+.image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-2 {
+  z-index: 2;
+  transform: translate(18px, -5px) rotate(11deg) scale(0.92);
+  opacity: 0.90;
+}
+.image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-3 {
+  z-index: 1;
+  transform: translate(-22px, -9px) rotate(-14deg) scale(0.88);
+  opacity: 0.82;
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-0,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-0 {
+  transform: translate(4px, 1px) rotate(3deg) scale(1.03);
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-1,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-1 {
+  transform: translate(-16px, -4px) rotate(-9deg) scale(0.98);
+  opacity: 1;
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-2,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-2 {
+  transform: translate(26px, -9px) rotate(17deg) scale(0.95);
+  opacity: 0.98;
+}
+.item.is-image-folder-card:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-3,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-3 {
+  transform: translate(-30px, -14px) rotate(-21deg) scale(0.91);
+  opacity: 0.92;
+}
+
+/* ------------------------------------------------------------------ */
+/* Expanded Image Stack / Pinned Collection Styles                    */
+/* ------------------------------------------------------------------ */
+
+.item.is-image-folder-card.is-expanded {
+  height: auto;
+  min-height: 205px;
+  max-height: none;
+  padding: 5px;
+}
+
+.item.is-image-folder-card.is-expanded .image-folder-card-inner {
+  height: auto;
+  min-height: 205px;
+  display: flex;
+  flex-direction: column;
+}
+
+.list.horizontal .item.is-image-folder-card.is-expanded {
+  height: 146px !important;
+  min-height: 146px !important;
+  max-height: 146px !important;
+  padding: 4px;
+  box-sizing: border-box;
+  overflow: hidden !important;
+}
+
+.list.horizontal .item.is-image-folder-card.is-expanded .item-main {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.list.horizontal .item.is-image-folder-card.is-expanded .image-folder-card-inner {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  overflow: hidden !important;
+}
+
+.image-folder-viewport.is-expanded-viewport {
+  height: auto;
+  min-height: 170px;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 8px 8px 36px 8px;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.list.horizontal .image-folder-viewport.is-expanded-viewport {
+  flex: 1;
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none;
+  padding: 4px 6px 2px 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  box-sizing: border-box;
+  overflow: hidden !important;
+}
+
+.image-folder-expanded-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.list.horizontal .image-folder-expanded-content {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Header bar inside the expanded blue gradient viewport */
+.image-folder-expanded-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 28px;
+  padding: 0 4px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+}
+
+.list.horizontal .image-folder-expanded-top-bar {
+  height: 20px;
+  margin-bottom: 3px;
+  padding: 0 2px;
+}
+
+.image-folder-collapse-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.14s ease, transform 0.12s ease;
+}
+
+.list.horizontal .image-folder-collapse-btn {
+  width: 20px;
+  height: 20px;
+}
+
+.image-folder-collapse-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.08);
+}
+
+.image-folder-expanded-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+}
+
+.list.horizontal .image-folder-expanded-title {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.image-folder-expanded-top-bar .actions-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.list.horizontal .image-folder-expanded-top-bar .actions-pill {
+  height: 20px;
+  padding: 1px 4px;
+  gap: 2px;
+}
+
+.image-folder-expanded-top-bar .actions-pill .act {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.list.horizontal .image-folder-expanded-top-bar .actions-pill .act {
+  width: 18px;
+  height: 18px;
+}
+
+.image-folder-expanded-top-bar .actions-pill .act:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.image-folder-expanded-top-bar .actions-pill .act.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.image-folder-expanded-top-bar .actions-pill .act.danger:hover {
+  background: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+
+/* Horizontal Track (Horizontal Dock Mode - Naturally expanded across items) */
+.image-stack-expanded-track {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+  height: 84px;
+  max-height: 84px;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 0;
+  box-sizing: border-box;
+}
+
+.image-stack-expanded-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Vertical List (Vertical Dock Mode - No internal scroll, fully expanded) */
+.image-stack-expanded-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  padding: 2px 0 8px 0;
+  box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mini Image Folder Card (Exact Same Look & Design as Single Image)  */
+/* ------------------------------------------------------------------ */
+
+.mini-image-folder-card {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 242 / 205;
+  padding: 4px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  cursor: grab;
+  border-radius: 15px;
+  overflow: hidden;
+  background: var(--bg-card, #141414);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  border: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background 0.16s ease;
+  user-select: none;
+}
+
+.mini-image-folder-card:active {
+  cursor: grabbing;
+}
+
+.mini-image-folder-card:hover {
+  background: var(--bg-card-hover, #1c1c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+}
+
+/* Horizontal Dock mini card sizing */
+.list.horizontal .mini-image-folder-card {
+  width: 115px;
+  min-width: 115px;
+  max-width: 115px;
+  height: 80px;
+  max-height: 80px;
+  aspect-ratio: 210 / 146;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 9px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.mini-image-folder-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-card, #141414);
+  transition: background 0.16s ease;
+}
+
+.mini-image-folder-card:hover .mini-image-folder-card-inner {
+  background: var(--bg-card-hover, #1c1c1c);
+}
+
+.list.horizontal .mini-image-folder-card-inner {
+  border-radius: 7px;
+}
+
+/* Mini Blue Gradient Viewport */
+.mini-image-folder-viewport {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background: linear-gradient(
+    115deg, 
+    #a8def5 0%, 
+    #288ef6 25%, 
+    #0b64f6 52%, 
+    #1b57f6 78%, 
+    #769cf5 100%
+  );
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px 12px 0 0;
+}
+
+.list.horizontal .mini-image-folder-viewport {
+  border-radius: 7px 7px 0 0;
+}
+
+.mini-image-folder-thumb {
+  position: relative;
+  max-width: calc(100% - 20px);
+  max-height: calc(100% - 20px);
+  object-fit: contain;
+  border-radius: 6px;
+  z-index: 2;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease;
+  pointer-events: none;
+}
+
+.list.horizontal .mini-image-folder-thumb {
+  max-width: calc(100% - 12px);
+  max-height: calc(100% - 12px);
+  border-radius: 4px;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+}
+
+.mini-image-folder-card:hover .mini-image-folder-thumb {
+  transform: scale(1.03) translateY(-1px);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.65));
+}
+
+/* Mini Solid Black Curved Folder Flap */
+.mini-image-folder-flap-wrap {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: -22px;
+  z-index: 5;
+}
+
+.list.horizontal .mini-image-folder-flap-wrap {
+  margin-top: -16px;
+  flex-shrink: 0;
+}
+
+.mini-image-folder-flap-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.mini-image-folder-flap-svg path {
+  fill: var(--bg-card, #141414);
+  stroke: none;
+  border: none;
+  transition: fill 0.16s ease;
+}
+
+.mini-image-folder-card:hover .mini-image-folder-flap-svg path {
+  fill: var(--bg-card-hover, #1c1c1c);
+}
+
+.mini-image-folder-flap-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-image-folder-flap-header {
+  height: 24px;
+}
+
+.list.horizontal .mini-image-folder-flap-header {
+  height: 14px;
+}
+
+.mini-image-folder-flap-footer {
+  padding: 2px 10px 5px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.list.horizontal .mini-image-folder-flap-footer {
+  padding: 0 6px 3px 6px;
+  gap: 3px;
+}
+
+.mini-image-folder-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list.horizontal .mini-image-folder-meta {
+  gap: 3px;
+}
+
+.mini-image-folder-meta .kind-badge {
+  font-size: calc(10.5px * var(--font-scale, 1));
+  padding: 1px 5px;
+}
+
+.list.horizontal .mini-image-folder-meta .kind-badge {
+  font-size: 8px;
+  padding: 0 3px;
+}
+
+.mini-image-folder-source-name {
+  font-size: calc(11.5px * var(--font-scale, 1));
+  color: rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.list.horizontal .mini-image-folder-source-name {
+  font-size: 8.5px;
+  max-width: 52px;
+}
+
+.mini-image-folder-size {
+  font-size: calc(10.5px * var(--font-scale, 1));
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.list.horizontal .mini-image-folder-size {
+  font-size: 8px;
+}
+
+/* Hover Action Pill for Mini Card (Expand, Copy, Ungroup) */
+.mini-image-folder-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  background: rgba(14, 14, 18, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9) translateY(-1px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 10;
+}
+
+.list.horizontal .mini-image-folder-actions {
+  top: 2px;
+  right: 2px;
+  padding: 1px 2px;
+  gap: 1px;
+}
+
+.mini-image-folder-card:hover .mini-image-folder-actions,
+.mini-image-folder-card:focus-within .mini-image-folder-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+.mini-image-folder-actions .act {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.list.horizontal .mini-image-folder-actions .act {
+  width: 16px;
+  height: 16px;
+}
+
+.list.horizontal .mini-image-folder-actions .act > svg {
+  width: 9px;
+  height: 9px;
+}
+
+.mini-image-folder-actions .act:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+.mini-image-folder-actions .act.danger:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+/* Folder Flap Sleeve - completely borderless */
+.image-folder-flap-wrap {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: -26px; /* overlaps bottom of image frame */
+  z-index: 5;
+}
+
+.image-folder-flap-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.image-folder-flap-svg path {
+  fill: var(--bg-card, #141414);
+  stroke: none;
+  border: none;
+  transition: fill 0.16s ease;
+}
+
+.item.is-image-folder-card:hover .image-folder-flap-svg path,
+.item-main:hover .image-folder-flap-svg path {
+  fill: var(--bg-card-hover, #1c1c1c);
+}
+
+.image-folder-flap-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-folder-flap-header {
+  height: 28px;
+}
+
+.image-folder-flap-footer {
+  padding: 2px 12px 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.image-folder-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.image-folder-source-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 105px;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 /* Floating Actions Pill */
@@ -819,7 +1634,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 10px 16px 4px 16px;
+  padding: 10px 16px 6px 16px;
 }
 
 .single-file-preview {
@@ -845,16 +1660,16 @@
 }
 
 .single-file-hero svg {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   display: block;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.28));
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.42));
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
 }
 
 .item-main:hover .single-file-hero svg {
-  transform: translateY(-2px) scale(1.03);
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.38));
+  transform: translateY(-3px) scale(1.04);
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.52));
 }
 
 .single-file-meta {
@@ -868,8 +1683,8 @@
 }
 
 .single-file-name {
-  font-size: calc(13px * var(--font-scale, 1));
-  font-weight: 500;
+  font-size: calc(13.5px * var(--font-scale, 1));
+  font-weight: 550;
   color: var(--text-primary, #ffffff);
   line-height: 1.35;
   text-align: center;
@@ -877,6 +1692,209 @@
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-all;
+}
+
+/* Flyout Sub-item Cards (feels identical to clipboard items) */
+.item.flyout-subitem {
+  margin-bottom: 0;
+  cursor: grab;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-card, #141414);
+  border: none;
+  border-radius: var(--radius-card, 18px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.14s ease, box-shadow 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.item.flyout-subitem:hover {
+  background: var(--bg-card-hover, #1c1c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+.item.flyout-subitem:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+.item.flyout-subitem.is-selected {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 1.5px #ffffff, 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.item.flyout-subitem.is-selected::before {
+  opacity: 0;
+}
+
+.flyout-subitem .item-content {
+  padding: 16px 12px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.flyout-subitem .single-file-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.flyout-subitem .single-file-hero svg {
+  width: 88px;
+  height: 88px;
+  display: block;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flyout-subitem:hover .single-file-hero svg {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.flyout-subitem .single-file-meta {
+  width: 100%;
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.flyout-subitem .single-file-name {
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.35;
+  color: #ffffff;
+  text-align: center;
+  width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.flyout-subitem .item-footer {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 14px 10px 14px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.35) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flyout-subitem .meta-size {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: var(--font-ui);
+  letter-spacing: 0.01em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.flyout-subitem .actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 2px;
+  padding: 2px 4px;
+  background: rgba(16, 16, 16, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  transform: scale(0.94);
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 20;
+}
+
+.flyout-subitem:hover .actions {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.flyout-subitem .subitem-select-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
+  background: rgba(22, 22, 22, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 15;
+  opacity: 0.85;
+  transform: scale(1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.14s ease, transform 0.14s ease, background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.flyout-subitem:hover .subitem-select-badge {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.flyout-subitem .subitem-select-badge:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.85);
+  transform: scale(1.08);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+}
+
+.flyout-subitem .subitem-select-badge:active {
+  transform: scale(0.92);
+}
+
+.flyout-subitem .subitem-select-badge.selected {
+  opacity: 1;
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.3), 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.flyout-subitem .subitem-select-badge.selected:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+  transform: scale(1.08);
+  box-shadow: 0 3px 12px rgba(255, 255, 255, 0.4), 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Single Hero Preview in Flyout */
+.single-hero-card {
+  width: 100%;
+}
+.single-hero-card .single-file-hero svg {
+  width: 120px;
+  height: 120px;
+}
+.single-hero-card .item-content {
+  padding: 28px 20px 14px 20px;
+}
+.single-hero-card .single-file-name {
+  font-size: 15px;
+  font-weight: 600;
+  -webkit-line-clamp: 3;
+}
+.single-hero-card .item-footer {
+  padding: 8px 20px 14px 20px;
 }
 
 .bundle-more-label {
@@ -1121,7 +2139,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 6px 12px 2px 12px;
+  padding: 4px 10px 2px 10px;
 }
 
 .list.horizontal .single-file-preview {
@@ -1135,30 +2153,39 @@
 }
 
 .list.horizontal .single-file-hero svg {
-  width: 54px;
-  height: 54px;
-  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.24));
+  width: 88px;
+  height: 88px;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.38));
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+}
+
+.list.horizontal .item-main:hover .single-file-hero svg {
+  transform: translateY(-2px) scale(1.03);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
 }
 
 .list.horizontal .single-file-name {
-  font-size: calc(11.5px * var(--font-scale, 1));
-  line-height: 1.35;
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 550;
+  line-height: 1.3;
   text-align: center;
   width: 100%;
+  max-width: 100%;
+  padding: 0 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-all;
 }
 
 .list.horizontal .bundle-stack-large {
-  height: 75px;
+  height: 90px;
 }
 
 .list.horizontal .bundle-stack-icon-item {
-  width: 80px;
-  height: 80px;
-  margin-top: -40px;
-  margin-left: -40px;
+  width: 88px;
+  height: 88px;
+  margin-top: -44px;
+  margin-left: -44px;
 }
 
 .list.horizontal .item.is-image .item-content,
@@ -1214,6 +2241,169 @@
   text-overflow: ellipsis;
   max-width: 100%;
 }
+
+/* Horizontal Dock Single Image Folder Card */
+.list.horizontal .item.is-image-folder-card {
+  width: 210px;
+  min-width: 210px;
+  max-width: 210px;
+  height: 146px;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.list.horizontal .item.is-image-folder-card .item-main {
+  height: 100%;
+}
+
+.list.horizontal .image-folder-card-inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: calc(var(--radius-card, 18px) - 5px);
+  overflow: hidden;
+  background: var(--bg-card, #141414);
+}
+
+.list.horizontal .item.is-image-folder-card:hover .image-folder-card-inner,
+.list.horizontal .item-main:hover .image-folder-card-inner {
+  background: var(--bg-card-hover, #1c1c1c);
+}
+
+.list.horizontal .image-folder-viewport {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  border-radius: calc(var(--radius-card, 18px) - 5px) calc(var(--radius-card, 18px) - 5px) 0 0;
+}
+
+.list.horizontal .image-folder-thumb {
+  max-width: calc(100% - 16px);
+  max-height: calc(100% - 20px);
+}
+
+.list.horizontal .image-folder-flap-wrap {
+  margin-top: -24px;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.list.horizontal .image-folder-flap-header {
+  height: 24px;
+}
+
+.list.horizontal .image-folder-flap-footer {
+  padding: 1px 10px 5px 10px;
+  margin-top: auto;
+}
+
+.list.horizontal .image-folder-meta {
+  font-size: calc(10.5px * var(--font-scale, 1));
+  gap: 3px;
+}
+
+.list.horizontal .image-folder-source-name {
+  max-width: 80px;
+}
+
+.list.horizontal .image-folder-stack-deck {
+  margin-top: -6px;
+}
+
+.list.horizontal .image-folder-stack-item {
+  width: 108px;
+  height: 70px;
+  border-radius: 6px;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+}
+
+.list.horizontal .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-0 {
+  transform: translate(-4px, 1px) rotate(-4.5deg) scale(1);
+}
+.list.horizontal .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-1 {
+  transform: translate(8px, -2px) rotate(8.5deg) scale(0.96);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-0,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-0 {
+  transform: translate(-7px, 0px) rotate(-7deg) scale(1.03);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-1,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="2"] .image-folder-stack-item.pos-1 {
+  transform: translate(12px, -4px) rotate(13deg) scale(0.98);
+}
+
+.list.horizontal .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-0 {
+  transform: translate(-1px, 2px) rotate(-1.5deg) scale(1);
+}
+.list.horizontal .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-1 {
+  transform: translate(9px, -2px) rotate(8deg) scale(0.96);
+}
+.list.horizontal .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-2 {
+  transform: translate(-10px, -4px) rotate(-9.5deg) scale(0.92);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-0,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-0 {
+  transform: translate(-1px, 0px) rotate(-2deg) scale(1.03);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-1,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-1 {
+  transform: translate(14px, -4px) rotate(14deg) scale(0.98);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-2,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="3"] .image-folder-stack-item.pos-2 {
+  transform: translate(-15px, -6px) rotate(-15deg) scale(0.94);
+}
+
+.list.horizontal .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-0 {
+  transform: translate(1px, 2px) rotate(2deg) scale(1);
+}
+.list.horizontal .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-1 {
+  transform: translate(-7px, -1px) rotate(-6deg) scale(0.96);
+}
+.list.horizontal .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-2 {
+  transform: translate(12px, -3px) rotate(11deg) scale(0.92);
+}
+.list.horizontal .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-3 {
+  transform: translate(-14px, -6px) rotate(-14deg) scale(0.88);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-0,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-0 {
+  transform: translate(3px, 0px) rotate(3deg) scale(1.03);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-1,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-1 {
+  transform: translate(-10px, -2px) rotate(-9deg) scale(0.98);
+}
+.list.horizontal .item.is-image-folder-card:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-2,
+.list.horizontal .item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-2 {
+  transform: translate(17px, -6px) rotate(17deg) scale(0.95);
+}
+.list.horizontal .item.is-image-folder-card.is-expanded .image-folder-flap-wrap {
+  margin-top: -18px;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.list.horizontal .item.is-image-folder-card.is-expanded .image-folder-flap-header {
+  height: 18px;
+}
+
+.list.horizontal .item.is-image-folder-card.is-expanded .image-folder-flap-footer {
+  padding: 0 8px 3px 8px;
+  margin-top: auto;
+}
+
+.list.horizontal .item.is-image-folder-card.is-expanded .image-folder-meta {
+  font-size: 9.5px;
+  gap: 3px;
+}
+
+.list.horizontal .item.is-image-folder-card.is-expanded .meta-time {
+  font-size: 9.5px;
+}
+
 
 /* ------------------------------------------------------------------ */
 /* Horizontal Expanded Stack & Sub-Item Tile Styling                  */
