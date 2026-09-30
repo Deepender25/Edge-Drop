@@ -5,6 +5,9 @@ import { formatBytes, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon } from './icons'
 import { parseUrlPreview } from '../lib/urlPreview'
+import { parseColor } from '../lib/colorUtils'
+import { detectCode } from '../lib/codeDetect'
+import { CodeBlock } from './CodeBlock'
 import { createPortal } from 'react-dom'
 import { useAdaptiveSpring } from '../hooks/useAdaptiveSpring'
 import { useDragOut } from '../hooks/useDragOut'
@@ -527,16 +530,18 @@ function QuickActionButton({
   title,
   icon: Icon,
   onClick,
-  size = 28
+  size = 28,
+  solidDark = false
 }: {
   title: string
   icon: any
   onClick: () => any
   size?: number
+  solidDark?: boolean
 }) {
   const [copied, setCopied] = useState(false)
 
-  const handleClick = async (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
     e.preventDefault()
     e.currentTarget.blur()
@@ -549,7 +554,7 @@ function QuickActionButton({
 
   return (
     <button
-      className={`act${copied ? ' active' : ''}`}
+      className={`act${copied ? ' active' : ''}${solidDark ? ' solid-dark' : ''}`}
       title={copied ? t('flyout.copied') : title}
       onClick={handleClick}
       style={{ width: size, height: size }}
@@ -753,6 +758,85 @@ function PreviewContent({
           >
             {info.cleanUrl || activeText}
           </div>
+        </div>
+      )
+    }
+
+    const colorInfo = parseColor(activeText)
+    if (colorInfo) {
+      return (
+        <div
+          onClick={(e) => {
+            const sel = window.getSelection()?.toString()
+            if (sel && sel.trim().length > 0) return
+            e.stopPropagation()
+            tryPaste(() => useStore.getState().paste(item.id))
+          }}
+          title={t('flyout.clickToPaste')}
+          style={{
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 12,
+            padding: '36px 20px',
+            borderRadius: 16,
+            background: colorInfo.cssColor,
+            color: colorInfo.isLight ? '#111827' : '#ffffff',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', position: 'absolute', top: 10, right: 10 }}>
+            <QuickActionButton
+              title={t('flyout.copyText')}
+              icon={CopyIcon}
+              onClick={() => useStore.getState().copy(item.id)}
+            />
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 24,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            textShadow: colorInfo.isLight ? '0 1px 2px rgba(255,255,255,0.5)' : '0 2px 4px rgba(0,0,0,0.6)',
+          }}>
+            {colorInfo.displayText}
+          </div>
+        </div>
+      )
+    }
+
+    const codeInfo = detectCode(activeText)
+    if (codeInfo.isCode) {
+      return (
+        <div
+          onClick={(e) => {
+            const sel = window.getSelection()?.toString()
+            if (sel && sel.trim().length > 0) return
+            e.stopPropagation()
+            tryPaste(() => useStore.getState().paste(item.id))
+          }}
+          title={t('flyout.clickToPaste')}
+          style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer', width: '100%' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'sticky', top: 0, zIndex: 2 }}>
+            <QuickActionButton
+              title={t('flyout.copyText')}
+              icon={CopyIcon}
+              onClick={() => useStore.getState().copy(item.id)}
+            />
+          </div>
+          <CodeBlock
+            code={text}
+            language={codeInfo.language}
+            showFrame={false}
+            showHeader={false}
+            showLineNumbers={true}
+            showCopyButton={false}
+          />
         </div>
       )
     }

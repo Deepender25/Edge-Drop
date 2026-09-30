@@ -306,6 +306,43 @@
 .kind-badge.url {
   color: rgba(255, 255, 255, 0.9);
 }
+.kind-badge.code {
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  font-size: calc(10.5px * var(--font-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Minimal Code Block Preview for Item Card */
+.code-card-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.code-card-preview .code-block-container {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.code-card-preview pre {
+  font-family: var(--font-mono) !important;
+}
+
+.list.horizontal .code-card-preview {
+  height: 86px;
+  max-height: 86px;
+}
 
 /* Clean Professional Link Card */
 .link-card {

@@ -25,8 +25,10 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon, ImageIcon } from './icons'
+import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { LinkPreviewCard } from './LinkPreviewCard'
+import { CodeBlock } from './CodeBlock'
+import { detectCode } from '../lib/codeDetect'
 import '../styles/item.css'
 import { tryPaste } from '../lib/tryPaste'
 import { parseColor } from '../lib/colorUtils'
@@ -84,13 +86,13 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const isSingleImage = item.data.kind === 'image' || (
     item.data.kind === 'files' &&
     item.data.paths.length === 1 &&
-    !item.data.entries?.[0]?.isDirectory &&
-    (item.data.entries?.[0]?.isImage || getFileKind(item.data.paths[0]).kind === 'image')
+    !(item.data as any).entries?.[0]?.isDirectory &&
+    ((item.data as any).entries?.[0]?.isImage || getFileKind(item.data.paths[0]).kind === 'image')
   )
   const isImageStack = item.data.kind === 'image-collection' || (
     item.data.kind === 'files' &&
     item.data.paths.length > 1 &&
-    item.data.paths.every((p, i) => !item.data.entries?.[i]?.isDirectory && (item.data.entries?.[i]?.isImage || getFileKind(p).kind === 'image'))
+    item.data.paths.every((p, i) => !(item.data as any).entries?.[i]?.isDirectory && ((item.data as any).entries?.[i]?.isImage || getFileKind(p).kind === 'image'))
   )
   const isImageFolderCard = isSingleImage || isImageStack
 
@@ -1155,7 +1157,7 @@ function getImageEntries(item: ClipboardItemDto): ImageCardEntry[] {
   }
   if (item.data.kind === 'files') {
     return item.data.paths.map((filePath, i) => {
-      const entry = item.data.entries?.[i]
+      const entry = (item.data as any).entries?.[i]
       const fallback = fileStreamUrl(filePath)
       return {
         id: `${item.id}-${filePath}-${i}`,
@@ -1178,12 +1180,11 @@ function getImageEntries(item: ClipboardItemDto): ImageCardEntry[] {
 function MiniImageFolderCard({
   item,
   img,
-  isHorizontal,
   onDragStart
 }: {
   item: ClipboardItemDto
   img: ImageCardEntry
-  isHorizontal: boolean
+  isHorizontal?: boolean
   onDragStart?: (e: React.DragEvent, req: DragRequest) => void
 }) {
   const { t } = useTranslation()
@@ -1194,7 +1195,7 @@ function MiniImageFolderCard({
   const size = img.bytes ? formatBytes(img.bytes) : ''
   const displayName = img.name && img.name !== 'clipboard' && !img.name.startsWith('image-') ? img.name : dims || 'image'
 
-  const handleCopy = (e: React.MouseEvent) => {
+  const handleCopy = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
     e.currentTarget.blur()
     playButtonClickSound()
@@ -1207,7 +1208,7 @@ function MiniImageFolderCard({
     setTimeout(() => setCopied(false), 900)
   }
 
-  const handleUngroup = (e: React.MouseEvent) => {
+  const handleUngroup = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
     e.currentTarget.blur()
     playDeleteSound()
@@ -1584,6 +1585,23 @@ function Preview({ item }: { item: ClipboardItemDto }) {
           </div>
         )
       }
+      const codeInfo = detectCode(item.data.text)
+      if (codeInfo.isCode) {
+        return (
+          <div className="code-card-preview">
+            <CodeBlock
+              code={item.data.text}
+              language={codeInfo.language}
+              showFrame={false}
+              showHeader={false}
+              showLineNumbers={true}
+              showCopyButton={false}
+              compact={true}
+              maxLines={5}
+            />
+          </div>
+        )
+      }
       return <div className="preview">{previewText(item.data.text)}</div>
     }
 
@@ -1724,11 +1742,6 @@ function ItemDetails({ item }: { item: ClipboardItemDto }) {
         if (domain) {
           return <span className="meta-detail">· {domain}</span>
         }
-        return null
-      }
-
-      const colorInfo = parseColor(item.data.text)
-      if (item.data.isColor || colorInfo) {
         return null
       }
 

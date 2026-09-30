@@ -696,6 +696,9 @@ export function registerIpc(): void {
     if (patch.hotZoneWidth !== undefined) {
       setHotZoneWidth(patch.hotZoneWidth)
     }
+    if (patch.incognito !== undefined) {
+      getWatcher().setPaused(patch.incognito)
+    }
     if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined || patch.verticalOffset !== undefined || patch.horizontalOffset !== undefined) {
       repositionWindow()
       if (patch.stickPosition !== undefined || patch.stickDisplayId !== undefined) {
