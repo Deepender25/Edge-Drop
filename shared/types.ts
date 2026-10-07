@@ -33,6 +33,19 @@ export function isUpdateMode(value: unknown): value is UpdateMode {
   return (UPDATE_MODES as readonly unknown[]).includes(value)
 }
 
+/** Curated dark color themes available throughout the UI. */
+export const COLOR_THEMES = ['default', 'ocean', 'emerald', 'rose', 'amber', 'arctic'] as const
+export type ColorTheme = (typeof COLOR_THEMES)[number]
+
+export function isColorTheme(value: unknown): value is ColorTheme {
+  return (COLOR_THEMES as readonly unknown[]).includes(value)
+}
+
+/** Normalize persisted/unknown theme values so older or corrupt settings stay safe. */
+export function resolveColorTheme(value: unknown): ColorTheme {
+  return isColorTheme(value) ? value : 'default'
+}
+
 /** How a clipboard bitmap was captured. Omitted on older persisted items. */
 export type ClipboardImageSource = 'screenshot' | 'image'
 
@@ -150,6 +163,8 @@ export interface Settings {
   launchAtLogin: boolean
   /** Reduce motion for the panel animations. */
   reduceMotion: boolean
+  /** Curated full-dark color theme. Default preserves the original Edge-Drop palette. */
+  colorTheme: ColorTheme
   /** When true, automatically clears unpinned items on device/app restart. */
   /** When true, automatically clears unpinned items on device/app restart. */
   clearUnpinnedOnRestart: boolean
@@ -226,6 +241,7 @@ export const DEFAULT_SETTINGS: Settings = {
   incognito: false,
   launchAtLogin: true,
   reduceMotion: false,
+  colorTheme: 'default',
   clearUnpinnedOnRestart: false,
   autoDeleteHours: 0,
   uiStyle: 'modern',

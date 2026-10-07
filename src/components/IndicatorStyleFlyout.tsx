@@ -225,7 +225,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
-              background: '#141414',
+              background: 'var(--bg-card)',
               borderRadius: 20,
               border: 'none',
               overflow: 'hidden',
@@ -351,7 +351,7 @@ function StyleCard({
         justifyContent: 'center',
         gap: 6,
         padding: '10px 8px 8px',
-        background: '#141414',
+        background: 'var(--bg-card)',
         border: active ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.08)',
         borderRadius: 14,
         position: 'relative',

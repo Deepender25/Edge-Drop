@@ -4,7 +4,7 @@
  * The blade reads as a piece of glass extending out of the screen edge:
  * layered near-black gradients, a 1px inner light edge, soft shadow, and an
  * accent glow. Colors are exposed as CSS custom properties so the theme layer
- * can swap the accent at runtime.
+ * can swap the full semantic palette at runtime.
  */
 :root {
   /* Base blacks — stacked for depth, never a flat #000. */
@@ -16,6 +16,13 @@
   --bg-card: #141414;
   --bg-card-hover: #1c1c1c;
   --bg-chip: #141414;
+  --bg-pinned: #181818;
+  --bg-deep-raised: #121214;
+  --bg-preview: #141418;
+  --bg-preview-deep: #121216;
+  --bg-overlay-strong: rgba(28, 28, 32, 0.96);
+  --bg-strong-hover: #252525;
+  --bg-strong-hover-2: #262626;
 
   /* Hairlines — used only where a divider is needed, not as box outlines */
   --edge-light: rgba(255, 255, 255, 0.06);
@@ -30,6 +37,10 @@
   /* Accent (overridden at runtime by theme.ts) */
   --accent: #8b5cf6;
   --accent-glow: rgba(139, 92, 246, 0.55);
+
+  /* Native/browser chrome */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
 
   /* Shape & depth — large radii, no hairline boxes */
   --radius-blade: 24px;

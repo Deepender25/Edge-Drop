@@ -25,7 +25,7 @@
   border-top-right-radius: 24px;
   border-bottom-right-radius: 24px;
   /* Completely deep black */
-  background: #000000;
+  background: var(--bg-1);
   
   /* No back shadow and no edges */
   box-shadow: none;
@@ -63,7 +63,7 @@
   pointer-events: none;
   z-index: -1;
   display: flex;
-  background: linear-gradient(to right, #000000 30px, transparent 30px);
+  background: linear-gradient(to right, var(--bg-1) 30px, transparent 30px);
   justify-content: flex-end;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -71,7 +71,7 @@
 .flare-top.flare-right, .flare-bottom.flare-right {
   left: auto;
   right: -30px;
-  background: linear-gradient(to left, #000000 30px, transparent 30px);
+  background: linear-gradient(to left, var(--bg-1) 30px, transparent 30px);
   justify-content: flex-start;
 }
 .flare-top {
@@ -136,7 +136,7 @@
   bottom: 0;
   left: -30px;
   width: 31px;
-  background: #000000;
+  background: var(--bg-1);
   pointer-events: none;
   z-index: -2;
 }
@@ -148,7 +148,7 @@
   left: auto;
   right: -30px;
   width: 31px;
-  background: #000000;
+  background: var(--bg-1);
   pointer-events: none;
   z-index: -2;
 }
@@ -161,7 +161,7 @@
   right: 0;
   width: auto;
   height: 30px;
-  background: #000000;
+  background: var(--bg-1);
   pointer-events: none;
   z-index: -2;
   display: block;
@@ -608,7 +608,7 @@
   transition: background 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .footer-capsule:hover {
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
 }
 .footer-capsule-count {
   font-size: calc(11.5px * var(--font-scale, 1));
@@ -665,7 +665,7 @@
   transition: background 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .footer-back-pill:hover {
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
   color: #ffffff;
 }
 .footer-back-pill:active {
@@ -696,14 +696,14 @@
   transition: color 0.18s ease;
 }
 .text-btn:hover:not(:disabled) {
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
   color: #ffffff;
 }
 .text-btn:hover:not(:disabled) .clear-btn-icon {
   color: #ff6b6b;
 }
 .text-btn.active:not(:disabled) {
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
   color: #ffffff;
 }
 .text-btn.active:not(:disabled) .clear-btn-icon {
@@ -715,13 +715,13 @@
 .text-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-  background: #141414;
+  background: var(--bg-card);
 }
 .text-btn.danger {
   color: rgba(255, 255, 255, 0.75);
 }
 .text-btn.danger:hover:not(:disabled) {
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
   color: #ffffff;
 }
 .text-btn.danger:hover:not(:disabled) .clear-btn-icon {
@@ -759,7 +759,7 @@
   font-weight: 500;
   color: rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  background: #141414;
+  background: var(--bg-card);
   border: none;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
   cursor: pointer;

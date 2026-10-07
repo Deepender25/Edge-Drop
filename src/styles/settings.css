@@ -47,7 +47,7 @@
   font-weight: 500;
   line-height: 1.25;
   color: rgba(255, 255, 255, 0.72);
-  background: #141414;
+  background: var(--bg-card);
   border: none;
   cursor: pointer;
   outline: none;
@@ -59,7 +59,7 @@
 
 .settings-tab-btn:hover:not(.active) {
   color: #ffffff;
-  background: #141414;
+  background: var(--bg-card);
 }
 
 .settings-tab-btn.active {
@@ -336,6 +336,106 @@
   gap: 4px;
 }
 
+
+/* Curated full-dark color themes. These are controls, not decorative cards. */
+.color-theme-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  width: 100%;
+}
+
+.color-theme-picker.horizontal {
+  display: flex;
+  gap: 7px;
+  width: auto;
+}
+
+.color-theme-option {
+  min-width: 0;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: stretch;
+  border-radius: 11px;
+  border: 1px solid var(--edge-light);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-secondary);
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms var(--ease-out);
+}
+
+.color-theme-picker.horizontal .color-theme-option {
+  flex: 0 0 66px;
+  width: 66px;
+}
+
+.color-theme-option:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: var(--edge-strong);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.color-theme-option.active {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.065);
+  color: var(--text-primary);
+}
+
+.color-theme-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.color-theme-preview {
+  position: relative;
+  display: block;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.color-theme-preview-surface {
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  top: 7px;
+  bottom: 6px;
+  border-radius: 5px;
+}
+
+.color-theme-preview-hover {
+  position: absolute;
+  left: 12px;
+  right: 20px;
+  bottom: 9px;
+  height: 5px;
+  border-radius: 3px;
+}
+
+.color-theme-preview-accent {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  right: 10px;
+  bottom: 8px;
+  border-radius: 50%;
+}
+
+.color-theme-name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: calc(9.5px * var(--font-scale, 1));
+  font-weight: 600;
+  line-height: 1.2;
+}
+
 /* 3-Way Edge Placement Selector (Left, Top, Right) */
 .placement-3way-wrap {
   display: flex;
@@ -561,7 +661,7 @@
   font-size: calc(12px * var(--font-scale, 1));
   font-weight: 500;
   color: rgba(255, 255, 255, 0.72);
-  background: #141414;
+  background: var(--bg-card);
   border: none;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -573,7 +673,7 @@
 
 .pill:hover:not(.active) {
   color: #ffffff;
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
 }
 
 .pill.active {
@@ -731,7 +831,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px 14px 14px;
-  background: #141414;
+  background: var(--bg-card);
   border: none;
   border-radius: 16px;
   margin: 16px 4px 8px 4px;
@@ -803,7 +903,7 @@
   font-size: 12.5px;
   font-weight: 550;
   color: rgba(255, 255, 255, 0.9);
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
   border: none;
   box-shadow: none;
   cursor: pointer;
@@ -813,7 +913,7 @@
 
 .github-promo-btn:hover,
 .store-review-promo-btn:hover {
-  background: #252525;
+  background: var(--bg-strong-hover);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -961,7 +1061,7 @@
 }
 
 .indicator-card.active {
-  background: #141414;
+  background: var(--bg-card);
   border-color: #ffffff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.12);
   outline: none;
@@ -970,7 +1070,7 @@
 .indicator-card-stage {
   width: 100%;
   height: 64px;
-  background: #000000;
+  background: var(--bg-0);
   border-radius: 6px;
   position: relative;
   display: flex;
@@ -1196,7 +1296,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px;
-  background: #141414;
+  background: var(--bg-card);
   border-radius: 14px;
   margin: 4px 4px 14px 4px;
   box-shadow: none;
@@ -2000,6 +2100,14 @@
   width: 290px;
 }
 
+.settings-shelf-card.color-theme-card {
+  width: 500px;
+}
+
+.settings-shelf-card.color-theme-card .setting-desc {
+  max-width: 430px;
+}
+
 .settings-shelf-card.copy-card {
   width: 240px;
 }
@@ -2186,7 +2294,7 @@
   font-size: 11.5px;
   font-weight: 550;
   color: rgba(255, 255, 255, 0.92);
-  background: #1c1c1c;
+  background: var(--bg-card-hover);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: none;
   cursor: pointer;
@@ -2196,7 +2304,7 @@
 }
 
 .shelf-github-btn:hover {
-  background: #262626;
+  background: var(--bg-strong-hover-2);
   border-color: rgba(255, 255, 255, 0.18);
   color: #ffffff;
   transform: translateY(-1px);
