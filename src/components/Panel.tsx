@@ -400,12 +400,12 @@ export function Panel() {
           <>
             <div className="flare-horizontal flare-top-left" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
-                <path d="M 0 0 C 13.43 0 30 16.57 30 30 L 32 30 L 32 0 Z" fill="#000000" />
+                <path d="M 0 0 C 13.43 0 30 16.57 30 30 L 32 30 L 32 0 Z" fill="var(--bg-1)" />
               </svg>
             </div>
             <div className="flare-horizontal flare-top-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="32" height="30" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="geometricPrecision">
-                <path d="M 2 30 C 2 16.57 18.57 0 32 0 L 0 0 L 0 30 Z" fill="#000000" />
+                <path d="M 2 30 C 2 16.57 18.57 0 32 0 L 0 0 L 0 30 Z" fill="var(--bg-1)" />
               </svg>
             </div>
           </>
@@ -414,12 +414,12 @@ export function Panel() {
           <>
             <div className="flare-top flare-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 30 0 L 30 30 L 0 30 A 30 30 0 0 0 30 0 Z" fill="#000000" />
+                <path d="M 30 0 L 30 30 L 0 30 A 30 30 0 0 0 30 0 Z" fill="var(--bg-1)" />
               </svg>
             </div>
             <div className="flare-bottom flare-right" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 30 30 L 30 0 L 0 0 A 30 30 0 0 1 30 30 Z" fill="#000000" />
+                <path d="M 30 30 L 30 0 L 0 0 A 30 30 0 0 1 30 30 Z" fill="var(--bg-1)" />
               </svg>
             </div>
           </>
@@ -427,12 +427,12 @@ export function Panel() {
           <>
             <div className="flare-top" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 0 0 L 0 30 L 30 30 A 30 30 0 0 1 0 0 Z" fill="#000000" />
+                <path d="M 0 0 L 0 30 L 30 30 A 30 30 0 0 1 0 0 Z" fill="var(--bg-1)" />
               </svg>
             </div>
             <div className="flare-bottom" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 0 30 L 0 0 L 30 0 A 30 30 0 0 0 0 30 Z" fill="#000000" />
+                <path d="M 0 30 L 0 0 L 30 0 A 30 30 0 0 0 0 30 Z" fill="var(--bg-1)" />
               </svg>
             </div>
           </>

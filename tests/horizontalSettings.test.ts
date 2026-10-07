@@ -19,6 +19,19 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(panelSrc).toContain('flare-horizontal flare-top-right')
   })
 
+  it('screen-edge connector curves and copy confirmation curve follow semantic theme colors', () => {
+    const panelSrc = read('src/components/Panel.tsx')
+    const flareSection = panelSrc.slice(panelSrc.indexOf('{isTop && ('), panelSrc.indexOf('<div\n          ref={bladeRef}'))
+    expect(flareSection).toContain('fill="var(--bg-1)"')
+    expect(flareSection).not.toContain('fill="#000000"')
+
+    const copyCurveSrc = read('src/components/CopyIndicatorCurve.tsx')
+    const liveCurveSection = copyCurveSrc.slice(copyCurveSrc.indexOf('key={`copy-sine-curve-${flareKey}`}'))
+    expect(liveCurveSection).toContain('fill="var(--bg-1)"')
+    expect(liveCurveSection).toContain('fillColor="var(--text-primary)"')
+    expect(liveCurveSection).not.toContain('fill="#000000"')
+  })
+
   it('item.css contains 210px card width, 5-line text clamp, and compact actions toolbar', () => {
     const itemCss = read('src/styles/item.css')
     expect(itemCss).toContain('width: 210px')
@@ -80,16 +93,19 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(flyoutSrc).not.toContain("outline: active ? '2px solid #ffffff' : 'none'")
   })
 
-  it('Appearance shelf renders Show Copy Indicator toggle card first, followed by Indicator Style card matching Left/Right', () => {
+  it('Appearance shelf renders Color Theme first, followed by Copy Indicator and Indicator Style', () => {
     const src = read('src/components/Settings.tsx')
     const appearanceSection = src.slice(src.indexOf("horizontalTab === 'appearance'"), src.indexOf("horizontalTab === 'appearance'") + 4000)
+    const themeCardIdx = appearanceSection.indexOf('color-theme-card')
     const toggleCardIdx = appearanceSection.indexOf('beacon-toggle-card')
     const styleCardIdx = appearanceSection.indexOf('copy-card')
 
+    expect(themeCardIdx).toBeGreaterThan(-1)
     expect(toggleCardIdx).toBeGreaterThan(-1)
     expect(styleCardIdx).toBeGreaterThan(-1)
-    // Card 1 (beacon-toggle-card) must appear BEFORE Card 2 (copy-card)
+    expect(themeCardIdx).toBeLessThan(toggleCardIdx)
     expect(toggleCardIdx).toBeLessThan(styleCardIdx)
+    expect(appearanceSection).toContain('renderColorThemePicker(true)')
     // Indicator style card is only shown when showCopyIndicator is enabled
     expect(appearanceSection).toContain('{(settings.showCopyIndicator ?? true) && (')
     // Indicator style card uses standard style-preview-toggle-btn with Close/Chevron icons, matching Left/Right
@@ -263,18 +279,20 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     // Reset to behaviour tab on mount
     expect(settingsSrc).toContain("useStore.getState().setSettingsTab('behaviour')")
   })
-it('Appearance shelf renders Card 1 Copy Indicator toggle first, then Card 2 Indicator Style flyout trigger second', () => {
+it('Appearance shelf keeps Color Theme ahead of Copy Indicator and Indicator Style', () => {
     const src = read('src/components/Settings.tsx')
     const appearanceIndex = src.indexOf("horizontalTab === 'appearance'")
     expect(appearanceIndex).toBeGreaterThan(-1)
     const appearanceBlock = src.slice(appearanceIndex)
 
+    const themeCardIndex = appearanceBlock.indexOf('color-theme-card')
     const toggleCardIndex = appearanceBlock.indexOf('beacon-toggle-card')
     const styleCardIndex = appearanceBlock.indexOf('copy-card')
 
+    expect(themeCardIndex).toBeGreaterThan(-1)
     expect(toggleCardIndex).toBeGreaterThan(-1)
     expect(styleCardIndex).toBeGreaterThan(-1)
-    // Toggle card must come before Indicator style card
+    expect(themeCardIndex).toBeLessThan(toggleCardIndex)
     expect(toggleCardIndex).toBeLessThan(styleCardIndex)
 
     // Indicator style button uses style-preview-toggle-btn with Chevron/Close

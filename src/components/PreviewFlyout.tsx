@@ -309,7 +309,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
-              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : '#141414',
+              background: dragOver ? 'rgba(15, 30, 18, 0.95)' : 'var(--bg-card)',
               borderRadius: 20,
               border: dragOver ? '2px dashed #4caf50' : 'none',
               overflow: 'hidden',

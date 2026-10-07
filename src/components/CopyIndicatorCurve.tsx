@@ -353,7 +353,7 @@ export function CopyIndicatorCurve() {
           >
             <motion.path
               d={activePath}
-              fill="#000000"
+              fill="var(--bg-1)"
               stroke="none"
               initial={{ d: reduceMotion ? activePath : flatPath }}
               animate={{ d: activePath }}
@@ -396,13 +396,13 @@ export function CopyIndicatorCurve() {
             }
           >
             {indicatorStyle === 'check' ? (
-              <TickIndicatorIcon fillColor="#ffffff" animated />
+              <TickIndicatorIcon fillColor="var(--text-primary)" animated />
             ) : indicatorStyle === 'copy' ? (
-              <CopyIndicatorIcon fillColor="#ffffff" animated />
+              <CopyIndicatorIcon fillColor="var(--text-primary)" animated />
             ) : indicatorStyle === 'sparkle' ? (
-              <SparkleIndicatorIcon fillColor="#ffffff" animated />
+              <SparkleIndicatorIcon fillColor="var(--text-primary)" animated />
             ) : (
-              <LogoIndicatorIcon fillColor="#ffffff" size={38} />
+              <LogoIndicatorIcon fillColor="var(--text-primary)" size={38} />
             )}
           </motion.div>
         </motion.div>

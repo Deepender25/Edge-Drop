@@ -121,6 +121,14 @@ export interface TranslationKeys {
     panelHeightDesc: string
   }
   appearance: {
+    colorThemeTitle?: string
+    colorThemeDesc?: string
+    themeDefault?: string
+    themeOcean?: string
+    themeEmerald?: string
+    themeRose?: string
+    themeAmber?: string
+    themeArctic?: string
     copyIndicatorTitle: string
     copyIndicatorDesc: string
     indicatorStyleTitle: string
@@ -665,6 +673,14 @@ export const en: TranslationKeys = {
     "panelHeightDesc": "Vertical size of the clipboard shelf"
   },
   "appearance": {
+    "colorThemeTitle": "Color Theme",
+    "colorThemeDesc": "Shift dark surfaces and accent color without changing layout or behavior",
+    "themeDefault": "Default",
+    "themeOcean": "Ocean",
+    "themeEmerald": "Emerald",
+    "themeRose": "Rose",
+    "themeAmber": "Amber",
+    "themeArctic": "Arctic",
     "copyIndicatorTitle": "Copy Indicator",
     "copyIndicatorDesc": "Show subtle visual beacon on screen edge when copying",
     "indicatorStyleTitle": "Indicator Style",

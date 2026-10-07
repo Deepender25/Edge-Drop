@@ -129,7 +129,7 @@ export function ClearMenu({
               bottom: isMenuDown ? undefined : 'calc(100% + 6px)',
               right: 0,
               minWidth: 190,
-              background: '#141414',
+              background: 'var(--bg-card)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: 16,
               padding: 4,

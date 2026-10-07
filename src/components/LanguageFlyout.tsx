@@ -222,7 +222,7 @@ export function LanguageFlyout({ isRight }: { isRight: boolean }) {
             style={{
               width: '100%',
               maxHeight: maxFlyoutHeight,
-              background: '#141414',
+              background: 'var(--bg-card)',
               borderRadius: 18,
               border: 'none',
               outline: 'none',

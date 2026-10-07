@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import type { DisplayInfo, UpdateMode } from '../../shared/types'
+import type { ColorTheme, DisplayInfo, UpdateMode } from '../../shared/types'
 import { resolveUpdateMode } from '../../shared/types'
 import {
   LogoIndicatorIcon,
@@ -14,6 +14,7 @@ import { HotkeyRecorder } from './HotkeyRecorder'
 import { SlideCommit } from './SlideCommit'
 import { WakeSlider } from './WakeSlider'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
+import { applyColorTheme, COLOR_THEME_PREVIEWS } from '../lib/theme'
 import { useTranslation } from '../i18n'
 import '../styles/settings.css'
 
@@ -51,6 +52,57 @@ export function Settings({
   const getLangLabel = (l: { code: string; name: string; nativeName: string }) =>
     l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
   const selectedLang = languages.find((l) => l.code === (language || 'system')) || languages[0]
+
+  const colorThemeLabels: Record<ColorTheme, string> = {
+    default: t('appearance.themeDefault'),
+    ocean: t('appearance.themeOcean'),
+    emerald: t('appearance.themeEmerald'),
+    rose: t('appearance.themeRose'),
+    amber: t('appearance.themeAmber'),
+    arctic: t('appearance.themeArctic')
+  }
+  const selectedColorTheme: ColorTheme = settings.colorTheme ?? 'default'
+
+  const handleColorThemeSelect = (theme: ColorTheme) => {
+    if (theme === selectedColorTheme) return
+    playButtonClickSound()
+    // Apply locally before the IPC round-trip so the theme switch feels direct.
+    applyColorTheme(theme)
+    useStore.setState((state) => ({
+      settings: { ...state.settings, colorTheme: theme }
+    }))
+    void patch({ colorTheme: theme })
+  }
+
+  const renderColorThemePicker = (horizontal = false) => (
+    <div className={`color-theme-picker${horizontal ? ' horizontal' : ''}`} role="radiogroup" aria-label={t('appearance.colorThemeTitle')}>
+      {COLOR_THEME_PREVIEWS.map((preview) => {
+        const active = preview.id === selectedColorTheme
+        return (
+          <button
+            key={preview.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            className={`color-theme-option${active ? ' active' : ''}`}
+            data-theme-id={preview.id}
+            title={colorThemeLabels[preview.id]}
+            onClick={() => handleColorThemeSelect(preview.id)}
+          >
+            <span className="color-theme-preview" style={{ background: preview.background }}>
+              <span className="color-theme-preview-surface" style={{ background: preview.surface }} />
+              <span className="color-theme-preview-hover" style={{ background: preview.hover }} />
+              <span
+                className="color-theme-preview-accent"
+                style={{ background: preview.accent, boxShadow: `0 0 9px ${preview.accent}` }}
+              />
+            </span>
+            <span className="color-theme-name">{colorThemeLabels[preview.id]}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
 
   const lastTickVal = useRef<number>(settings.verticalOffset ?? 0.5)
   const horizontalTab = useStore((s) => s.settingsTab)
@@ -1504,7 +1556,23 @@ export function Settings({
           {/* ── TAB 3: APPEARANCE ── */}
           {horizontalTab === 'appearance' && (
             <>
-              {/* ── SUB-GROUP 1 DIVIDER: Copy Indicator ── */}
+              {/* ── SUB-GROUP 1 DIVIDER: Color Theme ── */}
+              <div className="shelf-section-divider">
+                <span className="shelf-section-divider-text">{t('appearance.colorThemeTitle') || 'COLOR THEME'}</span>
+              </div>
+
+              <div className="settings-shelf-card color-theme-card appearance-col">
+                <div className="shelf-card-top">
+                  <div className="setting-group-label">{t('appearance.colorThemeTitle') || 'COLOR THEME'}</div>
+                  <div className="setting-title">{t('appearance.colorThemeTitle')}</div>
+                  <div className="setting-desc">{t('appearance.colorThemeDesc')}</div>
+                </div>
+                <div className="shelf-card-bottom">
+                  {renderColorThemePicker(true)}
+                </div>
+              </div>
+
+              {/* ── SUB-GROUP 2 DIVIDER: Copy Indicator ── */}
               <div className="shelf-section-divider">
                 <span className="shelf-section-divider-text">{t('appearance.copyIndicatorTitle') || 'COPY INDICATOR'}</span>
               </div>
@@ -2308,6 +2376,22 @@ export function Settings({
                   exit={{ opacity: 0, scale: 0.98, y: -4 }}
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
+                  {/* ── GROUP: Color Theme ──────────────────────────────── */}
+                  <div className="setting-section-divider">
+                    <span className="setting-section-divider-text">{t('appearance.colorThemeTitle') || 'COLOR THEME'}</span>
+                  </div>
+
+                  <div className="setting-card color-theme-setting-card">
+                    <div className="shelf-card-top">
+                      <div className="setting-group-label">{t('appearance.colorThemeTitle') || 'COLOR THEME'}</div>
+                      <div className="setting-title">{t('appearance.colorThemeTitle')}</div>
+                      <div className="setting-desc">{t('appearance.colorThemeDesc')}</div>
+                    </div>
+                    <div className="shelf-card-bottom">
+                      {renderColorThemePicker()}
+                    </div>
+                  </div>
+
                   {/* ── GROUP: Copy Indicator ────────────────────────────── */}
                   <div className="setting-section-divider">
                     <span className="setting-section-divider-text">{t('appearance.copyIndicatorTitle') || 'COPY INDICATOR'}</span>

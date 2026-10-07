@@ -134,7 +134,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             onHoverItem={(val) => {
               if (val === 'emoji') void loadEmojiCatalog()
             }}
-            trackColor="#141414"
+            trackColor="var(--bg-card)"
             thumbColor="#ffffff"
             textColor="rgba(255, 255, 255, 0.72)"
             activeTextColor="#000000"
