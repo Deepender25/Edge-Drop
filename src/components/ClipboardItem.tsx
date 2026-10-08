@@ -95,6 +95,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     item.data.paths.every((p, i) => !(item.data as any).entries?.[i]?.isDirectory && ((item.data as any).entries?.[i]?.isImage || getFileKind(p).kind === 'image'))
   )
   const isImageFolderCard = isSingleImage || isImageStack
+  const isFileCard = item.data.kind === 'files' && !isImageFolderCard
 
   const bundleCount = item.data.kind === 'image-collection'
     ? item.data.images.length
@@ -102,11 +103,10 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       ? item.data.paths.length
       : 0
 
-  const screenW = typeof window !== 'undefined' ? window.innerWidth : 1140
   const expandedWidth = expanded && isHorizontal
-    ? (isImageFolderCard
-        ? Math.min(screenW - 80, Math.max(210, 14 + bundleCount * 121))
-        : Math.min(screenW - 80, Math.max(300, 48 + bundleCount * 124)))
+    ? (isImageFolderCard || isFileCard
+        ? Math.max(210, 16 + bundleCount * 132)
+        : Math.max(300, 48 + bundleCount * 124))
     : undefined
 
   const cardRef = useRef<HTMLDivElement | null>(null)
@@ -137,7 +137,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     }
   }, [expanded, setExpandedFlag])
 
-  // Smooth scroll stabilization when a stack expands
+  // Smooth scroll stabilization when a stack expands: ensure the start/header of the card stays visible without scrolling to the end
   useLayoutEffect(() => {
     if (!expanded) return
     const el = cardRef.current
@@ -151,21 +151,13 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
       if (isHorizontal) {
         const leftDiff = elRect.left - containerRect.left
-        const rightDiff = elRect.right - containerRect.right
-
         if (leftDiff < 0) {
           container.scrollBy({ left: leftDiff - 16, behavior: 'smooth' })
-        } else if (rightDiff > 0) {
-          container.scrollBy({ left: rightDiff + 16, behavior: 'smooth' })
         }
       } else {
         const topDiff = elRect.top - containerRect.top
-        const bottomDiff = elRect.bottom - containerRect.bottom
-
         if (topDiff < 0) {
           container.scrollBy({ top: topDiff - 16, behavior: 'smooth' })
-        } else if (bottomDiff > 0) {
-          container.scrollBy({ top: bottomDiff + 16, behavior: 'smooth' })
         }
       }
     })
@@ -299,7 +291,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       }}
       initial={false}
       animate={{ opacity: 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard ? ' is-image-folder-card' : ''}`}
+      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
       style={{
         ...(expandedWidth ? { width: expandedWidth, minWidth: expandedWidth, maxWidth: expandedWidth } : {}),
@@ -367,6 +359,17 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       >
         {isImageFolderCard ? (
           <ImageFolderCard
+            item={item}
+            copied={copied}
+            expanded={expanded}
+            isHorizontal={isHorizontal}
+            onDragStart={handleDragStart}
+            onCopy={onCopy}
+            onRemove={() => remove(item.id)}
+            onCollapse={onCollapse}
+          />
+        ) : isFileCard ? (
+          <FileFolderCard
             item={item}
             copied={copied}
             expanded={expanded}
@@ -605,6 +608,7 @@ function BundleToolbar({
     <div
       className="bundle-actions"
       title={t('item.collapsePinned')}
+      onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation()
         onCollapse(e)
@@ -614,6 +618,7 @@ function BundleToolbar({
         type="button"
         className="bundle-collapse-hit"
         title={t('item.collapsePinned')}
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation()
           e.currentTarget.blur()
@@ -627,11 +632,12 @@ function BundleToolbar({
           {count} / {MAX_STACK}
         </div>
       )}
-      <div className="actions-pill">
+      <div className="actions-pill" onPointerDown={(e) => e.stopPropagation()}>
         {showPin && onTogglePin && (
           <button
             className={`act${pinned ? ' active' : ''}`}
             title={pinned ? t('item.unpin') : t('item.pin')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
               e.currentTarget.blur()
@@ -647,6 +653,7 @@ function BundleToolbar({
         <button
           className="act"
           title={t('item.copy')}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onCopy(e) }}
         >
           <CopyIcon />
@@ -654,6 +661,7 @@ function BundleToolbar({
         <button
           className="act danger"
           title={t('item.delete')}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onRemove() }}
         >
           <TrashIcon />
@@ -690,6 +698,7 @@ function HorizontalBundleExpanded({
       <div
         className="horizontal-bundle-header"
         title={t('item.collapsePinned')}
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation()
           onCollapse(e)
@@ -699,6 +708,7 @@ function HorizontalBundleExpanded({
           type="button"
           className="bundle-collapse-hit"
           title={t('item.collapsePinned')}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation()
             e.currentTarget.blur()
@@ -707,10 +717,11 @@ function HorizontalBundleExpanded({
         >
           <ChevronLeftIcon />
         </button>
-        <div className="actions-pill" onClick={(e) => e.stopPropagation()}>
+        <div className="actions-pill" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
           <button
             className={`act${item.pinned ? ' active' : ''}`}
             title={item.pinned ? t('item.unpin') : t('item.pin')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
               e.currentTarget.blur()
@@ -723,6 +734,7 @@ function HorizontalBundleExpanded({
           <button
             className={`act${isPreviewing ? ' preview-contract active' : ' preview-expand'}`}
             title={isPreviewing ? t('header.close') : t('item.expand')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation()
               e.preventDefault()
@@ -738,6 +750,7 @@ function HorizontalBundleExpanded({
           <button
             className="act"
             title={t('item.copy')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onCopy(e) }}
           >
             <CopyIcon width={12} height={12} />
@@ -745,6 +758,7 @@ function HorizontalBundleExpanded({
           <button
             className="act danger"
             title={t('item.delete')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); e.currentTarget.blur(); onRemove() }}
           >
             <TrashIcon width={12} height={12} />
@@ -1000,12 +1014,12 @@ function BundleFluidPreview({
     const entries = item.data.entries
     const paths = item.data.paths
     const count = paths.length
-    const photoSize = isHorizontal ? 88 : 132
+    const photoSize = isHorizontal ? 80 : 100
     return (
       <BundleExpandShell
         expanded={expanded}
         stack={
-          <>
+          <div className="file-card-viewport bundle-viewport">
             <div className="bundle-stack-large" style={isHorizontal ? { height: 90 } : undefined}>
               {paths.slice(0, 4).map((filePath, i) => ({ filePath, pathIndex: i })).reverse().map(({ filePath, pathIndex }, idx, arr) => {
                 const realIndex = arr.length - 1 - idx
@@ -1054,7 +1068,7 @@ function BundleFluidPreview({
             ) : (
               <div className="bundle-more-label">{t('item.singleFile')}</div>
             )}
-          </>
+          </div>
         }
         list={
           <>
@@ -1285,21 +1299,24 @@ function MiniImageFolderCard({
             preserveAspectRatio="none"
           >
             <path 
-              d="M 0,74 L 0,6 Q 0,0 6,0 L 46,0 C 56,0 63,6 68,12 C 73,18 80,24 90,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+              d="M 0,74 L 0,6 Q 0,0 6,0 L 64,0 C 74,0 80,6 85,12 C 90,18 96,24 106,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
             />
           </svg>
 
           <div className="mini-image-folder-flap-content">
-            <div className="mini-image-folder-flap-header" />
+            <div className="mini-image-folder-flap-header">
+              <span className="kind-badge file-elevated-badge" style={{ color: '#06B6D4' }}>
+                {t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}
+              </span>
+            </div>
             <div className="mini-image-folder-flap-footer">
               <div className="mini-image-folder-meta">
-                <span className="kind-badge">{t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}</span>
                 {displayName && (
                   <span className="mini-image-folder-source-name" title={displayName}>
-                    · {displayName}
+                    {displayName}
                   </span>
                 )}
-                {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+                {copied && <span className="meta-copied">{(displayName ? ' · ' : '') + t('item.copied')}</span>}
               </div>
               {size && <span className="mini-image-folder-size">{size}</span>}
             </div>
@@ -1307,10 +1324,11 @@ function MiniImageFolderCard({
         </div>
 
         {/* Hover Action Buttons (Copy, Ungroup) */}
-        <div className="mini-image-folder-actions" onClick={(e) => e.stopPropagation()}>
+        <div className="mini-image-folder-actions" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
           <button
             className="act"
             title={isImgCol ? t('item.copy') : t('item.copyFilePath')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={handleCopy}
           >
             <CopyIcon width={11} height={11} />
@@ -1318,6 +1336,7 @@ function MiniImageFolderCard({
           <button
             className="act danger"
             title={t('item.ungroup')}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={handleUngroup}
           >
             <MinusIcon width={11} height={11} />
@@ -1358,7 +1377,7 @@ function ImageFolderCard({
   const displayCount = Math.min(count, 4)
   const displayImages = isStack ? images.slice(0, 4) : images
 
-  // Meta details for footer
+  // Meta details for elevated tab header and footer name
   let badgeText = ''
   let metaDetail = ''
 
@@ -1370,9 +1389,9 @@ function ImageFolderCard({
     }
   } else {
     badgeText = `${count} ${t('filters.images').toLowerCase()}`
-    const totalBytes = images.reduce((sum, img) => sum + (img.bytes || 0), 0)
-    if (totalBytes > 0) {
-      metaDetail = formatBytes(totalBytes)
+    const firstNonGeneric = images.find((img) => img.name && img.name !== 'clipboard' && !img.name.startsWith('image-'))?.name
+    if (firstNonGeneric) {
+      metaDetail = firstNonGeneric
     }
   }
 
@@ -1397,7 +1416,12 @@ function ImageFolderCard({
           ) : (
             <div className="preview">[{t('item.imageItem')}]</div>
           )
-        ) : !expanded ? (
+        ) : (
+          <StackExpandSwap
+            expanded={expanded}
+            deckKey="img-stack-deck"
+            panelKey="img-stack-panel"
+            deck={
           <div className="image-folder-stack-deck" data-count={displayCount}>
             {displayImages.map((img, idx) => (
               <div
@@ -1419,12 +1443,14 @@ function ImageFolderCard({
               </div>
             ))}
           </div>
-        ) : (
+            }
+            panel={
           <div className="image-folder-expanded-content">
             {/* Top Header inside Expanded Blue Viewport */}
             <div
               className="image-folder-expanded-top-bar"
               title={t('item.collapsePinned')}
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation()
                 onCollapse?.(e)
@@ -1434,6 +1460,7 @@ function ImageFolderCard({
                 type="button"
                 className="image-folder-collapse-btn"
                 title={t('item.collapsePinned')}
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation()
                   e.currentTarget.blur()
@@ -1445,10 +1472,11 @@ function ImageFolderCard({
               <span className="image-folder-expanded-title">
                 {count} {t('filters.images').toLowerCase()}
               </span>
-              <div className="actions-pill" onClick={(e) => e.stopPropagation()}>
+              <div className="actions-pill" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
                 <button
                   className={`act${item.pinned ? ' active' : ''}`}
                   title={item.pinned ? t('item.unpin') : t('item.pin')}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation()
                     e.currentTarget.blur()
@@ -1461,6 +1489,7 @@ function ImageFolderCard({
                 <button
                   className={`act${isPreviewing ? ' preview-contract active' : ' preview-expand'}`}
                   title={isPreviewing ? t('header.close') : t('item.expand')}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation()
                     e.preventDefault()
@@ -1476,6 +1505,7 @@ function ImageFolderCard({
                 <button
                   className="act"
                   title={t('item.copy')}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation()
                     e.currentTarget.blur()
@@ -1487,6 +1517,7 @@ function ImageFolderCard({
                 <button
                   className="act danger"
                   title={t('item.delete')}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation()
                     e.currentTarget.blur()
@@ -1525,44 +1556,531 @@ function ImageFolderCard({
                 ))}
               </div>
             )}
-          </div>
+              </div>
+            }
+          />
         )}
       </div>
 
       {/* Solid Black Folder Flap (NO stroke/borders, smooth curved silhouette) */}
-      <div className="image-folder-flap-wrap">
-        <svg 
-          className="image-folder-flap-svg" 
-          viewBox="0 0 240 74" 
-          preserveAspectRatio="none"
-        >
-          <path 
-            d="M 0,74 L 0,6 Q 0,0 6,0 L 46,0 C 56,0 63,6 68,12 C 73,18 80,24 90,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
-          />
-        </svg>
+      {(!expanded || !isStack) && (
+        <div className="image-folder-flap-wrap">
+          <svg 
+            className="image-folder-flap-svg" 
+            viewBox="0 0 240 74" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M 0,74 L 0,6 Q 0,0 6,0 L 64,0 C 74,0 80,6 85,12 C 90,18 96,24 106,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+            />
+          </svg>
 
-        <div className="image-folder-flap-content">
-          <div className="image-folder-flap-header" />
-
-          <div className="image-folder-flap-footer">
-            <div className="image-folder-meta">
-              <span className="kind-badge">{badgeText}</span>
-              {metaDetail && (
-                <span className="image-folder-source-name" title={metaDetail}>
-                  · {metaDetail}
-                </span>
-              )}
-              {item.hitCount > 1 && (
-                <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
-                  · ×{item.hitCount}
-                </span>
-              )}
-              {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+          <div className="image-folder-flap-content">
+            {/* Elevated Tab Area: shows type badge (image, 3 images, etc.) */}
+            <div className="image-folder-flap-header">
+              <span className="kind-badge file-elevated-badge" style={{ color: '#06B6D4' }}>
+                {badgeText}
+              </span>
             </div>
-            <RelativeTime capturedAt={item.capturedAt} />
+
+            {/* Flap Footer: Left side shows image source/file name, Right side shows relative time */}
+            <div className="image-folder-flap-footer">
+              <div className="image-folder-meta">
+                {metaDetail && (
+                  <span className="image-folder-source-name file-name-meta" title={metaDetail}>
+                    {metaDetail}
+                  </span>
+                )}
+                {item.hitCount > 1 && (
+                  <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                    {metaDetail ? ' · ×' : '×'}{item.hitCount}
+                  </span>
+                )}
+                {copied && <span className="meta-copied">{(metaDetail || item.hitCount > 1) ? ' · ' : ''}{t('item.copied')}</span>}
+              </div>
+              <RelativeTime capturedAt={item.capturedAt} />
+            </div>
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Mini File Folder Card (For Expanded File Stacks)                   */
+/* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/* Stack expand/collapse swap                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Animated swap between a stack's collapsed deck and its expanded rows.
+ *
+ * Deliberately GPU-only (opacity + translate): animating height on these
+ * cards janks because every frame re-layouts up to 10 rows of large
+ * gradient SVGs and disk-loaded images. The height snaps instantly under
+ * a short fade/slide so the eye tracks the content motion, not the jump.
+ * Honors the reduced-motion setting.
+ */
+function StackExpandSwap({
+  expanded,
+  deckKey,
+  panelKey,
+  deck,
+  panel
+}: {
+  expanded: boolean
+  deckKey: string
+  panelKey: string
+  deck: React.ReactNode
+  panel: React.ReactNode
+}) {
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
+  if (reduceMotion) return <>{expanded ? panel : deck}</>
+  // Enter-only animation: the outgoing side unmounts instantly and the
+  // incoming side fades/slides in. No exit overlap — keeping an exiting
+  // panel in flow balloons the card (panel height + deck height) then snaps,
+  // which is exactly what made closing feel broken.
+  return (
+    <motion.div
+      key={expanded ? panelKey : deckKey}
+      className={expanded ? 'stack-expand-panel' : 'stack-collapse-deck'}
+      initial={{ opacity: 0, y: expanded ? -10 : 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: expanded ? 0.22 : 0.15, ease: 'easeOut' }}
+    >
+      {expanded ? panel : deck}
+    </motion.div>
+  )
+}
+
+function MiniFileFolderCard({
+  item,
+  filePath,
+  subEntry,
+  isHorizontal,
+  onDragStart
+}: {
+  item: ClipboardItemDto
+  filePath: string
+  subEntry?: any
+  isHorizontal?: boolean
+  onDragStart?: (e: React.DragEvent, req: DragRequest) => void
+}) {
+  const { t } = useTranslation()
+  const [copied, setCopied] = useState(false)
+  const subReq = { id: item.id, paths: [filePath] }
+  const name = formatImageDisplayName(subEntry?.name ?? filePath, item.capturedAt) || basename(filePath)
+  const subInfo = getFileKind(filePath, subEntry?.isDirectory)
+  const isImage = !subEntry?.isDirectory && (subEntry?.isImage || subInfo.kind === 'image')
+  const imgSrc = subEntry?.preview || `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+  const dims = subEntry?.width && subEntry?.height ? `${subEntry.width}×${subEntry.height}` : ''
+  const size = !subEntry?.isDirectory && subEntry?.size ? formatBytes(subEntry.size) : ''
+  const displayFooterName = isImage ? (name && name !== 'clipboard' && !name.startsWith('image-') ? name : dims || 'image') : name
+
+  const handleCopy = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    e.currentTarget.blur()
+    playButtonClickSound()
+    useStore.getState().copySubitem(subReq)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 900)
+  }
+
+  const handleUngroup = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    e.currentTarget.blur()
+    playDeleteSound()
+    window.edge.splitItem({ id: item.id, paths: [filePath], splitPlacement: 'after' })
+  }
+
+  const handlePaste = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    tryPaste(() => {
+      window.edge.pasteSubitem(subReq)
+    })
+  }
+
+  return (
+    <motion.div
+      className="mini-image-folder-card"
+      variants={rowVariants}
+      draggable
+      onMouseEnter={() => window.edge.prestageDrag(subReq)}
+      onPointerDown={() => window.edge.prestageDrag(subReq)}
+      onDragStartCapture={(e: any) => {
+        e.stopPropagation()
+        onDragStart?.(e, subReq)
+      }}
+      onClick={handlePaste}
+    >
+      {copied && (
+        <motion.div
+          key="copy-ripple"
+          initial={{ opacity: 0.75, scale: 0.2 }}
+          animate={{ opacity: 0, scale: 1.6 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 12,
+            background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 45%, transparent 75%)',
+            pointerEvents: 'none',
+            zIndex: 15
+          }}
+        />
+      )}
+      <div className="mini-image-folder-card-inner">
+        {/* Blue Gradient Viewport */}
+        <div className="mini-image-folder-viewport">
+          {isImage ? (
+            <img
+              className="mini-image-folder-thumb"
+              src={imgSrc}
+              onError={(e) => {
+                const fallback = `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+                if (e.currentTarget.src !== fallback) {
+                  e.currentTarget.src = fallback
+                }
+              }}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+          ) : (
+            <div className="single-file-hero" style={{ color: subInfo.color, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileKindIcon
+                path={filePath}
+                isDirectory={subEntry?.isDirectory}
+                width={isHorizontal ? 58 : 154}
+                height={isHorizontal ? 58 : 154}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Solid Black Curved Flap */}
+        <div className="mini-image-folder-flap-wrap">
+          <svg 
+            className="mini-image-folder-flap-svg" 
+            viewBox="0 0 240 74" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M 0,74 L 0,6 Q 0,0 6,0 L 64,0 C 74,0 80,6 85,12 C 90,18 96,24 106,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+            />
+          </svg>
+
+          <div className="mini-image-folder-flap-content">
+            <div className="mini-image-folder-flap-header">
+              <span className="kind-badge file-elevated-badge" style={{ color: isImage ? '#06B6D4' : subInfo.color }}>
+                {isImage ? (t('filters.images').toLowerCase().slice(0, -1) || 'image') : subInfo.label.toLowerCase()}
+              </span>
+            </div>
+            <div className="mini-image-folder-flap-footer">
+              <div className="mini-image-folder-meta">
+                {displayFooterName && (
+                  <span className="mini-image-folder-source-name" title={displayFooterName}>
+                    {displayFooterName}
+                  </span>
+                )}
+                {copied && <span className="meta-copied">{(displayFooterName ? ' · ' : '') + t('item.copied')}</span>}
+              </div>
+              {size && <span className="mini-image-folder-size">{size}</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Hover Action Buttons (Copy, Ungroup) */}
+        <div className="mini-image-folder-actions" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+          <button
+            className="act"
+            title={t('item.copyFilePath')}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={handleCopy}
+          >
+            <CopyIcon width={11} height={11} />
+          </button>
+          <button
+            className="act danger"
+            title={t('item.ungroup')}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={handleUngroup}
+          >
+            <MinusIcon width={11} height={11} />
+          </button>
+        </div>
       </div>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* File Folder Card (Framed File / Folder / Stack in Blue Folder Card) */
+/* ------------------------------------------------------------------ */
+
+function FileFolderCard({
+  item,
+  copied = false,
+  expanded = false,
+  isHorizontal = false,
+  onDragStart,
+  onCopy,
+  onRemove,
+  onCollapse
+}: {
+  item: ClipboardItemDto
+  copied?: boolean
+  expanded?: boolean
+  isHorizontal?: boolean
+  onDragStart?: (e: React.DragEvent, req: DragRequest) => void
+  onCopy?: (e: React.MouseEvent) => void
+  onRemove?: () => void
+  onCollapse?: (e?: React.MouseEvent) => void
+}) {
+  const { t } = useTranslation()
+  const isPreviewing = useStore((s) => s.previewItemId) === item.id
+  if (item.data.kind !== 'files') return null
+
+  const paths = item.data.paths
+  const entries = item.data.entries
+  const count = paths.length
+  const isStack = count > 1
+  const first = paths[0]
+  const entry = entries?.[0]
+  const rawName = formatImageDisplayName(entry?.name ?? first, item.capturedAt) || basename(first)
+  const info = getFileKind(first, entry?.isDirectory)
+
+  const label = isStack ? `${count} ${t('filters.files').toLowerCase()}` : info.label.toLowerCase()
+  const badgeColor = isStack ? undefined : info.color
+
+  return (
+    <div className={`image-folder-card-inner${expanded && isStack ? ' is-expanded-folder' : ''}`}>
+      <div className={`image-folder-viewport${expanded && isStack ? ' is-expanded-viewport' : ''}`}>
+        {!isStack ? (
+          (!entry?.isDirectory && (entry?.isImage || info.kind === 'image')) ? (
+            <img
+              className="image-folder-thumb"
+              src={entry?.preview || `edgelocal://file/${encodeURIComponent(first.replace(/\\/g, '/'))}`}
+              onError={(e) => {
+                const fallback = `edgelocal://file/${encodeURIComponent(first.replace(/\\/g, '/'))}`
+                if (e.currentTarget.src !== fallback) {
+                  e.currentTarget.src = fallback
+                }
+              }}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+          ) : (
+            <div className="single-file-hero" style={{ color: info.color }}>
+              <FileKindIcon path={first} isDirectory={entry?.isDirectory} width={isHorizontal ? 116 : 140} height={isHorizontal ? 116 : 140} />
+            </div>
+          )
+        ) : (
+          <StackExpandSwap
+            expanded={expanded}
+            deckKey="file-stack-deck"
+            panelKey="file-stack-panel"
+            deck={
+          <div className="image-folder-stack-deck" data-count={Math.min(count, 4)}>
+            {paths.slice(0, 4).map((filePath, idx) => {
+              const fileEntry = entries?.[idx]
+              const fileInfo = getFileKind(filePath, fileEntry?.isDirectory)
+              const isImg = !fileEntry?.isDirectory && (fileEntry?.isImage || fileInfo.kind === 'image')
+              const iconSize = isHorizontal ? 142 : 160
+              const imgSrc = fileEntry?.preview || `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+              return (
+                <div
+                  key={`${item.id}-${filePath}-${idx}`}
+                  className={`image-folder-stack-item ${isImg ? '' : 'file-stack-item '}pos-${idx}`}
+                  style={{ color: fileInfo.color }}
+                >
+                  {isImg ? (
+                    <img
+                      src={imgSrc}
+                      onError={(e) => {
+                        const fallback = `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
+                        if (e.currentTarget.src !== fallback) {
+                          e.currentTarget.src = fallback
+                        }
+                      }}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                    />
+                  ) : (
+                    <FileKindIcon path={filePath} isDirectory={fileEntry?.isDirectory} width={iconSize} height={iconSize} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+            }
+            panel={
+          <div className="image-folder-expanded-content">
+            {/* Top Header inside Expanded Blue Viewport */}
+            <div
+              className="image-folder-expanded-top-bar"
+              title={t('item.collapsePinned')}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                onCollapse?.(e)
+              }}
+            >
+              <button
+                type="button"
+                className="image-folder-collapse-btn"
+                title={t('item.collapsePinned')}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.blur()
+                  onCollapse?.(e)
+                }}
+              >
+                {isHorizontal ? <ChevronLeftIcon width={13} height={13} /> : <ChevronUpIcon width={13} height={13} />}
+              </button>
+              <span className="image-folder-expanded-title">
+                {count} {t('filters.files').toLowerCase()}
+              </span>
+              <div className="actions-pill" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+                <button
+                  className={`act${item.pinned ? ' active' : ''}`}
+                  title={item.pinned ? t('item.unpin') : t('item.pin')}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    playToggleSound(!item.pinned)
+                    useStore.getState().togglePin(item.id, !item.pinned)
+                  }}
+                >
+                  {item.pinned ? <PinFillIcon width={12} height={12} /> : <PinIcon width={12} height={12} />}
+                </button>
+                <button
+                  className={`act${isPreviewing ? ' preview-contract active' : ' preview-expand'}`}
+                  title={isPreviewing ? t('header.close') : t('item.expand')}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    e.currentTarget.blur()
+                    playCardExpandSound(!isPreviewing)
+                    const rect = e.currentTarget.closest('.item-main, .item')?.getBoundingClientRect()
+                    const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
+                    useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+                  }}
+                >
+                  {isPreviewing ? <ContractIcon width={12} height={12} /> : <ExpandIcon width={12} height={12} />}
+                </button>
+                <button
+                  className="act"
+                  title={t('item.copy')}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    onCopy?.(e)
+                  }}
+                >
+                  <CopyIcon width={12} height={12} />
+                </button>
+                <button
+                  className="act danger"
+                  title={t('item.delete')}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.blur()
+                    playDeleteSound()
+                    onRemove?.()
+                  }}
+                >
+                  <TrashIcon width={12} height={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* List / Track of Subitems */}
+            {isHorizontal ? (
+              <div className="image-stack-expanded-track" onClick={(e) => e.stopPropagation()}>
+                {paths.map((filePath, index) => (
+                  <MiniFileFolderCard
+                    key={`${item.id}-${filePath}-${index}`}
+                    item={item}
+                    filePath={filePath}
+                    subEntry={entries?.[index]}
+                    isHorizontal={isHorizontal}
+                    onDragStart={onDragStart}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="image-stack-expanded-list" onClick={(e) => e.stopPropagation()}>
+                {paths.map((filePath, index) => (
+                  <MiniFileFolderCard
+                    key={`${item.id}-${filePath}-${index}`}
+                    item={item}
+                    filePath={filePath}
+                    subEntry={entries?.[index]}
+                    isHorizontal={isHorizontal}
+                    onDragStart={onDragStart}
+                  />
+                ))}
+              </div>
+            )}
+              </div>
+            }
+          />
+        )}
+      </div>
+
+      {/* Solid Black Folder Flap */}
+      {(!expanded || !isStack) && (
+        <div className="image-folder-flap-wrap">
+          <svg 
+            className="image-folder-flap-svg" 
+            viewBox="0 0 240 74" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M 0,74 L 0,6 Q 0,0 6,0 L 64,0 C 74,0 80,6 85,12 C 90,18 96,24 106,24 L 234,24 Q 240,24 240,30 L 240,74 Z" 
+            />
+          </svg>
+
+          <div className="image-folder-flap-content">
+            {/* Elevated Tab Area: shows type badge (pdf, folder, doc, 3 files, etc.) */}
+            <div className="image-folder-flap-header">
+              <span className="kind-badge file-elevated-badge" style={{ color: badgeColor }}>
+                {label}
+              </span>
+            </div>
+
+            {/* Flap Footer: Left side shows file name, Right side shows relative time */}
+            <div className="image-folder-flap-footer">
+              <div className="image-folder-meta">
+                <span className="image-folder-source-name file-name-meta" title={rawName}>
+                  {rawName}
+                </span>
+                {item.hitCount > 1 && (
+                  <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                    · ×{item.hitCount}
+                  </span>
+                )}
+                {copied && <span className="meta-copied">· {t('item.copied')}</span>}
+              </div>
+              <RelativeTime capturedAt={item.capturedAt} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1663,16 +2181,13 @@ function Preview({ item }: { item: ClipboardItemDto }) {
           </>
         )
       }
-      // Non-image single file — show hero icon on top, and name on the bottom!
+      // Non-image single file — show hero icon on top in viewport
       const info = getFileKind(first, entry?.isDirectory)
       return (
         <div className="single-file-preview">
-          <div className="single-file-hero" style={{ color: info.color }}>
-            <FileKindIcon path={first} isDirectory={entry?.isDirectory} />
-          </div>
-          <div className="single-file-meta">
-            <div className="preview single single-file-name" title={displayName}>
-              {displayName}
+          <div className="file-card-viewport">
+            <div className="single-file-hero" style={{ color: info.color }}>
+              <FileKindIcon path={first} isDirectory={entry?.isDirectory} width={154} height={154} />
             </div>
           </div>
         </div>
@@ -1766,6 +2281,19 @@ function ItemDetails({ item }: { item: ClipboardItemDto }) {
 
     case 'files': {
       const entries = item.data.entries
+      const paths = item.data.paths
+      const count = paths.length
+      if (count === 1) {
+        const first = paths[0]
+        const rawName = entries?.[0]?.name ?? basename(first)
+        const size = entries?.[0]?.size
+        return (
+          <>
+            <span className="meta-detail file-name-meta" title={rawName}>· {rawName}</span>
+            {size && size > 0 && <span className="meta-detail">· {formatBytes(size)}</span>}
+          </>
+        )
+      }
       const totalBytes = entries?.reduce((acc, e) => acc + (e.size || 0), 0) || 0
       return totalBytes > 0 ? <span className="meta-detail">· {formatBytes(totalBytes)}</span> : null
     }

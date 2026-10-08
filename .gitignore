@@ -21,4 +21,7 @@ icons-showcase.svg
 scripts/generate_showcase.mjs
 electron-clipboard-search-implementation/
 scratch/verify-*.cjs
+# Design source material (processed output lives in resources/file-icons)
+new icons/
+Blue_gradient (1).png
 

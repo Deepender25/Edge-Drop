@@ -76,6 +76,24 @@ export function resolveEmojiAsset(assetDir: string, fileName: string): string | 
 }
 
 /**
+ * File-kind folder icons (PNG, resources/file-icons). Fixed 13-name
+ * allowlist so the protocol cannot escape the icon directory — same
+ * validation shape as the emoji assets above.
+ */
+const ICON_FILE_RE = /^(pdf|word|excel|powerpoint|archive|text|code|audio|video|image|executable|folder|file)\.png$/
+
+/** Resolve a file-kind icon name to its on-disk PNG. */
+export function resolveIconAsset(assetDir: string, fileName: string): string | null {
+  const name = fileName.toLowerCase()
+  if (!ICON_FILE_RE.test(name)) return null
+  const baseDir = resolve(assetDir)
+  const filePath = resolve(join(baseDir, name))
+  if (dirname(filePath) !== baseDir) return null
+  if (!existsSync(filePath)) return null
+  return filePath
+}
+
+/**
  * Resolve an edgelocal image id to the staged file without allowing the id to
  * select paths or arbitrary file types. Clipboard captures are PNG, while
  * dropped/copied image files retain their original extension.

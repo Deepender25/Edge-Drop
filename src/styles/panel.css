@@ -213,7 +213,7 @@
 
 /* Search */
 .search {
-  margin: 0 var(--pad) 6px;
+  margin: 4px var(--pad) 6px;
   position: relative;
   z-index: 1;
 }
@@ -276,7 +276,7 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px var(--pad) 16px;
+  padding: 2px var(--pad) 4px;
   position: relative;
   z-index: 1;
   scrollbar-width: none; /* Firefox */
@@ -297,123 +297,141 @@
 }
 .list.horizontal .list-stack {
   flex-direction: row;
-  align-items: stretch;
+  align-items: center;
   gap: 10px;
-  height: 100%;
+  height: 146px;
 }
-.list.horizontal .pinned-section,
-.list.horizontal .recent-section {
+.list.horizontal .pinned-section {
+  display: flex;
   flex-direction: row;
-  align-items: stretch;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  height: 146px;
+}
+.list.horizontal .recent-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   gap: 10px;
   margin: 0;
-  height: 100%;
+  height: 146px;
 }
 
-.list.horizontal .pinned-header-interactive {
+/* Horizontal Pinned Accordion Drawer — Smooth width transition */
+.pinned-accordion.horizontal {
+  display: block;
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  height: 146px;
+  overflow: hidden;
+  margin-right: 0;
+  flex-shrink: 0;
+  transition: width 0.24s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.24s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width, max-width;
+}
+
+.pinned-accordion.horizontal.is-expanded {
+  width: var(--pinned-target-width, max-content);
+  max-width: var(--pinned-target-width, 3000px);
+  margin-right: 10px;
+}
+
+.pinned-accordion.horizontal .pinned-accordion-inner {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  height: 146px;
+  width: var(--pinned-target-width, max-content);
+  min-width: var(--pinned-target-width, max-content);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.24s ease;
+}
+
+.pinned-accordion.horizontal.is-expanded .pinned-accordion-inner {
+  opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Horizontal Floating Pinned Pill */
+.pinned-floating-pill.horizontal {
+  align-self: center;
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  width: 32px;
-  min-width: 32px;
-  max-width: 32px;
-  height: 146px;
+  justify-content: center;
+  gap: 5px;
+  width: 26px;
+  min-width: 26px;
+  max-width: 26px;
+  height: auto;
+  padding: 8px 0;
   margin: 0;
-  padding: 10px 4px 10px;
-  background: transparent;
+  background: #141414;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
+  color: #ffffff;
   cursor: pointer;
   user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: background 0.14s ease, transform 0.12s ease;
   flex-shrink: 0;
-  box-sizing: border-box;
-  transition: background 0.15s ease, transform 0.12s ease;
-  position: relative;
 }
 
-.list.horizontal .pinned-header-interactive:hover {
-  background: rgba(255, 255, 255, 0.05);
+.pinned-floating-pill.horizontal:hover {
+  background: #1c1c1c;
 }
 
-.list.horizontal .pinned-header-interactive:active {
-  background: rgba(255, 255, 255, 0.09);
-  transform: scale(0.97);
+.pinned-floating-pill.horizontal:active {
+  transform: scale(0.96);
+  background: #222222;
 }
 
-.list.horizontal .pinned-header-interactive .pinned-header-left {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  flex: 1;
-  width: 100%;
-  min-height: 0;
-}
-
-.list.horizontal .pinned-header-interactive .pinned-label-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin: auto 0;
-  min-height: 0;
-}
-
-.list.horizontal .pinned-header-interactive .pinned-label-group span:not(.pinned-count-badge) {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: calc(9.5px * var(--font-scale, 1));
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0;
-  max-height: 68px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.pinned-floating-pill.horizontal .pinned-pill-icon {
   display: block;
-}
-
-.list.horizontal .pinned-header-interactive .pinned-count-badge {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: calc(10px * var(--font-scale, 1));
-  font-weight: 600;
-  padding: 0;
-  border-radius: 0;
-  border: none;
-  letter-spacing: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #ffffff;
+  opacity: 0.92;
   flex-shrink: 0;
 }
 
-.list.horizontal .pinned-header-interactive .pinned-header-right {
-  margin-top: auto;
-  margin-bottom: 0;
-}
-
-.list.horizontal .pinned-header-interactive .bundle-collapse-btn {
-  width: 18px;
-  height: 18px;
+.pinned-floating-pill.horizontal .pinned-pill-count {
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
+  height: 11px;
+  letter-spacing: 0.01em;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  color: rgba(255, 255, 255, 0.65);
-  pointer-events: none;
 }
 
-.list.horizontal .pinned-header-interactive:hover .bundle-collapse-btn {
-  background: transparent;
+.pinned-floating-pill.horizontal .pinned-pill-arrow {
+  display: block;
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  transition: color 0.14s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pinned-floating-pill.horizontal:hover .pinned-pill-arrow {
   color: #ffffff;
 }
+
+[data-motion="reduce"] .pinned-accordion.horizontal,
+[data-motion="reduce"] .pinned-accordion.horizontal .pinned-accordion-inner,
+[data-motion="reduce"] .pinned-floating-pill.horizontal .pinned-pill-arrow {
+  transition: none !important;
+}
+
+
 
 .list.horizontal .recent-section .section-label.recent-header {
   display: flex;
@@ -452,7 +470,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #a1a1aa;
-  margin: 16px 6px 8px;
+  margin: 8px 6px 6px;
 }
 .section-label:first-child {
   margin-top: 4px;
@@ -471,7 +489,100 @@
   border: none;
   border-radius: 0;
   padding: 0;
-  margin: 8px 0 12px;
+  margin: 0 0 4px;
+}
+
+/* Pinned Accordion Drawer — Hardware-accelerated 0fr/1fr grid transition */
+.pinned-accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: grid-template-rows;
+}
+
+.pinned-accordion.is-expanded {
+  grid-template-rows: 1fr;
+}
+
+.pinned-accordion-inner {
+  overflow: hidden;
+  min-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.24s ease;
+}
+
+.pinned-accordion.is-expanded .pinned-accordion-inner {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Ensure pinned cards are pre-rendered and never culled during accordion reveal */
+.pinned-section .item {
+  content-visibility: visible !important;
+  contain-intrinsic-size: none !important;
+}
+
+/* Floating Pinned Pill */
+.pinned-floating-pill {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px 0 7px;
+  margin: 2px 0 6px 1px;
+  background: #141414;
+  border: none;
+  border-radius: 999px;
+  color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: background 0.14s ease, transform 0.12s ease;
+}
+
+.pinned-floating-pill:hover {
+  background: #1c1c1c;
+}
+
+.pinned-floating-pill:active {
+  transform: scale(0.96);
+  background: #222222;
+}
+
+.pinned-floating-pill .pinned-pill-icon {
+  color: #ffffff;
+  opacity: 0.92;
+  flex-shrink: 0;
+}
+
+.pinned-floating-pill .pinned-pill-count {
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.pinned-floating-pill .pinned-pill-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  transition: color 0.14s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pinned-floating-pill:hover .pinned-pill-arrow {
+  color: #ffffff;
+}
+
+[data-motion="reduce"] .pinned-accordion,
+[data-motion="reduce"] .pinned-accordion-inner,
+[data-motion="reduce"] .pinned-floating-pill .pinned-pill-arrow {
+  transition: none !important;
 }
 
 /* Interactive Pinned Section Header */
@@ -480,7 +591,7 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 6px 6px;
+  padding: 4px 6px;
   margin: 0 0 2px 0;
   border-radius: 8px;
   background: transparent;
@@ -576,7 +687,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px var(--pad) 12px;
+  padding: 6px var(--pad) 12px;
   position: relative;
   z-index: 100;
   background: transparent;

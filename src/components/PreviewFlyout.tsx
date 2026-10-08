@@ -1079,7 +1079,7 @@ function PreviewContent({
               <div className="item-content" style={{ padding: '24px 20px 12px 20px' }}>
                 <div className="single-file-preview">
                   <div className="single-file-hero" style={{ color: info.color }}>
-                    <FileKindIcon path={p} width={120} height={120} isDirectory={entry?.isDirectory} />
+                    <FileKindIcon path={p} width={154} height={154} isDirectory={entry?.isDirectory} />
                   </div>
                   <div className="single-file-meta" style={{ marginTop: 8 }}>
                     <div className="preview single single-file-name" title={fileName} style={{ fontSize: 15, WebkitLineClamp: 3, whiteSpace: 'normal', lineHeight: 1.4 }}>
@@ -1237,7 +1237,7 @@ function PreviewContent({
                   <div className="item-content">
                     <div className="single-file-preview">
                       <div className="single-file-hero" style={{ color: info.color }}>
-                        <FileKindIcon path={p} width={88} height={88} isDirectory={entry?.isDirectory} />
+                        <FileKindIcon path={p} width={120} height={120} isDirectory={entry?.isDirectory} />
                       </div>
                       <div className="single-file-meta">
                         <div className="preview single single-file-name" title={fileName}>

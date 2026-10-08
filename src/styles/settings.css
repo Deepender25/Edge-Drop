@@ -1,6 +1,6 @@
 .settings-fixed-header {
   flex-shrink: 0;
-  padding: 8px var(--pad) 6px;
+  padding: 4px var(--pad) 6px;
   background: transparent;
   z-index: 10;
 }
@@ -11,7 +11,7 @@
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 4px var(--pad) 28px;
+  padding: 4px var(--pad) 16px;
   scrollbar-width: none;
 }
 

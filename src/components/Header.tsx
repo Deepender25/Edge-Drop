@@ -80,8 +80,8 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         justifyContent: 'space-between',
         width: '100%',
         alignItems: 'center',
-        height: 40,
-        padding: isHorizontal ? '0 16px' : '0 14px',
+        height: isHorizontal ? 40 : 48,
+        padding: isHorizontal ? '0 16px' : '12px 14px 4px 14px',
         boxSizing: 'border-box',
         position: 'relative',
         zIndex: isHorizontal ? 250 : 100

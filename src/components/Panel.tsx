@@ -506,31 +506,27 @@ export function Panel() {
                   {emojiMounted ? <EmojiPicker active={emojiOpen} isHorizontal={isHorizontal} /> : null}
                 </div>
               </div>
-              {!isHorizontal && (
+              {!isHorizontal && !emojiOpen && (
                 <div className="footer" style={{ position: 'relative', zIndex: 100 }}>
-                  {!emojiOpen && (
-                    <>
-                      <div className="footer-capsule">
-                        <span className="footer-capsule-count" title={`${filteredCount}`}>
-                          {filteredCount}
-                        </span>
-                      </div>
-                      <div className="spacer" />
-                      <ClearMenu
-                        items={filteredItems}
-                        disabled={recent.length === 0}
-                        panelOpen={open}
-                        onClear={(ids) => clear(ids)}
-                        onClearAll={() => {
-                          if (typeFilter === 'all' && !query.trim()) {
-                            clear()
-                          } else {
-                            clear(recent.map((it) => it.id))
-                          }
-                        }}
-                      />
-                    </>
-                  )}
+                  <div className="footer-capsule">
+                    <span className="footer-capsule-count" title={`${filteredCount}`}>
+                      {filteredCount}
+                    </span>
+                  </div>
+                  <div className="spacer" />
+                  <ClearMenu
+                    items={filteredItems}
+                    disabled={recent.length === 0}
+                    panelOpen={open}
+                    onClear={(ids) => clear(ids)}
+                    onClearAll={() => {
+                      if (typeFilter === 'all' && !query.trim()) {
+                        clear()
+                      } else {
+                        clear(recent.map((it) => it.id))
+                      }
+                    }}
+                  />
                 </div>
               )}
             </div>

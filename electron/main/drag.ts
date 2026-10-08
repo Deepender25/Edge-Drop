@@ -392,7 +392,7 @@ function createFileStackDragIcon(paths: string[], entries?: Array<{ isDirectory?
     }
     return getFileKind(p, isDir).kind
   })
-  const cacheKey = `stack|pastel-svg|${kinds.join('-')}|${count}`
+  const cacheKey = `stack|png|${kinds.join('-')}|${count}`
   const cached = iconCache.get(cacheKey)
   if (cached && !cached.isEmpty()) {
     return cached

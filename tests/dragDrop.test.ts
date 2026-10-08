@@ -19,16 +19,21 @@ vi.mock('../electron/main/state', () => ({
   })
 }))
 
-vi.mock('node:fs', () => ({
-  existsSync: vi.fn((path: string) => {
-    // Return true for mock source files
-    if (path.includes('mock\\images') || path.includes('mock\\real')) return true
-    return false
-  }),
-  copyFileSync: vi.fn(),
-  writeFileSync: vi.fn(),
-  mkdirSync: vi.fn()
-}))
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>()
+  return {
+    existsSync: vi.fn((path: string) => {
+      // Real passthrough for the static file-icon art; mock behavior otherwise
+      if (typeof path === 'string' && path.includes('file-icons')) return actual.existsSync(path)
+      if (path.includes('mock\\images') || path.includes('mock\\real')) return true
+      return false
+    }),
+    readFileSync: actual.readFileSync,
+    copyFileSync: vi.fn(),
+    writeFileSync: vi.fn(),
+    mkdirSync: vi.fn()
+  }
+})
 
 describe('formatScreenshotFilename', () => {
   it('formats clean, human-readable screenshot filenames with dates and times', () => {
@@ -168,10 +173,11 @@ describe('stageDragFile dual-channel payload', () => {
   })
 })
 
-import { buildFileDragSvg, getFileKindSvgContent } from '../electron/main/fileSvg'
+import { join } from 'node:path'
+import { buildFileDragSvg, setFileIconAssetDir } from '../electron/main/fileSvg'
 import type { FileKind } from '../src/lib/fileType'
 
-describe('buildFileDragSvg — standalone 3D pastel vector drag icons', () => {
+describe('buildFileDragSvg — vintage PNG drag icons', () => {
   const allKinds: FileKind[] = [
     'pdf',
     'word',
@@ -188,39 +194,41 @@ describe('buildFileDragSvg — standalone 3D pastel vector drag icons', () => {
     'file'
   ]
 
-  it('generates valid SVG content for all 13 file categories without bounding boxes', () => {
+  setFileIconAssetDir(join(process.cwd(), 'resources', 'file-icons'))
+
+  it('embeds real PNG art for all 13 file categories', () => {
     for (const kind of allKinds) {
-      const content = getFileKindSvgContent(kind)
-      expect(content).toBeTruthy()
-      // Ensure no black container box
-      expect(content).not.toContain('fill="#000000"')
-      expect(content).not.toContain('stroke="rgba(255,255,255,0.18)"')
+      const svg = buildFileDragSvg([kind], 1)
+      expect(svg).toContain('<svg')
+      expect(svg).toContain('viewBox="0 0 512 512"')
+      // Embedded raster art, never the old vector gradients or black boxes
+      expect(svg).toContain('<image')
+      expect(svg).toContain('data:image/png;base64,')
+      expect(svg).not.toContain('linearGradient')
+      expect(svg).not.toContain('fill="#000000"')
     }
   })
 
-  it('builds a clean single-file drag icon SVG without glass card or background', () => {
+  it('builds a single-file drag icon without a count badge', () => {
     const svg = buildFileDragSvg(['pdf'], 1)
     expect(svg).toContain('<svg')
-    expect(svg).toContain('viewBox="0 0 512 512"')
-    expect(svg).toContain('#FF7C8E')
-    expect(svg).not.toContain('fill="#000000"')
-    expect(svg).not.toContain('<rect x="16" y="8" width="64" height="72"')
+    expect(svg).toContain('<image')
+    expect(svg).not.toContain('<text')
   })
 
-  it('builds a clean single folder drag icon SVG with warm yellow folder colors', () => {
-    const svg = buildFileDragSvg(['folder'], 1)
-    expect(svg).toContain('<svg')
-    expect(svg).toContain('fill="#FBBF24"')
-    expect(svg).toContain('fill="#FDE68A"')
-  })
-
-  it('builds a clean multi-file stack SVG with count badge', () => {
+  it('builds a multi-file stack SVG with count badge', () => {
     const svg = buildFileDragSvg(['pdf', 'excel', 'image'], 3)
     expect(svg).toContain('<svg')
     expect(svg).toContain('+3')
-    expect(svg).toContain('stack-0')
-    expect(svg).toContain('stack-1')
-    expect(svg).toContain('stack-2')
+    expect(svg.match(/<image/g)?.length).toBe(3)
+  })
+
+  it('falls back gracefully when art is missing', () => {
+    setFileIconAssetDir(join(process.cwd(), 'resources', 'does-not-exist'))
+    const svg = buildFileDragSvg(['pdf'], 1)
+    expect(svg).toContain('<svg')
+    expect(svg).not.toContain('<image')
+    setFileIconAssetDir(join(process.cwd(), 'resources', 'file-icons'))
   })
 })
 

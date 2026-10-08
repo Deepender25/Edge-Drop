@@ -213,6 +213,7 @@ export interface TranslationKeys {
     audio: string
     video: string
     image: string
+    executable?: string
     folder?: string
     file: string
   }
@@ -756,6 +757,7 @@ export const en: TranslationKeys = {
     "audio": "Audio",
     "video": "Video",
     "image": "Image",
+    "executable": "Installer",
     "folder": "Folder",
     "file": "File"
   },

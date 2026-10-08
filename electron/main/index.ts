@@ -22,10 +22,10 @@ import { initAutoUpdater } from './updater'
 import { createOnboardingWindow } from './onboardingWindow'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
 import { flushStagedTempRegistry } from './stagedTemp'
-import { extname, normalize } from 'node:path'
+import { extname, join, normalize } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { resolveStoredImage, resolveEmojiAsset, emojiAssetDir } from './imageProtocol'
+import { resolveStoredImage, resolveEmojiAsset, resolveIconAsset, emojiAssetDir } from './imageProtocol'
 import { getThumbnailPayload, thumbnailCacheControl } from './thumbnailCache'
 
 // Edge-Drop renders a small, mostly static transparent panel. Chromium's GPU
@@ -174,6 +174,25 @@ function registerImageProtocol(): void {
           cwd: process.cwd()
         })
         const filePath = resolveEmojiAsset(dir, fileName)
+        if (!filePath) return new Response('Not found', { status: 404 })
+        const stream = createReadStream(filePath)
+        const body = new Response(stream as unknown as ReadableStream<Uint8Array>).body
+        return new Response(body, {
+          status: 200,
+          headers: new Headers({
+            'Content-Type': 'image/png',
+            'Cache-Control': 'public, max-age=31536000, immutable'
+          })
+        })
+      }
+
+      // File-kind folder icons (static PNG set, same immutable-cache shape
+      // as emoji). Must sit before the generic imageId fallback below.
+      if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://icon/`)) {
+        const fileName = decodeURIComponent(request.url.slice(`${APP_CONFIG.imageProtocol}://icon/`.length).split('?')[0] ?? '')
+        // Same location pattern as PATHS.icon: works in dev (project root)
+        // and packaged (inside asar, readable via fs).
+        const filePath = resolveIconAsset(join(app.getAppPath(), 'resources', 'file-icons'), fileName)
         if (!filePath) return new Response('Not found', { status: 404 })
         const stream = createReadStream(filePath)
         const body = new Response(stream as unknown as ReadableStream<Uint8Array>).body

@@ -18,7 +18,7 @@
   border: none;
   border-radius: 999px;
   padding: 0;
-  margin: 2px var(--pad) 8px;
+  margin: 4px var(--pad) 6px;
   height: 32px;
   box-sizing: border-box;
   flex-shrink: 0;

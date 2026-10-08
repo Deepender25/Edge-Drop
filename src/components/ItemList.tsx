@@ -19,13 +19,6 @@ import { playExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 import { useTranslation } from '../i18n'
 
-const getVerticalPinnedLabelStyle = (text: string): React.CSSProperties => {
-  const len = text.length
-  if (len <= 6) return { fontSize: 'calc(9.5px * var(--font-scale, 1))', letterSpacing: '0.14em' }
-  if (len <= 8) return { fontSize: 'calc(8.5px * var(--font-scale, 1))', letterSpacing: '0.07em' }
-  if (len <= 10) return { fontSize: 'calc(7.5px * var(--font-scale, 1))', letterSpacing: '0.02em' }
-  return { fontSize: 'calc(7.0px * var(--font-scale, 1))', letterSpacing: '0em' }
-}
 
 export function ItemList() {
   const { t } = useTranslation()
@@ -72,6 +65,26 @@ export function ItemList() {
 
   const scrollRaf = useRef<number | null>(null)
   const scrollVelocity = useRef<number>(0)
+  // Eased auto-scroll target (signed px/frame). The rAF loop chases this
+  // instead of jumping straight to each dragover event's intensity.
+  const scrollTarget = useRef<number>(0)
+
+  // Cache the list box across dragover events: getBoundingClientRect()
+  // forces a synchronous reflow, and dragover fires dozens of times per
+  // second while stacking — reading it every event janks the whole gesture.
+  // The box only moves on window/panel resize (scrolling content doesn't
+  // move the container), so a 200ms refresh is plenty fresh.
+  const listRectRef = useRef<{ rect: DOMRect; at: number } | null>(null)
+  const getListRect = () => {
+    const el = listRef.current
+    if (!el) return null
+    const now = performance.now()
+    const cached = listRectRef.current
+    if (cached && now - cached.at < 200) return cached.rect
+    const rect = el.getBoundingClientRect()
+    listRectRef.current = { rect, at: now }
+    return rect
+  }
 
   useEffect(() => {
     return () => {
@@ -233,14 +246,28 @@ export function ItemList() {
 
     let lastTime = performance.now()
     const loop = (time: number) => {
-      const dt = time - lastTime
+      // Clamp dt so a single hitched frame can't cause a huge jump —
+      // big steps after hitches are what make the scroll feel juddery.
+      const dt = Math.min(64, time - lastTime)
       lastTime = time
 
-      if (listRef.current && scrollVelocity.current !== 0) {
+      // Ease actual velocity toward the target so intensity changes between
+      // dragover events (or zone exits) ramp smoothly instead of stepping.
+      const target = scrollTarget.current
+      const cur = scrollVelocity.current + (target - scrollVelocity.current) * Math.min(1, dt / 120)
+      if (Math.abs(cur) < 0.05 && target === 0) {
+        scrollVelocity.current = 0
+        scrollRaf.current = null
+        return
+      }
+      scrollVelocity.current = cur
+
+      if (listRef.current) {
+        const step = cur * (dt / 16)
         if (isHorizontal) {
-          listRef.current.scrollLeft += scrollVelocity.current * (dt / 16)
+          listRef.current.scrollLeft += step
         } else {
-          listRef.current.scrollTop += scrollVelocity.current * (dt / 16)
+          listRef.current.scrollTop += step
         }
         scrollRaf.current = requestAnimationFrame(loop)
       } else {
@@ -251,6 +278,7 @@ export function ItemList() {
   }
 
   const stopScrolling = () => {
+    scrollTarget.current = 0
     scrollVelocity.current = 0
     if (scrollRaf.current !== null) {
       cancelAnimationFrame(scrollRaf.current)
@@ -258,42 +286,51 @@ export function ItemList() {
     }
   }
 
+  // Edge auto-scroll tuning: separate enter/exit thresholds (hysteresis) so
+  // cursor jitter at the boundary can't start/stop the loop every event —
+  // that start/stop flicker is what made edge scrolling feel stuttery.
+  const EDGE_ENTER = 80
+  const EDGE_EXIT = 110
+  const MAX_SCROLL_PX = 20 // px per 60fps frame at full intensity
+
+  const setScrollTarget = (v: number) => {
+    scrollTarget.current = v
+    if (v !== 0) startScrolling()
+  }
+
   const handleDragOver = (e: React.DragEvent) => {
-    if (!listRef.current) return
-    const rect = listRef.current.getBoundingClientRect()
+    const rect = getListRect()
+    if (!rect) return
 
-    if (isHorizontal) {
-      const x = e.clientX - rect.left
-      const edgeSize = 80
-      if (x < edgeSize) {
-        const intensity = Math.max(0, 1 - (x / edgeSize))
-        scrollVelocity.current = -(intensity * 20 + 2)
-        startScrolling()
-      } else if (x > rect.width - edgeSize) {
-        const intensity = Math.max(0, 1 - ((rect.width - x) / edgeSize))
-        scrollVelocity.current = (intensity * 20 + 2)
-        startScrolling()
-      } else {
-        stopScrolling()
-      }
-      return
+    const pos = isHorizontal ? e.clientX - rect.left : e.clientY - rect.top
+    const len = isHorizontal ? rect.width : rect.height
+    // Base 5px/frame so the scroll feels alive the moment the zone is
+    // entered (the old +2 crawled at ~120px/s across most of the zone).
+    const speedFor = (d: number) => Math.max(0, 1 - d / EDGE_ENTER) * MAX_SCROLL_PX + 5
+    const active = scrollTarget.current
+
+    if (active < 0) {
+      // Scrolling toward the start edge: stay until clearly out, else ease
+      // out — or flip if the cursor dove straight to the opposite edge.
+      setScrollTarget(pos > EDGE_EXIT ? (pos > len - EDGE_ENTER ? speedFor(len - pos) : 0) : -speedFor(pos))
+    } else if (active > 0) {
+      setScrollTarget(len - pos > EDGE_EXIT ? (pos < EDGE_ENTER ? -speedFor(pos) : 0) : speedFor(len - pos))
+    } else if (pos < EDGE_ENTER) {
+      setScrollTarget(-speedFor(pos))
+    } else if (pos > len - EDGE_ENTER) {
+      setScrollTarget(speedFor(len - pos))
     }
+  }
 
-    const y = e.clientY - rect.top
-    const edgeSize = 80 // slightly larger comfortable trigger zone
-
-    if (y < edgeSize) {
-      // Speed scales up as you get closer to the absolute edge
-      const intensity = Math.max(0, 1 - (y / edgeSize))
-      scrollVelocity.current = -(intensity * 20 + 2)
-      startScrolling()
-    } else if (y > rect.height - edgeSize) {
-      const intensity = Math.max(0, 1 - ((rect.height - y) / edgeSize))
-      scrollVelocity.current = (intensity * 20 + 2)
-      startScrolling()
-    } else {
-      stopScrolling()
-    }
+  const handleDragLeave = (e: React.DragEvent) => {
+    // dragleave BUBBLES from every card crossed mid-gesture — without a
+    // containment check, crossing any card boundary hard-stops the scroll
+    // loop, and the next dragover restarts it. That stop/start cycle on
+    // every card crossed is the stops-and-jitters. Only stop when actually
+    // leaving the list (same pattern as the blade's onDragLeave).
+    const related = e.relatedTarget as Node | null
+    if (related && listRef.current?.contains(related)) return
+    stopScrolling()
   }
 
   const handleDragLeaveOrDrop = () => {
@@ -307,7 +344,7 @@ export function ItemList() {
       className={`list${isHorizontal ? ' horizontal' : ''}`}
       ref={listRef}
       onDragOver={handleDragOver}
-      onDragLeave={handleDragLeaveOrDrop}
+      onDragLeave={handleDragLeave}
       onDrop={handleDragLeaveOrDrop}
       onScroll={handleScroll}
     >
@@ -324,43 +361,43 @@ export function ItemList() {
           {pinned.length > 0 && (
             <section className="pinned-section">
               <div
-                className={`section-label pinned-header-interactive ${pinnedCollapsed ? 'is-collapsed' : ''}`}
+                className={`pinned-accordion ${isHorizontal ? 'horizontal' : ''} ${!pinnedCollapsed ? 'is-expanded' : ''}`}
+                style={
+                  isHorizontal
+                    ? ({ '--pinned-target-width': `${pinned.length * 210 + (pinned.length - 1) * 10}px` } as React.CSSProperties)
+                    : undefined
+                }
+              >
+                <div className="pinned-accordion-inner">
+                  {pinned.map((it) => (
+                    <ClipboardItemCard key={it.id} item={it} />
+                  ))}
+                </div>
+              </div>
+              <button
+                type="button"
+                className={`pinned-floating-pill ${isHorizontal ? 'horizontal' : ''} ${pinnedCollapsed ? 'is-collapsed' : ''}`}
                 onClick={() => {
                   const next = !pinnedCollapsed
                   playExpandSound(!next)
                   setPinnedCollapsed(next)
                 }}
                 title={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
+                aria-label={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
               >
-                <div className="pinned-header-left">
-                  <PinFillIcon width={13} height={13} style={{ opacity: 0.9, color: '#ffffff' }} />
-                  <div className="pinned-label-group">
-                    <span style={isHorizontal ? getVerticalPinnedLabelStyle(t('item.pinned')) : undefined}>
-                      {t('item.pinned')}
-                    </span>
-                    <span className="pinned-count-badge">{pinned.length}</span>
-                  </div>
-                </div>
-                <div className="pinned-header-right">
-                  <button
-                    className="act bundle-collapse-btn"
-                    type="button"
-                    aria-label={pinnedCollapsed ? t('item.expandPinned') : t('item.collapsePinned')}
-                  >
-                    <ChevronDownIcon
-                      style={{
-                        transform: isHorizontal
-                          ? (pinnedCollapsed ? 'rotate(-90deg)' : 'rotate(90deg)')
-                          : (pinnedCollapsed ? 'rotate(0deg)' : 'rotate(180deg)'),
-                        transition: 'transform 0.14s ease'
-                      }}
-                    />
-                  </button>
-                </div>
-              </div>
-              {!pinnedCollapsed && pinned.map((it) => (
-                <ClipboardItemCard key={it.id} item={it} />
-              ))}
+                <PinFillIcon width={11} height={11} className="pinned-pill-icon" />
+                <span className="pinned-pill-count">{pinned.length}</span>
+                <ChevronDownIcon
+                  width={11}
+                  height={11}
+                  className="pinned-pill-arrow"
+                  style={{
+                    transform: isHorizontal
+                      ? (pinnedCollapsed ? 'rotate(-90deg)' : 'rotate(90deg)')
+                      : (pinnedCollapsed ? 'rotate(0deg)' : 'rotate(180deg)')
+                  }}
+                />
+              </button>
             </section>
           )}
 
