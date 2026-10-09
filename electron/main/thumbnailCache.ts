@@ -78,11 +78,15 @@ function readFacts(filePath: string): FileFacts | null {
  * Produce (or fetch from LRU) the encoded 240 px PNG for a raster image.
  * Returns null when the source cannot be read or decoded.
  */
+function cacheKey(filePath: string, facts: FileFacts): string {
+  return `${filePath}|${facts.mtimeMs}:${facts.size}`
+}
+
 export function getThumbnailPayload(filePath: string): ThumbnailPayload | null {
   const facts = readFacts(filePath)
   if (!facts) return null
 
-  const key = `${filePath}|${facts.mtimeMs}:${facts.size}`
+  const key = cacheKey(filePath, facts)
   const cached = lruGet(key)
   if (cached) return cached
 
@@ -114,6 +118,80 @@ export function getThumbnailPayload(filePath: string): ThumbnailPayload | null {
   } catch {
     return null
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion-aware scheduling                                             */
+/* ------------------------------------------------------------------ */
+//
+// A decode blocks the main thread for 40–125ms per photo (measured), and
+// with a transparent window on software compositing every presented frame
+// passes through the main thread — a decode during the open/close/flyout
+// motion freezes those frames for its whole duration. Cache misses are
+// therefore queued, decoded one per macrotask so frames and IPC get through
+// in between, and held while UI motion is in progress. Hits stay immediate.
+
+/** How long a motion notice holds decodes (open/close/flyout run ≤ 320ms). */
+const MOTION_QUIET_MS = 450
+
+let motionQuietUntil = 0
+const inflight = new Map<string, Promise<ThumbnailPayload | null>>()
+const queue: Array<() => void> = []
+let pumping = false
+
+/** Main process signals that a panel/flyout transition is starting now. */
+export function noteUiMotion(durationMs = MOTION_QUIET_MS): void {
+  motionQuietUntil = Math.max(motionQuietUntil, Date.now() + durationMs)
+}
+
+function pump(): void {
+  if (pumping) return
+  pumping = true
+  const step = (): void => {
+    const wait = motionQuietUntil - Date.now()
+    if (wait > 0) {
+      setTimeout(step, wait)
+      return
+    }
+    const job = queue.shift()
+    if (!job) {
+      pumping = false
+      return
+    }
+    job()
+    setTimeout(step, 0)
+  }
+  setTimeout(step, 0)
+}
+
+/**
+ * Same result as getThumbnailPayload, but cache misses are decoded through
+ * the motion-aware queue instead of synchronously inside the request.
+ */
+export function getThumbnailPayloadScheduled(filePath: string): Promise<ThumbnailPayload | null> {
+  const facts = readFacts(filePath)
+  if (!facts) return Promise.resolve(null)
+
+  const key = cacheKey(filePath, facts)
+  const cached = lruGet(key)
+  if (cached) return Promise.resolve(cached)
+
+  const pending = inflight.get(key)
+  if (pending) return pending
+
+  const job = new Promise<ThumbnailPayload | null>((resolve) => {
+    queue.push(() => {
+      try {
+        resolve(getThumbnailPayload(filePath))
+      } catch {
+        resolve(null)
+      }
+    })
+    pump()
+  })
+  inflight.set(key, job)
+  void job.then(() => inflight.delete(key))
+  return job
 }
 
 /**

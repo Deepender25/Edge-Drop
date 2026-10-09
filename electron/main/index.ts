@@ -26,7 +26,7 @@ import { extname, join, normalize } from 'node:path'
 import { existsSync, createReadStream } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolveStoredImage, resolveEmojiAsset, resolveIconAsset, emojiAssetDir } from './imageProtocol'
-import { getThumbnailPayload, thumbnailCacheControl } from './thumbnailCache'
+import { getThumbnailPayloadScheduled, thumbnailCacheControl } from './thumbnailCache'
 
 // Edge-Drop renders a small, mostly static transparent panel. Chromium's GPU
 // process costs substantially more memory (~150–250 MB) than the iGPU compositing
@@ -215,7 +215,7 @@ function registerImageProtocol(): void {
           : resolveStoredImage(PATHS.imagesDir(), rawTarget)?.filePath
 
         if (!filePath || !existsSync(filePath)) return new Response('Not found', { status: 404 })
-        return createThumbnailResponse(filePath, !isFileThumb, request)
+        return await createThumbnailResponse(filePath, !isFileThumb, request)
       }
 
       // Support streaming full-resolution local image files: edgelocal://file/<encodedPath>
@@ -273,9 +273,10 @@ function registerImageProtocol(): void {
  * Serve a bounded thumbnail with proper HTTP caching: long immutable freshness
  * for content-addressed captures, short freshness + ETag/304 for external
  * files. Payloads come from the LRU thumbnail engine so repeated requests do
- * zero decode work in the main process.
+ * zero decode work in the main process; misses decode via its motion-aware
+ * queue so they never land inside a panel transition.
  */
-function createThumbnailResponse(filePath: string, isStoredCapture: boolean, request?: Request): Response {
+async function createThumbnailResponse(filePath: string, isStoredCapture: boolean, request?: Request): Promise<Response> {
   const ext = extname(filePath).toLowerCase()
   // SVG files are vector XML documents; stream them directly with correct MIME type
   // rather than failing inside nativeImage.createFromPath (which only supports raster bitmaps).
@@ -291,7 +292,7 @@ function createThumbnailResponse(filePath: string, isStoredCapture: boolean, req
     })
   }
 
-  const payload = getThumbnailPayload(filePath)
+  const payload = await getThumbnailPayloadScheduled(filePath)
   if (!payload) return new Response('Unsupported image', { status: 415 })
 
   const headers = new Headers({

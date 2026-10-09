@@ -14,10 +14,33 @@ import koffi from 'koffi'
 import type { ClipboardImageSource, ItemData } from '../../shared/types'
 
 let getSeqNum: (() => number) | null = null
+
+/** Win32 calls for reading CF_HDROP in-process (see readFileDropListNative). */
+interface HdropApi {
+  open: (hWnd: number) => boolean
+  close: () => boolean
+  isAvailable: (format: number) => boolean
+  getData: (format: number) => unknown
+  dragQuery: (hDrop: unknown, index: number, buf: Buffer | null, cch: number) => number
+}
+let hdropApi: HdropApi | null = null
+
 if (process.platform === 'win32') {
   try {
     const user32 = koffi.load('user32.dll')
     getSeqNum = user32.func('uint32 GetClipboardSequenceNumber()')
+    try {
+      const shell32 = koffi.load('shell32.dll')
+      hdropApi = {
+        open: user32.func('bool OpenClipboard(uintptr_t hWndNewOwner)'),
+        close: user32.func('bool CloseClipboard()'),
+        isAvailable: user32.func('bool IsClipboardFormatAvailable(uint32 format)'),
+        getData: user32.func('void *GetClipboardData(uint32 uFormat)'),
+        dragQuery: shell32.func('uint32 DragQueryFileW(void *hDrop, uint32 iFile, _Out_ uint16_t *lpszFile, uint32 cch)')
+      }
+    } catch (err) {
+      console.error('[formats] Failed to load CF_HDROP APIs; file lists will use PowerShell:', err)
+    }
   } catch (err) {
     console.error('[formats] Failed to load GetClipboardSequenceNumber from user32.dll:', err)
   }
@@ -42,23 +65,69 @@ const execFileAsync = promisify(execFile)
 /** Windows clipboard format name for a copied-file list. */
 export const CF_FILE_LIST = 'FileNameW'
 
+const CF_HDROP = 15
+
 /**
- * Async version: reads the full list of copied file paths via PowerShell
- * GetFileDropList(), which is the only reliable way to retrieve ALL selected
- * files from a multi-file Explorer copy (CF_HDROP / FileNameW only carries
- * the first file as a legacy single-path fallback).
+ * Read every path of CF_HDROP in-process — the same data PowerShell's
+ * GetFileDropList() returns, without spawning powershell.exe (measured
+ * 250–300ms per copy, which is what made copied files appear late).
+ * Returns null whenever the native read cannot answer, so the caller falls
+ * back to the PowerShell path unchanged.
+ */
+async function readFileDropListNative(): Promise<string[] | null> {
+  const api = hdropApi
+  if (!api) return null
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (api.open(0)) {
+      try {
+        if (!api.isAvailable(CF_HDROP)) return null
+        const hDrop = api.getData(CF_HDROP)
+        if (!hDrop) return null
+        const count = api.dragQuery(hDrop, 0xffffffff, null, 0)
+        const paths: string[] = []
+        for (let i = 0; i < count; i++) {
+          const len = api.dragQuery(hDrop, i, null, 0)
+          if (!len) continue
+          const out = Buffer.alloc((len + 1) * 2)
+          if (!api.dragQuery(hDrop, i, out, len + 1)) continue
+          paths.push(out.toString('utf16le', 0, len * 2))
+        }
+        return paths.length ? paths : null
+      } catch {
+        return null
+      } finally {
+        try { api.close() } catch { /* ignore */ }
+      }
+    }
+    // Another process holds the clipboard open (often Explorer finishing a
+    // delayed render). Back off briefly without blocking the main thread.
+    await new Promise((resolve) => setTimeout(resolve, 25))
+  }
+  return null
+}
+
+/**
+ * Async version: reads the full list of copied file paths. CF_HDROP is read
+ * in-process first; PowerShell GetFileDropList() remains the fallback. Both
+ * return ALL selected files from a multi-file Explorer copy (FileNameW only
+ * carries the first file as a legacy single-path fallback).
  *
- * Falls back to parsing the FileNameW UTF-16LE buffer directly if PowerShell
- * is unavailable or times out.
+ * Falls back to parsing the FileNameW UTF-16LE buffer directly if both are
+ * unavailable or PowerShell times out.
  */
 async function readFileListAsync(): Promise<string[] | null> {
   try {
     // First, confirm there is actually a file list on the clipboard before
-    // spawning a process.  FileNameW being present is sufficient signal.
+    // reading it. FileNameW being present is sufficient signal.
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     if (!buf || buf.length < 4) return null
 
     if (process.platform === 'win32') {
+      const native = await readFileDropListNative()
+      if (native) {
+        const paths = filterValidPaths(native)
+        if (paths.length > 0) return paths
+      }
       try {
         const psPath = getSystemPowerShellPath()
         // Await the result so we actually get all paths — the previous

@@ -22,9 +22,80 @@ vi.mock('electron', () => ({
 import {
   clearThumbnailCache,
   getThumbnailPayload,
+  getThumbnailPayloadScheduled,
+  noteUiMotion,
   thumbnailCacheControl,
   thumbnailCacheSize
 } from '../electron/main/thumbnailCache'
+
+describe('thumbnailCache — motion-aware scheduling', () => {
+  let dir: string
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    dir = join(tmpdir(), `ed-thumbsched-${Date.now()}-${Math.random().toString(16).slice(2)}`)
+    mkdirSync(dir, { recursive: true })
+    clearThumbnailCache()
+    calls.createFromPath = 0
+  })
+
+  afterEach(async () => {
+    // Let the queue pump finish so it does not stay parked on a fake timer.
+    await vi.runAllTimersAsync()
+    vi.useRealTimers()
+    try { rmSync(dir, { recursive: true, force: true }) } catch { /* ignore */ }
+  })
+
+  function makeFile(name: string): string {
+    const p = join(dir, name)
+    writeFileSync(p, Buffer.from('fake-image-bytes'))
+    return p
+  }
+
+  it('never decodes inside the request: one decode per macrotask', async () => {
+    const a = getThumbnailPayloadScheduled(makeFile('a.jpg'))
+    const b = getThumbnailPayloadScheduled(makeFile('b.jpg'))
+    expect(calls.createFromPath).toBe(0)
+    await vi.advanceTimersToNextTimerAsync()
+    expect(calls.createFromPath).toBe(1)
+    await vi.advanceTimersToNextTimerAsync()
+    expect(calls.createFromPath).toBe(2)
+    expect((await a)!.contentType).toBe('image/png')
+    expect((await b)!.contentType).toBe('image/png')
+  })
+
+  it('holds decodes while UI motion is in progress, then runs them', async () => {
+    noteUiMotion(450)
+    const p = getThumbnailPayloadScheduled(makeFile('a.jpg'))
+    await vi.advanceTimersByTimeAsync(400)
+    expect(calls.createFromPath).toBe(0)
+    await vi.advanceTimersByTimeAsync(100)
+    expect(calls.createFromPath).toBe(1)
+    expect(await p).not.toBeNull()
+  })
+
+  it('returns cached thumbnails immediately, even during motion', async () => {
+    const f = makeFile('a.jpg')
+    const first = getThumbnailPayload(f)
+    noteUiMotion(450)
+    expect(await getThumbnailPayloadScheduled(f)).toBe(first)
+    expect(calls.createFromPath).toBe(1)
+  })
+
+  it('shares one decode between concurrent requests for the same file', async () => {
+    const f = makeFile('a.jpg')
+    const a = getThumbnailPayloadScheduled(f)
+    const b = getThumbnailPayloadScheduled(f)
+    await vi.runAllTimersAsync()
+    expect(await a).toBe(await b)
+    expect(calls.createFromPath).toBe(1)
+  })
+
+  it('resolves null for a missing file without queueing', async () => {
+    expect(await getThumbnailPayloadScheduled(join(dir, 'missing.jpg'))).toBeNull()
+    expect(calls.createFromPath).toBe(0)
+  })
+})
 
 describe('thumbnailCache — bounded LRU + validators', () => {
   let dir: string

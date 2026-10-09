@@ -24,6 +24,7 @@ import { WorkAreaCache } from './workAreaCache'
 import { probeSeamAware, isNearProximity, type SeamTickState } from './stickProbe'
 import { loadSettings, saveSettings } from '../store/settings'
 import { isFullscreenAppActive, registerFullscreenActiveListener } from './fullscreen'
+import { noteUiMotion } from './thumbnailCache'
 
 type RegisterWindowMessageFn = (lpString: string) => number
 type SetWindowLongPtrFn = (hWnd: number | bigint, nIndex: number, dwNewLong: number | bigint) => number | bigint
@@ -342,6 +343,8 @@ let gcTimer: ReturnType<typeof setTimeout> | null = null
 export function setInteractive(value: boolean): void {
   if (!mainWindow || value === interactive) return
   interactive = value
+  // Open starts here; hold main-thread thumbnail decodes off its frames.
+  noteUiMotion()
   if (value) {
     // Panel is open: disable click-through so user can interact.
     // Remember who is in front BEFORE any search typing can steal focus.
@@ -379,6 +382,9 @@ export function setInteractive(value: boolean): void {
 }
 
 export function setPreviewMode(active: boolean): void {
+  // Before the guard: the renderer sends setPreviewMode(false) at the start
+  // of every close (setOpen(false)), so this is also the close-motion signal.
+  noteUiMotion()
   if (previewActive === active) return
   previewActive = active
   repositionWindow()
