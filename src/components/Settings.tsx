@@ -2385,7 +2385,7 @@ export function Settings({
                               }}
                               style={{
                                 background: (settings.copyIndicatorStyle || 'logo') === 'logo' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                border: (settings.copyIndicatorStyle || 'logo') === 'logo' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                                border: '1px solid transparent',
                                 borderRadius: 10,
                                 padding: '12px 8px',
                                 display: 'flex',
@@ -2411,7 +2411,7 @@ export function Settings({
                               }}
                               style={{
                                 background: settings.copyIndicatorStyle === 'check' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                border: settings.copyIndicatorStyle === 'check' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                                border: '1px solid transparent',
                                 borderRadius: 10,
                                 padding: '12px 8px',
                                 display: 'flex',
@@ -2437,7 +2437,7 @@ export function Settings({
                               }}
                               style={{
                                 background: settings.copyIndicatorStyle === 'copy' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                border: settings.copyIndicatorStyle === 'copy' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                                border: '1px solid transparent',
                                 borderRadius: 10,
                                 padding: '12px 8px',
                                 display: 'flex',
@@ -2463,7 +2463,7 @@ export function Settings({
                               }}
                               style={{
                                 background: settings.copyIndicatorStyle === 'sparkle' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                                border: settings.copyIndicatorStyle === 'sparkle' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                                border: '1px solid transparent',
                                 borderRadius: 10,
                                 padding: '12px 8px',
                                 display: 'flex',

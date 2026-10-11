@@ -289,7 +289,7 @@
   height: 32px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.78);
   font-size: 11.5px;
   font-weight: 500;
@@ -298,7 +298,6 @@
 
 .setting-card .setting-pills .pill:hover {
   background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;
 }
 
@@ -306,7 +305,6 @@
   background: #ffffff;
   color: #000000;
   font-weight: 600;
-  border-color: #ffffff;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
 }
 
@@ -377,7 +375,7 @@
   padding: 0 4px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.78);
   font-weight: 500;
   transition: all 0.14s ease;
@@ -390,7 +388,6 @@
 
 .placement-3way-wrap.shelf-placement-3way .pill:hover:not(.active) {
   background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;
 }
 
@@ -398,7 +395,6 @@
   background: #ffffff;
   color: #000000;
   font-weight: 600;
-  border-color: #ffffff;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
 }
 
@@ -702,7 +698,7 @@
   font-weight: 600;
   color: #ff5555;
   background: rgba(255, 60, 60, 0.08);
-  border: 1px solid rgba(255, 60, 60, 0.22);
+  border: 1px solid transparent;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -715,7 +711,6 @@
 
 .quit-app-btn:hover {
   background: rgba(255, 60, 60, 0.16);
-  border-color: rgba(255, 60, 60, 0.4);
   color: #ff7777;
   box-shadow: 0 0 16px rgba(255, 60, 60, 0.2);
 }
@@ -915,7 +910,7 @@
   height: 32px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid transparent;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -928,14 +923,12 @@
 
 .style-preview-toggle-btn:hover {
   background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.25);
   color: #ffffff;
 }
 
 .style-preview-toggle-btn.active {
   background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.32);
   box-shadow: 0 0 14px rgba(255, 255, 255, 0.15);
 }
 
@@ -961,8 +954,7 @@
 }
 
 .indicator-card.active {
-  background: #141414;
-  border-color: #ffffff;
+  background: #262626;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.12);
   outline: none;
 }
@@ -1121,7 +1113,7 @@
   height: 22px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1130,7 +1122,6 @@
 .hotkey-inline-reset-btn:hover {
   background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Recording Mode Elements */
@@ -1170,7 +1161,7 @@
   height: 22px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1179,7 +1170,6 @@
 .hotkey-cancel-icon-btn:hover {
   background: rgba(255, 255, 255, 0.16);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .hotkey-esc-text {
@@ -1395,14 +1385,13 @@
 
 .manual-update-pill.outline {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }
 
 .manual-update-pill.outline:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -1556,14 +1545,13 @@
 
 .update-action-btn.secondary {
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }
 
 .update-action-btn.secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.11);
-  border-color: rgba(255, 255, 255, 0.22);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -1605,7 +1593,7 @@
   height: 24px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.65);
   font-size: 11px;
@@ -1623,14 +1611,12 @@
 .settings-header-pill:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .settings-header-pill.active {
   background: #ffffff;
   color: #000000;
   font-weight: 600;
-  border-color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
@@ -1843,7 +1829,7 @@
   height: 32px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   color: rgba(255, 255, 255, 0.78);
   font-size: 11.5px;
   font-weight: 500;
@@ -1852,7 +1838,6 @@
 
 .settings-shelf-card .setting-pills .pill:hover {
   background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;
 }
 
@@ -1860,7 +1845,6 @@
   background: #ffffff;
   color: #000000;
   font-weight: 600;
-  border-color: #ffffff;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
 }
 
@@ -1878,7 +1862,7 @@
   align-items: center;
   justify-content: space-between;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid transparent;
   border-radius: 10px;
   padding: 0 12px;
   color: #ffffff;
@@ -1892,13 +1876,11 @@
 
 .language-shelf-btn:hover {
   background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
 
 .language-shelf-btn.flyout-open {
   background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(255, 255, 255, 0.28);
   color: #ffffff;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.06);
 }
@@ -2112,7 +2094,7 @@
   padding: 5px 3px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
@@ -2120,12 +2102,10 @@
 
 .shelf-indicator-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .shelf-indicator-item.active {
   background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.35);
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
 }
 
@@ -2187,7 +2167,7 @@
   font-weight: 550;
   color: rgba(255, 255, 255, 0.92);
   background: #1c1c1c;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   box-shadow: none;
   cursor: pointer;
   white-space: nowrap;
@@ -2197,7 +2177,6 @@
 
 .shelf-github-btn:hover {
   background: #262626;
-  border-color: rgba(255, 255, 255, 0.18);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -2229,7 +2208,7 @@
   gap: 4px;
   color: rgba(255, 255, 255, 0.55);
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   cursor: pointer;
   outline: none;
   transition: all 0.18s ease;
@@ -2239,7 +2218,6 @@
 
 .shelf-quit-btn:hover {
   background: rgba(255, 69, 58, 0.14);
-  border-color: rgba(255, 69, 58, 0.35);
   color: #ff5e57;
 }
 

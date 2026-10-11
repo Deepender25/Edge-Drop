@@ -76,7 +76,9 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'copy' })")
     expect(flyoutSrc).toContain("patch({ copyIndicatorStyle: 'sparkle' })")
     expect(flyoutSrc).toContain("stickPosition === 'top'")
-    expect(flyoutSrc).toContain("border: active ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.08)'")
+    // Borderless like every other settings control; selection reads from the fill.
+    expect(flyoutSrc).toContain("border: '2px solid transparent'")
+    expect(flyoutSrc).toContain("background: active ? '#262626' : '#141414'")
     expect(flyoutSrc).not.toContain("outline: active ? '2px solid #ffffff' : 'none'")
   })
 

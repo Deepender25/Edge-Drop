@@ -309,7 +309,7 @@ export function LanguageFlyout({ isRight }: { isRight: boolean }) {
                       padding: '7px 10px',
                       borderRadius: 8,
                       background: active ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
-                      border: active ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid transparent',
+                      border: '1px solid transparent',
                       color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
                       fontSize: 12,
                       fontWeight: active ? 600 : 400,

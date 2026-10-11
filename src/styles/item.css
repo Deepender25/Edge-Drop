@@ -574,20 +574,20 @@
   background: var(--bg-card-hover, #1c1c1c);
 }
 
+/* Lift the viewport with the flap on hover so the folder tab keeps its contrast. */
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-viewport,
+.item:not(.is-expanded) .item-main:hover .image-folder-viewport {
+  background: #222222;
+}
+
 .image-folder-viewport {
   position: relative;
   width: 100%;
   flex: 1;
   height: 100%;
   min-height: 0;
-  background: linear-gradient(
-    115deg, 
-    #a8def5 0%, 
-    #288ef6 25%, 
-    #0b64f6 52%, 
-    #1b57f6 78%, 
-    #769cf5 100%
-  );
+  background: #1b1b1b;
+  transition: background-color 0.16s ease;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -827,7 +827,7 @@
   overflow: hidden !important;
 }
 
-/* Header bar inside the expanded blue gradient viewport */
+/* Header bar inside the expanded charcoal viewport */
 .image-folder-expanded-top-bar {
   display: flex;
   align-items: center;
@@ -1045,20 +1045,14 @@
   border-radius: 7px;
 }
 
-/* Mini Blue Gradient Viewport */
+/* Mini Charcoal Viewport */
 .mini-image-folder-viewport {
   position: relative;
   width: 100%;
   flex: 1;
   min-height: 0;
-  background: linear-gradient(
-    115deg, 
-    #a8def5 0%, 
-    #288ef6 25%, 
-    #0b64f6 52%, 
-    #1b57f6 78%, 
-    #769cf5 100%
-  );
+  background: #1b1b1b;
+  transition: background-color 0.16s ease;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1132,6 +1126,10 @@
 
 .mini-image-folder-card:hover .mini-image-folder-flap-svg path {
   fill: var(--bg-card-hover, #1c1c1c);
+}
+
+.mini-image-folder-card:hover .mini-image-folder-viewport {
+  background: #222222;
 }
 
 .mini-image-folder-flap-content {
