@@ -2,7 +2,13 @@ import { useEffect, useState, useRef, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
 import type { DisplayInfo, UpdateMode } from '../../shared/types'
-import { resolveUpdateMode } from '../../shared/types'
+import {
+  resolveUpdateMode,
+  normalizeHoverOpenDelay,
+  HOVER_OPEN_DELAY_MIN,
+  HOVER_OPEN_DELAY_MAX,
+  HOVER_OPEN_DELAY_STEP
+} from '../../shared/types'
 import {
   LogoIndicatorIcon,
   TickIndicatorIcon,
@@ -127,6 +133,104 @@ export function Settings({
     setSliderActive(false)
     playDialTickSound()
     patch({ hotZoneWidth: clamped })
+  }
+
+  // ── Hover open delay (shared by both layouts) ──────────────────────────
+  const hoverOn = settings.hoverActivation ?? true
+  const hoverDelay = normalizeHoverOpenDelay(settings.hoverOpenDelay)
+  const formatHoverDelay = (ms: number) =>
+    ms === 0 ? (t('behaviour.hoverDelayInstant') || 'Instant') : `${ms} ms`
+
+  const handleHoverDelayInput = (rawVal: number) => {
+    const next = normalizeHoverOpenDelay(rawVal)
+    if (next !== normalizeHoverOpenDelay(useStore.getState().settings.hoverOpenDelay)) {
+      playDialTickSound()
+      useStore.setState((s) => ({
+        settings: { ...s.settings, hoverOpenDelay: next }
+      }))
+    }
+  }
+
+  const handleHoverDelayRelease = (rawVal: number) => {
+    setSliderActive(false)
+    playDialTickSound()
+    patch({ hoverOpenDelay: normalizeHoverOpenDelay(rawVal) })
+  }
+
+  const renderHoverDelayCard = (layout: 'shelf' | 'stack') => {
+    const isShelf = layout === 'shelf'
+    return (
+      <div
+        className={isShelf ? 'settings-shelf-card hover-delay-card behaviour-col' : 'setting-card'}
+        style={{ opacity: hoverOn ? 1 : 0.45, transition: 'opacity 0.2s ease' }}
+      >
+        <div className="shelf-card-top">
+          <div className="setting-group-label">{t('groups.hoverDelay') || 'HOVER DELAY'}</div>
+          <div className="setting-slider-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div>
+              <div className="setting-title">{t('behaviour.hoverDelayTitle') || 'Open Delay'}</div>
+              <div className="setting-desc">
+                {hoverOn ? (t('behaviour.hoverDelayDesc') || 'Wait this long at the edge before the shelf slides open') : t('behaviour.disabledHoverOff')}
+              </div>
+            </div>
+            <div
+              className="setting-slider-val"
+              style={isShelf ? { flexShrink: 0, padding: '2px 8px', fontSize: 11, fontWeight: 600, borderRadius: 6 } : { flexShrink: 0 }}
+            >
+              {formatHoverDelay(hoverDelay)}
+            </div>
+          </div>
+        </div>
+        <div className="shelf-card-bottom">
+          <div className="setting-slider-wrap" style={isShelf ? { gap: 4, padding: '2px 0' } : undefined}>
+            <WakeSlider
+              ariaLabel={t('behaviour.hoverDelayTitle') || 'Open Delay'}
+              min={HOVER_OPEN_DELAY_MIN}
+              max={HOVER_OPEN_DELAY_MAX}
+              step={HOVER_OPEN_DELAY_STEP}
+              bars={28}
+              height={28}
+              restHeight={8}
+              gap={3}
+              value={hoverDelay}
+              disabled={!hoverOn}
+              onStart={() => {
+                void window.edge.setInteractive(true)
+                setSliderActive(true)
+              }}
+              onRelease={(val) => {
+                handleHoverDelayRelease(val)
+              }}
+              onChange={(val) => {
+                handleHoverDelayInput(val)
+              }}
+            />
+            <div className="setting-slider-labels" style={isShelf ? { marginTop: 2 } : undefined}>
+              {[HOVER_OPEN_DELAY_MIN, 500, HOVER_OPEN_DELAY_MAX].map((ms) => {
+                const active = hoverDelay === ms
+                return (
+                  <button
+                    key={ms}
+                    type="button"
+                    disabled={!hoverOn}
+                    className={`slider-label-btn${active ? ' active' : ''}`}
+                    style={isShelf ? { fontSize: 10, padding: '2px 8px' } : undefined}
+                    onClick={() => {
+                      if (hoverOn && !active) {
+                        playDialTickSound()
+                        patch({ hoverOpenDelay: ms })
+                      }
+                    }}
+                  >
+                    {formatHoverDelay(ms)}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const [localInlineOpen, setLocalInlineOpen] = useState(false)
@@ -1015,6 +1119,9 @@ export function Settings({
                 </div>
               </div>
 
+              {/* Card 4b: Hover Open Delay */}
+              {renderHoverDelayCard('shelf')}
+
               {/* Card 5: Global Toggle Shortcut */}
               <div className="settings-shelf-card hotkey-card behaviour-col">
                 <div className="shelf-card-top">
@@ -1741,6 +1848,9 @@ export function Settings({
                       </div>
                     </div>
                   </div>
+
+                  {/* Card 4b: Hover Open Delay */}
+                  {renderHoverDelayCard('stack')}
 
                   {/* Card 5: Global Toggle Shortcut */}
                   <div className="setting-card">

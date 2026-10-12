@@ -23,9 +23,10 @@
 import { useEffect, useRef } from 'react'
 import { edge } from '../lib/edge'
 import { useStore } from '../store/appStore'
+import { normalizeHoverOpenDelay } from '../../shared/types'
 
 const TRIGGER_PX = 3    // leftmost px that count as "the edge"
-const DWELL_MS = 40      // cursor must linger this long to open
+const DWELL_MS = 40      // cursor must linger this long to open (base; user delay adds on top)
 const GRACE_MS = 250     // close delay after leaving
 const PANEL_WIDE = 270   // blade is 270px (var(--panel-width))
 /** Hysteresis thresholds for closing the panel.
@@ -38,6 +39,11 @@ const KEEP_OPEN_PX = PANEL_WIDE - 15  // 255 — clearly inside blade
 const START_CLOSE_PX = PANEL_WIDE + 20 // 290 — 20px buffer outside the visual boundary
 const BUFFER_PX = 30                 // 30px overshoot buffer across adjacent monitors
 const PREVIEW_WIDE = 740             // Extended width when preview flyout is active
+
+/** Total dwell before a hover opens the shelf: base + the user's Open Delay setting. */
+function dwellMsFor(state: { settings: { hoverOpenDelay?: number } }): number {
+  return DWELL_MS + normalizeHoverOpenDelay(state.settings.hoverOpenDelay)
+}
 
 export const PANEL_LEAVE_EVENT = 'panel:leave'
 export const PANEL_ENTER_EVENT = 'panel:enter'
@@ -465,7 +471,7 @@ export function useEdgeHover(): void {
               dwellTimer = window.setTimeout(() => {
                 dwellTimer = undefined
                 openPanel()
-              }, DWELL_MS)
+              }, dwellMsFor(state))
             }
             return
           }
@@ -533,7 +539,7 @@ export function useEdgeHover(): void {
               dwellTimer = window.setTimeout(() => {
                 dwellTimer = undefined
                 openPanel()
-              }, DWELL_MS)
+              }, dwellMsFor(state))
             }
             return
           }
@@ -595,7 +601,7 @@ export function useEdgeHover(): void {
               dwellTimer = window.setTimeout(() => {
                 dwellTimer = undefined
                 openPanel()
-              }, DWELL_MS)
+              }, dwellMsFor(state))
             }
             return
           }

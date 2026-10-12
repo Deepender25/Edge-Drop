@@ -1893,6 +1893,11 @@
   width: 240px;
 }
 
+/* Measured: 310px keeps the longest translations (ro) inside the 146px card. */
+.settings-shelf-card.hover-delay-card {
+  width: 310px;
+}
+
 .settings-shelf-card.fullscreen-card {
   width: 250px;
 }

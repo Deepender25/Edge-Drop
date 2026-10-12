@@ -11,6 +11,21 @@
 /** Maximum number of sub-items that may live in a single stack/bundle. */
 export const MAX_STACK = 10
 
+/**
+ * Hover open-delay slider bounds (ms). 0 keeps today's behaviour; ~1s is the
+ * point where a hover response stops feeling connected to the gesture.
+ */
+export const HOVER_OPEN_DELAY_MIN = 0
+export const HOVER_OPEN_DELAY_MAX = 1000
+export const HOVER_OPEN_DELAY_STEP = 50
+
+/** Clamp and snap a stored delay to the slider grid; anything invalid becomes 0. */
+export function normalizeHoverOpenDelay(value: unknown): number {
+  const n = typeof value === 'number' && Number.isFinite(value) ? value : 0
+  const snapped = Math.round(n / HOVER_OPEN_DELAY_STEP) * HOVER_OPEN_DELAY_STEP
+  return Math.min(HOVER_OPEN_DELAY_MAX, Math.max(HOVER_OPEN_DELAY_MIN, snapped))
+}
+
 /** Update behavior mode. See Settings.updateMode. */
 export type UpdateMode = 'auto' | 'notify' | 'off'
 
@@ -195,6 +210,12 @@ export interface Settings {
   lastSeenChangelogVersion?: string
   /** When true, hovering cursor near edge activates the panel. When false, panel opens exclusively via Alt + C. Default: true. */
   hoverActivation?: boolean
+  /**
+   * Extra wait (ms) at the edge before a hover opens the shelf, on top of the
+   * built-in 40ms dwell. Hover only — hotkey/tray stay instant.
+   * Range HOVER_OPEN_DELAY_MIN..MAX in HOVER_OPEN_DELAY_STEP steps. Default: 0.
+   */
+  hoverOpenDelay?: number
   /** Font size scale multiplier (0.85 = Small, 1.00 = Normal, 1.15 = Large). Default: 1.0. */
   fontSizeScale?: number
   /** When true, automatically checks for and downloads app updates in background. Default: true. Legacy: kept in sync from updateMode for downgrade safety. */
@@ -244,6 +265,7 @@ export const DEFAULT_SETTINGS: Settings = {
   soundEffects: true,
   lastSeenChangelogVersion: undefined,
   hoverActivation: true,
+  hoverOpenDelay: 0,
   fontSizeScale: 1.0,
   autoUpdates: true,
   updateMode: 'auto',
