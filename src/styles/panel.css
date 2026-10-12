@@ -167,6 +167,34 @@
   display: block;
 }
 
+/* Content veil. The blade is pure black, so fading a black layer away over
+   the content looks exactly like fading the content in, without lifting the
+   whole content tree into its own layer. Open: the shape leads and the
+   content follows 50ms behind it. Close: the content dims first, then the
+   shape draws back into the edge bar. background-color (not opacity) was
+   measured to keep CPU and memory at or below the old reveal. Once the close
+   has finished (300ms) the veil is hidden, so the resting edge bar is drawn
+   exactly as before; on open it is visible again from the first frame. */
+.blade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 400; /* above every layer inside the blade (ClearMenu menu is 350) */
+  pointer-events: none;
+  background-color: rgba(0, 0, 0, 1);
+  visibility: hidden;
+  transition: background-color 120ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 300ms;
+}
+.blade-container.is-open .blade::after {
+  background-color: rgba(0, 0, 0, 0);
+  visibility: visible;
+  transition: background-color 240ms cubic-bezier(0.2, 0, 0, 1) 50ms, visibility 0s linear 0s;
+}
+.blade-container.reduce-motion .blade::after {
+  transition-duration: 0.01s;
+  transition-delay: 0s;
+}
+
 
 
 /* Header */

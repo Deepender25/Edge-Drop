@@ -1,11 +1,11 @@
 /**
- * Panel — the blade that grows out of the left edge.
+ * Panel — the blade that grows out of the screen edge.
  *
- * Motion: when `open` flips true the blade slides in from x = -100% (fully off
- * the left edge) to x = 0 with a spring, and its opacity/blur animate together
- * for the "extending from the screen" feel. A faint ambient glow leads the
- * edge. When closed, the whole blade sits off-screen so the window stays
- * transparent and click-through.
+ * Motion: when closed, a clip-path leaves only the thin edge bar visible.
+ * When `open` flips true the clip springs out to the full blade, growing
+ * outward and along the edge together, while a black veil over the content
+ * fades away just behind it (see `.blade::after` in panel.css). Closing runs
+ * the reverse: the content dims first and the shape draws back into the bar.
  */
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState, useMemo } from 'react'
@@ -25,6 +25,19 @@ import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 
 import { useTranslation } from '../i18n'
+
+// Shelf open/close motion: real damped springs written out as CSS linear()
+// easings, so the browser runs them with no per-frame JS.
+// - Open: response 0.38s, damping 0.86, launched with a little initial
+//   velocity so the very first frame already moves. It is cut where the
+//   spring first reaches its target; the overshoot after that point would sit
+//   outside the blade and be clipped away, so it would only cost frames.
+// - Close: critically damped (no bounce), response 0.24s, cut once less than
+//   a pixel of travel is left. Dismissal is quicker than presentation.
+const SHELF_OPEN_MOTION =
+  'clip-path 285ms linear(0, 0.055 3.5%, 0.149 8.5%, 0.414 21.8%, 0.524 27.8%, 0.614 33.3%, 0.693 38.8%, 0.759 44.3%, 0.817 50%, 0.866 56%, 0.907 62.5%, 0.941 69.8%, 0.969 78.3%, 0.989 88.5%, 1)'
+const SHELF_CLOSE_MOTION =
+  'clip-path 289ms linear(0, 0.021 1.8%, 0.058 3.8%, 0.116 6.3%, 0.23 10.5%, 0.402 16.8%, 0.503 20.8%, 0.586 24.5%, 0.659 28.2%, 0.725 32.3%, 0.782 36.5%, 0.832 41%, 0.874 46%, 0.911 51.7%, 0.941 58.5%, 0.965 66.8%, 0.982 77.5%, 0.994 93.8%, 1)'
 
 export function Panel() {
   const open = useStore((s) => s.open)
@@ -242,18 +255,19 @@ export function Panel() {
   if (isTransitioning) containerClass += ' is-transitioning'
 
   const reduceMotion = !!settings.reduceMotion
-  // Single Apple-like reveal curve (no overshoot branch — bounce was dead
-  // code with no UI surface; the expo ease settles without ringing).
+  if (reduceMotion) containerClass += ' reduce-motion'
+  // The transition is read from the new style, so picking it by the target
+  // state gives the open spring on open and the close spring on close.
   const clipTransition = reduceMotion
     ? 'clip-path 0.01s linear'
-    : 'clip-path 0.32s cubic-bezier(0.22, 1, 0.36, 1)'
+    : isVisuallyOpen ? SHELF_OPEN_MOTION : SHELF_CLOSE_MOTION
 
   let currentTransition = clipTransition
   let currentOpacity = 1
 
   if (isTransitioning && !reduceMotion) {
     if (edgeTransition.stage === 'retracting') {
-      currentTransition = 'clip-path 0.26s cubic-bezier(0.22, 1, 0.36, 1)'
+      currentTransition = SHELF_CLOSE_MOTION
       currentOpacity = 1
     } else if (edgeTransition.stage === 'bar_fade_out') {
       currentTransition = 'opacity 0.10s ease-out'
@@ -262,7 +276,7 @@ export function Panel() {
       currentTransition = 'opacity 0.12s ease-out'
       currentOpacity = 1
     } else if (edgeTransition.stage === 'expanding') {
-      currentTransition = 'clip-path 0.30s cubic-bezier(0.16, 1, 0.3, 1)'
+      currentTransition = SHELF_OPEN_MOTION
       currentOpacity = 1
     }
   }
@@ -323,19 +337,24 @@ export function Panel() {
 
   // Set clipPath via style (not animate) to avoid Framer Motion's broken
   // calc() interpolation — CSS transitions handle it correctly.
+  // The open clip is the blade's own box plus the 30px reverse-curve flares,
+  // nothing more (flyouts are portaled to <body>, and the blade clips its
+  // own overflow). With no spare margin the shape grows outward and along
+  // the edge together, instead of the outward edge snapping across in the
+  // first frames. Every dock keeps the same 24px corners while it grows.
   let clipPath: string
   const hotWidth = settings.hotZoneWidth || 3
   if (isRight) {
     clipPath = isVisuallyOpen
-      ? 'inset(calc(0% - 100px) 0px calc(0% - 100px) calc(0% - 800px) round 24px 0px 0px 24px)'
+      ? 'inset(-30px 0px -30px 0px round 24px 0px 0px 24px)'
       : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round 24px 0px 0px 24px)`
   } else if (isTop) {
     clipPath = isVisuallyOpen
-      ? 'inset(0px calc(0% - 100px) calc(0% - 600px) calc(0% - 100px) round 0px 0px 24px 24px)'
-      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 999px 999px)`
+      ? 'inset(0px -30px 0px -30px round 0px 0px 24px 24px)'
+      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 24px 24px)`
   } else {
     clipPath = isVisuallyOpen
-      ? 'inset(calc(0% - 100px) calc(0% - 800px) calc(0% - 100px) 0px round 0px 24px 24px 0px)'
+      ? 'inset(-30px 0px -30px 0px round 0px 24px 24px 0px)'
       : `inset(${insetTop} calc(100% - ${hotWidth}px) ${insetBottom} 0px round 0px 24px 24px 0px)`
   }
   containerStyle.clipPath = clipPath
