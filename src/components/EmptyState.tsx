@@ -18,7 +18,9 @@ export function EmptyState({ filtered }: { filtered: boolean }) {
             ? 'emptyState.images'
             : typeFilter === 'colors'
               ? 'filters.colors'
-              : 'emptyState.files'
+              : typeFilter === 'accounts'
+                ? 'filters.accounts'
+                : 'emptyState.files'
     const label = (t(labelKey) || 'colors').toLowerCase()
     title = t('emptyState.noClipsFound', { type: label })
     hint = t('emptyState.copyTypeHint', { type: label })

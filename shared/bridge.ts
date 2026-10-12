@@ -30,6 +30,9 @@ export interface EdgeApi {
   removeSubitem: (req: DragRequest) => Promise<boolean>
   copyItem: (id: string) => Promise<boolean>
   copySubitem: (req: DragRequest) => Promise<boolean>
+  setItemPass: (id: string, pass: string | null) => Promise<import('./types').ClipboardItemDto[]>
+  copyPass: (id: string) => Promise<boolean>
+  setAccount: (id: string, val: boolean | null) => Promise<import('./types').ClipboardItemDto[]>
   pasteItem: (id: string) => Promise<boolean>
   pasteSubitem: (req: DragRequest) => Promise<boolean>
   pasteEmoji: (text: string) => Promise<boolean>

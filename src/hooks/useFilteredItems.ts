@@ -9,6 +9,7 @@ import { useStore } from '../store/appStore'
 import type { ClipboardItemDto, TypeFilter } from '../../shared/types'
 import { basename, isImagePath } from '../lib/format'
 import { parseColor } from '../lib/colorUtils'
+import { isCredentialText } from '../lib/credentialText'
 
 function matches(it: ClipboardItemDto, q: string): boolean {
   if (!q) return true
@@ -53,7 +54,20 @@ export function itemMatchesTypeFilter(it: ClipboardItemDto, filter: TypeFilter):
       return it.data.kind === 'files' && !isImageOnlyFileItem(it)
     case 'colors':
       return it.data.kind === 'text' && (!!it.data.isColor || !!parseColor(it.data.text))
+    case 'accounts':
+      return isAccountItem(it)
   }
+}
+
+/**
+ * Accounts membership: a manual `accountOverride` always wins (the move
+ * button), otherwise fall back to credential-pattern detection.
+ */
+export function isAccountItem(it: ClipboardItemDto): boolean {
+  if (it.data.kind !== 'text') return false
+  return typeof it.data.accountOverride === 'boolean'
+    ? it.data.accountOverride
+    : isCredentialText(it.data.text)
 }
 
 export interface GroupedItems {

@@ -25,11 +25,14 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon, LockIcon, MoveAccountIcon, CheckIcon } from './icons'
 import { LinkPreviewCard } from './LinkPreviewCard'
 import '../styles/item.css'
 import { tryPaste } from '../lib/tryPaste'
 import { parseColor } from '../lib/colorUtils'
+import { isAccountItem } from '../hooks/useFilteredItems'
+import { edge } from '../lib/edge'
+import { noteSearchEngaged } from '../lib/searchFocus'
 import { useTranslation, t } from '../i18n'
 import { useRelativeTimeTick } from '../hooks/useRelativeTimeTick'
 
@@ -69,6 +72,61 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const settings = useStore((s) => s.settings)
   const isHorizontal = settings.stickPosition === 'top'
   const colorInfo = item.data.kind === 'text' ? parseColor(item.data.text) : null
+
+  /* ── Accounts: membership, per-item password, copy chooser ───────────── */
+  const isAccount = item.data.kind === 'text' && isAccountItem(item)
+  const accPass = item.data.kind === 'text' ? item.data.accountPass ?? '' : ''
+  const [accOpen, setAccOpen] = useState(false)
+  const [accMenu, setAccMenu] = useState(false)
+  const [passDraft, setPassDraft] = useState(accPass)
+  const passRef = useRef<HTMLInputElement>(null)
+  const accEngagedRef = useRef(false)
+  const panelOpen = useStore((s) => s.open)
+
+  // Typing a password needs OS keyboard focus, which the shelf window
+  // normally never takes — same engage/disengage contract as ShelfSearch.
+  const engageAcc = useCallback(() => {
+    if (accEngagedRef.current) return
+    accEngagedRef.current = true
+    noteSearchEngaged(true)
+    try { window.focus() } catch { /* ignore */ }
+    try {
+      const p = edge.focusWindow(true) as unknown as Promise<void> | undefined
+      if (p && typeof p.then === 'function') {
+        p.then(() => { try { passRef.current?.focus() } catch { /* ignore */ } }).catch(() => {})
+      } else {
+        try { passRef.current?.focus() } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+    try { void edge.pauseHotkey(true)?.catch?.(() => {}) } catch { /* ignore */ }
+  }, [])
+
+  const disengageAcc = useCallback(() => {
+    if (!accEngagedRef.current) return
+    accEngagedRef.current = false
+    noteSearchEngaged(false)
+    try { void edge.focusWindow(false)?.catch?.(() => {}) } catch { /* ignore */ }
+    try { void edge.pauseHotkey(false)?.catch?.(() => {}) } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => {
+    if (!accOpen) disengageAcc()
+  }, [accOpen, disengageAcc])
+
+  // The card can vanish without a blur (panel closed, filter switched):
+  // always hand focusability + hotkey back on unmount.
+  useEffect(() => () => { disengageAcc() }, [disengageAcc])
+
+  useEffect(() => {
+    if (!panelOpen) {
+      setAccOpen(false)
+      setAccMenu(false)
+    }
+  }, [panelOpen])
+
+  const savePass = useCallback((val: string) => {
+    useStore.getState().setItemPass(item.id, val.trim() ? val.trim() : null)
+  }, [item.id])
 
   // Accordion expansion: ONE stack open at a time, coordinated store-wide
   // (expanding another stack collapses this one; Escape / outside click /
@@ -125,10 +183,16 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const onCopy = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     playButtonClickSound()
+    // Account cards never copy blindly: pick WHAT to copy first, so a
+    // stored secret can't end up on the clipboard by an accidental click.
+    if (isAccount) {
+      setAccMenu((v) => !v)
+      return
+    }
     copy(item.id)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 900)
-  }, [copy, item.id])
+  }, [copy, item.id, isAccount])
 
   const onPaste = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
@@ -323,6 +387,90 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
               <Preview item={item} />
             )}
           </div>
+          {isAccount && accMenu && (
+            <div className="account-chooser" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="account-choice"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  playButtonClickSound()
+                  copy(item.id)
+                  setAccMenu(false)
+                  setCopied(true)
+                  window.setTimeout(() => setCopied(false), 900)
+                }}
+              >
+                <CopyIcon width={11} height={11} /> {t('item.copyEmail')}
+              </button>
+              <button
+                className="account-choice"
+                disabled={!accPass}
+                title={!accPass ? t('item.passNoneHint') : undefined}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  playButtonClickSound()
+                  useStore.getState().copyPass(item.id)
+                  setAccMenu(false)
+                  setCopied(true)
+                  window.setTimeout(() => setCopied(false), 900)
+                }}
+              >
+                <LockIcon width={11} height={11} /> {t('item.copyPassword')}
+              </button>
+            </div>
+          )}
+          {isAccount && accOpen && (
+            <div className="account-pass" onClick={(e) => e.stopPropagation()}>
+              <LockIcon className="account-pass-icon" width={12} height={12} />
+              <input
+                ref={passRef}
+                type="password"
+                className="account-pass-input"
+                placeholder={t('item.passPlaceholder')}
+                value={passDraft}
+                onChange={(e) => setPassDraft(e.target.value)}
+                onPointerDown={engageAcc}
+                onFocus={engageAcc}
+                onBlur={disengageAcc}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.stopPropagation()
+                    savePass(passDraft)
+                    passRef.current?.blur()
+                    setAccOpen(false)
+                  } else if (e.key === 'Escape') {
+                    e.stopPropagation()
+                    setAccOpen(false)
+                  }
+                }}
+                spellCheck={false}
+                autoComplete="off"
+              />
+              <button
+                className="account-pass-btn"
+                title={t('item.passSave')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  savePass(passDraft)
+                }}
+              >
+                <CheckIcon width={12} height={12} />
+              </button>
+              {accPass && (
+                <button
+                  className="account-pass-btn"
+                  title={t('item.passClear')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setPassDraft('')
+                    useStore.getState().setItemPass(item.id, null)
+                  }}
+                >
+                  <TrashIcon width={12} height={12} />
+                </button>
+              )}
+            </div>
+          )}
           {(!isBundle || !expanded) && (
             <div className="item-footer">
               <div className="meta">
@@ -388,6 +536,37 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
           >
             <CopyIcon />
           </button>
+          {item.data.kind === 'text' && (
+            <button
+              className={`act${isAccount ? ' active' : ''}`}
+              title={isAccount ? t('item.removeFromAccounts') : t('item.moveToAccounts')}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                e.currentTarget.blur()
+                playToggleSound(!isAccount)
+                useStore.getState().setAccount(item.id, !isAccount)
+              }}
+            >
+              <MoveAccountIcon />
+            </button>
+          )}
+          {isAccount && (
+            <button
+              className={`act${accOpen ? ' active' : ''}`}
+              title={t('item.password')}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                e.currentTarget.blur()
+                playCardExpandSound(!accOpen)
+                if (!accOpen) setPassDraft(accPass)
+                setAccOpen((v) => !v)
+              }}
+            >
+              <LockIcon />
+            </button>
+          )}
           {item.data.kind === 'text' && item.data.isUrl && (
             <button
               className="act"

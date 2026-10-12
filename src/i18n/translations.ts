@@ -6,6 +6,7 @@ export interface TranslationKeys {
     images: string
     files: string
     colors?: string
+    accounts?: string
     title?: string
   }
   tabs: {
@@ -147,6 +148,15 @@ export interface TranslationKeys {
   }
   item: {
     copy: string
+    moveToAccounts?: string
+    removeFromAccounts?: string
+    password?: string
+    copyEmail?: string
+    copyPassword?: string
+    passPlaceholder?: string
+    passSave?: string
+    passClear?: string
+    passNoneHint?: string
     copied?: string
     copiedTimes?: string
     imagePlaceholder?: string
@@ -550,6 +560,7 @@ export const en: TranslationKeys = {
     "images": "Images",
     "files": "Files",
     "colors": "Colors",
+    "accounts": "Accounts",
     "title": "Filters"
   },
   "tabs": {
@@ -690,6 +701,15 @@ export const en: TranslationKeys = {
   },
   "item": {
     "copy": "Copy",
+    "moveToAccounts": "Move to Accounts",
+    "removeFromAccounts": "Remove from Accounts",
+    "password": "Password",
+    "copyEmail": "Copy account",
+    "copyPassword": "Copy password",
+    "passPlaceholder": "Type a password...",
+    "passSave": "Save password",
+    "passClear": "Remove password",
+    "passNoneHint": "No password saved yet — open the lock to add one",
     "copied": "copied",
     "copiedTimes": "Copied {count} times",
     "imagePlaceholder": "image",
@@ -7946,6 +7966,7 @@ export const id: TranslationKeys = {
   "filters": {
     "title": "Filter",
     "colors": "Warna",
+    "accounts": "Akun",
     "all": "Semua",
     "text": "Teks",
     "links": "Tautan",
@@ -8091,6 +8112,15 @@ export const id: TranslationKeys = {
   "item": {
     "copiedTimes": "Disalin {count} kali",
     "copy": "Salin",
+    "moveToAccounts": "Pindahkan ke Akun",
+    "removeFromAccounts": "Keluarkan dari Akun",
+    "password": "Password",
+    "copyEmail": "Salin akun",
+    "copyPassword": "Salin password",
+    "passPlaceholder": "Ketik password...",
+    "passSave": "Simpan password",
+    "passClear": "Hapus password",
+    "passNoneHint": "Belum ada password tersimpan — buka ikon gembok untuk menambah",
     "copied": "disalin",
     "imagePlaceholder": "gambar",
     "pinned": "DISEMATKAN",

@@ -92,4 +92,27 @@ describe('type filters: image files live in Images only', () => {
     expect(itemMatchesTypeFilter(colorHex, 'all')).toBe(true)
     expect(itemMatchesTypeFilter(colorRgb, 'all')).toBe(true)
   })
+
+  it('accounts: auto-detects credentials and respects the manual override', () => {
+    const email = dto({ kind: 'text', text: 'budi@example.com', isUrl: false })
+    const credBlock = dto({ kind: 'text', text: 'username: demo\npassword: ********', isUrl: false })
+    const note = dto({ kind: 'text', text: 'just normal notes', isUrl: false })
+
+    expect(itemMatchesTypeFilter(email, 'accounts')).toBe(true)
+    expect(itemMatchesTypeFilter(credBlock, 'accounts')).toBe(true)
+    expect(itemMatchesTypeFilter(note, 'accounts')).toBe(false)
+    expect(itemMatchesTypeFilter(screenshot, 'accounts')).toBe(false)
+    expect(itemMatchesTypeFilter(pngFile, 'accounts')).toBe(false)
+
+    // Manual move-in wins over detection...
+    const forced = dto({ kind: 'text', text: 'otp-key-2026', isUrl: false, accountOverride: true })
+    expect(itemMatchesTypeFilter(forced, 'accounts')).toBe(true)
+    // ...and manual move-out hides an auto-detected account
+    const unfollowed = dto({ kind: 'text', text: 'budi@example.com', isUrl: false, accountOverride: false })
+    expect(itemMatchesTypeFilter(unfollowed, 'accounts')).toBe(false)
+
+    // A stored password does not change membership by itself
+    const withPass = dto({ kind: 'text', text: 'just normal notes', isUrl: false, accountPass: '********' })
+    expect(itemMatchesTypeFilter(withPass, 'accounts')).toBe(false)
+  })
 })

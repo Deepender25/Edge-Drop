@@ -40,6 +40,15 @@ export interface InvokeMap {
   /** Copy an item back onto the system clipboard. */
   'item:copy': { args: [id: string]; result: boolean }
 
+  /** Attach/update an account password on a text item (null clears it). */
+  'item:set-pass': { args: [id: string, pass: string | null]; result: ClipboardItemDto[] }
+
+  /** Copy an item's stored account password onto the system clipboard. */
+  'item:copy-pass': { args: [id: string]; result: boolean }
+
+  /** Manually force an item in/out of the Accounts category (null clears the override). */
+  'item:set-account': { args: [id: string, val: boolean | null]; result: ClipboardItemDto[] }
+
   /** Copy a single sub-item (one file of a bundle, or one image of a
    *  collection) onto the system clipboard. */
   'item:copy-subitem': { args: [req: DragRequest]; result: boolean }

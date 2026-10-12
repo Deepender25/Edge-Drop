@@ -48,14 +48,14 @@ export type ClipboardImageFields = {
 
 /** Discriminated union describing the payload of a clipboard item. */
 export type ItemData =
-  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string }
+  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string; accountPass?: string; accountOverride?: boolean }
   | ({ kind: 'image' } & ClipboardImageFields)
   | { kind: 'image-collection'; images: ClipboardImageFields[] }
   | { kind: 'files'; paths: string[]; entries?: FileEntry[] }
 
 export type ItemKind = ItemData['kind']
 
-export type TypeFilter = 'all' | 'text' | 'links' | 'images' | 'files' | 'colors'
+export type TypeFilter = 'all' | 'text' | 'links' | 'images' | 'files' | 'colors' | 'accounts'
 
 /**
  * A single clipboard entry. `id` is stable across the lifetime of the entry;
@@ -90,7 +90,7 @@ export interface FileEntry {
 /** Payload sent over IPC: same as ClipboardItem but with inline image previews. */
 export interface ClipboardItemDto extends Omit<ClipboardItem, 'data'> {
   data:
-  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string }
+  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string; accountPass?: string; accountOverride?: boolean }
   | ({ kind: 'image'; preview: string } & ClipboardImageFields)
   | { kind: 'image-collection'; images: Array<ClipboardImageFields & { preview: string }> }
   | { kind: 'files'; paths: string[]; previews?: string[]; entries?: FileEntry[] }

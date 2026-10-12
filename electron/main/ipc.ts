@@ -337,6 +337,37 @@ export function registerIpc(): void {
     return true
   })
 
+  handle('item:set-pass', (id, pass) => {
+    getStore().setItemPass(id, pass)
+    pushState.items()
+    return getStore().toDto()
+  })
+
+  handle('item:set-account', (id, val) => {
+    getStore().setAccountOverride(id, val)
+    pushState.items()
+    return getStore().toDto()
+  })
+
+  handle('item:copy-pass', (id) => {
+    const item = getStore().get(id)
+    const pass = item && item.data.kind === 'text' ? item.data.accountPass : undefined
+    if (!pass) return false
+    // Same guarded-write contract as item:copy: pause the watcher so our own
+    // write is never re-captured as a fresh history entry.
+    const watcher = getWatcher()
+    watcher.setPaused(true)
+    clipboard.writeText(pass)
+    if (getStore().get(id)) {
+      getStore().touch(id)
+      pushState.items({ reason: 'usage' })
+    }
+    setTimeout(() => {
+      watcher.setPaused(loadSettings().incognito)
+    }, 200)
+    return true
+  })
+
   handle('item:copy-subitem', async (req) => {
     // Resolve a single sub-item (one file of a bundle, or one image of a
     // collection) and write just that onto the clipboard — not the whole item.

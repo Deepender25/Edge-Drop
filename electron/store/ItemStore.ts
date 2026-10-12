@@ -306,6 +306,32 @@ export class ItemStore {
     this.persist()
   }
 
+  /** Attach or clear the account password on a text item. Returns false when the item can't hold one. */
+  setItemPass(id: string, pass: string | null): boolean {
+    const it = this.items.find((x) => x.id === id)
+    if (!it || it.data.kind !== 'text') return false
+    const trimmed = pass === null ? '' : pass.trim().slice(0, 512)
+    if (trimmed) {
+      it.data.accountPass = trimmed
+      // A secret belongs to something the user intends to keep.
+      it.pinned = true
+    } else {
+      delete it.data.accountPass
+    }
+    this.persist()
+    return true
+  }
+
+  /** Force an item in/out of the Accounts category; null removes the manual override. */
+  setAccountOverride(id: string, val: boolean | null): boolean {
+    const it = this.items.find((x) => x.id === id)
+    if (!it || it.data.kind !== 'text') return false
+    if (val === null) delete it.data.accountOverride
+    else it.data.accountOverride = val
+    this.persist()
+    return true
+  }
+
   delete(id: string): void {
     const idx = this.items.findIndex((x) => x.id === id)
     if (idx < 0) return
@@ -809,7 +835,9 @@ export class ItemStore {
             isUrl: d.isUrl,
             isColor: d.isColor,
             hasFullPayload: d.hasFullPayload,
-            previewText: d.previewText
+            previewText: d.previewText,
+            accountPass: d.accountPass,
+            accountOverride: d.accountOverride
           }
         }
       }

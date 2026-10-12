@@ -160,6 +160,9 @@ interface AppState {
   clear: (ids?: string[]) => Promise<void>
   copy: (id: string) => Promise<void>
   copySubitem: (req: DragRequest) => Promise<void>
+  setItemPass: (id: string, pass: string | null) => Promise<void>
+  setAccount: (id: string, val: boolean) => Promise<void>
+  copyPass: (id: string) => Promise<void>
   paste: (id: string) => Promise<void>
   pasteSubitem: (req: DragRequest) => Promise<void>
   pasteEmoji: (text: string) => Promise<void>
@@ -596,6 +599,28 @@ export const useStore = create<AppState>((set, get) => ({
     set({ isInternalCopying: true })
     try {
       await edge.copySubitem(req)
+    } finally {
+      setTimeout(() => set({ isInternalCopying: false }), 400)
+    }
+  },
+
+  async setItemPass(id, pass) {
+    // Apply the returned list directly: the setItems() dedupe only compares
+    // id/pinned/hitCount/timestamp, so a pure password change would be
+    // discarded as "unchanged".
+    const items = await edge.setItemPass(id, pass)
+    set({ items })
+  },
+
+  async setAccount(id, val) {
+    const items = await edge.setAccount(id, val)
+    set({ items })
+  },
+
+  async copyPass(id) {
+    set({ isInternalCopying: true })
+    try {
+      await edge.copyPass(id)
     } finally {
       setTimeout(() => set({ isInternalCopying: false }), 400)
     }

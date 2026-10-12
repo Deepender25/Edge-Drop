@@ -1752,3 +1752,87 @@
 }
 
 
+
+/* ── Accounts category: in-flow copy chooser + password form ───────────
+   The panel window is tiny and transparent: anything position:fixed
+   outside the card bounds is clipped by the window, so both bars live
+   IN the card body. */
+.account-chooser {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px 0 12px;
+}
+
+.account-choice {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.account-choice:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.account-choice:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.account-pass {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 0 12px;
+}
+
+.account-pass-icon {
+  color: rgba(255, 255, 255, 0.55);
+  flex-shrink: 0;
+}
+
+.account-pass-input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  padding: 0 8px;
+  outline: none;
+}
+
+.account-pass-input:focus {
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.account-pass-btn {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.account-pass-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}

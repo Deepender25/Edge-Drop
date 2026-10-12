@@ -46,7 +46,11 @@ import {
   Lightbulb,
   Shapes,
   Flag,
-  Palette
+  Palette,
+  Lock,
+  ArrowLeftRight,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 
 type P = SVGProps<SVGSVGElement>
@@ -144,6 +148,10 @@ export const RecentIcon = ClockIcon
 export const TypeIcon = uiIcon(Type)
 export const FilesIcon = uiIcon(Files)
 export const PaletteIcon = uiIcon(Palette)
+export const LockIcon = uiIcon(Lock)
+export const MoveAccountIcon = uiIcon(ArrowLeftRight)
+export const EyeIcon = uiIcon(Eye)
+export const EyeOffIcon = uiIcon(EyeOff)
 
 export const EmojiSmileIcon = uiIcon(Smile, 18)
 export const EmojiClockIcon = (p: P) => <ClockIcon width={p.width ?? 18} height={p.height ?? 18} {...(p as any)} />
