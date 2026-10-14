@@ -370,11 +370,10 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                   bottom: 12,
                   left: 12,
                   right: 12,
-                  background: 'rgba(16, 16, 20, 0.92)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.75)',
-                  borderRadius: 12,
-                  padding: '7px 10px',
+                  background: 'var(--act-surface)',
+                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6)',
+                  borderRadius: 999,
+                  padding: '4px 4px 4px 6px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -382,126 +381,44 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.16)',
-                    color: '#ffffff',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    padding: '3px 10px',
-                    borderRadius: 999,
-                    fontFamily: CODE_FONT,
-                    letterSpacing: '0.02em',
-                    whiteSpace: 'nowrap'
-                  }}>
+                  <div className="flyout-chip">
                     {t('flyout.selectedCount').replace('{count}', String(selectedKeys.size))}
                   </div>
-                  <button
-                    onClick={handleSelectAllToggle}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'rgba(255, 255, 255, 0.65)',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      padding: '2px 4px',
-                      fontFamily: SYS_FONT,
-                      transition: 'color 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#ffffff')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)')}
-                  >
+                  <button type="button" className="flyout-text-btn" onClick={handleSelectAllToggle}>
                     {selectedKeys.size === allItemKeys.length ? t('flyout.deselectAll') : t('flyout.selectAll')}
                   </button>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <button
+                    type="button"
+                    className="flyout-btn"
                     title={t('flyout.copySelected')}
                     onClick={handleBatchCopy}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      height: 28,
-                      background: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: 'rgba(255, 255, 255, 0.85)',
-                      borderRadius: 8,
-                      padding: '0 10px',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      fontFamily: SYS_FONT,
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)'
-                      e.currentTarget.style.color = '#ffffff'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)'
-                    }}
                   >
                     <CopyIcon width={13} height={13} />
                     <span>{t('item.copy')}</span>
                   </button>
 
                   <button
+                    type="button"
+                    className="flyout-btn primary"
                     title={t('flyout.pasteSelected')}
                     onClick={handleBatchPaste}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      height: 28,
-                      background: '#ffffff',
-                      border: 'none',
-                      color: '#000000',
-                      borderRadius: 8,
-                      padding: '0 12px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontFamily: SYS_FONT,
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
-                      transition: 'all 0.15s ease'
-                    }}
                   >
                     <span>{t('flyout.paste')}</span>
                   </button>
 
                   <button
+                    type="button"
+                    className="act"
                     title={t('flyout.clearSelection')}
                     onClick={() => {
                       playButtonClickSound()
                       setSelectedKeys(new Set())
                     }}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      background: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      borderRadius: 8,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)'
-                      e.currentTarget.style.color = '#ffffff'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
-                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'
-                    }}
                   >
-                    <CloseIcon width={14} height={14} />
+                    <CloseIcon />
                   </button>
                 </div>
               </motion.div>
@@ -529,15 +446,11 @@ function getItemKeys(item: any): string[] {
 function QuickActionButton({
   title,
   icon: Icon,
-  onClick,
-  size = 28,
-  solidDark = false
+  onClick
 }: {
   title: string
   icon: any
   onClick: () => any
-  size?: number
-  solidDark?: boolean
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -550,34 +463,30 @@ function QuickActionButton({
     setTimeout(() => setCopied(false), 1200)
   }
 
-  const iconSize = size <= 26 ? 13 : 15
-
   return (
     <button
-      className={`act${copied ? ' active' : ''}${solidDark ? ' solid-dark' : ''}`}
+      type="button"
+      className={`act${copied ? ' active' : ''}`}
       title={copied ? t('flyout.copied') : title}
       onClick={handleClick}
-      style={{ width: size, height: size }}
     >
-      {copied ? <CheckIcon width={iconSize} height={iconSize} /> : <Icon width={iconSize} height={iconSize} />}
+      {copied ? <CheckIcon /> : <Icon />}
     </button>
   )
 }
 
 function ExplorerButton({
   path,
-  title,
-  size = 28
+  title
 }: {
   path: string
   title?: string
-  size?: number
 }) {
   const { t } = useTranslation()
-  const iconSize = size <= 26 ? 13 : 15
 
   return (
     <button
+      type="button"
       className="act"
       title={title || t('flyout.openInExplorer')}
       onClick={(e) => {
@@ -586,15 +495,13 @@ function ExplorerButton({
         e.currentTarget.blur()
         window.edge.revealFile(path)
       }}
-      style={{ width: size, height: size }}
     >
-      <FolderOpenIcon width={iconSize} height={iconSize} />
+      <FolderOpenIcon />
     </button>
   )
 }
 
 const SYS_FONT = 'var(--font-ui)'
-const CODE_FONT = 'var(--font-ui)'
 
 function SelectionBadge({
   isSelected,
@@ -683,7 +590,7 @@ function PreviewContent({
               <span style={{ fontSize: 11.5, color: 'rgba(255, 255, 255, 0.65)', fontFamily: SYS_FONT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 1 }}>{info.domain}</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="act-pill">
               <QuickActionButton
                 title={t('flyout.openLink')}
                 icon={ExternalLinkIcon}
@@ -734,27 +641,7 @@ function PreviewContent({
               e.stopPropagation()
               window.open(activeText, '_blank')
             }}
-            style={{
-              padding: '10px 12px',
-              background: 'rgba(0, 0, 0, 0.25)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: 10,
-              fontSize: 12,
-              color: 'rgba(255, 255, 255, 0.80)',
-              fontFamily: 'var(--font-ui)',
-              wordBreak: 'break-all',
-              lineHeight: 1.45,
-              cursor: 'pointer',
-              transition: 'background 0.15s ease, border-color 0.15s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.16)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(0, 0, 0, 0.25)'
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'
-            }}
+            className="flyout-url"
           >
             {info.cleanUrl || activeText}
           </div>
@@ -790,11 +677,13 @@ function PreviewContent({
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', position: 'absolute', top: 10, right: 10 }}>
-            <QuickActionButton
+            <div className="act-pill">
+              <QuickActionButton
               title={t('flyout.copyText')}
-              icon={CopyIcon}
-              onClick={() => useStore.getState().copy(item.id)}
-            />
+                icon={CopyIcon}
+                onClick={() => useStore.getState().copy(item.id)}
+              />
+            </div>
           </div>
           <div style={{
             fontFamily: 'var(--font-mono)',
@@ -823,11 +712,13 @@ function PreviewContent({
           style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer', width: '100%' }}
         >
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'sticky', top: 0, zIndex: 2 }}>
-            <QuickActionButton
+            <div className="act-pill">
+              <QuickActionButton
               title={t('flyout.copyText')}
-              icon={CopyIcon}
-              onClick={() => useStore.getState().copy(item.id)}
-            />
+                icon={CopyIcon}
+                onClick={() => useStore.getState().copy(item.id)}
+              />
+            </div>
           </div>
           <CodeBlock
             code={text}
@@ -853,11 +744,13 @@ function PreviewContent({
         style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 10, cursor: 'pointer' }}
       >
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'sticky', top: 0, zIndex: 2 }}>
-          <QuickActionButton
+          <div className="act-pill">
+            <QuickActionButton
             title={t('flyout.copyText')}
-            icon={CopyIcon}
-            onClick={() => useStore.getState().copy(item.id)}
-          />
+              icon={CopyIcon}
+              onClick={() => useStore.getState().copy(item.id)}
+            />
+          </div>
         </div>
         <div style={{
           color: 'rgba(255,255,255,0.88)',
@@ -894,12 +787,13 @@ function PreviewContent({
         style={{ display: 'flex', flexDirection: 'column', gap: 12, position: 'relative', cursor: 'grab' }}
       >
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
-          <QuickActionButton
+          <div className="act-pill">
+            <QuickActionButton
             title={t('flyout.copyImage')}
-            icon={CopyIcon}
-            onClick={() => useStore.getState().copy(item.id)}
-            solidDark={true}
-          />
+              icon={CopyIcon}
+              onClick={() => useStore.getState().copy(item.id)}
+            />
+          </div>
         </div>
         {item.data.imageId && (
           <img src={`edgelocal://${item.data.imageId}`} alt="preview" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: 8 }} draggable={false} />
@@ -1185,12 +1079,10 @@ function PreviewContent({
                       title={t('flyout.copyFile')}
                       icon={CopyIcon}
                       onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
-                      size={26}
                     />
                     <ExplorerButton
                       path={p}
                       title={t('flyout.openInExplorer')}
-                      size={26}
                     />
                   </div>
 
@@ -1261,12 +1153,10 @@ function PreviewContent({
                     title={t('flyout.copyFile')}
                     icon={CopyIcon}
                     onClick={() => useStore.getState().copySubitem({ id: item.id, paths: [p] })}
-                    size={26}
                   />
                   <ExplorerButton
                     path={p}
                     title={t('flyout.openInExplorer')}
-                    size={26}
                   />
                 </div>
 

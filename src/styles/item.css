@@ -227,27 +227,25 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-primary);
+  /* Same surface as the action pills, just bigger: it is a page-level control. */
+  background: var(--act-surface);
+  border: none;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   z-index: 100;
-  transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.12s ease, transform 0.1s ease;
 }
 
 .scroll-top-btn:hover {
-  background: #1c1c1c;
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  background: var(--act-surface-hover);
 }
 
 .scroll-top-btn:active {
-  transform: translateY(1px);
+  transform: scale(0.94);
 }
 
 /* Horizontal Dock Scroll-to-Start Button */
@@ -258,16 +256,6 @@
   top: auto;
   width: 38px;
   height: 38px;
-  background: #121214;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
-.scroll-top-btn.horizontal:hover {
-  background: rgba(28, 28, 32, 0.96);
-  border-color: rgba(255, 255, 255, 0.28);
-  transform: translateX(-2px) scale(1.06);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 .scroll-top-btn.horizontal:active {
@@ -849,28 +837,28 @@
 }
 
 .image-folder-collapse-btn {
-  width: 24px;
-  height: 24px;
+  width: var(--act-size);
+  height: var(--act-size);
   border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #ffffff;
+  background: var(--act-surface);
+  border: none;
+  box-shadow: var(--act-shadow);
+  color: var(--act-ink);
   cursor: pointer;
   padding: 0;
-  transition: background 0.14s ease, transform 0.12s ease;
-}
-
-.list.horizontal .image-folder-collapse-btn {
-  width: 20px;
-  height: 20px;
+  transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
 }
 
 .image-folder-collapse-btn:hover {
-  background: rgba(0, 0, 0, 0.7);
-  transform: scale(1.08);
+  background: var(--act-surface-hover);
+  color: #ffffff;
+}
+
+.image-folder-collapse-btn:active {
+  transform: scale(0.9);
 }
 
 .image-folder-expanded-title {
@@ -889,53 +877,6 @@
 .image-folder-expanded-top-bar .actions-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-}
-
-.list.horizontal .image-folder-expanded-top-bar .actions-pill {
-  height: 20px;
-  padding: 1px 4px;
-  gap: 2px;
-}
-
-.image-folder-expanded-top-bar .actions-pill .act {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-.list.horizontal .image-folder-expanded-top-bar .actions-pill .act {
-  width: 18px;
-  height: 18px;
-}
-
-.image-folder-expanded-top-bar .actions-pill .act:hover {
-  background: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
-}
-
-.image-folder-expanded-top-bar .actions-pill .act.active {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.image-folder-expanded-top-bar .actions-pill .act.danger:hover {
-  background: rgba(239, 68, 68, 0.45);
-  color: #fca5a5;
 }
 
 /* Horizontal Track (Horizontal Dock Mode - Naturally expanded across items) */
@@ -1242,68 +1183,21 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 4px;
-  background: rgba(14, 14, 18, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
   opacity: 0;
   pointer-events: none;
-  transform: scale(0.9) translateY(-1px);
-  transition: opacity 0.14s ease, transform 0.14s ease;
   z-index: 10;
 }
 
 .list.horizontal .mini-image-folder-actions {
-  top: 2px;
-  right: 2px;
-  padding: 1px 2px;
-  gap: 1px;
+  top: 4px;
+  right: 4px;
 }
 
 .mini-image-folder-card:hover .mini-image-folder-actions,
 .mini-image-folder-card:focus-within .mini-image-folder-actions {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1) translateY(0);
-}
-
-.mini-image-folder-actions .act {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-.list.horizontal .mini-image-folder-actions .act {
-  width: 16px;
-  height: 16px;
-}
-
-.list.horizontal .mini-image-folder-actions .act > svg {
-  width: 9px;
-  height: 9px;
-}
-
-.mini-image-folder-actions .act:hover {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-}
-
-.mini-image-folder-actions .act.danger:hover {
-  background: rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  scale: 1;
 }
 
 /* Folder Flap Sleeve - completely borderless */
@@ -1548,18 +1442,8 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  transform: scale(0.96);
-  display: flex;
-  gap: 3px;
-  padding: 3px 5px;
-  background: #141414;
-  border: none;
-  border-radius: 999px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.14s ease, transform 0.14s ease;
-  will-change: opacity, transform;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75);
   z-index: 20;
 }
 
@@ -1568,21 +1452,24 @@
 .item-main.force-actions .actions {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1);
+  scale: 1;
 }
 
 .act {
   position: relative;
-  width: 30px;
-  height: 30px;
+  flex: 0 0 auto;
+  width: var(--act-size);
+  height: var(--act-size);
   display: grid;
   place-items: center;
-  border-radius: 6px; /* Square hit box for 100% full-area click detection */
-  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 6px; /* Square hit box: the whole button area stays clickable */
   background: transparent;
+  color: var(--act-ink);
   cursor: pointer;
   outline: none;
-  border: none;
   transition: color 0.12s ease, transform 0.1s ease;
 }
 
@@ -1590,45 +1477,50 @@
   content: "";
   position: absolute;
   inset: 1px;
-  border-radius: 50%; /* Keeps visual hover highlight perfectly circular */
+  border-radius: 50%; /* The visible highlight is a circle */
   background: transparent;
-  transition: background 0.12s ease;
-  z-index: 0;
+  transition: background-color 0.12s ease;
   pointer-events: none;
 }
 
 .act > svg {
   position: relative;
   z-index: 1;
+  width: var(--act-icon);
+  height: var(--act-icon);
 }
 
 .act:hover {
-  color: #fff;
+  color: #ffffff;
 }
 .act:hover::before {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--act-hover);
 }
 .act:active {
   transform: scale(0.90);
 }
 .act.danger:hover {
-  color: #f87171;
+  color: var(--act-danger);
 }
 .act.danger:hover::before {
-  background: rgba(239, 68, 68, 0.22);
+  background: var(--act-danger-bg);
 }
 .act.active {
-  color: #fff;
+  color: var(--act-on-ink);
 }
 .act.active::before {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--act-on);
+}
+
+.act:focus-visible::before {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
 }
 
 .act-divider {
   width: 1px;
   height: 14px;
-  background: rgba(255, 255, 255, 0.15);
-  margin: 0 2px;
+  background: rgba(255, 255, 255, 0.14);
+  margin: 0 3px;
   align-self: center;
   flex-shrink: 0;
 }
@@ -1653,14 +1545,9 @@
 
 /* In preview mode: keep the pill anchored in top-right corner without spatial jumping or obscuring center content */
 .item-main.previewing .actions {
-  top: 8px;
-  right: 8px;
-  transform: translateY(0) scale(1);
-  padding: 3px 5px;
-  gap: 3px;
   opacity: 1;
   pointer-events: auto;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85);
+  scale: 1;
 }
 
 /* Brief pointer-events freeze on the pill right after preview opens,
@@ -1675,23 +1562,6 @@
 }
 
 /* Contract (close preview) button — accented with a pulsing glow ring */
-.act.preview-contract {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
-  animation: preview-pulse 2s ease-in-out infinite;
-}
-.act.preview-contract:hover {
-  background: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
-  animation: none;
-}
-
-@keyframes preview-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22); }
-  50%       { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1), 0 0 14px rgba(255, 255, 255, 0.08); }
-}
-
 /* ------------------------------------------------------------------ */
 /* Bundle-specific styles                                              */
 /* ------------------------------------------------------------------ */
@@ -1867,17 +1737,9 @@
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  transform-origin: right center;
   opacity: 0;
   pointer-events: none;
-  background: #141418;
-  padding: 3px 4px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  transition: opacity 0.15s ease, transform 0.15s ease;
   z-index: 5;
 }
 
@@ -1885,25 +1747,7 @@
 .fluid-card-row:focus-within .fluid-row-actions {
   opacity: 1;
   pointer-events: auto;
-}
-
-.fluid-row-actions .act {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.fluid-row-actions .act:hover {
-  background: #1c1c1c;
-  color: #ffffff;
+  scale: 1;
 }
 
 /* "N / 10" capacity readout next to the bundle actions pill */
@@ -2061,23 +1905,14 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  display: flex;
-  gap: 2px;
-  padding: 2px 4px;
-  background: rgba(16, 16, 16, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
   opacity: 0;
-  transform: scale(0.94);
   pointer-events: none;
-  transition: opacity 0.14s ease, transform 0.14s ease;
   z-index: 20;
 }
 
 .flyout-subitem:hover .actions {
   opacity: 1;
-  transform: scale(1);
+  scale: 1;
   pointer-events: auto;
 }
 
@@ -2203,12 +2038,6 @@
 
 .actions-pill {
   display: flex;
-  gap: 4px;
-  padding: 3px 4px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  box-shadow: none;
 }
 
 /* Interactive Onboarding Tutorial Banner styling */
@@ -2342,14 +2171,6 @@
 .list.horizontal .actions {
   top: 6px;
   right: 6px;
-  padding: 2px 4px;
-  gap: 2px;
-  background: #121216;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 0, 0, 0.4);
-  border-radius: 999px;
-  transform: scale(0.92) translateY(-2px);
-  transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1), transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .list.horizontal .item-main:hover .actions,
@@ -2357,23 +2178,12 @@
 .list.horizontal .item-main.force-actions .actions {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1) translateY(0);
-}
-
-.list.horizontal .act {
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
-}
-
-.list.horizontal .act > svg {
-  width: 13px;
-  height: 13px;
+  scale: 1;
 }
 
 .list.horizontal .act-divider {
   height: 12px;
-  margin: 0 1px;
+  margin: 0 2px;
 }
 
 .list.horizontal .link-card-top {
@@ -2719,37 +2529,7 @@
 .horizontal-bundle-header .actions-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  box-shadow: none;
   flex-shrink: 0;
-}
-
-.horizontal-bundle-header .actions-pill .act {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 5px;
-  color: rgba(255, 255, 255, 0.82);
-  cursor: pointer;
-  transition: all 0.14s ease;
-}
-
-.horizontal-bundle-header .actions-pill .act:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-}
-
-.horizontal-bundle-header .actions-pill .act.danger:hover {
-  background: rgba(239, 68, 68, 0.25);
-  color: #f87171;
 }
 
 .horizontal-subitem-track {
@@ -2823,18 +2603,8 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
-  background: #141418;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   opacity: 0;
   pointer-events: none;
-  transform: scale(0.9) translateY(-1px);
-  transition: opacity 0.14s cubic-bezier(0.16, 1, 0.3, 1), transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 5;
 }
 
@@ -2842,27 +2612,7 @@
 .horizontal-subitem-tile:focus-within .horizontal-subitem-actions {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1) translateY(0);
-}
-
-.horizontal-subitem-actions .act {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  transition: all 0.12s ease;
-  padding: 0;
-}
-
-.horizontal-subitem-actions .act:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  scale: 1;
 }
 
 /* Icon / Thumbnail Wrap */
@@ -3180,4 +2930,135 @@
   background: linear-gradient(90deg, transparent 0%, #f97316 25%, #ff8a3d 50%, #f97316 75%, transparent 100%);
 }
 
+/* ------------------------------------------------------------------ */
+/* Action pills: one look for every hover / quick-action group        */
+/* (cards, bundles, image tiles, file rows, preview flyout). Each      */
+/* container above only sets where it sits and when it shows.          */
+/* ------------------------------------------------------------------ */
+.actions,
+.actions-pill,
+.act-pill,
+.mini-image-folder-actions,
+.fluid-row-actions,
+.horizontal-subitem-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: var(--act-pad);
+  background: var(--act-surface);
+  border: none;
+  border-radius: 999px;
+  box-shadow: var(--act-shadow);
+}
 
+/* Hover pills grow in from their corner, then shrink back on leave. */
+.actions,
+.mini-image-folder-actions,
+.fluid-row-actions,
+.horizontal-subitem-actions {
+  scale: 0.94;
+  transform-origin: top right;
+  transition:
+    opacity 0.12s ease,
+    scale 0.18s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.fluid-row-actions {
+  transform-origin: right center;
+}
+
+.list.horizontal {
+  --act-size: 22px;
+  --act-icon: 12px;
+}
+
+/* Preview flyout batch bar: capsule buttons on the action surface. */
+.flyout-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.flyout-text-btn {
+  height: 26px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.12s ease;
+}
+.flyout-text-btn:hover {
+  color: #ffffff;
+}
+
+.flyout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+}
+.flyout-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+.flyout-btn:active {
+  transform: scale(0.96);
+}
+.flyout-btn > svg {
+  width: 13px;
+  height: 13px;
+}
+.flyout-btn.primary {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+}
+.flyout-btn.primary:hover {
+  background: #e6e6e6;
+}
+.flyout-btn:focus-visible,
+.flyout-text-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+/* Clickable URL in the link preview: same borderless surface as the batch buttons. */
+.flyout-url {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.45;
+  word-break: break-all;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.flyout-url:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}

@@ -55,4 +55,19 @@
   --panel-width: 270px;
   --gap: 12px;
   --pad: 14px;
+
+  /* Action pills (hover / quick actions on cards, tiles, rows, flyout).
+     One look everywhere; the horizontal dock only shrinks the size. */
+  --act-size: 26px;
+  --act-icon: 14px;
+  --act-pad: 2px;
+  --act-surface: #262626;
+  --act-surface-hover: #333333;
+  --act-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --act-ink: rgba(255, 255, 255, 0.78);
+  --act-hover: rgba(255, 255, 255, 0.12);
+  --act-on: #ffffff;
+  --act-on-ink: #000000;
+  --act-danger: #ff6b6b;
+  --act-danger-bg: rgba(255, 107, 107, 0.16);
 }

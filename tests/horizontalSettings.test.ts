@@ -318,7 +318,7 @@ it('Appearance shelf renders Card 1 Copy Indicator toggle first, then Card 2 Ind
     expect(itemCss).toContain('right: 44px')
     expect(itemCss).toContain('bottom: 16px')
     // Crisp solid fill instead of backdrop blur (4K sharpness, zero raster cost).
-    expect(itemCss).toContain('background: #121214')
+    expect(itemCss).toMatch(/\.scroll-top-btn \{[^}]*background: var\(--act-surface\);/)
     expect(itemCss).not.toContain('backdrop-filter')
   })
 
