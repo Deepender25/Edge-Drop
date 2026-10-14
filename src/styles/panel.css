@@ -1026,16 +1026,116 @@
   }
 }
 
-/* Copy Indicator Sine Curve Morph Styles */
-.copy-curve-container {
+/* Copy indicator: a liquid tab that grows out of the edge bar.
+   .copy-ind is a zero-size anchor on the screen edge at the middle of the
+   bar. The shape is drawn for a left dock; .copy-ind__orient mirrors it for
+   the right dock and turns it for the top. Everything animates with
+   transform/opacity, so the compositor runs it (no per-frame JS). */
+.copy-ind {
+  position: absolute;
+  width: 0;
+  height: 0;
   pointer-events: none;
-  z-index: 100;
+  z-index: 9999;
 }
 
-.copy-indicator-badge {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.25);
-  user-select: none;
-  font-family: inherit;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+.copy-ind__orient {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.copy-ind--right .copy-ind__orient {
+  transform: scaleX(-1);
+}
+.copy-ind--top .copy-ind__orient {
+  transform: rotate(90deg);
+}
+
+/* Rest: squashed into the bar (bar thickness / tab depth) and hidden once
+   the exit has finished. Exit: critically damped spring, no bounce, starts
+   60ms after the icon leaves. */
+.copy-ind__shape {
+  position: absolute;
+  display: block;
+  overflow: visible;
+  transform: scale(var(--copy-tab-start), 0.62);
+  visibility: hidden;
+  transition:
+    transform 289ms linear(0, 0.021 1.8%, 0.058 3.8%, 0.116 6.3%, 0.23 10.5%, 0.402 16.8%, 0.503 20.8%, 0.586 24.5%, 0.659 28.2%, 0.725 32.3%, 0.782 36.5%, 0.832 41%, 0.874 46%, 0.911 51.7%, 0.941 58.5%, 0.965 66.8%, 0.982 77.5%, 0.994 93.8%, 1) 60ms,
+    visibility 0s linear 360ms;
+}
+/* Enter: spring with response 0.40s and damping 0.72, a 3.8% overshoot. */
+.copy-ind.is-on .copy-ind__shape {
+  transform: scale(1, 1);
+  visibility: visible;
+  transition:
+    transform 444ms linear(0, 0.007 1.8%, 0.03 3.8%, 0.071 6%, 0.138 8.8%, 0.246 12.5%, 0.524 21.5%, 0.649 26%, 0.745 30%, 0.826 34%, 0.891 38%, 0.944 42.3%, 0.985 46.8%, 1.014 51.7%, 1.032 57.8%, 1.038 65.5%, 1.026 80%, 1.006 99.8%, 1),
+    visibility 0s;
+}
+
+/* Icon: centred on the tab's flat cap, upright in every dock. */
+.copy-ind__icon {
+  position: absolute;
+  left: 25px;
+  top: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 110ms cubic-bezier(0.4, 0, 1, 1),
+    transform 160ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 160ms;
+}
+.copy-ind--right .copy-ind__icon {
+  left: -25px;
+}
+.copy-ind--top .copy-ind__icon {
+  left: 0;
+  top: 25px;
+}
+/* Pops in once the tab is big enough to hold it (110ms): spring with
+   response 0.34s, damping 0.62. */
+.copy-ind.is-on .copy-ind__icon {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 160ms cubic-bezier(0.2, 0, 0, 1) 110ms,
+    transform 348ms linear(0, 0.008 2%, 0.033 4.3%, 0.078 6.8%, 0.149 9.8%, 0.255 13.5%, 0.58 24%, 0.705 28.5%, 0.802 32.5%, 0.884 36.5%, 0.95 40.5%, 1.001 44.5%, 1.039 48.8%, 1.067 53.5%, 1.081 59%, 1.082 65.8%, 1.061 76.3%, 1.016 95.3%, 1.008 99.8%, 1) 110ms,
+    visibility 0s;
+}
+
+/* Check style: the tick draws itself in once the icon has appeared. */
+.copy-ind .tick-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0s linear 200ms;
+}
+.copy-ind.is-on .tick-draw {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 280ms cubic-bezier(0.22, 1, 0.36, 1) 170ms;
+}
+
+/* Reduce motion: full-size shape and icon simply fade. */
+.copy-ind.is-reduced .copy-ind__shape {
+  transform: none;
+  opacity: 0;
+  transition: opacity 120ms linear, visibility 0s linear 120ms;
+}
+.copy-ind.is-reduced.is-on .copy-ind__shape {
+  opacity: 1;
+  transition: opacity 120ms linear, visibility 0s;
+}
+.copy-ind.is-reduced .copy-ind__icon {
+  transform: translate(-50%, -50%);
+  transition: opacity 120ms linear, visibility 0s linear 120ms;
+}
+.copy-ind.is-reduced.is-on .copy-ind__icon {
+  transform: translate(-50%, -50%);
+  transition: opacity 120ms linear, visibility 0s;
+}
+.copy-ind.is-reduced .tick-draw {
+  stroke-dashoffset: 0;
+  transition: none;
 }
 
