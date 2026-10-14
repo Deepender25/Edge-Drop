@@ -1,0 +1,156 @@
+/* ---- SegmentedControl.css ----
+   Borderless pill track in the same surface colour as the search field,
+   fixed 26px slots, 30px tall (the thumb is a 26px circle). */
+.seg {
+  --seg-slot: 26px;
+  --seg-h: 30px;
+  --seg-pad: 2px;
+  /* Spring: response 0.28s, damping 0.86, ends where it first reaches the slot. */
+  --seg-motion: 228ms linear(0, 0.006 2.3%, 0.026 4.8%, 0.059 7.5%, 0.11 10.8%, 0.195 15.3%, 0.455 28%, 0.561 33.8%, 0.648 39%, 0.722 44.3%, 0.785 49.5%, 0.84 55%, 0.886 61%, 0.925 67.5%, 0.956 74.8%, 0.979 83.3%, 0.995 94%, 1);
+
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--seg-slot);
+  flex-shrink: 0;
+  height: var(--seg-h);
+  padding: var(--seg-pad);
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--bg-card, #141414);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.seg__item {
+  display: grid;
+  place-items: center;
+  width: var(--seg-slot);
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  outline: none;
+  transition: color 140ms ease;
+}
+
+.seg__item[aria-checked='true'] {
+  cursor: default;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .seg__item[aria-checked='false']:hover {
+    color: #ffffff;
+  }
+}
+
+.seg__item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+
+.seg__thumb {
+  position: absolute;
+  top: var(--seg-pad);
+  left: var(--seg-pad);
+  width: var(--seg-slot);
+  height: calc(var(--seg-h) - var(--seg-pad) * 2);
+  border-radius: 999px;
+  background: #ffffff;
+  overflow: hidden;
+  pointer-events: none;
+  /* translate (not transform) so the press scale stays centred on the slot. */
+  translate: calc(var(--i) * var(--seg-slot)) 0;
+  transition:
+    translate var(--seg-motion),
+    opacity 160ms ease,
+    scale 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Black copy of the icons, counter-moved so it stays aligned with the slots. */
+.seg__ink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--seg-slot);
+  color: #000000;
+  translate: calc(var(--i) * var(--seg-slot) * -1) 0;
+  transition: translate var(--seg-motion);
+}
+
+.seg__slot {
+  display: grid;
+  place-items: center;
+}
+
+/* Pressed: the thumb gives a little, like a physical button. */
+.seg[data-held] .seg__thumb {
+  scale: 0.94;
+}
+
+.seg[data-empty] .seg__thumb {
+  opacity: 0;
+}
+
+/* Emoji view toggle that sits beside the filter control: same height,
+   surface and selected look as a segment, so the two read as one family. */
+.emoji-mode-btn {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg-card, #141414);
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color 160ms ease,
+    color 140ms ease,
+    scale 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .emoji-mode-btn:hover {
+    color: #ffffff;
+  }
+}
+
+.emoji-mode-btn:active {
+  scale: 0.94;
+}
+
+.emoji-mode-btn.active {
+  background: #ffffff;
+  color: #000000;
+}
+
+.emoji-mode-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+
+.seg--instant .seg__thumb,
+.seg--instant .seg__ink {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg__thumb,
+  .seg__ink {
+    transition: none;
+  }
+}

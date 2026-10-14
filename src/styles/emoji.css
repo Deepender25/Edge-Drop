@@ -9,7 +9,7 @@
   z-index: 1;
 }
 
-/* Sleek Category Pill Bar (RubberSegment) */
+/* Category bar wrapper (SegmentedControl inside) */
 .emoji-cat-bar {
   display: flex;
   align-items: center;

@@ -1,5 +1,5 @@
 import { useStore } from '../store/appStore'
-import RubberSegment from './RubberSegment'
+import { SegmentedControl } from './SegmentedControl'
 import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon, EmojiSmileIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { loadEmojiCatalog } from '../lib/emoji/load'
@@ -52,7 +52,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
   const setEmojiOpen = useStore((s) => s.setEmojiOpen)
 
   const FILTERS: {
-    id: import('../../shared/types').TypeFilter | 'emoji'
+    id: TypeFilter
     label: string
     Icon: typeof ClockIcon
   }[] = [
@@ -61,14 +61,9 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
     { id: 'links', label: t('filters.links'), Icon: LinkIcon },
     { id: 'images', label: t('filters.images'), Icon: ImageIcon },
     { id: 'files', label: t('filters.files'), Icon: FilesIcon },
-    { id: 'colors', label: t('filters.colors') || 'Colors', Icon: PaletteIcon },
-    { id: 'emoji', label: t('emoji.open'), Icon: EmojiSmileIcon }
+    { id: 'colors', label: t('filters.colors') || 'Colors', Icon: PaletteIcon }
   ]
 
-  const activeId: (typeof FILTERS)[number]['id'] = emojiOpen ? 'emoji' : typeFilter
-  const filterSlotSize = isHorizontal ? 26 : 24
-  const filterTrackHeight = isHorizontal ? 30 : 28
-  const filterIconSize = isHorizontal ? 14 : 13
   const reduceMotion = !!settings.reduceMotion
   const headerFade = `opacity ${reduceMotion ? '0.01s' : '0.16s'} ease`
 
@@ -106,11 +101,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            background: 'transparent',
-            border: 'none',
-            borderRadius: 999,
-            padding: 0,
-            marginLeft: 0,
+            gap: 6,
             maxWidth: '100%',
             overflow: 'visible',
             opacity: settingsOpen ? 0 : 1,
@@ -118,39 +109,39 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             transition: headerFade
           }}
         >
-          <RubberSegment
+          {/* Type filters. With the emoji picker open no filter is shown as
+              selected; picking one closes the picker (setTypeFilter). */}
+          <SegmentedControl
             items={FILTERS.map((f) => ({
               value: f.id,
               label: f.label,
-              title: f.label,
-              icon: <f.Icon width={filterIconSize} height={filterIconSize} />
+              icon: <f.Icon width={14} height={14} />
             }))}
-            value={activeId}
+            value={emojiOpen ? null : typeFilter}
             onChange={(val) => {
               playButtonClickSound()
-              if (val === 'emoji') setEmojiOpen(true)
-              else setTypeFilter(val as TypeFilter)
+              setTypeFilter(val)
             }}
-            onHoverItem={(val) => {
-              if (val === 'emoji') void loadEmojiCatalog()
-            }}
-            trackColor="#141414"
-            thumbColor="#ffffff"
-            textColor="rgba(255, 255, 255, 0.72)"
-            activeTextColor="#000000"
-            size="custom"
-            height={filterTrackHeight}
-            minWidth={filterSlotSize}
-            radius={9999}
-            inset={2}
-            equalSlots={true}
-            stretch={80}
-            squash={2}
-            glide={60}
-            draggable={true}
+            ariaLabel={t('filters.title') || 'Filters'}
+            reduceMotion={reduceMotion}
             tabIndex={settingsOpen ? -1 : undefined}
-            aria-label={t('filters.title') || 'Filters'}
           />
+          {/* Emoji is a separate view, not a filter, so it gets its own toggle. */}
+          <button
+            type="button"
+            className={`emoji-mode-btn${emojiOpen ? ' active' : ''}`}
+            aria-pressed={emojiOpen}
+            aria-label={t('emoji.open')}
+            title={t('emoji.open')}
+            tabIndex={settingsOpen ? -1 : undefined}
+            onPointerEnter={() => void loadEmojiCatalog()}
+            onClick={() => {
+              playButtonClickSound()
+              setEmojiOpen(!emojiOpen)
+            }}
+          >
+            <EmojiSmileIcon width={14} height={14} />
+          </button>
         </div>
         {isHorizontal ? (
           <div

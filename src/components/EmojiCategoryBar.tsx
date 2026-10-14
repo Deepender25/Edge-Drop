@@ -7,7 +7,7 @@ import { loadRecents } from '../lib/emoji/prefs'
 import { useStore } from '../store/appStore'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
-import RubberSegment from './RubberSegment'
+import { SegmentedControl } from './SegmentedControl'
 import {
   EmojiSmileIcon,
   EmojiClockIcon,
@@ -34,13 +34,14 @@ export const CATEGORY_ICONS: Record<EmojiCategoryId, IconCmp> = {
 }
 
 export interface EmojiCategoryBarProps {
+  /** Which dock the bar is in. The control is the same size in both. */
   isHorizontal?: boolean
   className?: string
   /** Hover-intent hook: warm a category's first screen before it's clicked. */
   onHoverCategory?: (id: EmojiCategoryId) => void
 }
 
-export function EmojiCategoryBar({ isHorizontal = false, className = '', onHoverCategory }: EmojiCategoryBarProps) {
+export function EmojiCategoryBar({ className = '', onHoverCategory }: EmojiCategoryBarProps) {
   const { t } = useTranslation()
   const category = useStore((s) => s.emojiCategory)
   const setCategory = useStore((s) => s.setEmojiCategory)
@@ -64,46 +65,20 @@ export function EmojiCategoryBar({ isHorizontal = false, className = '', onHover
     [setCategory]
   )
 
-  const slotSize = isHorizontal ? 28 : 24
-  const trackHeight = isHorizontal ? 30 : 28
-  const iconSize = isHorizontal ? 14 : 14
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
 
   return (
-    <div
-      className={`emoji-cat-bar${className ? ` ${className}` : ''}`}
-      role="tablist"
-      aria-label={t('emoji.categories')}
-      style={{ margin: 0 }}
-    >
-      <RubberSegment
+    <div className={`emoji-cat-bar${className ? ` ${className}` : ''}`} style={{ margin: 0 }}>
+      <SegmentedControl
         items={shownCats.map((c) => {
           const Icon = CATEGORY_ICONS[c.id]
-          const label = t(c.labelKey)
-          return {
-            value: c.id,
-            label,
-            title: label,
-            icon: <Icon width={iconSize} height={iconSize} />
-          }
+          return { value: c.id, label: t(c.labelKey), icon: <Icon width={14} height={14} /> }
         })}
         value={category}
-        onChange={(val) => selectCategory(val as EmojiCategoryId)}
-        trackColor="#141414"
-        thumbColor="#ffffff"
-        textColor="rgba(255, 255, 255, 0.72)"
-        activeTextColor="#000000"
-        size="custom"
-        height={trackHeight}
-        minWidth={slotSize}
-        radius={9999}
-        inset={2}
-        equalSlots={true}
-        stretch={80}
-        squash={2}
-        glide={60}
-        draggable={true}
-        onHoverItem={onHoverCategory ? (val) => onHoverCategory(val as EmojiCategoryId) : undefined}
-        aria-label={t('emoji.categories')}
+        onChange={(val) => selectCategory(val)}
+        onHoverItem={onHoverCategory}
+        ariaLabel={t('emoji.categories')}
+        reduceMotion={reduceMotion}
       />
     </div>
   )
