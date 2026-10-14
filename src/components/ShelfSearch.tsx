@@ -16,7 +16,7 @@ import { useStore } from '../store/appStore'
 import { edge } from '../lib/edge'
 import { noteSearchEngaged } from '../lib/searchFocus'
 import { useTranslation } from '../i18n'
-import { SearchIcon } from './icons'
+import { CloseIcon, SearchIcon } from './icons'
 
 export function ShelfSearch() {
   const { t } = useTranslation()
@@ -67,7 +67,7 @@ export function ShelfSearch() {
   }, [disengage])
 
   return (
-    <div className="search">
+    <div className={`search${query ? ' has-query' : ''}`}>
       <SearchIcon className="search-icon" width={14} height={14} />
       <input
         ref={inputRef}
@@ -98,6 +98,27 @@ export function ShelfSearch() {
         }}
         spellCheck={false}
       />
+      {/* Clear (macOS search-field style). It must never touch focus: the
+          OS-focus handover above is driven purely by the input's own
+          focus/blur. So the button can't take focus (mousedown/pointerdown
+          cancelled, out of the tab order; Escape clears from the keyboard)
+          and it never calls focus() — after an app switch the page still
+          remembers the input as focused, and refocusing it from here could
+          pull OS focus back from the user's app. If the user was typing,
+          the input simply keeps focus. Always mounted so it can fade. */}
+      <button
+        type="button"
+        className="search-clear"
+        aria-label={t('item.clear')}
+        title={t('item.clear')}
+        tabIndex={-1}
+        aria-hidden={!query}
+        onPointerDown={(e) => e.preventDefault()}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setQuery('')}
+      >
+        <CloseIcon width={10} height={10} weight="bold" />
+      </button>
     </div>
   )
 }

@@ -239,41 +239,111 @@
   color: var(--text-primary);
 }
 
-/* Search */
+/* Search: borderless pill on the card surface. Focus lifts the fill a step
+   further than hover and brightens the icon (no ring: the UI is borderless);
+   a macOS-style clear button appears once there is text. */
 .search {
+  --search-h: 34px;
+  --search-font: 13px;
+  --search-inset: 12px; /* icon / clear distance from the ends */
   margin: 4px var(--pad) 6px;
   position: relative;
   z-index: 1;
 }
 .search input {
   width: 100%;
-  height: 36px;
-  padding: 0 12px 0 34px;
+  height: var(--search-h);
+  padding: 0 calc(var(--search-inset) + 22px) 0 calc(var(--search-inset) + 22px);
   background: var(--bg-card);
   border: none;
   border-radius: var(--radius-pill);
   outline: none;
   color: var(--text-primary);
-  transition: background var(--dur-fast) var(--ease-out);
+  caret-color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: calc(var(--search-font) * var(--font-scale, 1));
+  font-weight: 500;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 .search input::placeholder {
   color: var(--text-tertiary);
+  font-weight: 400;
+}
+.search input::selection {
+  background: rgba(255, 255, 255, 0.28);
+}
+.search input:hover {
+  background: var(--bg-card-hover);
 }
 .search input:focus {
-  background: var(--bg-card-hover);
+  background: #222222;
 }
 .search .search-icon {
   position: absolute;
-  left: 11px;
+  left: var(--search-inset);
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-tertiary);
   pointer-events: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.search:focus-within .search-icon,
+.search.has-query .search-icon {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Clear: grey disc with a dark cross, like a macOS search field. */
+.search-clear {
+  position: absolute;
+  right: calc(var(--search-inset) - 2px);
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: #141414;
+  cursor: pointer;
+  outline: none;
+  opacity: 0;
+  scale: 0.6;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    scale 0.16s cubic-bezier(0.2, 0.9, 0.3, 1),
+    background-color 0.12s ease,
+    visibility 0s linear 0.16s;
+}
+.search.has-query .search-clear {
+  opacity: 1;
+  scale: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.12s ease,
+    scale 0.16s cubic-bezier(0.2, 0.9, 0.3, 1),
+    background-color 0.12s ease,
+    visibility 0s;
+}
+.search-clear:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+.search-clear:active {
+  scale: 0.9;
+}
+.search-clear:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
 }
 
 /* Header-embedded search (horizontal dock): centered overlay, long field.
    Absolutely centered to the header so side widths can't offset it; fixed
-   width so focusing never shifts any neighboring buttons. */
+   width so focusing never shifts any neighboring buttons. Same field, just
+   the 30px control height and 12px text of that dock. */
 .header-search-center {
   position: absolute;
   left: 50%;
@@ -284,17 +354,19 @@
   align-items: center;
 }
 .header-search-center .search {
+  --search-h: 30px;
+  --search-font: 12px;
+  --search-inset: 10px;
   margin: 0;
 }
 .header-search-center .search input {
-  height: 30px;
   width: 300px;
   max-width: 100%;
-  padding: 0 10px 0 30px;
-  font-size: calc(12px * var(--font-scale, 1));
 }
-.header-search-center .search .search-icon {
-  left: 9px;
+.header-search-center .search-clear {
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
 }
 
 /* Scroll area */
