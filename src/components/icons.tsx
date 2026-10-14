@@ -1,66 +1,58 @@
 /**
- * UI icons. Lucide strokes at 16px with width 2.2 rasterize into boxes on
- * the software compositor — keep a hairline weight and let size scale the
- * path, not the stroke.
+ * UI icons: Phosphor (https://phosphoricons.com, MIT), one family for the
+ * whole app. Paths are vendored in phosphorPaths.ts (Bold weight, plus Fill
+ * for "on" states) so only what the app draws is shipped.
+ *
+ * Line weight: Phosphor Bold draws its lines 24/256 of the icon wide, which
+ * is only ~1.1px at the 11-12px the action pills use and read as thin and
+ * small next to the old Lucide set. So each outline gets a matching stroke
+ * that brings the line to exactly what Lucide drew: 1.55px up to 14px, 1.7px
+ * above (computed from the icon's size prop, as Lucide's absolute stroke
+ * was). Filled "on" icons (weight="fill": pin, star) are left as drawn.
+ *
+ * Size: Phosphor leaves more empty margin inside its grid than Lucide did,
+ * so glyphs looked a little small. The view box trims 10 units from each
+ * side (glyphs ~8.5% larger in the same box); overflow stays visible so the
+ * few icons that reach the grid edge (coffee, users) are never clipped.
  */
-import type { LucideIcon } from 'lucide-react'
 import type { SVGProps } from 'react'
-import {
-  Info,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  ChevronDown,
-  ExternalLink,
-  Search,
-  Pin,
-  Trash2,
-  Copy,
-  Settings as SettingsGear,
-  GripVertical,
-  Image as ImageGraphic,
-  Link,
-  X,
-  Minus,
-  ArrowDownToLine,
-  Layers,
-  Maximize2,
-  Minimize2,
-  FolderOpen,
-  Check,
-  LogOut,
-  Coffee,
-  Heart,
-  Star,
-  RotateCcw,
-  Clipboard,
-  Type,
-  Files,
-  Globe,
-  Smile,
-  Users,
-  PawPrint,
-  Utensils,
-  Trophy,
-  Lightbulb,
-  Shapes,
-  Flag,
-  Palette
-} from 'lucide-react'
+import { PHOSPHOR_BOLD, PHOSPHOR_FILL, type PhosphorName } from './phosphorPaths'
 
-type P = SVGProps<SVGSVGElement>
+type P = SVGProps<SVGSVGElement> & { weight?: 'bold' | 'fill' }
 
-function uiIcon(Icon: LucideIcon, fallback = 16) {
+/** Line thickness in px the icon should read at (matches the old Lucide set). */
+const linePx = (size: number) => (size <= 14 ? 1.55 : 1.7)
+/** Phosphor Bold's own line width on its 256 grid. */
+const BOLD_LINE = 24
+/** Margin trimmed from each side of the 256 grid, and the resulting view box. */
+const TRIM = 10
+const VIEW = 256 - TRIM * 2
+
+function uiIcon(name: PhosphorName, fallback = 16) {
   return (p: P) => {
     const size = Number(p.width ?? p.height ?? fallback)
+    const { weight, ...rest } = p
+    const fillPath = weight === 'fill' ? (PHOSPHOR_FILL as Record<string, string>)[name] : undefined
+    // Extra outline (in grid units) so Bold's 24-unit line becomes linePx on screen.
+    const extra = fillPath ? 0 : Math.max(0, (linePx(size) * VIEW) / size - BOLD_LINE)
+    const color = (rest as { fill?: string }).fill ?? 'currentColor'
     return (
-      <Icon
-        size={size}
-        strokeWidth={size <= 14 ? 1.55 : 1.7}
-        absoluteStrokeWidth
-        {...(p as any)}
-      />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox={`${TRIM} ${TRIM} ${VIEW} ${VIEW}`}
+        width={size}
+        height={size}
+        fill="currentColor"
+        overflow="visible"
+        aria-hidden="true"
+        focusable="false"
+        {...(rest as any)}
+      >
+        <path
+          d={fillPath ?? PHOSPHOR_BOLD[name]}
+          {...(extra > 0 ? { stroke: color, strokeWidth: +extra.toFixed(2), strokeLinejoin: 'round' as const } : {})}
+        />
+      </svg>
     )
   }
 }
@@ -89,72 +81,55 @@ export const MicrosoftStoreLogo = (p: P) => {
   )
 }
 
-export const RotateCcwIcon = uiIcon(RotateCcw)
-export const CoffeeIcon = uiIcon(Coffee)
-export const HeartIcon = uiIcon(Heart)
-export const StarIcon = uiIcon(Star)
-export const GlobeIcon = uiIcon(Globe)
-export const LogOutIcon = uiIcon(LogOut)
-export const InfoIcon = uiIcon(Info)
-export const SparklesIcon = uiIcon(Sparkles)
+export const RotateCcwIcon = uiIcon('arrowCounterClockwise')
+export const CoffeeIcon = uiIcon('coffee')
+export const HeartIcon = uiIcon('heart')
+export const StarIcon = uiIcon('star')
+export const GlobeIcon = uiIcon('globe')
+export const LogOutIcon = uiIcon('signOut')
+export const InfoIcon = uiIcon('info')
+export const SparklesIcon = uiIcon('sparkle')
 export const WhatsNewIcon = InfoIcon
-export const ChevronLeftIcon = uiIcon(ChevronLeft)
-export const ChevronRightIcon = uiIcon(ChevronRight)
-export const ChevronUpIcon = uiIcon(ChevronUp)
-export const ChevronDownIcon = uiIcon(ChevronDown)
-export const ExternalLinkIcon = uiIcon(ExternalLink)
-export const SearchIcon = uiIcon(Search)
-export const PinIcon = uiIcon(Pin)
-export const PinFillIcon = (p: P) => {
-  const size = Number(p.width ?? p.height ?? 16)
-  return <Pin size={size} strokeWidth={size <= 14 ? 1.55 : 1.7} absoluteStrokeWidth fill="currentColor" {...(p as any)} />
-}
-export const TrashIcon = uiIcon(Trash2)
-export const CopyIcon = uiIcon(Copy)
-export const GearIcon = uiIcon(SettingsGear)
-export const GripIcon = uiIcon(GripVertical)
-export const ImageIcon = uiIcon(ImageGraphic)
-export const LinkIcon = uiIcon(Link)
-export const CloseIcon = uiIcon(X)
-export const MinusIcon = uiIcon(Minus)
-export const DropIcon = uiIcon(ArrowDownToLine)
-export const BundleIcon = uiIcon(Layers)
-export const ExpandIcon = uiIcon(Maximize2)
-export const ContractIcon = uiIcon(Minimize2)
-export const FolderOpenIcon = uiIcon(FolderOpen)
-export const CheckIcon = uiIcon(Check)
-export const ClipboardIcon = uiIcon(Clipboard)
-export const ClockIcon = (p: P) => {
-  const size = Number(p.width ?? p.height ?? 16)
-  return (
-    <svg
-      viewBox="15.3 18 64 64"
-      width={size}
-      height={size}
-      fill="currentColor"
-      {...(p as any)}
-    >
-      <path d="M28.1,48C28,48.7,28,49.3,28,50h-6c0-0.7,0-1.3,0.1-2H28.1z" />
-      <path d="M51.5,36h-3c-0.8,0-1.5,0.7-1.5,1.5v13.1c0,0.4,0.2,0.8,0.4,1.1l8.4,8.4c0.6,0.6,1.5,0.6,2.1,0l2.1-2.1c0.6-0.6,0.6-1.5,0-2.1L53,48.8V37.5C53,36.7,52.3,36,51.5,36z" />
-      <path d="M50,22c-14.8,0-26.9,11.5-27.9,26c0,0.3-0.1,0.7-0.1,1h-4.5c-1.3,0-2,1.5-1.2,2.4l7.5,9.1c0.6,0.7,1.7,0.7,2.3,0l7.5-9.1c0.8-1,0.1-2.4-1.2-2.4H28c0-0.3,0-0.7,0-1c1-11.2,10.5-20,21.9-20c13,0,23.3,11.3,21.9,24.5C70.8,62,61.8,71,52.2,71.9c-7.1,0.7-13.8-1.9-18.5-7c-0.6-0.7-1.4-1.1-2.2-0.1l-2.4,2.9c-0.5,0.6-0.1,1,0.4,1.5c5.4,5.7,12.8,8.9,20.8,8.8c14.4-0.2,26.5-11.6,27.5-26C79.1,35.7,66.1,22,50,22z" />
-    </svg>
-  )
-}
+export const ChevronLeftIcon = uiIcon('caretLeft')
+export const ChevronRightIcon = uiIcon('caretRight')
+export const ChevronUpIcon = uiIcon('caretUp')
+export const ChevronDownIcon = uiIcon('caretDown')
+export const ExternalLinkIcon = uiIcon('arrowSquareOut')
+export const SearchIcon = uiIcon('magnifyingGlass')
+export const PinIcon = uiIcon('pushPin')
+const PinBase = uiIcon('pushPin')
+export const PinFillIcon = (p: P) => <PinBase {...p} weight="fill" />
+export const TrashIcon = uiIcon('trash')
+export const CopyIcon = uiIcon('copy')
+export const GearIcon = uiIcon('gearSix')
+export const GripIcon = uiIcon('dotsSixVertical')
+export const ImageIcon = uiIcon('image')
+export const LinkIcon = uiIcon('link')
+export const CloseIcon = uiIcon('x')
+export const MinusIcon = uiIcon('minus')
+export const DropIcon = uiIcon('arrowLineDown')
+export const BundleIcon = uiIcon('stack')
+export const ExpandIcon = uiIcon('arrowsOutSimple')
+export const ContractIcon = uiIcon('arrowsInSimple')
+export const FolderOpenIcon = uiIcon('folderOpen')
+export const CheckIcon = uiIcon('check')
+export const ClipboardIcon = uiIcon('clipboard')
+export const ClockIcon = uiIcon('clockCounterClockwise')
 export const RecentIcon = ClockIcon
-export const TypeIcon = uiIcon(Type)
-export const FilesIcon = uiIcon(Files)
-export const PaletteIcon = uiIcon(Palette)
+export const TypeIcon = uiIcon('textT')
+export const FilesIcon = uiIcon('files')
+export const PaletteIcon = uiIcon('palette')
 
-export const EmojiSmileIcon = uiIcon(Smile, 18)
+export const EmojiSmileIcon = uiIcon('smiley', 18)
 export const EmojiClockIcon = (p: P) => <ClockIcon width={p.width ?? 18} height={p.height ?? 18} {...(p as any)} />
-export const EmojiUserIcon = uiIcon(Users, 18)
-export const EmojiPawIcon = uiIcon(PawPrint, 18)
-export const EmojiFoodIcon = uiIcon(Utensils, 18)
-export const EmojiPlaneIcon = uiIcon(Globe, 18)
-export const EmojiTrophyIcon = uiIcon(Trophy, 18)
-export const EmojiBulbIcon = uiIcon(Lightbulb, 18)
-export const EmojiShapesIcon = uiIcon(Shapes, 18)
-export const EmojiFlagIcon = uiIcon(Flag, 18)
+export const EmojiUserIcon = uiIcon('users', 18)
+export const EmojiPawIcon = uiIcon('pawPrint', 18)
+export const EmojiFoodIcon = uiIcon('forkKnife', 18)
+export const EmojiPlaneIcon = uiIcon('globe', 18)
+export const EmojiTrophyIcon = uiIcon('trophy', 18)
+export const EmojiBulbIcon = uiIcon('lightbulb', 18)
+export const EmojiShapesIcon = uiIcon('shapes', 18)
+export const EmojiFlagIcon = uiIcon('flag', 18)
 import { CustomFileIcon, FileStackPhoto } from './CustomFileIcon'
 export { CustomFileIcon, CustomFileIcon as FileKindIcon, FileStackPhoto }
 

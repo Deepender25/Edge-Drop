@@ -87,12 +87,15 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
       '!resources/appx/**',
       '!resources/startup/**/*.cs',
       '!**/node_modules/emoji-datasource-twitter/**',
-      '!**/node_modules/lucide-react/**',
       '!**/node_modules/gsap/**',
       '!**/node_modules/framer-motion/**',
       '!**/node_modules/@fontsource/**',
       '!**/node_modules/react-dom/**'
     ]))
+    // Icons are vendored Phosphor paths (src/components/phosphorPaths.ts): no icon package at all.
+    for (const dep of ['lucide-react', '@phosphor-icons/react', '@iconify/react', '@iconify-json/cuida']) {
+      expect({ ...pkg.dependencies, ...pkg.devDependencies }[dep]).toBeUndefined()
+    }
     expect(pkg.build.appx.customExtensionsPath).toBe('resources/appx/startup-extensions.xml')
     expect(existsSync(join(root, 'resources/appx/startup-extensions.xml'))).toBe(true)
   })

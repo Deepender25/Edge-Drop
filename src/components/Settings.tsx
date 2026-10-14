@@ -430,7 +430,7 @@ export function Settings({
               >
                 <GithubOctocatLogo width={14} height={14} className="github-octocat-icon" />
                 <span>{t('footer.starOnGithub')}</span>
-                <StarIcon width={13} height={13} className="star-icon" fill="#fbbf24" stroke="#fbbf24" style={{ marginLeft: 2 }} />
+                <StarIcon width={13} height={13} className="star-icon" weight="fill" fill="#fbbf24" style={{ marginLeft: 2 }} />
               </button>
             )}
           </div>
@@ -928,7 +928,7 @@ export function Settings({
             >
               <GithubOctocatLogo width={13} height={13} className="github-octocat-icon" />
               <span>{t('footer.starOnGithub')}</span>
-              <StarIcon width={12} height={12} className="star-icon" fill="#fbbf24" stroke="#fbbf24" style={{ marginLeft: 2 }} />
+              <StarIcon width={12} height={12} className="star-icon" weight="fill" fill="#fbbf24" style={{ marginLeft: 2 }} />
             </button>
           )}
         </div>
