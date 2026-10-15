@@ -1,8 +1,11 @@
-import { useCallback, useMemo, useState, useEffect } from 'react'
+import { memo, useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import {
   CATEGORY_ORDER,
+  entriesForCategory,
   type EmojiCategoryId
 } from '../lib/emoji/catalog'
+import { loadGlyphs, screenGlyphCount } from '../lib/emoji/glyphCache'
+import { peekEmojiCatalog } from '../lib/emoji/load'
 import { loadRecents } from '../lib/emoji/prefs'
 import { useStore } from '../store/appStore'
 import { playButtonClickSound } from '../lib/soundEffects'
@@ -37,11 +40,12 @@ export interface EmojiCategoryBarProps {
   /** Which dock the bar is in. The control is the same size in both. */
   isHorizontal?: boolean
   className?: string
-  /** Hover-intent hook: warm a category's first screen before it's clicked. */
-  onHoverCategory?: (id: EmojiCategoryId) => void
 }
 
-export function EmojiCategoryBar({ className = '', onHoverCategory }: EmojiCategoryBarProps) {
+/** How long the pointer must rest on a category before its glyphs are warmed. */
+const WARM_DWELL_MS = 80
+
+function CategoryBar({ className = '' }: EmojiCategoryBarProps) {
   const { t } = useTranslation()
   const category = useStore((s) => s.emojiCategory)
   const setCategory = useStore((s) => s.setEmojiCategory)
@@ -67,8 +71,37 @@ export function EmojiCategoryBar({ className = '', onHoverCategory }: EmojiCateg
 
   const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
 
+  // Hover warm-up: when the pointer rests on a category, load its first
+  // screen of glyphs (one call, kept by glyphCache) so the click shows them
+  // at once. The short dwell skips categories the pointer only passes over.
+  const warmTimer = useRef<number | null>(null)
+  const cancelWarm = useCallback(() => {
+    if (warmTimer.current === null) return
+    window.clearTimeout(warmTimer.current)
+    warmTimer.current = null
+  }, [])
+  const warmOnRest = useCallback(
+    (id: EmojiCategoryId) => {
+      cancelWarm()
+      if (id === useStore.getState().emojiCategory) return
+      warmTimer.current = window.setTimeout(() => {
+        warmTimer.current = null
+        const catalog = peekEmojiCatalog()
+        if (!catalog || id === useStore.getState().emojiCategory) return
+        loadGlyphs(entriesForCategory(catalog, id, loadRecents()).slice(0, screenGlyphCount()).map((item) => item.file))
+      }, WARM_DWELL_MS)
+    },
+    [cancelWarm]
+  )
+  useEffect(() => cancelWarm, [cancelWarm])
+
   return (
-    <div className={`emoji-cat-bar${className ? ` ${className}` : ''}`} style={{ margin: 0 }}>
+    <div
+      className={`emoji-cat-bar${className ? ` ${className}` : ''}`}
+      style={{ margin: 0 }}
+      onPointerLeave={cancelWarm}
+      onPointerDown={cancelWarm}
+    >
       <SegmentedControl
         items={shownCats.map((c) => {
           const Icon = CATEGORY_ICONS[c.id]
@@ -76,12 +109,16 @@ export function EmojiCategoryBar({ className = '', onHoverCategory }: EmojiCateg
         })}
         value={category}
         onChange={(val) => selectCategory(val)}
-        onHoverItem={onHoverCategory}
+        onHoverItem={warmOnRest}
         ariaLabel={t('emoji.categories')}
         reduceMotion={reduceMotion}
       />
     </div>
   )
 }
+
+// Memoised: the picker re-renders every frame while its grid fills in after
+// a switch; the bar only needs to when its own props or store values change.
+export const EmojiCategoryBar = memo(CategoryBar)
 
 export default EmojiCategoryBar

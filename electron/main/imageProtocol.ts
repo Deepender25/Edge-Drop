@@ -1,4 +1,5 @@
 import { existsSync, readdirSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 import { APP_CONFIG } from './config'
 
@@ -73,6 +74,33 @@ export function resolveEmojiAsset(assetDir: string, fileName: string): string | 
   if (!existsSync(filePath)) return null
   emojiAssetCache.set(cacheKey, filePath)
   return filePath
+}
+
+/** Most glyphs one readEmojiBatch call returns (a screen is ~80-370). */
+export const EMOJI_BATCH_MAX = 400
+
+/**
+ * Read many picker glyphs at once: valid file name -> base64 PNG. Names go
+ * through resolveEmojiAsset (same allowlist and directory check as the
+ * protocol route); invalid or missing names are left out. Reads run in
+ * parallel off the main thread.
+ */
+export async function readEmojiBatch(assetDir: string, names: readonly unknown[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {}
+  if (!Array.isArray(names)) return out
+  const unique = [...new Set(names.filter((n): n is string => typeof n === 'string').map((n) => n.toLowerCase()))]
+  await Promise.all(
+    unique.slice(0, EMOJI_BATCH_MAX).map(async (name) => {
+      const filePath = resolveEmojiAsset(assetDir, name)
+      if (!filePath) return
+      try {
+        out[name] = (await readFile(filePath)).toString('base64')
+      } catch {
+        /* unreadable: leave it out */
+      }
+    })
+  )
+  return out
 }
 
 /**

@@ -2,18 +2,17 @@
  * Unicode emoji library. Glyphs are Twemoji; paste is the character itself.
  * No text field — categories + click — so the shelf never takes OS focus.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
-  emojiGlyphUrl,
   entriesForCategory,
   hasSkinTones,
   pushRecent,
   skinChoices,
   unifiedToNative,
   type EmojiCatalog,
-  type EmojiCategoryId,
   type EmojiEntry
 } from '../lib/emoji/catalog'
+import { glyphSrc, glyphsVersion, loadGlyphs, setScreenGlyphCount, subscribeGlyphs } from '../lib/emoji/glyphCache'
 import { loadEmojiCatalog } from '../lib/emoji/load'
 import { loadRecents, saveRecents } from '../lib/emoji/prefs'
 import { useStore } from '../store/appStore'
@@ -36,10 +35,16 @@ interface TonePopup {
 }
 
 function Glyph({ file, size = 22 }: { file: string; size?: number }) {
+  // Loaded a screen at a time (glyphCache); no src until its batch lands.
+  // Once shown, a glyph keeps its image even if the cache later drops it.
+  const shown = useRef<{ file: string; src?: string }>({ file })
+  if (shown.current.file !== file) shown.current = { file }
+  const src = glyphSrc(file) ?? shown.current.src
+  shown.current.src = src
   return (
     <img
       className="emoji-glyph"
-      src={emojiGlyphUrl(file)}
+      src={src}
       alt=""
       width={size}
       height={size}
@@ -85,17 +90,10 @@ export function EmojiPicker({
   // always the image mount burst, which the row budget below spreads out.
   useEffect(() => {
     let alive = true
-    // TEMP-DIAG-EMOJI (remove after diagnosis): stage timings.
-    const tMount = performance.now()
     loadEmojiCatalog()
       .then((c) => {
         if (!alive) return
-        const tLoaded = performance.now()
         setCatalog(c)
-        requestAnimationFrame(() => {
-          // eslint-disable-next-line no-console
-          console.log(`[EmojiPerf] mountToLoadStart=~0ms load=${(tLoaded - tMount).toFixed(1)}ms loadToPaint=${(performance.now() - tLoaded).toFixed(1)}ms`)
-        })
         if (loadRecents().length > 0 && category === 'smileys') {
           setCategory('recents')
         }
@@ -161,33 +159,6 @@ export function EmojiPicker({
     return entriesForCategory(catalog, category, recents)
   }, [catalog, category, recents])
 
-  // Hover-intent preload: while the user aims at a category button (no
-  // animation running), decode its first screen into the image cache so the
-  // click lands warm. Capped and deduped; keyboard/touch users without hover
-  // are still covered by the fetch-budget ramp below. Never prefetches the
-  // active category (already mounted).
-  const warmedCats = useRef<Set<string>>(new Set())
-  const preloadCategory = useCallback(
-    (id: EmojiCategoryId) => {
-      if (id === category || !catalog) return
-      if (warmedCats.current.has(id)) return
-      warmedCats.current.add(id)
-      try {
-        const first = entriesForCategory(catalog, id, recents).slice(0, 28)
-        const ImgCtor = (globalThis as any)?.Image
-        if (typeof ImgCtor !== 'function') return
-        for (const item of first) {
-          try {
-            const im = new ImgCtor() as HTMLImageElement
-            try { (im as any).decoding = 'async' } catch { /* ignore */ }
-            im.src = emojiGlyphUrl(item.file)
-          } catch { /* ignore */ }
-        }
-      } catch { /* ignore */ }
-    },
-    [catalog, category, recents]
-  )
-
   const cols = useMemo(() => {
     if (!isHorizontal) return COLS
     if (viewW <= 0) return 24
@@ -196,6 +167,14 @@ export function EmojiPicker({
 
   const rowH = isHorizontal ? 32 : ROW_H
   const glyphSize = isHorizontal ? 22 : 26
+
+  // Tell the category bar's hover warm-up how many glyphs fill one screen.
+  useEffect(() => {
+    setScreenGlyphCount(cols * Math.ceil(viewH / rowH))
+  }, [cols, viewH, rowH])
+
+  // Re-render when a batch of glyphs lands.
+  useSyncExternalStore(subscribeGlyphs, glyphsVersion)
 
   const rows = Math.ceil(items.length / cols)
   // First paint mounts a tight window (fewer images fighting for decode),
@@ -236,6 +215,17 @@ export function EmojiPicker({
   }, [catalog, windowRows, rowBudget])
   const effEndRow = Math.min(endRow, startRow + rowBudget)
 
+  // The whole window's glyphs in one call, as soon as the window is known
+  // (not row by row with the mount ramp above).
+  useEffect(() => {
+    if (!catalog || !active) return
+    loadGlyphs(items.slice(startRow * cols, endRow * cols).map((item) => item.file))
+  }, [catalog, active, items, startRow, endRow, cols])
+
+  useEffect(() => {
+    if (tonePop) loadGlyphs(skinChoices(tonePop.entry).map((choice) => choice.file))
+  }, [tonePop])
+
   const onPaste = useCallback(
     (unified: string) => {
       const now = Date.now()
@@ -273,7 +263,7 @@ export function EmojiPicker({
         if (!t.closest('[data-tone-popup], [data-has-skins]')) setTonePop(null)
       }}
     >
-      {!isHorizontal && <EmojiCategoryBar isHorizontal={false} onHoverCategory={preloadCategory} />}
+      {!isHorizontal && <EmojiCategoryBar isHorizontal={false} />}
 
       {failed ? (
         <div className="emoji-status">{t('emoji.loadFailed')}</div>

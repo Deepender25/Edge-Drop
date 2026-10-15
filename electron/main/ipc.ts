@@ -25,6 +25,7 @@ import { isStoreBuild } from './config'
 import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
 import { toUnpackagedFilePath, toUnpackagedFilePaths } from '../store/paths'
 import { isPasteableEmoji } from '../../shared/emoji'
+import { emojiAssetDir, readEmojiBatch } from './imageProtocol'
 
 export { isStoreBuild }
 
@@ -524,6 +525,13 @@ export function registerIpc(): void {
 
     return true
   })
+
+  handle('emoji:glyphs', (files) =>
+    readEmojiBatch(
+      emojiAssetDir({ packaged: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath(), cwd: process.cwd() }),
+      files
+    )
+  )
 
   handle('emoji:paste', async (text) => {
     if (!isPasteableEmoji(text)) return false

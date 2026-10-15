@@ -62,7 +62,9 @@
   padding: 0;
   color: inherit;
   position: relative;
-  transform: translateZ(0);
+  /* No forced layer (translateZ): one compositor layer per cell (130-340 of
+     them) made every grid update costlier. The hover/press scale still runs
+     on the compositor while it animates. */
   transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1),
     background 0.14s cubic-bezier(0.22, 1, 0.36, 1);
   -webkit-user-drag: none;

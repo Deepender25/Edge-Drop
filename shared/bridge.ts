@@ -33,6 +33,7 @@ export interface EdgeApi {
   pasteItem: (id: string) => Promise<boolean>
   pasteSubitem: (req: DragRequest) => Promise<boolean>
   pasteEmoji: (text: string) => Promise<boolean>
+  emojiGlyphs: (files: string[]) => Promise<Record<string, string>>
   installUpdate: () => Promise<void>
   checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>
   startUpdateDownload: () => Promise<void>

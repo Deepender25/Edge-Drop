@@ -188,6 +188,7 @@ const api = {
   pasteItem: (id: string) => invoke('item:paste', id),
   pasteSubitem: (req: import('../../shared/types').DragRequest) => invoke('item:paste-subitem', req),
   pasteEmoji: (text: string) => invoke('emoji:paste', text),
+  emojiGlyphs: (files: string[]) => invoke('emoji:glyphs', files),
   installUpdate: () => invoke('app:install-update'),
   checkForUpdatesManual: () => invoke('updater:check-manual'),
   startUpdateDownload: () => invoke('updater:start-download'),

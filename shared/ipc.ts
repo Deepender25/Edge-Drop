@@ -53,6 +53,14 @@ export interface InvokeMap {
   /** Write a Unicode emoji to the clipboard and Ctrl+V into the still-focused app. Does not close the shelf. */
   'emoji:paste': { args: [text: string]; result: boolean }
 
+  /**
+   * Picker glyph PNGs, many per call: file name -> base64 PNG. One call per
+   * screen of the grid instead of one image request per glyph (each costs
+   * main-thread time that delays this window's frames). Unknown names are
+   * left out.
+   */
+  'emoji:glyphs': { args: [files: string[]]; result: Record<string, string> }
+
   /** Add local file paths dragged into the shelf. */
   'item:add-files': { args: [paths: string[]]; result: ClipboardItemDto[] }
 

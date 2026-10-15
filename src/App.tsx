@@ -61,38 +61,20 @@ export default function App() {
       } catch { /* ignore */ }
       // 2. Emoji catalog JSON parse + build — cached in load.ts `pending`
       // so the first emoji click reuses it instead of parsing on click.
-      // Then pre-warm the first screen of the default (smileys) category:
-      // ~48 glyph PNGs fetched through the same edgelocal:// URLs the grid
-      // uses, so the click finds warm main-process stats + Chromium cache
-      // instead of causing a ~100-file burst. Same images, same cache —
-      // just filled idle instead of on click.
+      // Then pre-warm the first screen of the page the picker opens on
+      // (recents when there are any, otherwise smileys — same rule as
+      // setEmojiOpen): up to 48 glyphs in one call, kept by glyphCache so
+      // they are still loaded when the picker opens, however much later
+      // that is. Same images, just loaded idle instead of on click.
       try {
-        void Promise.all([import('./lib/emoji/load'), import('./lib/emoji/catalog')])
-          .then(([loadMod, catalogMod]) =>
+        void Promise.all([import('./lib/emoji/load'), import('./lib/emoji/catalog'), import('./lib/emoji/glyphCache'), import('./lib/emoji/prefs')])
+          .then(([loadMod, catalogMod, cacheMod, prefsMod]) =>
             loadMod.loadEmojiCatalog().then((catalog) => {
               if (cancelled || !catalog) return
               try {
-                const smileys = catalogMod.CATEGORY_ORDER.find((c) => c.id === 'smileys')
-                const sources = (smileys as { sources?: readonly string[] } | undefined)?.sources ?? []
-                const files: string[] = []
-                for (const src of sources) {
-                  const list = (catalog.byCategory as Record<string, Array<{ file?: string }>>)[src] ?? []
-                  for (const entry of list) {
-                    if (typeof entry?.file === 'string' && entry.file) files.push(entry.file)
-                    if (files.length >= 48) break
-                  }
-                  if (files.length >= 48) break
-                }
-                const ImgCtor = (globalThis as any)?.Image
-                if (typeof ImgCtor !== 'function') return
-                for (const file of files) {
-                  if (cancelled) break
-                  try {
-                    const im = new ImgCtor() as HTMLImageElement
-                    try { (im as any).decoding = 'async' } catch { /* ignore */ }
-                    im.src = catalogMod.emojiGlyphUrl(file)
-                  } catch { /* ignore */ }
-                }
+                const recents = prefsMod.loadRecents()
+                const landing = recents.length > 0 ? 'recents' : 'smileys'
+                cacheMod.loadGlyphs(catalogMod.entriesForCategory(catalog, landing, recents).slice(0, 48).map((item) => item.file))
               } catch { /* ignore */ }
             }).catch(() => undefined)
           )
