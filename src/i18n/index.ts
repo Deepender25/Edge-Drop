@@ -77,7 +77,9 @@ export function t(path: string, params?: Record<string, string | number>): strin
 
   if (params) {
     for (const [k, v] of Object.entries(params)) {
-      val = val.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v))
+      // Function form: a value containing "$&" / "$1" (e.g. a file name)
+      // is inserted literally instead of as a replacement pattern.
+      val = val.replace(new RegExp(`\\{${k}\\}`, 'g'), () => String(v))
     }
   }
 

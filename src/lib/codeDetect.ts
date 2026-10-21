@@ -60,12 +60,17 @@ export function detectCode(raw: string): CodeDetectionResult {
     }
   }
 
+  // A script module that returns markup (React components and the like):
+  // it starts as code, not as a tag, so the HTML rule below must not win.
+  const looksLikeScript = !text.startsWith('<') &&
+    /(?:^|\n)\s*(import\s[^\n]*?\bfrom\s+['"]|export\s+(default|const|function|class)\b|(const|let|var)\s+([\w$]+\s*(:[^=\n]+)?=[^=]|[{[])|function\s+[\w$]+\s*\()/.test(text)
+
   // 2. HTML / XML / SVG Detection
-  if (
+  if (!looksLikeScript && (
     /<!DOCTYPE\s+html/i.test(text) ||
     /<(html|head|body|div|span|p|a|svg|script|style|path|button|input|h[1-6]|table|form|ul|li|section|header|footer|template)\b[^>]*>/i.test(text) ||
     (text.startsWith('<') && text.endsWith('>') && /<\/?[a-z][a-z0-9-]*\b/i.test(text))
-  ) {
+  )) {
     return { isCode: true, language: 'html', displayName: 'HTML' }
   }
 
@@ -149,11 +154,13 @@ export function detectCode(raw: string): CodeDetectionResult {
     /\b(interface\s+[A-Z]\w*|type\s+[A-Z]\w*\s*=|as\s+const\b|<[A-Z]\w*>\s*\()/.test(text)
   const hasJsx = /<[A-Z][a-zA-Z0-9]*\b[^>]*(\/?>|>[\s\S]*?<\/[A-Z][a-zA-Z0-9]*>)/.test(text) ||
     /<>\s*[\s\S]*?<\/>/.test(text) ||
-    /\bclassName=/.test(text)
+    /\bclassName=/.test(text) ||
+    // lowercase tags count only as markup, not inside a string or regex
+    (looksLikeScript && /(^|[^'"`/\w])<[a-z][a-z0-9-]*\b[^<>]*>/.test(text))
 
   const hasJsKeywords = /\b(import\s+.*?from\s+['"]|export\s+(default\s+|const\s+|function\s+|class\s+)|const\s+[a-zA-Z0-9_$]+(\s*:\s*[^=]+)?\s*=|let\s+[a-zA-Z0-9_$]+(\s*:\s*[^=]+)?\s*=|function\s+[a-zA-Z0-9_$]+\s*\(|console\.(log|error|warn|info)|async\s+function|await\s+[a-zA-Z0-9_$]+|=>\s*[\{\(])/.test(text)
 
-  if (hasJsKeywords || hasJsx || hasTsTypes) {
+  if (hasJsKeywords || hasJsx || hasTsTypes || looksLikeScript) {
     if (hasJsx) {
       return {
         isCode: true,

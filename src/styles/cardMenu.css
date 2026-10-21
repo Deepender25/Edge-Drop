@@ -1,0 +1,420 @@
+/**
+ * Card right-click menu + label / tags editor.
+ * Flat like the blade and the preview flyout (no drop shadow), on a surface
+ * one step lighter than the cards so it reads as raised above them: soft
+ * white highlights, white "on" state, soft-red delete. A faint hairline
+ * keeps its edge where it overlaps a card.
+ * Only opacity/transform animate, and only once when the menu appears.
+ */
+
+.card-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 212px;
+  max-width: 240px;
+  box-sizing: border-box;
+  padding: 6px;
+  background: #1c1c1c;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px var(--divider);
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-ui);
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  visibility: hidden;
+}
+
+.card-menu.is-placed {
+  visibility: visible;
+  animation: card-menu-in 0.12s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes card-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+html[data-motion='reduce'] .card-menu.is-placed {
+  animation: none;
+}
+
+.card-menu-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: calc(13px * var(--font-scale, 1));
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.card-menu-row:hover,
+.card-menu-row:focus-visible {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.card-menu-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.68);
+  transition: color 0.12s ease;
+}
+
+.card-menu-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.card-menu-row:hover .card-menu-icon {
+  color: #ffffff;
+}
+
+.card-menu-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-menu-row.is-danger,
+.card-menu-row.is-danger .card-menu-icon {
+  color: var(--act-danger);
+}
+
+.card-menu-row.is-danger:hover {
+  background: var(--act-danger-bg);
+  color: var(--act-danger);
+}
+
+.card-menu-sep {
+  height: 1px;
+  margin: 5px 10px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* "Copy as  [RGB] [HSL]" — a row of small format chips. */
+.card-menu-colors,
+.card-menu-colors:hover {
+  cursor: default;
+  background: transparent;
+  color: inherit;
+}
+
+.card-menu-colors:hover .card-menu-icon {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.card-menu-chips {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.card-menu-chip {
+  height: 22px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-mono);
+  font-size: calc(10.5px * var(--font-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.card-menu-chip:hover,
+.card-menu-chip:focus-visible {
+  outline: none;
+  background: var(--act-on);
+  color: var(--act-on-ink);
+}
+
+/* ---------------------------- editor ---------------------------- */
+
+.card-menu.is-editing {
+  width: 252px;
+  max-width: 252px;
+  padding: 12px;
+}
+
+.card-meta-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: card-meta-in 0.1s ease-out;
+}
+
+@keyframes card-meta-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html[data-motion='reduce'] .card-meta-editor {
+  animation: none;
+}
+
+.card-meta-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.card-meta-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 2px;
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.card-meta-count {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Fields: borderless pills like the search box; hover and focus lift the
+   fill a step (no ring). */
+.card-meta-input,
+.card-meta-tags {
+  box-sizing: border-box;
+  width: 100%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.card-meta-input:hover,
+.card-meta-tags:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.card-meta-input {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  color: #ffffff;
+  caret-color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: calc(13px * var(--font-scale, 1));
+  font-weight: 500;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.card-meta-input::placeholder,
+.card-meta-tag-input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.card-meta-input::selection,
+.card-meta-tag-input::selection {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.card-meta-input:focus,
+.card-meta-tags:focus-within {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+/* Wraps to more lines when there are many tags, so a fixed radius (a pill
+   while it is one line high) instead of 999px. */
+.card-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 4px 5px;
+  border-radius: 16px;
+  cursor: text;
+}
+
+.card-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 22px;
+  max-width: 100%;
+  padding: 0 3px 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.card-meta-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-meta-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.card-meta-chip-remove:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.card-meta-tag-input {
+  flex: 1;
+  min-width: 56px;
+  height: 22px;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 500;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.card-meta-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.card-meta-suggestion {
+  height: 22px;
+  max-width: 100%;
+  padding: 0 8px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-ui);
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+/* Same as the #tag suggestion chips under the search box. */
+.card-meta-suggestion:hover {
+  background: var(--act-on);
+  color: var(--act-on-ink);
+}
+
+.card-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-meta-spacer {
+  flex: 1;
+}
+
+/* Same capsule buttons as the preview flyout (.flyout-btn). */
+.card-meta-btn {
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-ui);
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+}
+
+.card-meta-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.card-meta-btn:active {
+  transform: scale(0.96);
+}
+
+.card-meta-btn:focus-visible,
+.card-meta-chip-remove:focus-visible,
+.card-meta-suggestion:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+.card-meta-btn.is-primary {
+  background: var(--act-on);
+  color: var(--act-on-ink);
+  font-weight: 600;
+}
+
+.card-meta-btn.is-primary:hover {
+  background: #e6e6e6;
+}
+
+.card-meta-btn.is-quiet {
+  padding: 0 4px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.card-meta-btn.is-quiet:hover {
+  background: transparent;
+  color: var(--act-danger);
+}

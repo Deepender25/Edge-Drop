@@ -187,6 +187,16 @@
 
 .meta .meta-detail {
   white-space: nowrap;
+  /* In a tight footer the detail text (domain, size, name) shortens first,
+     so badges after it (×N, tags) are never cut in half. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta .kind-badge,
+.meta .meta-hit-count {
+  flex-shrink: 0;
 }
 
 .meta-hit-count {
@@ -495,25 +505,52 @@
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* The file art keeps one soft shadow; hover only grows it a touch around
+   its center (no lift into the hover buttons, no animated shadow: changing
+   a filter repaints the SVG every frame, a transform does not). */
 .single-file-hero svg,
 .single-file-hero img.file-kind-img {
   display: block;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
 .item.is-image-folder-card:not(.is-expanded):hover .single-file-hero svg,
 .item:not(.is-expanded) .item-main:hover .single-file-hero svg,
 .item.is-image-folder-card:not(.is-expanded):hover .single-file-hero img.file-kind-img,
 .item:not(.is-expanded) .item-main:hover .single-file-hero img.file-kind-img {
-  transform: translateY(-2px) scale(1.04);
-  filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.65));
+  transform: scale(1.04);
 }
 
 .mini-image-folder-card:hover .single-file-hero svg,
 .mini-image-folder-card:hover .single-file-hero img.file-kind-img {
-  transform: translateY(-2px) scale(1.04);
-  filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.65));
+  transform: scale(1.04);
+}
+
+html[data-motion='reduce'] .single-file-hero svg,
+html[data-motion='reduce'] .single-file-hero img.file-kind-img {
+  transition: none;
+}
+
+/* File cards: center the art in the part of the viewport the label flap
+   (.image-folder-flap-wrap, pulled up 26px / 24px) leaves visible. */
+.image-folder-viewport > .single-file-hero {
+  margin-top: 0;
+  padding-bottom: 26px;
+  box-sizing: border-box;
+}
+.list.horizontal .image-folder-viewport > .single-file-hero {
+  padding-bottom: 24px;
+}
+/* Same for the mini cards of an expanded stack. Their flap covers 16px /
+   12px of the viewport (measured on the rendered cards). */
+.mini-image-folder-viewport > .single-file-hero {
+  padding-bottom: 16px;
+  box-sizing: border-box;
+}
+.list.horizontal .mini-image-folder-viewport > .single-file-hero {
+  padding-bottom: 12px;
 }
 
 /* Single Image Folder Card (Framed image in folder card + borderless folder flap) */
@@ -1275,48 +1312,138 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* File Stacks — Pure 3D Folders (No container card, 100% opaque)     */
+/* File stacks — a cascade of the glass folder icons                  */
 /* ------------------------------------------------------------------ */
+/* The folders have see-through fronts, so a tight fan of four (each with
+   its own heavy shadow) read as a smear. The front folder sits in full
+   color with the only shadow; the others peek out to the sides and behind,
+   smaller and dimmed, so the glass reads as depth. Positions are % of the
+   icon, so the same rules fit both docks. Hover spreads them a little with
+   a small tilt. Only transform animates (each folder is its own layer,
+   rastered once); the dimming and the shadow never change. Photo cards in
+   a mixed stack keep the .image-folder-stack-item rules above. */
 
-.image-folder-stack-item.file-stack-item,
-.list.horizontal .image-folder-stack-item.file-stack-item {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  border-radius: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  overflow: visible !important;
-  opacity: 1 !important;
-}
-
-.image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-0,
-.image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-1,
-.image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-2,
-.image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-3,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-0,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-1,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-2,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-3 {
-  opacity: 1 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-}
-
-.image-folder-stack-item.file-stack-item svg,
-.image-folder-stack-item.file-stack-item img.file-kind-img {
+.file-stack-folder {
+  position: absolute;
   display: block;
-  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.65));
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease;
+  line-height: 0;
+  transform-origin: 50% 70%;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
-.item.is-image-folder-card:hover .image-folder-stack-item.file-stack-item svg,
-.item-main:hover .image-folder-stack-item.file-stack-item svg,
-.item.is-image-folder-card:hover .image-folder-stack-item.file-stack-item img.file-kind-img,
-.item-main:hover .image-folder-stack-item.file-stack-item img.file-kind-img {
-  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.75));
+.file-stack-folder img.file-kind-img,
+.file-stack-folder svg {
+  display: block;
+}
+
+.file-stack-folder.pos-0 {
+  z-index: 4;
+}
+.file-stack-folder.pos-0 img.file-kind-img {
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+}
+.file-stack-folder.pos-1 {
+  z-index: 3;
+}
+.file-stack-folder.pos-2 {
+  z-index: 2;
+}
+.file-stack-folder.pos-3 {
+  z-index: 1;
+}
+.file-stack-folder.pos-1 img.file-kind-img,
+.file-stack-folder.pos-2 img.file-kind-img {
+  filter: brightness(0.74);
+}
+.file-stack-folder.pos-3 img.file-kind-img {
+  filter: brightness(0.6);
+}
+
+/* 2 files: front a little left, the second behind on the right. */
+.image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-0 {
+  transform: translate(-9%, 3%);
+}
+.image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-1 {
+  transform: translate(17%, -5%) rotate(3deg) scale(0.88);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-0,
+.item-main:hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-0 {
+  transform: translate(-12%, 2%) scale(1.03);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-1,
+.item-main:hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-1 {
+  transform: translate(23%, -7%) rotate(6deg) scale(0.9);
+}
+
+/* 3 files: front centered, one each side behind (right first, as the photo cards). */
+.image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-0 {
+  transform: translate(0, 3%);
+}
+.image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-1 {
+  transform: translate(24%, -4%) rotate(3deg) scale(0.84);
+}
+.image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-2 {
+  transform: translate(-24%, -4%) rotate(-3deg) scale(0.84);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-0,
+.item-main:hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-0 {
+  transform: translate(0, 2%) scale(1.03);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-1,
+.item-main:hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-1 {
+  transform: translate(30%, -6%) rotate(6deg) scale(0.86);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-2,
+.item-main:hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-2 {
+  transform: translate(-30%, -6%) rotate(-6deg) scale(0.86);
+}
+
+/* 4+ files: front centered, left and right behind, a fourth further back. */
+.image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-0 {
+  transform: translate(0, 4%);
+}
+.image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-1 {
+  transform: translate(-24%, -3%) rotate(-3deg) scale(0.84);
+}
+.image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-2 {
+  transform: translate(24%, -3%) rotate(3deg) scale(0.84);
+}
+.image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-3 {
+  transform: translate(0, -17%) scale(0.74);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-0,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-0 {
+  transform: translate(0, 3%) scale(1.03);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-1,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-1 {
+  transform: translate(-30%, -5%) rotate(-6deg) scale(0.86);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-2,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-2 {
+  transform: translate(30%, -5%) rotate(6deg) scale(0.86);
+}
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-3,
+.item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-3 {
+  transform: translate(0, -22%) scale(0.76);
+}
+
+html[data-motion='reduce'] .file-stack-folder {
+  transition: none;
+}
+
+/* Center the cascade in the viewport above the label flap. The back
+   folders rise above the front one, so the box is nudged down by about
+   half that rise to keep the whole group optically centered. */
+.image-folder-viewport .image-folder-stack-deck.is-file-deck {
+  margin-top: 0;
+  padding: 8px 0 26px;
+  box-sizing: border-box;
+}
+.list.horizontal .image-folder-viewport .image-folder-stack-deck.is-file-deck {
+  margin-top: 0;
+  padding: 6px 0 24px;
 }
 
 .file-stack-expanded-track {
@@ -2428,20 +2555,6 @@
 .list.horizontal .item-main:hover .image-folder-stack-deck[data-count="4"] .image-folder-stack-item.pos-2 {
   transform: translate(17px, -6px) rotate(17deg) scale(0.95);
 }
-/* Standalone 3D Folder file stacks in Horizontal Dock (no container card, 100% opacity, transparent box) */
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-0,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-1,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-2,
-.list.horizontal .image-folder-stack-deck .image-folder-stack-item.file-stack-item.pos-3 {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  border-radius: 0 !important;
-  opacity: 1 !important;
-  overflow: visible !important;
-}
-
 .list.horizontal .item.is-image-folder-card.is-expanded .image-folder-flap-wrap {
   margin-top: -18px;
   flex-shrink: 0;
@@ -3061,4 +3174,117 @@
 .flyout-url:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
+}
+
+/* ------------------------------------------------------------------ */
+/* Label + tags (user metadata)                                        */
+/* ------------------------------------------------------------------ */
+
+/* Side-dock text cards: the label is a title line above the content
+   (cards there are content-height, so this simply adds one line). */
+.item-label {
+  padding: 11px 16px 0 16px;
+  font-family: var(--font-ui);
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 600;
+  line-height: 1.3;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-label + .item-content {
+  padding-top: 4px;
+}
+
+/* Fixed-height cards (top dock, image and file cards): the label takes the
+   place of the small detail text in the bottom line, so nothing grows. */
+.meta-label {
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.meta-tag {
+  flex-shrink: 0;
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(10.5px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.5px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+}
+
+.meta-tag-more {
+  flex-shrink: 0;
+  font-size: calc(10.5px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.item.is-color-card.is-light-color .item-label {
+  color: rgba(0, 0, 0, 0.86);
+}
+.item.is-color-card.is-light-color .meta-label,
+.item.is-color-card.is-light-color .meta-tag,
+.item.is-color-card.is-light-color .meta-tag-more {
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+.item.is-color-card.is-light-color .meta-tag {
+  background: rgba(0, 0, 0, 0.08);
+}
+.item.is-color-card.is-dark-color .meta-label,
+.item.is-color-card.is-dark-color .meta-tag,
+.item.is-color-card.is-dark-color .meta-tag-more {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+.item.is-color-card.is-dark-color .meta-tag {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* The card whose right-click menu is open keeps its hover look. */
+.item.menu-target:not(.is-color-card) {
+  background: var(--bg-card-hover);
+}
+
+/* Preview flyout: the item's label and every tag above the content. */
+.flyout-meta-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.flyout-meta-label {
+  font-family: var(--font-ui);
+  font-size: calc(15px * var(--font-scale, 1));
+  font-weight: 700;
+  line-height: 1.3;
+  color: #ffffff;
+  word-break: break-word;
+}
+.flyout-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.flyout-meta-tag {
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-ui);
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 600;
 }

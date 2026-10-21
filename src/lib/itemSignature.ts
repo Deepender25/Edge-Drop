@@ -49,6 +49,15 @@ export function itemRenderKey(item: ClipboardItemDto): string {
     }
   }
 
+  // The label and tags are drawn on the card, so a rename alone must re-render.
+  key += `|m|${itemMetaKey(item)}`
+
   renderKeyCache.set(item, key)
   return key
+}
+
+/** Label + tags as one comparable string ('' when the item has neither). */
+export function itemMetaKey(item: Pick<ClipboardItemDto, 'label' | 'tags'>): string {
+  if (!item.label && !item.tags?.length) return ''
+  return `${item.label ?? ''}\u0001${(item.tags ?? []).join('\u0002')}`
 }

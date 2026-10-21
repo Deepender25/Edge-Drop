@@ -177,7 +177,7 @@ import { join } from 'node:path'
 import { buildFileDragSvg, setFileIconAssetDir } from '../electron/main/fileSvg'
 import type { FileKind } from '../src/lib/fileType'
 
-describe('buildFileDragSvg — vintage PNG drag icons', () => {
+describe('buildFileDragSvg — SVG folder drag icons', () => {
   const allKinds: FileKind[] = [
     'pdf',
     'word',
@@ -196,14 +196,15 @@ describe('buildFileDragSvg — vintage PNG drag icons', () => {
 
   setFileIconAssetDir(join(process.cwd(), 'resources', 'file-icons'))
 
-  it('embeds real PNG art for all 13 file categories', () => {
+  it('embeds the real SVG art for all 13 file categories, filling the slot', () => {
     for (const kind of allKinds) {
       const svg = buildFileDragSvg([kind], 1)
       expect(svg).toContain('<svg')
       expect(svg).toContain('viewBox="0 0 512 512"')
-      // Embedded raster art, never the old vector gradients or black boxes
+      // Nested art document (its own IDs), never inline gradients or black boxes
       expect(svg).toContain('<image')
-      expect(svg).toContain('data:image/png;base64,')
+      expect(svg).toContain('data:image/svg+xml;base64,')
+      expect(svg).toContain('x="0" y="0" width="512" height="512"')
       expect(svg).not.toContain('linearGradient')
       expect(svg).not.toContain('fill="#000000"')
     }

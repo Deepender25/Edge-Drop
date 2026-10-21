@@ -374,7 +374,7 @@ function dragIcon(data: ItemData): Electron.NativeImage {
   return getFileDragIcon()
 }
 
-import { buildFileDragSvg } from './fileSvg'
+import { buildFileDragSvg, dragSvgHasArt } from './fileSvg'
 
 /** Generate a custom standalone SVG PNG icon representing file kinds with count badge. */
 function createFileStackDragIcon(paths: string[], entries?: Array<{ isDirectory?: boolean }>): Electron.NativeImage {
@@ -392,13 +392,16 @@ function createFileStackDragIcon(paths: string[], entries?: Array<{ isDirectory?
     }
     return getFileKind(p, isDir).kind
   })
-  const cacheKey = `stack|png|${kinds.join('-')}|${count}`
+  const cacheKey = `stack|svg|${kinds.join('-')}|${count}`
   const cached = iconCache.get(cacheKey)
   if (cached && !cached.isEmpty()) {
     return cached
   }
 
   const svg = buildFileDragSvg(kinds, count)
+  // No art could be read: an invisible ghost must not be rasterized, and
+  // above all must not be cached for the rest of the session.
+  if (!dragSvgHasArt(svg)) return getFileDragIcon()
 
   try {
     const resvg = new Resvg(svg, { fitTo: { mode: 'zoom', value: 2 } })

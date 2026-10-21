@@ -184,6 +184,32 @@ export interface TranslationKeys {
     clearAll?: string
     clearAllConfirm?: string
   }
+  /** Card right-click menu and the label / tags editor. */
+  menu?: {
+    title?: string
+    paste?: string
+    pastePlain?: string
+    addLabel?: string
+    editLabel?: string
+    openLink?: string
+    copyCleanLink?: string
+    copyAs?: string
+    showInFolder?: string
+    copyPath?: string
+    copyPaths?: string
+    saveToDownloads?: string
+    preview?: string
+    closePreview?: string
+    label?: string
+    labelPlaceholder?: string
+    tags?: string
+    tagPlaceholder?: string
+    removeTag?: string
+    usedBefore?: string
+    removeAll?: string
+    cancel?: string
+    save?: string
+  }
   emoji?: {
     open: string
     backToClipboard: string
@@ -324,6 +350,11 @@ export interface TranslationKeys {
     mergeImagesFull?: string
     mergeFilesFull?: string
     mergeIncompatible?: string
+    labelPinned?: string
+    labelFailed?: string
+    savedToDownloads?: string
+    savedManyToDownloads?: string
+    saveImagesFailed?: string
   }
   groups?: {
     feedback?: string
@@ -732,6 +763,31 @@ export const en: TranslationKeys = {
     "singleFile": "1 file",
     "scrollToTop": "Scroll to top"
   },
+  "menu": {
+    "title": "Item actions",
+    "paste": "Paste",
+    "pastePlain": "Paste as plain text",
+    "addLabel": "Add label & tags…",
+    "editLabel": "Edit label & tags…",
+    "openLink": "Open link",
+    "copyCleanLink": "Copy clean link",
+    "copyAs": "Copy as",
+    "showInFolder": "Show in folder",
+    "copyPath": "Copy path",
+    "copyPaths": "Copy paths",
+    "saveToDownloads": "Save to Downloads",
+    "preview": "Preview",
+    "closePreview": "Close preview",
+    "label": "Label",
+    "labelPlaceholder": "e.g. Office Wi-Fi",
+    "tags": "Tags",
+    "tagPlaceholder": "Add a tag…",
+    "removeTag": "Remove #{tag}",
+    "usedBefore": "Used before",
+    "removeAll": "Remove all",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Clipboard",
@@ -854,6 +910,11 @@ export const en: TranslationKeys = {
     "current": "Current"
   },
   "toast": {
+    "labelPinned": "Pinned so it's kept",
+    "labelFailed": "Could not save the label. Please try again.",
+    "savedToDownloads": "Saved to Downloads: {name}",
+    "savedManyToDownloads": "Saved {count} images to Downloads",
+    "saveImagesFailed": "Could not save the image",
     "copiedToClipboard": "Copied to clipboard",
     "itemDeleted": "Item deleted",
     "itemPinned": "Item pinned",
@@ -1107,6 +1168,31 @@ export const es: TranslationKeys = {
     "clearAll": "Borrar todo el historial",
     "clearAllConfirm": "Toca de nuevo para confirmar"
   },
+  "menu": {
+    "title": "Acciones del elemento",
+    "paste": "Pegar",
+    "pastePlain": "Pegar como texto sin formato",
+    "addLabel": "Añadir nombre y etiquetas…",
+    "editLabel": "Editar nombre y etiquetas…",
+    "openLink": "Abrir enlace",
+    "copyCleanLink": "Copiar enlace limpio",
+    "copyAs": "Copiar como",
+    "showInFolder": "Mostrar en la carpeta",
+    "copyPath": "Copiar ruta",
+    "copyPaths": "Copiar rutas",
+    "saveToDownloads": "Guardar en Descargas",
+    "preview": "Vista previa",
+    "closePreview": "Cerrar vista previa",
+    "label": "Nombre",
+    "labelPlaceholder": "p. ej. Wi-Fi de la oficina",
+    "tags": "Etiquetas",
+    "tagPlaceholder": "Añadir etiqueta…",
+    "removeTag": "Quitar #{tag}",
+    "usedBefore": "Usadas antes",
+    "removeAll": "Quitar todo",
+    "cancel": "Cancelar",
+    "save": "Guardar"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Portapapeles",
@@ -1228,6 +1314,11 @@ export const es: TranslationKeys = {
     "current": "Actual"
   },
   "toast": {
+    "labelPinned": "Fijado para conservarlo",
+    "labelFailed": "No se pudo guardar el nombre. Inténtalo de nuevo.",
+    "savedToDownloads": "Guardado en Descargas: {name}",
+    "savedManyToDownloads": "{count} imágenes guardadas en Descargas",
+    "saveImagesFailed": "No se pudo guardar la imagen",
     "mergeIncompatible": "No se pueden combinar diferentes tipos de elementos",
     "mergeFilesFull": "Un paquete de carpetas puede contener un máximo de 10 archivos",
     "mergeImagesFull": "Una colección de imágenes puede contener un máximo de 10 elementos",
@@ -1481,6 +1572,31 @@ export const fr: TranslationKeys = {
     "clearAll": "Effacer tout l’historique",
     "clearAllConfirm": "Appuyez à nouveau pour confirmer"
   },
+  "menu": {
+    "title": "Actions de l’élément",
+    "paste": "Coller",
+    "pastePlain": "Coller en texte brut",
+    "addLabel": "Ajouter un nom et des tags…",
+    "editLabel": "Modifier le nom et les tags…",
+    "openLink": "Ouvrir le lien",
+    "copyCleanLink": "Copier le lien nettoyé",
+    "copyAs": "Copier en",
+    "showInFolder": "Afficher dans le dossier",
+    "copyPath": "Copier le chemin",
+    "copyPaths": "Copier les chemins",
+    "saveToDownloads": "Enregistrer dans Téléchargements",
+    "preview": "Aperçu",
+    "closePreview": "Fermer l’aperçu",
+    "label": "Nom",
+    "labelPlaceholder": "ex. Wi-Fi du bureau",
+    "tags": "Tags",
+    "tagPlaceholder": "Ajouter un tag…",
+    "removeTag": "Retirer #{tag}",
+    "usedBefore": "Déjà utilisés",
+    "removeAll": "Tout retirer",
+    "cancel": "Annuler",
+    "save": "Enregistrer"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Presse-papiers",
@@ -1602,6 +1718,11 @@ export const fr: TranslationKeys = {
     "current": "Actuel"
   },
   "toast": {
+    "labelPinned": "Épinglé pour le conserver",
+    "labelFailed": "Impossible d’enregistrer le nom. Réessayez.",
+    "savedToDownloads": "Enregistré dans Téléchargements : {name}",
+    "savedManyToDownloads": "{count} images enregistrées dans Téléchargements",
+    "saveImagesFailed": "Impossible d’enregistrer l’image",
     "mergeIncompatible": "Impossible de combiner différents types d'éléments",
     "mergeFilesFull": "Un dossier peut contenir au maximum 10 fichiers",
     "mergeImagesFull": "Une collection d'images peut contenir au maximum 10 éléments",
@@ -1855,6 +1976,31 @@ export const de: TranslationKeys = {
     "clearAll": "Gesamten Verlauf löschen",
     "clearAllConfirm": "Zum Bestätigen erneut tippen"
   },
+  "menu": {
+    "title": "Element-Aktionen",
+    "paste": "Einfügen",
+    "pastePlain": "Als reinen Text einfügen",
+    "addLabel": "Name & Tags hinzufügen…",
+    "editLabel": "Name & Tags bearbeiten…",
+    "openLink": "Link öffnen",
+    "copyCleanLink": "Bereinigten Link kopieren",
+    "copyAs": "Kopieren als",
+    "showInFolder": "Im Ordner anzeigen",
+    "copyPath": "Pfad kopieren",
+    "copyPaths": "Pfade kopieren",
+    "saveToDownloads": "In Downloads speichern",
+    "preview": "Vorschau",
+    "closePreview": "Vorschau schließen",
+    "label": "Name",
+    "labelPlaceholder": "z. B. Büro-WLAN",
+    "tags": "Tags",
+    "tagPlaceholder": "Tag hinzufügen…",
+    "removeTag": "#{tag} entfernen",
+    "usedBefore": "Bereits verwendet",
+    "removeAll": "Alle entfernen",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Zwischenablage",
@@ -1976,6 +2122,11 @@ export const de: TranslationKeys = {
     "current": "Aktuell"
   },
   "toast": {
+    "labelPinned": "Angeheftet, damit es erhalten bleibt",
+    "labelFailed": "Name konnte nicht gespeichert werden. Bitte erneut versuchen.",
+    "savedToDownloads": "In Downloads gespeichert: {name}",
+    "savedManyToDownloads": "{count} Bilder in Downloads gespeichert",
+    "saveImagesFailed": "Bild konnte nicht gespeichert werden",
     "mergeIncompatible": "Unterschiedliche Elementtypen können nicht kombiniert werden",
     "mergeFilesFull": "Ein Ordnerpaket kann maximal 10 Dateien enthalten",
     "mergeImagesFull": "Eine Bildsammlung kann maximal 10 Elemente enthalten",
@@ -2229,6 +2380,31 @@ export const it: TranslationKeys = {
     "clearAll": "Cancella tutta la cronologia",
     "clearAllConfirm": "Tocca di nuovo per confermare"
   },
+  "menu": {
+    "title": "Azioni elemento",
+    "paste": "Incolla",
+    "pastePlain": "Incolla come testo semplice",
+    "addLabel": "Aggiungi nome e tag…",
+    "editLabel": "Modifica nome e tag…",
+    "openLink": "Apri link",
+    "copyCleanLink": "Copia link pulito",
+    "copyAs": "Copia come",
+    "showInFolder": "Mostra nella cartella",
+    "copyPath": "Copia percorso",
+    "copyPaths": "Copia percorsi",
+    "saveToDownloads": "Salva in Download",
+    "preview": "Anteprima",
+    "closePreview": "Chiudi anteprima",
+    "label": "Nome",
+    "labelPlaceholder": "es. Wi-Fi dell’ufficio",
+    "tags": "Tag",
+    "tagPlaceholder": "Aggiungi un tag…",
+    "removeTag": "Rimuovi #{tag}",
+    "usedBefore": "Già usati",
+    "removeAll": "Rimuovi tutto",
+    "cancel": "Annulla",
+    "save": "Salva"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Appunti",
@@ -2350,6 +2526,11 @@ export const it: TranslationKeys = {
     "current": "Corrente"
   },
   "toast": {
+    "labelPinned": "Fissato per conservarlo",
+    "labelFailed": "Impossibile salvare il nome. Riprova.",
+    "savedToDownloads": "Salvato in Download: {name}",
+    "savedManyToDownloads": "{count} immagini salvate in Download",
+    "saveImagesFailed": "Impossibile salvare l’immagine",
     "mergeIncompatible": "Non è possibile combinare tipi di elementi diversi",
     "mergeFilesFull": "Un pacchetto di cartelle può contenere al massimo 10 file",
     "mergeImagesFull": "Una raccolta di immagini può contenere al massimo 10 elementi",
@@ -2603,6 +2784,31 @@ export const pt: TranslationKeys = {
     "clearAll": "Limpar todo o histórico",
     "clearAllConfirm": "Toque novamente para confirmar"
   },
+  "menu": {
+    "title": "Ações do item",
+    "paste": "Colar",
+    "pastePlain": "Colar como texto simples",
+    "addLabel": "Adicionar nome e tags…",
+    "editLabel": "Editar nome e tags…",
+    "openLink": "Abrir link",
+    "copyCleanLink": "Copiar link limpo",
+    "copyAs": "Copiar como",
+    "showInFolder": "Mostrar na pasta",
+    "copyPath": "Copiar caminho",
+    "copyPaths": "Copiar caminhos",
+    "saveToDownloads": "Salvar em Downloads",
+    "preview": "Pré-visualizar",
+    "closePreview": "Fechar pré-visualização",
+    "label": "Nome",
+    "labelPlaceholder": "ex.: Wi-Fi do escritório",
+    "tags": "Tags",
+    "tagPlaceholder": "Adicionar tag…",
+    "removeTag": "Remover #{tag}",
+    "usedBefore": "Usadas antes",
+    "removeAll": "Remover tudo",
+    "cancel": "Cancelar",
+    "save": "Salvar"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Área de transferência",
@@ -2724,6 +2930,11 @@ export const pt: TranslationKeys = {
     "current": "Atual"
   },
   "toast": {
+    "labelPinned": "Fixado para ser mantido",
+    "labelFailed": "Não foi possível salvar o nome. Tente novamente.",
+    "savedToDownloads": "Salvo em Downloads: {name}",
+    "savedManyToDownloads": "{count} imagens salvas em Downloads",
+    "saveImagesFailed": "Não foi possível salvar a imagem",
     "mergeIncompatible": "Não é possível combinar tipos de itens diferentes",
     "mergeFilesFull": "Um pacote de pastas pode conter no máximo 10 arquivos",
     "mergeImagesFull": "Uma coleção de imagens pode conter no máximo 10 itens",
@@ -2977,6 +3188,31 @@ export const ru: TranslationKeys = {
     "clearAll": "Очистить всю историю",
     "clearAllConfirm": "Нажмите ещё раз для подтверждения"
   },
+  "menu": {
+    "title": "Действия с элементом",
+    "paste": "Вставить",
+    "pastePlain": "Вставить как обычный текст",
+    "addLabel": "Добавить название и теги…",
+    "editLabel": "Изменить название и теги…",
+    "openLink": "Открыть ссылку",
+    "copyCleanLink": "Копировать чистую ссылку",
+    "copyAs": "Копировать как",
+    "showInFolder": "Показать в папке",
+    "copyPath": "Копировать путь",
+    "copyPaths": "Копировать пути",
+    "saveToDownloads": "Сохранить в «Загрузки»",
+    "preview": "Просмотр",
+    "closePreview": "Закрыть просмотр",
+    "label": "Название",
+    "labelPlaceholder": "напр. Wi-Fi в офисе",
+    "tags": "Теги",
+    "tagPlaceholder": "Добавить тег…",
+    "removeTag": "Удалить #{tag}",
+    "usedBefore": "Использованные ранее",
+    "removeAll": "Удалить всё",
+    "cancel": "Отмена",
+    "save": "Сохранить"
+  },
   "emoji": {
     "open": "Эмодзи",
     "backToClipboard": "Буфер обмена",
@@ -3098,6 +3334,11 @@ export const ru: TranslationKeys = {
     "current": "Текущий"
   },
   "toast": {
+    "labelPinned": "Закреплено, чтобы не потерялось",
+    "labelFailed": "Не удалось сохранить название. Попробуйте ещё раз.",
+    "savedToDownloads": "Сохранено в «Загрузки»: {name}",
+    "savedManyToDownloads": "Сохранено изображений в «Загрузки»: {count}",
+    "saveImagesFailed": "Не удалось сохранить изображение",
     "mergeIncompatible": "Нельзя объединять элементы разных типов",
     "mergeFilesFull": "Папка может содержать не более 10 файлов",
     "mergeImagesFull": "Коллекция изображений может содержать не более 10 элементов",
@@ -3351,6 +3592,31 @@ export const ja: TranslationKeys = {
     "clearAll": "履歴をすべて消去",
     "clearAllConfirm": "もう一度押して確認します"
   },
+  "menu": {
+    "title": "項目の操作",
+    "paste": "貼り付け",
+    "pastePlain": "プレーンテキストとして貼り付け",
+    "addLabel": "名前とタグを追加…",
+    "editLabel": "名前とタグを編集…",
+    "openLink": "リンクを開く",
+    "copyCleanLink": "クリーンなリンクをコピー",
+    "copyAs": "形式を指定してコピー",
+    "showInFolder": "フォルダーに表示",
+    "copyPath": "パスをコピー",
+    "copyPaths": "パスをコピー",
+    "saveToDownloads": "ダウンロードに保存",
+    "preview": "プレビュー",
+    "closePreview": "プレビューを閉じる",
+    "label": "名前",
+    "labelPlaceholder": "例: オフィスの Wi-Fi",
+    "tags": "タグ",
+    "tagPlaceholder": "タグを追加…",
+    "removeTag": "#{tag} を削除",
+    "usedBefore": "使用済み",
+    "removeAll": "すべて削除",
+    "cancel": "キャンセル",
+    "save": "保存"
+  },
   "emoji": {
     "open": "絵文字",
     "backToClipboard": "クリップボード",
@@ -3472,6 +3738,11 @@ export const ja: TranslationKeys = {
     "current": "現在"
   },
   "toast": {
+    "labelPinned": "保持するためにピン留めしました",
+    "labelFailed": "名前を保存できませんでした。もう一度お試しください。",
+    "savedToDownloads": "ダウンロードに保存しました: {name}",
+    "savedManyToDownloads": "{count} 枚の画像をダウンロードに保存しました",
+    "saveImagesFailed": "画像を保存できませんでした",
     "mergeIncompatible": "異なる種類の項目を結合できません",
     "mergeFilesFull": "フォルダには最大10個のファイルを格納できます",
     "mergeImagesFull": "画像コレクションには最大10個まで登録できます",
@@ -3725,6 +3996,31 @@ export const ko: TranslationKeys = {
     "clearAll": "전체 기록 지우기",
     "clearAllConfirm": "확인하려면 다시 탭하세요"
   },
+  "menu": {
+    "title": "항목 작업",
+    "paste": "붙여넣기",
+    "pastePlain": "일반 텍스트로 붙여넣기",
+    "addLabel": "이름 및 태그 추가…",
+    "editLabel": "이름 및 태그 편집…",
+    "openLink": "링크 열기",
+    "copyCleanLink": "깔끔한 링크 복사",
+    "copyAs": "다른 형식으로 복사",
+    "showInFolder": "폴더에서 보기",
+    "copyPath": "경로 복사",
+    "copyPaths": "경로 복사",
+    "saveToDownloads": "다운로드에 저장",
+    "preview": "미리 보기",
+    "closePreview": "미리 보기 닫기",
+    "label": "이름",
+    "labelPlaceholder": "예: 사무실 Wi-Fi",
+    "tags": "태그",
+    "tagPlaceholder": "태그 추가…",
+    "removeTag": "#{tag} 제거",
+    "usedBefore": "이전에 사용함",
+    "removeAll": "모두 제거",
+    "cancel": "취소",
+    "save": "저장"
+  },
   "emoji": {
     "open": "이모지",
     "backToClipboard": "클립보드",
@@ -3846,6 +4142,11 @@ export const ko: TranslationKeys = {
     "current": "현재"
   },
   "toast": {
+    "labelPinned": "보관되도록 고정했습니다",
+    "labelFailed": "이름을 저장하지 못했습니다. 다시 시도하세요.",
+    "savedToDownloads": "다운로드에 저장됨: {name}",
+    "savedManyToDownloads": "이미지 {count}개를 다운로드에 저장했습니다",
+    "saveImagesFailed": "이미지를 저장하지 못했습니다",
     "mergeIncompatible": "서로 다른 항목 유형은 결합할 수 없습니다",
     "mergeFilesFull": "폴더 묶음에는 최대 10개의 파일을 담을 수 있습니다",
     "mergeImagesFull": "이미지 모음에는 최대 10개의 항목을 담을 수 있습니다",
@@ -4099,6 +4400,31 @@ export const zhCN: TranslationKeys = {
     "clearAll": "清除所有历史记录",
     "clearAllConfirm": "再次点击以确认"
   },
+  "menu": {
+    "title": "项目操作",
+    "paste": "粘贴",
+    "pastePlain": "粘贴为纯文本",
+    "addLabel": "添加名称和标签…",
+    "editLabel": "编辑名称和标签…",
+    "openLink": "打开链接",
+    "copyCleanLink": "复制干净链接",
+    "copyAs": "复制为",
+    "showInFolder": "在文件夹中显示",
+    "copyPath": "复制路径",
+    "copyPaths": "复制路径",
+    "saveToDownloads": "保存到“下载”",
+    "preview": "预览",
+    "closePreview": "关闭预览",
+    "label": "名称",
+    "labelPlaceholder": "例如：办公室 Wi-Fi",
+    "tags": "标签",
+    "tagPlaceholder": "添加标签…",
+    "removeTag": "移除 #{tag}",
+    "usedBefore": "用过的",
+    "removeAll": "全部移除",
+    "cancel": "取消",
+    "save": "保存"
+  },
   "emoji": {
     "open": "表情符号",
     "backToClipboard": "剪贴板",
@@ -4220,6 +4546,11 @@ export const zhCN: TranslationKeys = {
     "current": "当前"
   },
   "toast": {
+    "labelPinned": "已固定，以免被删除",
+    "labelFailed": "无法保存名称，请重试。",
+    "savedToDownloads": "已保存到“下载”：{name}",
+    "savedManyToDownloads": "已将 {count} 张图片保存到“下载”",
+    "saveImagesFailed": "无法保存图片",
     "mergeIncompatible": "无法组合不同类型的项目",
     "mergeFilesFull": "文件夹包最多可包含 10 个文件",
     "mergeImagesFull": "图片集合最多可包含 10 个项目",
@@ -4473,6 +4804,31 @@ export const zhTW: TranslationKeys = {
     "clearAll": "清除所有歷史記錄",
     "clearAllConfirm": "再次點擊以確認"
   },
+  "menu": {
+    "title": "項目動作",
+    "paste": "貼上",
+    "pastePlain": "以純文字貼上",
+    "addLabel": "新增名稱與標籤…",
+    "editLabel": "編輯名稱與標籤…",
+    "openLink": "開啟連結",
+    "copyCleanLink": "複製乾淨連結",
+    "copyAs": "複製為",
+    "showInFolder": "在資料夾中顯示",
+    "copyPath": "複製路徑",
+    "copyPaths": "複製路徑",
+    "saveToDownloads": "儲存到「下載」",
+    "preview": "預覽",
+    "closePreview": "關閉預覽",
+    "label": "名稱",
+    "labelPlaceholder": "例如：辦公室 Wi-Fi",
+    "tags": "標籤",
+    "tagPlaceholder": "新增標籤…",
+    "removeTag": "移除 #{tag}",
+    "usedBefore": "用過的",
+    "removeAll": "全部移除",
+    "cancel": "取消",
+    "save": "儲存"
+  },
   "emoji": {
     "open": "表情符號",
     "backToClipboard": "剪貼簿",
@@ -4594,6 +4950,11 @@ export const zhTW: TranslationKeys = {
     "current": "目前"
   },
   "toast": {
+    "labelPinned": "已釘選，以免被刪除",
+    "labelFailed": "無法儲存名稱，請再試一次。",
+    "savedToDownloads": "已儲存到「下載」：{name}",
+    "savedManyToDownloads": "已將 {count} 張圖片儲存到「下載」",
+    "saveImagesFailed": "無法儲存圖片",
     "mergeIncompatible": "無法合併不同類型的項目",
     "mergeFilesFull": "資料夾套件最多可包含 10 個檔案",
     "mergeImagesFull": "圖片集合最多可包含 10 個項目",
@@ -4847,6 +5208,31 @@ export const hi: TranslationKeys = {
     "clearAll": "पूरा इतिहास साफ़ करें",
     "clearAllConfirm": "पुष्टि करने के लिए फिर से टैप करें"
   },
+  "menu": {
+    "title": "आइटम क्रियाएँ",
+    "paste": "पेस्ट करें",
+    "pastePlain": "सादे टेक्स्ट के रूप में पेस्ट करें",
+    "addLabel": "नाम और टैग जोड़ें…",
+    "editLabel": "नाम और टैग बदलें…",
+    "openLink": "लिंक खोलें",
+    "copyCleanLink": "साफ़ लिंक कॉपी करें",
+    "copyAs": "इस रूप में कॉपी करें",
+    "showInFolder": "फ़ोल्डर में दिखाएँ",
+    "copyPath": "पाथ कॉपी करें",
+    "copyPaths": "पाथ कॉपी करें",
+    "saveToDownloads": "डाउनलोड्स में सेव करें",
+    "preview": "प्रीव्यू",
+    "closePreview": "प्रीव्यू बंद करें",
+    "label": "नाम",
+    "labelPlaceholder": "जैसे ऑफ़िस वाई-फ़ाई",
+    "tags": "टैग",
+    "tagPlaceholder": "टैग जोड़ें…",
+    "removeTag": "#{tag} हटाएँ",
+    "usedBefore": "पहले इस्तेमाल किए गए",
+    "removeAll": "सब हटाएँ",
+    "cancel": "रद्द करें",
+    "save": "सेव करें"
+  },
   "emoji": {
     "open": "इमोजी",
     "backToClipboard": "क्लिपबोर्ड",
@@ -4968,6 +5354,11 @@ export const hi: TranslationKeys = {
     "current": "वर्तमान"
   },
   "toast": {
+    "labelPinned": "पिन किया गया ताकि यह बना रहे",
+    "labelFailed": "नाम सेव नहीं हो सका। फिर से कोशिश करें।",
+    "savedToDownloads": "डाउनलोड्स में सेव किया गया: {name}",
+    "savedManyToDownloads": "{count} इमेज डाउनलोड्स में सेव की गईं",
+    "saveImagesFailed": "इमेज सेव नहीं हो सकी",
     "mergeIncompatible": "अलग-अलग प्रकार के आइटम संयोजित नहीं किए जा सकते",
     "mergeFilesFull": "फ़ोल्डर बंडल में अधिकतम 10 फ़ाइलें हो सकती हैं",
     "mergeImagesFull": "चित्र संग्रह में अधिकतम 10 आइटम हो सकते हैं",
@@ -5221,6 +5612,31 @@ export const ar: TranslationKeys = {
     "clearAll": "مسح كل السجل",
     "clearAllConfirm": "اضغط مرة أخرى للتأكيد"
   },
+  "menu": {
+    "title": "إجراءات العنصر",
+    "paste": "لصق",
+    "pastePlain": "لصق كنص عادي",
+    "addLabel": "إضافة اسم ووسوم…",
+    "editLabel": "تعديل الاسم والوسوم…",
+    "openLink": "فتح الرابط",
+    "copyCleanLink": "نسخ رابط نظيف",
+    "copyAs": "نسخ بصيغة",
+    "showInFolder": "إظهار في المجلد",
+    "copyPath": "نسخ المسار",
+    "copyPaths": "نسخ المسارات",
+    "saveToDownloads": "حفظ في التنزيلات",
+    "preview": "معاينة",
+    "closePreview": "إغلاق المعاينة",
+    "label": "الاسم",
+    "labelPlaceholder": "مثل: Wi-Fi المكتب",
+    "tags": "الوسوم",
+    "tagPlaceholder": "إضافة وسم…",
+    "removeTag": "إزالة #{tag}",
+    "usedBefore": "مستخدمة سابقًا",
+    "removeAll": "إزالة الكل",
+    "cancel": "إلغاء",
+    "save": "حفظ"
+  },
   "emoji": {
     "open": "رموز تعبيرية",
     "backToClipboard": "الحافظة",
@@ -5342,6 +5758,11 @@ export const ar: TranslationKeys = {
     "current": "الحالي"
   },
   "toast": {
+    "labelPinned": "تم التثبيت للاحتفاظ به",
+    "labelFailed": "تعذّر حفظ الاسم. حاول مرة أخرى.",
+    "savedToDownloads": "تم الحفظ في التنزيلات: {name}",
+    "savedManyToDownloads": "تم حفظ {count} صور في التنزيلات",
+    "saveImagesFailed": "تعذّر حفظ الصورة",
     "mergeIncompatible": "لا يمكن دمج أنواع مختلفة من العناصر",
     "mergeFilesFull": "يمكن لحزمة المجلدات أن تحتوي على 10 ملفات كحد أقصى",
     "mergeImagesFull": "يمكن لمجموعة الصور أن تحتوي على 10 عناصر كحد أقصى",
@@ -5595,6 +6016,31 @@ export const fa: TranslationKeys = {
     "clearAll": "پاک کردن کل تاریخچه",
     "clearAllConfirm": "برای تأیید دوباره ضربه بزنید"
   },
+  "menu": {
+    "title": "عملیات مورد",
+    "paste": "جای‌گذاری",
+    "pastePlain": "جای‌گذاری به‌صورت متن ساده",
+    "addLabel": "افزودن نام و برچسب…",
+    "editLabel": "ویرایش نام و برچسب…",
+    "openLink": "باز کردن پیوند",
+    "copyCleanLink": "کپی پیوند تمیز",
+    "copyAs": "کپی به‌صورت",
+    "showInFolder": "نمایش در پوشه",
+    "copyPath": "کپی مسیر",
+    "copyPaths": "کپی مسیرها",
+    "saveToDownloads": "ذخیره در دانلودها",
+    "preview": "پیش‌نمایش",
+    "closePreview": "بستن پیش‌نمایش",
+    "label": "نام",
+    "labelPlaceholder": "مثلاً Wi-Fi دفتر",
+    "tags": "برچسب‌ها",
+    "tagPlaceholder": "افزودن برچسب…",
+    "removeTag": "حذف #{tag}",
+    "usedBefore": "استفاده‌شده",
+    "removeAll": "حذف همه",
+    "cancel": "لغو",
+    "save": "ذخیره"
+  },
   "emoji": {
     "open": "ایموجی",
     "backToClipboard": "کلیپبورد",
@@ -5716,6 +6162,11 @@ export const fa: TranslationKeys = {
     "current": "فعلی"
   },
   "toast": {
+    "labelPinned": "سنجاق شد تا نگه داشته شود",
+    "labelFailed": "ذخیرهٔ نام ممکن نشد. دوباره تلاش کنید.",
+    "savedToDownloads": "در دانلودها ذخیره شد: {name}",
+    "savedManyToDownloads": "{count} تصویر در دانلودها ذخیره شد",
+    "saveImagesFailed": "ذخیرهٔ تصویر ممکن نشد",
     "mergeIncompatible": "ترکیب انواع مختلف موارد ممکن نیست",
     "mergeFilesFull": "بسته پوشه حداکثر می‌تواند ۱۰ فایل داشته باشد",
     "mergeImagesFull": "مجموعه تصاویر حداکثر می‌تواند ۱۰ مورد داشته باشد",
@@ -5969,6 +6420,31 @@ export const bn: TranslationKeys = {
     "clearAll": "সব ইতিহাস মুছুন",
     "clearAllConfirm": "নিশ্চিত করতে আবার ট্যাপ করুন"
   },
+  "menu": {
+    "title": "আইটেমের কাজ",
+    "paste": "পেস্ট করুন",
+    "pastePlain": "সাধারণ টেক্সট হিসেবে পেস্ট করুন",
+    "addLabel": "নাম ও ট্যাগ যোগ করুন…",
+    "editLabel": "নাম ও ট্যাগ সম্পাদনা করুন…",
+    "openLink": "লিঙ্ক খুলুন",
+    "copyCleanLink": "পরিষ্কার লিঙ্ক কপি করুন",
+    "copyAs": "যেভাবে কপি করবেন",
+    "showInFolder": "ফোল্ডারে দেখান",
+    "copyPath": "পাথ কপি করুন",
+    "copyPaths": "পাথগুলো কপি করুন",
+    "saveToDownloads": "ডাউনলোডসে সেভ করুন",
+    "preview": "প্রিভিউ",
+    "closePreview": "প্রিভিউ বন্ধ করুন",
+    "label": "নাম",
+    "labelPlaceholder": "যেমন অফিসের ওয়াই-ফাই",
+    "tags": "ট্যাগ",
+    "tagPlaceholder": "ট্যাগ যোগ করুন…",
+    "removeTag": "#{tag} সরান",
+    "usedBefore": "আগে ব্যবহৃত",
+    "removeAll": "সব সরান",
+    "cancel": "বাতিল",
+    "save": "সেভ করুন"
+  },
   "emoji": {
     "open": "ইমোজি",
     "backToClipboard": "ক্লিপবোর্ড",
@@ -6090,6 +6566,11 @@ export const bn: TranslationKeys = {
     "current": "বর্তমান"
   },
   "toast": {
+    "labelPinned": "রাখার জন্য পিন করা হয়েছে",
+    "labelFailed": "নাম সেভ করা যায়নি। আবার চেষ্টা করুন।",
+    "savedToDownloads": "ডাউনলোডসে সেভ হয়েছে: {name}",
+    "savedManyToDownloads": "{count}টি ছবি ডাউনলোডসে সেভ হয়েছে",
+    "saveImagesFailed": "ছবি সেভ করা যায়নি",
     "mergeIncompatible": "ভিন্ন ধরনের আইটেম একত্র করা যায় না",
     "mergeFilesFull": "একটি ফোল্ডার বান্ডেলে সর্বোচ্চ ১০টি ফাইল থাকতে পারে",
     "mergeImagesFull": "একটি ছবি সংগ্রহে সর্বোচ্চ ১০টি আইটেম থাকতে পারে",
@@ -6343,6 +6824,31 @@ export const tr: TranslationKeys = {
     "clearAll": "Tüm geçmişi temizle",
     "clearAllConfirm": "Onaylamak için tekrar dokunun"
   },
+  "menu": {
+    "title": "Öğe işlemleri",
+    "paste": "Yapıştır",
+    "pastePlain": "Düz metin olarak yapıştır",
+    "addLabel": "Ad ve etiket ekle…",
+    "editLabel": "Adı ve etiketleri düzenle…",
+    "openLink": "Bağlantıyı aç",
+    "copyCleanLink": "Temiz bağlantıyı kopyala",
+    "copyAs": "Şu biçimde kopyala",
+    "showInFolder": "Klasörde göster",
+    "copyPath": "Yolu kopyala",
+    "copyPaths": "Yolları kopyala",
+    "saveToDownloads": "İndirilenler'e kaydet",
+    "preview": "Önizleme",
+    "closePreview": "Önizlemeyi kapat",
+    "label": "Ad",
+    "labelPlaceholder": "ör. Ofis Wi-Fi",
+    "tags": "Etiketler",
+    "tagPlaceholder": "Etiket ekle…",
+    "removeTag": "#{tag} kaldır",
+    "usedBefore": "Daha önce kullanılanlar",
+    "removeAll": "Tümünü kaldır",
+    "cancel": "İptal",
+    "save": "Kaydet"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Pano",
@@ -6464,6 +6970,11 @@ export const tr: TranslationKeys = {
     "current": "Geçerli"
   },
   "toast": {
+    "labelPinned": "Saklanması için sabitlendi",
+    "labelFailed": "Ad kaydedilemedi. Lütfen tekrar deneyin.",
+    "savedToDownloads": "İndirilenler'e kaydedildi: {name}",
+    "savedManyToDownloads": "{count} görsel İndirilenler'e kaydedildi",
+    "saveImagesFailed": "Görsel kaydedilemedi",
     "mergeIncompatible": "Farklı öğe türleri birleştirilemez",
     "mergeFilesFull": "Bir klasör paketi en fazla 10 dosya içerebilir",
     "mergeImagesFull": "Bir resim koleksiyonu en fazla 10 öğe içerebilir",
@@ -6717,6 +7228,31 @@ export const vi: TranslationKeys = {
     "clearAll": "Xóa toàn bộ lịch sử",
     "clearAllConfirm": "Nhấn lại để xác nhận"
   },
+  "menu": {
+    "title": "Thao tác mục",
+    "paste": "Dán",
+    "pastePlain": "Dán dạng văn bản thuần",
+    "addLabel": "Thêm tên và thẻ…",
+    "editLabel": "Sửa tên và thẻ…",
+    "openLink": "Mở liên kết",
+    "copyCleanLink": "Sao chép liên kết sạch",
+    "copyAs": "Sao chép dạng",
+    "showInFolder": "Hiện trong thư mục",
+    "copyPath": "Sao chép đường dẫn",
+    "copyPaths": "Sao chép các đường dẫn",
+    "saveToDownloads": "Lưu vào Tải xuống",
+    "preview": "Xem trước",
+    "closePreview": "Đóng xem trước",
+    "label": "Tên",
+    "labelPlaceholder": "vd. Wi-Fi văn phòng",
+    "tags": "Thẻ",
+    "tagPlaceholder": "Thêm thẻ…",
+    "removeTag": "Xóa #{tag}",
+    "usedBefore": "Đã dùng trước đây",
+    "removeAll": "Xóa tất cả",
+    "cancel": "Hủy",
+    "save": "Lưu"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Bảng tạm",
@@ -6838,6 +7374,11 @@ export const vi: TranslationKeys = {
     "current": "Hiện tại"
   },
   "toast": {
+    "labelPinned": "Đã ghim để giữ lại",
+    "labelFailed": "Không thể lưu tên. Vui lòng thử lại.",
+    "savedToDownloads": "Đã lưu vào Tải xuống: {name}",
+    "savedManyToDownloads": "Đã lưu {count} ảnh vào Tải xuống",
+    "saveImagesFailed": "Không thể lưu ảnh",
     "mergeIncompatible": "Không thể kết hợp các loại mục khác nhau",
     "mergeFilesFull": "Một gói thư mục có thể chứa tối đa 10 tệp",
     "mergeImagesFull": "Một bộ sưu tập hình ảnh có thể chứa tối đa 10 mục",
@@ -7091,6 +7632,31 @@ export const pl: TranslationKeys = {
     "clearAll": "Wyczyść całą historię",
     "clearAllConfirm": "Dotknij ponownie, aby potwierdzić"
   },
+  "menu": {
+    "title": "Akcje elementu",
+    "paste": "Wklej",
+    "pastePlain": "Wklej jako zwykły tekst",
+    "addLabel": "Dodaj nazwę i tagi…",
+    "editLabel": "Edytuj nazwę i tagi…",
+    "openLink": "Otwórz link",
+    "copyCleanLink": "Kopiuj czysty link",
+    "copyAs": "Kopiuj jako",
+    "showInFolder": "Pokaż w folderze",
+    "copyPath": "Kopiuj ścieżkę",
+    "copyPaths": "Kopiuj ścieżki",
+    "saveToDownloads": "Zapisz w Pobranych",
+    "preview": "Podgląd",
+    "closePreview": "Zamknij podgląd",
+    "label": "Nazwa",
+    "labelPlaceholder": "np. Wi-Fi w biurze",
+    "tags": "Tagi",
+    "tagPlaceholder": "Dodaj tag…",
+    "removeTag": "Usuń #{tag}",
+    "usedBefore": "Używane wcześniej",
+    "removeAll": "Usuń wszystko",
+    "cancel": "Anuluj",
+    "save": "Zapisz"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Schowek",
@@ -7212,6 +7778,11 @@ export const pl: TranslationKeys = {
     "current": "Bieżący"
   },
   "toast": {
+    "labelPinned": "Przypięto, aby zostało zachowane",
+    "labelFailed": "Nie udało się zapisać nazwy. Spróbuj ponownie.",
+    "savedToDownloads": "Zapisano w Pobranych: {name}",
+    "savedManyToDownloads": "Zapisane obrazy w Pobranych: {count}",
+    "saveImagesFailed": "Nie udało się zapisać obrazu",
     "mergeIncompatible": "Nie można łączyć elementów różnych typów",
     "mergeFilesFull": "Pakiet folderów może zawierać maksymalnie 10 plików",
     "mergeImagesFull": "Kolekcja obrazów może zawierać maksymalnie 10 elementów",
@@ -7465,6 +8036,31 @@ export const nl: TranslationKeys = {
     "clearAll": "Volledige geschiedenis wissen",
     "clearAllConfirm": "Tik opnieuw om te bevestigen"
   },
+  "menu": {
+    "title": "Itemacties",
+    "paste": "Plakken",
+    "pastePlain": "Plakken als platte tekst",
+    "addLabel": "Naam en tags toevoegen…",
+    "editLabel": "Naam en tags bewerken…",
+    "openLink": "Link openen",
+    "copyCleanLink": "Opgeschoonde link kopiëren",
+    "copyAs": "Kopiëren als",
+    "showInFolder": "Weergeven in map",
+    "copyPath": "Pad kopiëren",
+    "copyPaths": "Paden kopiëren",
+    "saveToDownloads": "Opslaan in Downloads",
+    "preview": "Voorbeeld",
+    "closePreview": "Voorbeeld sluiten",
+    "label": "Naam",
+    "labelPlaceholder": "bijv. Wifi op kantoor",
+    "tags": "Tags",
+    "tagPlaceholder": "Tag toevoegen…",
+    "removeTag": "#{tag} verwijderen",
+    "usedBefore": "Eerder gebruikt",
+    "removeAll": "Alles verwijderen",
+    "cancel": "Annuleren",
+    "save": "Opslaan"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Klembord",
@@ -7586,6 +8182,11 @@ export const nl: TranslationKeys = {
     "current": "Huidig"
   },
   "toast": {
+    "labelPinned": "Vastgezet zodat het bewaard blijft",
+    "labelFailed": "Naam kon niet worden opgeslagen. Probeer het opnieuw.",
+    "savedToDownloads": "Opgeslagen in Downloads: {name}",
+    "savedManyToDownloads": "{count} afbeeldingen opgeslagen in Downloads",
+    "saveImagesFailed": "Afbeelding kon niet worden opgeslagen",
     "mergeIncompatible": "Verschillende itemtypen kunnen niet worden gecombineerd",
     "mergeFilesFull": "Een mappakket kan maximaal 10 bestanden bevatten",
     "mergeImagesFull": "Een afbeeldingsverzameling kan maximaal 10 items bevatten",
@@ -7839,6 +8440,31 @@ export const sv: TranslationKeys = {
     "clearAll": "Rensa all historik",
     "clearAllConfirm": "Tryck igen för att bekräfta"
   },
+  "menu": {
+    "title": "Objektåtgärder",
+    "paste": "Klistra in",
+    "pastePlain": "Klistra in som oformaterad text",
+    "addLabel": "Lägg till namn och taggar…",
+    "editLabel": "Redigera namn och taggar…",
+    "openLink": "Öppna länk",
+    "copyCleanLink": "Kopiera ren länk",
+    "copyAs": "Kopiera som",
+    "showInFolder": "Visa i mapp",
+    "copyPath": "Kopiera sökväg",
+    "copyPaths": "Kopiera sökvägar",
+    "saveToDownloads": "Spara i Hämtade filer",
+    "preview": "Förhandsgranska",
+    "closePreview": "Stäng förhandsgranskning",
+    "label": "Namn",
+    "labelPlaceholder": "t.ex. Kontorets wifi",
+    "tags": "Taggar",
+    "tagPlaceholder": "Lägg till tagg…",
+    "removeTag": "Ta bort #{tag}",
+    "usedBefore": "Använda tidigare",
+    "removeAll": "Ta bort alla",
+    "cancel": "Avbryt",
+    "save": "Spara"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Urklipp",
@@ -7960,6 +8586,11 @@ export const sv: TranslationKeys = {
     "current": "Aktuell"
   },
   "toast": {
+    "labelPinned": "Fäst så att den sparas",
+    "labelFailed": "Det gick inte att spara namnet. Försök igen.",
+    "savedToDownloads": "Sparad i Hämtade filer: {name}",
+    "savedManyToDownloads": "{count} bilder sparade i Hämtade filer",
+    "saveImagesFailed": "Det gick inte att spara bilden",
     "mergeIncompatible": "Olika objekttyper kan inte kombineras",
     "mergeFilesFull": "Ett mappaket kan innehålla högst 10 filer",
     "mergeImagesFull": "En bildsamling kan innehålla högst 10 objekt",
@@ -8213,6 +8844,31 @@ export const id: TranslationKeys = {
     "clearAll": "Hapus semua riwayat",
     "clearAllConfirm": "Ketuk lagi untuk mengonfirmasi"
   },
+  "menu": {
+    "title": "Tindakan item",
+    "paste": "Tempel",
+    "pastePlain": "Tempel sebagai teks biasa",
+    "addLabel": "Tambah nama & tag…",
+    "editLabel": "Edit nama & tag…",
+    "openLink": "Buka tautan",
+    "copyCleanLink": "Salin tautan bersih",
+    "copyAs": "Salin sebagai",
+    "showInFolder": "Tampilkan di folder",
+    "copyPath": "Salin jalur",
+    "copyPaths": "Salin jalur",
+    "saveToDownloads": "Simpan ke Unduhan",
+    "preview": "Pratinjau",
+    "closePreview": "Tutup pratinjau",
+    "label": "Nama",
+    "labelPlaceholder": "mis. Wi-Fi kantor",
+    "tags": "Tag",
+    "tagPlaceholder": "Tambah tag…",
+    "removeTag": "Hapus #{tag}",
+    "usedBefore": "Pernah dipakai",
+    "removeAll": "Hapus semua",
+    "cancel": "Batal",
+    "save": "Simpan"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Papan klip",
@@ -8334,6 +8990,11 @@ export const id: TranslationKeys = {
     "current": "Saat ini"
   },
   "toast": {
+    "labelPinned": "Disematkan agar tetap tersimpan",
+    "labelFailed": "Gagal menyimpan nama. Coba lagi.",
+    "savedToDownloads": "Disimpan ke Unduhan: {name}",
+    "savedManyToDownloads": "{count} gambar disimpan ke Unduhan",
+    "saveImagesFailed": "Gagal menyimpan gambar",
     "mergeIncompatible": "Tidak dapat menggabungkan jenis item yang berbeda",
     "mergeFilesFull": "Paket folder dapat berisi maksimal 10 file",
     "mergeImagesFull": "Koleksi gambar dapat berisi maksimal 10 item",
@@ -8587,6 +9248,31 @@ export const uk: TranslationKeys = {
     "clearAll": "Очистити всю історію",
     "clearAllConfirm": "Натисніть ще раз для підтвердження"
   },
+  "menu": {
+    "title": "Дії з елементом",
+    "paste": "Вставити",
+    "pastePlain": "Вставити як звичайний текст",
+    "addLabel": "Додати назву й теги…",
+    "editLabel": "Змінити назву й теги…",
+    "openLink": "Відкрити посилання",
+    "copyCleanLink": "Копіювати чисте посилання",
+    "copyAs": "Копіювати як",
+    "showInFolder": "Показати в теці",
+    "copyPath": "Копіювати шлях",
+    "copyPaths": "Копіювати шляхи",
+    "saveToDownloads": "Зберегти в «Завантаження»",
+    "preview": "Перегляд",
+    "closePreview": "Закрити перегляд",
+    "label": "Назва",
+    "labelPlaceholder": "напр. Wi-Fi в офісі",
+    "tags": "Теги",
+    "tagPlaceholder": "Додати тег…",
+    "removeTag": "Прибрати #{tag}",
+    "usedBefore": "Використані раніше",
+    "removeAll": "Прибрати все",
+    "cancel": "Скасувати",
+    "save": "Зберегти"
+  },
   "emoji": {
     "open": "Емодзі",
     "backToClipboard": "Буфер обміну",
@@ -8708,6 +9394,11 @@ export const uk: TranslationKeys = {
     "current": "Поточний"
   },
   "toast": {
+    "labelPinned": "Закріплено, щоб не загубилося",
+    "labelFailed": "Не вдалося зберегти назву. Спробуйте ще раз.",
+    "savedToDownloads": "Збережено в «Завантаження»: {name}",
+    "savedManyToDownloads": "Збережено зображень у «Завантаження»: {count}",
+    "saveImagesFailed": "Не вдалося зберегти зображення",
     "mergeIncompatible": "Не можна об'єднувати елементи різних типів",
     "mergeFilesFull": "Пакет папки може містити максимум 10 файлів",
     "mergeImagesFull": "Колекція зображень може містити максимум 10 елементів",
@@ -8961,6 +9652,31 @@ export const el: TranslationKeys = {
     "clearAll": "Εκκαθάριση όλου του ιστορικού",
     "clearAllConfirm": "Πατήστε ξανά για επιβεβαίωση"
   },
+  "menu": {
+    "title": "Ενέργειες στοιχείου",
+    "paste": "Επικόλληση",
+    "pastePlain": "Επικόλληση ως απλό κείμενο",
+    "addLabel": "Προσθήκη ονόματος και ετικετών…",
+    "editLabel": "Επεξεργασία ονόματος και ετικετών…",
+    "openLink": "Άνοιγμα συνδέσμου",
+    "copyCleanLink": "Αντιγραφή καθαρού συνδέσμου",
+    "copyAs": "Αντιγραφή ως",
+    "showInFolder": "Εμφάνιση στον φάκελο",
+    "copyPath": "Αντιγραφή διαδρομής",
+    "copyPaths": "Αντιγραφή διαδρομών",
+    "saveToDownloads": "Αποθήκευση στις Λήψεις",
+    "preview": "Προεπισκόπηση",
+    "closePreview": "Κλείσιμο προεπισκόπησης",
+    "label": "Όνομα",
+    "labelPlaceholder": "π.χ. Wi-Fi γραφείου",
+    "tags": "Ετικέτες",
+    "tagPlaceholder": "Προσθήκη ετικέτας…",
+    "removeTag": "Αφαίρεση #{tag}",
+    "usedBefore": "Έχουν χρησιμοποιηθεί",
+    "removeAll": "Αφαίρεση όλων",
+    "cancel": "Ακύρωση",
+    "save": "Αποθήκευση"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Πρόχειρο",
@@ -9082,6 +9798,11 @@ export const el: TranslationKeys = {
     "current": "Τρέχον"
   },
   "toast": {
+    "labelPinned": "Καρφιτσώθηκε για να διατηρηθεί",
+    "labelFailed": "Δεν ήταν δυνατή η αποθήκευση του ονόματος. Δοκιμάστε ξανά.",
+    "savedToDownloads": "Αποθηκεύτηκε στις Λήψεις: {name}",
+    "savedManyToDownloads": "Αποθηκεύτηκαν {count} εικόνες στις Λήψεις",
+    "saveImagesFailed": "Δεν ήταν δυνατή η αποθήκευση της εικόνας",
     "mergeIncompatible": "Δεν είναι δυνατός ο συνδυασμός διαφορετικών τύπων στοιχείων",
     "mergeFilesFull": "Ένα πακέτο φακέλου μπορεί να περιέχει έως 10 αρχεία",
     "mergeImagesFull": "Μια συλλογή εικόνων μπορεί να περιέχει έως 10 στοιχεία",
@@ -9335,6 +10056,31 @@ export const cs: TranslationKeys = {
     "clearAll": "Vymazat celou historii",
     "clearAllConfirm": "Potvrďte dalším klepnutím"
   },
+  "menu": {
+    "title": "Akce položky",
+    "paste": "Vložit",
+    "pastePlain": "Vložit jako prostý text",
+    "addLabel": "Přidat název a štítky…",
+    "editLabel": "Upravit název a štítky…",
+    "openLink": "Otevřít odkaz",
+    "copyCleanLink": "Kopírovat čistý odkaz",
+    "copyAs": "Kopírovat jako",
+    "showInFolder": "Zobrazit ve složce",
+    "copyPath": "Kopírovat cestu",
+    "copyPaths": "Kopírovat cesty",
+    "saveToDownloads": "Uložit do Stažených souborů",
+    "preview": "Náhled",
+    "closePreview": "Zavřít náhled",
+    "label": "Název",
+    "labelPlaceholder": "např. Wi-Fi v kanceláři",
+    "tags": "Štítky",
+    "tagPlaceholder": "Přidat štítek…",
+    "removeTag": "Odebrat #{tag}",
+    "usedBefore": "Dříve použité",
+    "removeAll": "Odebrat vše",
+    "cancel": "Zrušit",
+    "save": "Uložit"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Schránka",
@@ -9456,6 +10202,11 @@ export const cs: TranslationKeys = {
     "current": "Aktuální"
   },
   "toast": {
+    "labelPinned": "Připnuto, aby se zachovalo",
+    "labelFailed": "Název se nepodařilo uložit. Zkuste to znovu.",
+    "savedToDownloads": "Uloženo do Stažených souborů: {name}",
+    "savedManyToDownloads": "Uložené obrázky ve Stažených souborech: {count}",
+    "saveImagesFailed": "Obrázek se nepodařilo uložit",
     "mergeIncompatible": "Nelze kombinovat různé typy položek",
     "mergeFilesFull": "Balíček složky může obsahovat maximálně 10 souborů",
     "mergeImagesFull": "Kolekce obrázků může obsahovat maximálně 10 položek",
@@ -9709,6 +10460,31 @@ export const ro: TranslationKeys = {
     "clearAll": "Șterge tot istoricul",
     "clearAllConfirm": "Atinge din nou pentru confirmare"
   },
+  "menu": {
+    "title": "Acțiuni element",
+    "paste": "Lipește",
+    "pastePlain": "Lipește ca text simplu",
+    "addLabel": "Adaugă nume și etichete…",
+    "editLabel": "Editează numele și etichetele…",
+    "openLink": "Deschide linkul",
+    "copyCleanLink": "Copiază linkul curat",
+    "copyAs": "Copiază ca",
+    "showInFolder": "Arată în dosar",
+    "copyPath": "Copiază calea",
+    "copyPaths": "Copiază căile",
+    "saveToDownloads": "Salvează în Descărcări",
+    "preview": "Previzualizare",
+    "closePreview": "Închide previzualizarea",
+    "label": "Nume",
+    "labelPlaceholder": "ex. Wi-Fi birou",
+    "tags": "Etichete",
+    "tagPlaceholder": "Adaugă o etichetă…",
+    "removeTag": "Elimină #{tag}",
+    "usedBefore": "Folosite anterior",
+    "removeAll": "Elimină tot",
+    "cancel": "Anulează",
+    "save": "Salvează"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Clipboard",
@@ -9830,6 +10606,11 @@ export const ro: TranslationKeys = {
     "current": "Curent"
   },
   "toast": {
+    "labelPinned": "Fixat ca să fie păstrat",
+    "labelFailed": "Numele nu a putut fi salvat. Încearcă din nou.",
+    "savedToDownloads": "Salvat în Descărcări: {name}",
+    "savedManyToDownloads": "{count} imagini salvate în Descărcări",
+    "saveImagesFailed": "Imaginea nu a putut fi salvată",
     "mergeIncompatible": "Tipurile diferite de elemente nu pot fi combinate",
     "mergeFilesFull": "Un pachet de dosare poate conține maximum 10 fișiere",
     "mergeImagesFull": "O colecție de imagini poate conține maximum 10 elemente",
@@ -10083,6 +10864,31 @@ export const hu: TranslationKeys = {
     "clearAll": "Teljes előzmény törlése",
     "clearAllConfirm": "Koppintson újra a megerősítéshez"
   },
+  "menu": {
+    "title": "Elemműveletek",
+    "paste": "Beillesztés",
+    "pastePlain": "Beillesztés egyszerű szövegként",
+    "addLabel": "Név és címkék hozzáadása…",
+    "editLabel": "Név és címkék szerkesztése…",
+    "openLink": "Hivatkozás megnyitása",
+    "copyCleanLink": "Tiszta hivatkozás másolása",
+    "copyAs": "Másolás mint",
+    "showInFolder": "Megjelenítés a mappában",
+    "copyPath": "Elérési út másolása",
+    "copyPaths": "Elérési utak másolása",
+    "saveToDownloads": "Mentés a Letöltésekbe",
+    "preview": "Előnézet",
+    "closePreview": "Előnézet bezárása",
+    "label": "Név",
+    "labelPlaceholder": "pl. Irodai Wi-Fi",
+    "tags": "Címkék",
+    "tagPlaceholder": "Címke hozzáadása…",
+    "removeTag": "#{tag} eltávolítása",
+    "usedBefore": "Korábban használt",
+    "removeAll": "Összes eltávolítása",
+    "cancel": "Mégse",
+    "save": "Mentés"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Vágólap",
@@ -10204,6 +11010,11 @@ export const hu: TranslationKeys = {
     "current": "Jelenlegi"
   },
   "toast": {
+    "labelPinned": "Rögzítve, hogy megmaradjon",
+    "labelFailed": "A nevet nem sikerült menteni. Próbáld újra.",
+    "savedToDownloads": "Mentve a Letöltésekbe: {name}",
+    "savedManyToDownloads": "{count} kép mentve a Letöltésekbe",
+    "saveImagesFailed": "A képet nem sikerült menteni",
     "mergeIncompatible": "Különböző típusú elemek nem kombinálhatók",
     "mergeFilesFull": "Egy mappacsomag legfeljebb 10 fájlt tartalmazhat",
     "mergeImagesFull": "Egy képgyűjtemény legfeljebb 10 elemet tartalmazhat",
@@ -10457,6 +11268,31 @@ export const da: TranslationKeys = {
     "clearAll": "Ryd hele historikken",
     "clearAllConfirm": "Tryk igen for at bekræfte"
   },
+  "menu": {
+    "title": "Elementhandlinger",
+    "paste": "Indsæt",
+    "pastePlain": "Indsæt som ren tekst",
+    "addLabel": "Tilføj navn og tags…",
+    "editLabel": "Rediger navn og tags…",
+    "openLink": "Åbn link",
+    "copyCleanLink": "Kopiér rent link",
+    "copyAs": "Kopiér som",
+    "showInFolder": "Vis i mappe",
+    "copyPath": "Kopiér sti",
+    "copyPaths": "Kopiér stier",
+    "saveToDownloads": "Gem i Overførsler",
+    "preview": "Eksempel",
+    "closePreview": "Luk eksempel",
+    "label": "Navn",
+    "labelPlaceholder": "f.eks. Kontorets wi-fi",
+    "tags": "Tags",
+    "tagPlaceholder": "Tilføj tag…",
+    "removeTag": "Fjern #{tag}",
+    "usedBefore": "Brugt før",
+    "removeAll": "Fjern alle",
+    "cancel": "Annuller",
+    "save": "Gem"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Udklipsholder",
@@ -10578,6 +11414,11 @@ export const da: TranslationKeys = {
     "current": "Nuværende"
   },
   "toast": {
+    "labelPinned": "Fastgjort, så det bevares",
+    "labelFailed": "Navnet kunne ikke gemmes. Prøv igen.",
+    "savedToDownloads": "Gemt i Overførsler: {name}",
+    "savedManyToDownloads": "{count} billeder gemt i Overførsler",
+    "saveImagesFailed": "Billedet kunne ikke gemmes",
     "mergeIncompatible": "Forskellige elementtyper kan ikke kombineres",
     "mergeFilesFull": "En mappepakke kan indeholde højst 10 filer",
     "mergeImagesFull": "En billedsamling kan indeholde højst 10 elementer",
@@ -10831,6 +11672,31 @@ export const fi: TranslationKeys = {
     "clearAll": "Tyhjennä koko historia",
     "clearAllConfirm": "Vahvista napauttamalla uudelleen"
   },
+  "menu": {
+    "title": "Kohteen toiminnot",
+    "paste": "Liitä",
+    "pastePlain": "Liitä pelkkänä tekstinä",
+    "addLabel": "Lisää nimi ja tunnisteet…",
+    "editLabel": "Muokkaa nimeä ja tunnisteita…",
+    "openLink": "Avaa linkki",
+    "copyCleanLink": "Kopioi siistitty linkki",
+    "copyAs": "Kopioi muodossa",
+    "showInFolder": "Näytä kansiossa",
+    "copyPath": "Kopioi polku",
+    "copyPaths": "Kopioi polut",
+    "saveToDownloads": "Tallenna Ladatut tiedostot -kansioon",
+    "preview": "Esikatselu",
+    "closePreview": "Sulje esikatselu",
+    "label": "Nimi",
+    "labelPlaceholder": "esim. Toimiston Wi-Fi",
+    "tags": "Tunnisteet",
+    "tagPlaceholder": "Lisää tunniste…",
+    "removeTag": "Poista #{tag}",
+    "usedBefore": "Aiemmin käytetyt",
+    "removeAll": "Poista kaikki",
+    "cancel": "Peruuta",
+    "save": "Tallenna"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Leikepöytä",
@@ -10952,6 +11818,11 @@ export const fi: TranslationKeys = {
     "current": "Nykyinen"
   },
   "toast": {
+    "labelPinned": "Kiinnitetty, jotta se säilyy",
+    "labelFailed": "Nimeä ei voitu tallentaa. Yritä uudelleen.",
+    "savedToDownloads": "Tallennettu Ladatut tiedostot -kansioon: {name}",
+    "savedManyToDownloads": "{count} kuvaa tallennettu Ladatut tiedostot -kansioon",
+    "saveImagesFailed": "Kuvaa ei voitu tallentaa",
     "mergeIncompatible": "Eri kohdetyyppejä ei voi yhdistää",
     "mergeFilesFull": "Kansiopaketti voi sisältää enintään 10 tiedostoa",
     "mergeImagesFull": "Kuvakokoelma voi sisältää enintään 10 kohdetta",
@@ -11205,6 +12076,31 @@ export const th: TranslationKeys = {
     "clearAll": "ล้างประวัติทั้งหมด",
     "clearAllConfirm": "แตะอีกครั้งเพื่อยืนยัน"
   },
+  "menu": {
+    "title": "การทำงานกับรายการ",
+    "paste": "วาง",
+    "pastePlain": "วางเป็นข้อความธรรมดา",
+    "addLabel": "เพิ่มชื่อและแท็ก…",
+    "editLabel": "แก้ไขชื่อและแท็ก…",
+    "openLink": "เปิดลิงก์",
+    "copyCleanLink": "คัดลอกลิงก์ที่สะอาด",
+    "copyAs": "คัดลอกเป็น",
+    "showInFolder": "แสดงในโฟลเดอร์",
+    "copyPath": "คัดลอกพาธ",
+    "copyPaths": "คัดลอกพาธ",
+    "saveToDownloads": "บันทึกไปที่ดาวน์โหลด",
+    "preview": "แสดงตัวอย่าง",
+    "closePreview": "ปิดตัวอย่าง",
+    "label": "ชื่อ",
+    "labelPlaceholder": "เช่น Wi-Fi ที่ทำงาน",
+    "tags": "แท็ก",
+    "tagPlaceholder": "เพิ่มแท็ก…",
+    "removeTag": "ลบ #{tag}",
+    "usedBefore": "เคยใช้แล้ว",
+    "removeAll": "ลบทั้งหมด",
+    "cancel": "ยกเลิก",
+    "save": "บันทึก"
+  },
   "emoji": {
     "open": "อีโมจิ",
     "backToClipboard": "คลิปบอร์ด",
@@ -11326,6 +12222,11 @@ export const th: TranslationKeys = {
     "current": "ปัจจุบัน"
   },
   "toast": {
+    "labelPinned": "ปักหมุดไว้เพื่อเก็บรักษา",
+    "labelFailed": "บันทึกชื่อไม่สำเร็จ โปรดลองอีกครั้ง",
+    "savedToDownloads": "บันทึกไปที่ดาวน์โหลดแล้ว: {name}",
+    "savedManyToDownloads": "บันทึกรูปภาพ {count} รูปไปที่ดาวน์โหลดแล้ว",
+    "saveImagesFailed": "บันทึกรูปภาพไม่สำเร็จ",
     "mergeIncompatible": "ไม่สามารถรวมไอเท็มต่างประเภทกันได้",
     "mergeFilesFull": "ชุดโฟลเดอร์มีได้สูงสุด 10 ไฟล์",
     "mergeImagesFull": "คอลเลกชันรูปภาพมีได้สูงสุด 10 รายการ",
@@ -11579,6 +12480,31 @@ export const he: TranslationKeys = {
     "clearAll": "נקה את כל ההיסטוריה",
     "clearAllConfirm": "הקש שוב כדי לאשר"
   },
+  "menu": {
+    "title": "פעולות פריט",
+    "paste": "הדבקה",
+    "pastePlain": "הדבקה כטקסט פשוט",
+    "addLabel": "הוספת שם ותגיות…",
+    "editLabel": "עריכת שם ותגיות…",
+    "openLink": "פתיחת קישור",
+    "copyCleanLink": "העתקת קישור נקי",
+    "copyAs": "העתקה בתור",
+    "showInFolder": "הצגה בתיקייה",
+    "copyPath": "העתקת נתיב",
+    "copyPaths": "העתקת נתיבים",
+    "saveToDownloads": "שמירה בהורדות",
+    "preview": "תצוגה מקדימה",
+    "closePreview": "סגירת תצוגה מקדימה",
+    "label": "שם",
+    "labelPlaceholder": "לדוגמה: Wi-Fi במשרד",
+    "tags": "תגיות",
+    "tagPlaceholder": "הוספת תגית…",
+    "removeTag": "הסרת #{tag}",
+    "usedBefore": "בשימוש בעבר",
+    "removeAll": "הסרת הכול",
+    "cancel": "ביטול",
+    "save": "שמירה"
+  },
   "emoji": {
     "open": "אימוג'י",
     "backToClipboard": "לוח",
@@ -11700,6 +12626,11 @@ export const he: TranslationKeys = {
     "current": "נוכחי"
   },
   "toast": {
+    "labelPinned": "הוצמד כדי שיישמר",
+    "labelFailed": "לא ניתן היה לשמור את השם. נסו שוב.",
+    "savedToDownloads": "נשמר בהורדות: {name}",
+    "savedManyToDownloads": "{count} תמונות נשמרו בהורדות",
+    "saveImagesFailed": "לא ניתן היה לשמור את התמונה",
     "mergeIncompatible": "לא ניתן לשלב סוגי פריטים שונים",
     "mergeFilesFull": "חבילת תיקייה יכולה להכיל עד 10 קבצים",
     "mergeImagesFull": "אוסף תמונות יכול להכיל עד 10 פריטים",
@@ -11953,6 +12884,31 @@ export const no: TranslationKeys = {
     "clearAll": "Tøm all historikk",
     "clearAllConfirm": "Trykk igjen for å bekrefte"
   },
+  "menu": {
+    "title": "Elementhandlinger",
+    "paste": "Lim inn",
+    "pastePlain": "Lim inn som ren tekst",
+    "addLabel": "Legg til navn og tagger…",
+    "editLabel": "Rediger navn og tagger…",
+    "openLink": "Åpne lenke",
+    "copyCleanLink": "Kopier ren lenke",
+    "copyAs": "Kopier som",
+    "showInFolder": "Vis i mappe",
+    "copyPath": "Kopier bane",
+    "copyPaths": "Kopier baner",
+    "saveToDownloads": "Lagre i Nedlastinger",
+    "preview": "Forhåndsvis",
+    "closePreview": "Lukk forhåndsvisning",
+    "label": "Navn",
+    "labelPlaceholder": "f.eks. Wi-Fi på kontoret",
+    "tags": "Tagger",
+    "tagPlaceholder": "Legg til tagg…",
+    "removeTag": "Fjern #{tag}",
+    "usedBefore": "Brukt før",
+    "removeAll": "Fjern alle",
+    "cancel": "Avbryt",
+    "save": "Lagre"
+  },
   "emoji": {
     "open": "Emoji",
     "backToClipboard": "Utklippstavle",
@@ -12074,6 +13030,11 @@ export const no: TranslationKeys = {
     "current": "Gjeldende"
   },
   "toast": {
+    "labelPinned": "Festet slik at det beholdes",
+    "labelFailed": "Kunne ikke lagre navnet. Prøv igjen.",
+    "savedToDownloads": "Lagret i Nedlastinger: {name}",
+    "savedManyToDownloads": "{count} bilder lagret i Nedlastinger",
+    "saveImagesFailed": "Kunne ikke lagre bildet",
     "mergeIncompatible": "Ulike elementtyper kan ikke kombineres",
     "mergeFilesFull": "En mappepakke kan inneholde maksimalt 10 filer",
     "mergeImagesFull": "En bildesamling kan inneholde maksimalt 10 elementer",

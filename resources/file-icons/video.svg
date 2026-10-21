@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="64 60 384 384" width="384" height="384" role="img" aria-label="Video file icon"><defs>
+  <linearGradient id="video-back" x1="0" y1="118" x2="0" y2="364" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6a43a0"/><stop offset="1" stop-color="#321b57"/></linearGradient>
+  <linearGradient id="video-backlight" x1="0" y1="118" x2="0" y2="230" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".35" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="video-paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#efeafa"/></linearGradient>
+  <linearGradient id="video-glass" x1="0" y1="180" x2="0" y2="364" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#efe9fb" stop-opacity="0.52"/><stop offset=".5" stop-color="#bba9e2" stop-opacity="0.42"/><stop offset="1" stop-color="#351d5c" stop-opacity="0.84"/></linearGradient>
+  <linearGradient id="video-sheen" x1="104" y1="0" x2="408" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".24"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#fff" stop-opacity=".03"/><stop offset="1" stop-color="#fff" stop-opacity=".16"/></linearGradient>
+  <radialGradient id="video-spot" cx="170" cy="200" r="190" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  <path id="video-front" d="M124 180 L250 180 C262 180 268 184 274 192 L290 214 C295 221 300 224 310 224 L390 224 C402 224 410 232 408 244 L398 344 C396 356 388 364 376 364 L136 364 C124 364 116 356 114 344 L104 200 C103 188 112 180 124 180 Z"/>
+  <path id="video-top" d="M105 198 C104 187 112 180 124 180 L250 180 C262 180 268 184 274 192 L290 214 C295 221 300 224 310 224 L390 224 C401 224 409 231 408 242"/>
+  <rect id="video-panel" x="120" y="118" width="272" height="246" rx="24"/>
+  <mask id="video-mask" maskUnits="userSpaceOnUse" x="90" y="170" width="332" height="210"><use href="#video-front" fill="#fff"/></mask>
+  <filter id="video-frost" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="video-edge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.5"/></filter>
+  <filter id="video-soft" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="video-etch" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2"/></filter>
+  <filter id="video-shw" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="11"/></filter>
+  <filter id="video-sht" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="video-pshadow" x="-25%" y="-20%" width="150%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#321b57" flood-opacity=".22"/></filter>
+  <filter id="video-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 .08"/></filter>
+</defs>
+ <g transform="translate(0 14)">
+  <ellipse cx="256" cy="368" rx="150" ry="15" fill="#321b57" opacity=".32" filter="url(#video-shw)"/>
+  <ellipse cx="256" cy="364" rx="134" ry="6" fill="#321b57" opacity=".28" filter="url(#video-sht)"/>
+  <use href="#video-panel" fill="url(#video-back)"/>
+  <rect x="120" y="118" width="272" height="246" rx="24" fill="url(#video-backlight)"/>
+  <g id="video-contents"><g transform="rotate(8 341 240)" filter="url(#video-pshadow)"><rect x="300" y="165" width="82" height="150" rx="13" fill="url(#video-paper)"/><rect x="318" y="184" width="48" height="34" rx="6.4799999999999995" fill="#d4c9ec"/><path d="M337.1 195.2 L348.0 201.0 L337.1 206.8 Z" fill="#ffffff" stroke="#ffffff" stroke-width="2.9" stroke-linejoin="round"/><rect x="318" y="230" width="48" height="6" rx="3.0" fill="#d4c9ec"/><rect x="318" y="246" width="41.76" height="6" rx="3.0" fill="#d4c9ec"/><rect x="318" y="262" width="46.56" height="6" rx="3.0" fill="#d4c9ec"/><rect x="318" y="278" width="36.0" height="6" rx="3.0" fill="#d4c9ec"/><rect x="318" y="294" width="44.64" height="6" rx="3.0" fill="#d4c9ec"/></g><g transform="rotate(5 300 226)" filter="url(#video-pshadow)"><rect x="252" y="140" width="96" height="172" rx="14" fill="url(#video-paper)"/><rect x="268" y="160" width="64" height="34" rx="6.4799999999999995" fill="#d4c9ec"/><path d="M295.1 171.2 L306.0 177.0 L295.1 182.8 Z" fill="#ffffff" stroke="#ffffff" stroke-width="2.9" stroke-linejoin="round"/><rect x="268" y="206" width="64" height="6" rx="3.0" fill="#d4c9ec"/><rect x="268" y="222" width="55.68" height="6" rx="3.0" fill="#d4c9ec"/><rect x="268" y="238" width="62.08" height="6" rx="3.0" fill="#d4c9ec"/><rect x="268" y="254" width="48.0" height="6" rx="3.0" fill="#d4c9ec"/><rect x="268" y="270" width="59.52" height="6" rx="3.0" fill="#d4c9ec"/><rect x="268" y="286" width="51.2" height="6" rx="3.0" fill="#d4c9ec"/><rect x="268" y="302" width="57.6" height="6" rx="3.0" fill="#d4c9ec"/></g><g transform="rotate(-8 220 224)" filter="url(#video-pshadow)"><rect x="140" y="122" width="160" height="204" rx="16" fill="url(#video-paper)"/><rect x="160" y="142" width="120" height="46" rx="9" fill="#d4c9ec"/><path d="M213.2 157.0 L228.4 165.0 L213.2 173.0 Z" fill="#ffffff" stroke="#ffffff" stroke-width="4.0" stroke-linejoin="round"/><rect x="160" y="200" width="120" height="6" rx="3.0" fill="#d4c9ec"/><rect x="160" y="217" width="104.4" height="6" rx="3.0" fill="#d4c9ec"/><rect x="160" y="234" width="116.39999999999999" height="6" rx="3.0" fill="#d4c9ec"/><rect x="160" y="251" width="90.0" height="6" rx="3.0" fill="#d4c9ec"/><rect x="160" y="268" width="111.60000000000001" height="6" rx="3.0" fill="#d4c9ec"/><rect x="160" y="285" width="96.0" height="6" rx="3.0" fill="#d4c9ec"/><rect x="160" y="302" width="108.0" height="6" rx="3.0" fill="#d4c9ec"/><rect x="160" y="319" width="99.6" height="6" rx="3.0" fill="#d4c9ec"/></g></g>
+  <g mask="url(#video-mask)">
+   <rect x="96" y="172" width="320" height="200" fill="url(#video-back)"/>
+   <rect x="96" y="172" width="320" height="200" fill="#e3dbf3" opacity=".18"/>
+   <g filter="url(#video-frost)"><use href="#video-panel" fill="url(#video-back)"/><use href="#video-contents"/></g>
+   <use href="#video-front" fill="url(#video-glass)"/>
+   <use href="#video-front" fill="url(#video-sheen)"/>
+   <rect x="96" y="172" width="320" height="200" filter="url(#video-grain)"/>
+   <use href="#video-front" fill="url(#video-spot)"/>
+   <use href="#video-top" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="10" filter="url(#video-edge)"/>
+   <ellipse cx="256" cy="372" rx="150" ry="14" fill="#fff" opacity=".16" filter="url(#video-soft)"/>
+  </g>
+ </g>
+</svg>

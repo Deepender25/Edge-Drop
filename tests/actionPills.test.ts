@@ -71,7 +71,8 @@ describe('preview flyout buttons use the shared styles', () => {
     expect(flyout).not.toContain('onMouseLeave')
   })
 
-  it('standalone quick actions sit in a pill', () => {
-    expect(flyout.split('className="act-pill"').length - 1).toBe(5)
+  it('standalone quick actions sit in a pill (the shared header row)', () => {
+    expect(flyout.split('className="act-pill"').length - 1).toBe(1)
+    expect(flyout).toMatch(/<div className="pf-head">[\s\S]*className="act-pill"/)
   })
 })

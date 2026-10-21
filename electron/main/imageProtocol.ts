@@ -104,11 +104,12 @@ export async function readEmojiBatch(assetDir: string, names: readonly unknown[]
 }
 
 /**
- * File-kind folder icons (PNG, resources/file-icons). Fixed 13-name
+ * File-kind folder icons (SVG, resources/file-icons). Fixed 13-name
  * allowlist so the protocol cannot escape the icon directory — same
- * validation shape as the emoji assets above.
+ * validation shape as the emoji assets above. Served only as <img> /
+ * <image> sources, where SVG never runs script.
  */
-const ICON_FILE_RE = /^(pdf|word|excel|powerpoint|archive|text|code|audio|video|image|executable|folder|file)\.png$/
+const ICON_FILE_RE = /^(pdf|word|excel|powerpoint|archive|text|code|audio|video|image|executable|folder|file)\.svg$/
 
 /** Resolve a file-kind icon name to its on-disk PNG. */
 export function resolveIconAsset(assetDir: string, fileName: string): string | null {

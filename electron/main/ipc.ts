@@ -7,6 +7,7 @@
  */
 import { app, ipcMain, clipboard, nativeImage, shell, net } from 'electron'
 import { existsSync } from 'node:fs'
+import { basename } from 'node:path'
 import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
@@ -16,7 +17,7 @@ import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, 
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
-import { startDragOut, resolveDragData, prestageDrag, stageDragFile } from './drag'
+import { startDragOut, resolveDragData, prestageDrag, stageDragFile, formatClipboardImageFilename } from './drag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
@@ -26,8 +27,12 @@ import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
 import { toUnpackagedFilePath, toUnpackagedFilePaths } from '../store/paths'
 import { isPasteableEmoji } from '../../shared/emoji'
 import { emojiAssetDir, readEmojiBatch } from './imageProtocol'
+import { saveItemImages } from './saveImages'
 
 export { isStoreBuild }
+
+/** Longest text item:copy-text accepts (a derived link / color / path list). */
+export const COPY_TEXT_MAX = 100_000
 
 /**
  * Returns true if the current system clipboard content matches the given item data.
@@ -242,6 +247,58 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
+  handle('item:set-meta', (id, meta) => {
+    getStore().setMeta(id, meta)
+    return getStore().toDto()
+  })
+
+  handle('item:copy-text', (text) => {
+    if (typeof text !== 'string' || text.length === 0 || text.length > COPY_TEXT_MAX) return false
+    // Same rule as emoji:paste: a derived copy (clean link, color format,
+    // file path) is a tool action, not a capture, so it never becomes a new
+    // history card. resyncSignature() makes the watcher treat this write as
+    // already seen when it resumes.
+    const watcher = getWatcher()
+    watcher.setPaused(true)
+    try {
+      clipboard.clear()
+      clipboard.writeText(text)
+      return true
+    } catch (err) {
+      console.error('[IPC] item:copy-text failed:', err)
+      return false
+    } finally {
+      setTimeout(() => {
+        watcher.resyncSignature()
+        watcher.setPaused(loadSettings().incognito)
+      }, 200)
+    }
+  })
+
+  handle('item:save-images', (id) => {
+    const item = getStore().get(id)
+    if (!item || (item.data.kind !== 'image' && item.data.kind !== 'image-collection')) return []
+    let saved: string[] = []
+    try {
+      saved = saveItemImages(item, {
+        destDir: app.getPath('downloads'),
+        resolveSource: (imageId, ext) => getStore().resolveStoredImagePath(imageId, ext),
+        defaultName: (capturedAt, ext, img, index) =>
+          formatClipboardImageFilename(capturedAt, ext, {
+            source: img.source,
+            fileName: img.fileName,
+            indexSuffix: item.data.kind === 'image-collection' ? index : undefined
+          })
+      })
+    } catch (err) {
+      console.error('[IPC] item:save-images failed:', err)
+    }
+    if (saved.length === 0) toast('toast.saveImagesFailed', 'error')
+    else if (saved.length === 1) toast('toast.savedToDownloads', 'info', { name: basename(saved[0]) })
+    else toast('toast.savedManyToDownloads', 'info', { count: saved.length })
+    return saved.map((p) => basename(p))
+  })
+
   handle('item:delete', (id) => {
     const item = getStore().get(id)
     const watcher = getWatcher()
@@ -388,7 +445,7 @@ export function registerIpc(): void {
   let _lastEmojiPasteTime = 0
   const EMOJI_PASTE_GUARD_MS = 180
 
-  handle('item:paste', async (id) => {
+  handle('item:paste', async (id, opts) => {
     const now = Date.now()
     if (now - _lastPasteTime < PASTE_GUARD_MS) {
       console.log('[IPC] item:paste blocked — too soon after last paste')
@@ -423,7 +480,7 @@ export function registerIpc(): void {
       // 2. Write item to system clipboard
       const fullText = item.data.kind === 'text' ? getStore().getFullText(id) : undefined
       const itemDataWithFullText = item.data.kind === 'text' && fullText ? { ...item.data, text: fullText } : item.data
-      const ok = await writeItemToClipboard(itemDataWithFullText, item.capturedAt)
+      const ok = await writeItemToClipboard(itemDataWithFullText, item.capturedAt, { plain: opts?.plain === true })
       if (!ok) {
         // Extremely rare race: source vanished between pre-check and write.
         toast('toast.imageUnavailable', 'error')
@@ -867,12 +924,13 @@ export function registerSendListeners(): void {
  * written (e.g. every source image vanished from disk) so callers can show an
  * explicit error instead of silently degrading quality.
  */
-export async function writeItemToClipboard(data: ItemData, capturedAt?: number): Promise<boolean> {
+export async function writeItemToClipboard(data: ItemData, capturedAt?: number, opts?: { plain?: boolean }): Promise<boolean> {
   switch (data.kind) {
     case 'text': {
       const formatted = formatTabularDataForClipboard(data.text, data.html)
       clipboard.clear()
-      clipboard.write({ text: formatted.text, html: formatted.html })
+      // Plain: the same CRLF text, but no html (fonts, colors, tables).
+      clipboard.write(opts?.plain ? { text: formatted.text } : { text: formatted.text, html: formatted.html })
       return true
     }
 

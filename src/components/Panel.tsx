@@ -21,6 +21,8 @@ import { ClearMenu } from './ClearMenu'
 import { PreviewFlyout } from './PreviewFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { LanguageFlyout } from './LanguageFlyout'
+import { CardMenu } from './CardMenu'
+import { TagSuggest } from './TagSuggest'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 
@@ -481,7 +483,9 @@ export function Panel() {
 
           <ToastStack />
           {!isHorizontal && !emojiOpen && !settingsOpen && <ShelfSearch />}
+          {!isHorizontal && !emojiOpen && !settingsOpen && <TagSuggest isHorizontal={false} />}
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
+            {isHorizontal && !emojiOpen && !settingsOpen && <TagSuggest isHorizontal />}
             {/* Main clipboard / emoji view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
             <div
               style={{
@@ -572,6 +576,7 @@ export function Panel() {
         <PreviewFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
         <LanguageFlyout isRight={isRight} />
+        <CardMenu />
       </div>
     </div>
   )

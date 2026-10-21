@@ -44,8 +44,29 @@ export interface InvokeMap {
    *  collection) onto the system clipboard. */
   'item:copy-subitem': { args: [req: DragRequest]; result: boolean }
 
-  /** Copy an item and paste it directly into the active application. */
-  'item:paste': { args: [id: string]; result: boolean }
+  /**
+   * Copy an item and paste it directly into the active application.
+   * `plain` writes text items as plain text only (no html / table formatting).
+   */
+  'item:paste': { args: [id: string, opts?: { plain?: boolean }]; result: boolean }
+
+  /**
+   * Set or clear an item's label / tags (normalized in main). Giving an item
+   * a label or tag also pins it. Returns the updated list.
+   */
+  'item:set-meta': { args: [id: string, meta: import('./itemMeta').ItemMetaPatch]; result: ClipboardItemDto[] }
+
+  /**
+   * Put a derived piece of text on the clipboard (clean link, color in
+   * another format, file path) without adding it to history.
+   */
+  'item:copy-text': { args: [text: string]; result: boolean }
+
+  /**
+   * Save an image item's original file(s) into the user's Downloads folder.
+   * Returns the saved file names (empty when nothing could be saved).
+   */
+  'item:save-images': { args: [id: string]; result: string[] }
 
   /** Copy a sub-item and paste it directly into the active application. */
   'item:paste-subitem': { args: [req: DragRequest]; result: boolean }

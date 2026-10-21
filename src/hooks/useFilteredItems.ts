@@ -9,22 +9,25 @@ import { useStore } from '../store/appStore'
 import type { ClipboardItemDto, TypeFilter } from '../../shared/types'
 import { basename, isImagePath } from '../lib/format'
 import { parseColor } from '../lib/colorUtils'
+import { matchesTagFilters, metaMatchesText, parseQuery, type ParsedQuery } from '../lib/tagQuery'
 
-function matches(it: ClipboardItemDto, q: string): boolean {
-  if (!q) return true
-  const needle = q.toLowerCase()
+function contentMatches(it: ClipboardItemDto, needle: string): boolean {
   switch (it.data.kind) {
     case 'text':
       return it.data.text.toLowerCase().includes(needle)
     case 'files':
       return it.data.paths.some((p) => basename(p).toLowerCase().includes(needle))
     case 'image':
-      // images have no searchable text; hidden by query
-      return false
     case 'image-collection':
-      // image collections have no searchable text; hidden by query
+      // No text of their own: found only through a label or tag.
       return false
   }
+}
+
+export function matches(it: ClipboardItemDto, q: ParsedQuery): boolean {
+  if (!matchesTagFilters(it, q.tags)) return false
+  if (!q.text) return true
+  return contentMatches(it, q.text) || metaMatchesText(it, q.text)
 }
 
 /**
@@ -89,8 +92,9 @@ export function useFilteredItems(): GroupedItems {
       }
     })
 
+    const parsed = parseQuery(query)
     for (const it of filteredByTutorial) {
-      if (!matches(it, query.trim())) continue
+      if (!matches(it, parsed)) continue
       if (!itemMatchesTypeFilter(it, typeFilter)) continue
       ;(it.pinned ? pinned : recent).push(it)
     }

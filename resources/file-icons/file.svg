@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="64 60 384 384" width="384" height="384" role="img" aria-label="File file icon"><defs>
+  <linearGradient id="file-back" x1="0" y1="118" x2="0" y2="364" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#a2a8b3"/><stop offset="1" stop-color="#656c79"/></linearGradient>
+  <linearGradient id="file-backlight" x1="0" y1="118" x2="0" y2="230" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".35" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="file-paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef0f3"/></linearGradient>
+  <linearGradient id="file-glass" x1="0" y1="180" x2="0" y2="364" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#f3f4f6" stop-opacity="0.55"/><stop offset=".5" stop-color="#c9ced6" stop-opacity="0.45"/><stop offset="1" stop-color="#6a717e" stop-opacity="0.8"/></linearGradient>
+  <linearGradient id="file-sheen" x1="104" y1="0" x2="408" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".24"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#fff" stop-opacity=".03"/><stop offset="1" stop-color="#fff" stop-opacity=".16"/></linearGradient>
+  <radialGradient id="file-spot" cx="170" cy="200" r="190" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  <path id="file-front" d="M124 180 L250 180 C262 180 268 184 274 192 L290 214 C295 221 300 224 310 224 L390 224 C402 224 410 232 408 244 L398 344 C396 356 388 364 376 364 L136 364 C124 364 116 356 114 344 L104 200 C103 188 112 180 124 180 Z"/>
+  <path id="file-top" d="M105 198 C104 187 112 180 124 180 L250 180 C262 180 268 184 274 192 L290 214 C295 221 300 224 310 224 L390 224 C401 224 409 231 408 242"/>
+  <rect id="file-panel" x="120" y="118" width="272" height="246" rx="24"/>
+  <mask id="file-mask" maskUnits="userSpaceOnUse" x="90" y="170" width="332" height="210"><use href="#file-front" fill="#fff"/></mask>
+  <filter id="file-frost" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="file-edge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.5"/></filter>
+  <filter id="file-soft" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="file-etch" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2"/></filter>
+  <filter id="file-shw" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="11"/></filter>
+  <filter id="file-sht" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="file-pshadow" x="-25%" y="-20%" width="150%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#4a505b" flood-opacity=".22"/></filter>
+  <filter id="file-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 .08"/></filter>
+</defs>
+ <g transform="translate(0 14)">
+  <ellipse cx="256" cy="368" rx="150" ry="15" fill="#4a505b" opacity=".32" filter="url(#file-shw)"/>
+  <ellipse cx="256" cy="364" rx="134" ry="6" fill="#4a505b" opacity=".28" filter="url(#file-sht)"/>
+  <use href="#file-panel" fill="url(#file-back)"/>
+  <rect x="120" y="118" width="272" height="246" rx="24" fill="url(#file-backlight)"/>
+  <g id="file-contents"><g transform="rotate(8 341 240)" filter="url(#file-pshadow)"><path d="M313 165 H362 L382 185 V302 Q382 315 369 315 H313 Q300 315 300 302 V178 Q300 165 313 165 Z" fill="url(#file-paper)"/><path d="M362 165 V177 Q362 185 370 185 H382 Z" fill="#d3d8de"/><rect x="318" y="188" width="32.160000000000004" height="9.5" rx="4.75" fill="#aeb5c0"/><rect x="318" y="212" width="48" height="6" rx="3.0" fill="#d3d8de"/><rect x="318" y="228" width="41.76" height="6" rx="3.0" fill="#d3d8de"/><rect x="318" y="244" width="46.56" height="6" rx="3.0" fill="#d3d8de"/><rect x="318" y="260" width="36.0" height="6" rx="3.0" fill="#d3d8de"/><rect x="318" y="276" width="44.64" height="6" rx="3.0" fill="#d3d8de"/><rect x="318" y="292" width="38.400000000000006" height="6" rx="3.0" fill="#d3d8de"/><rect x="318" y="308" width="43.2" height="6" rx="3.0" fill="#d3d8de"/></g><g transform="rotate(5 300 226)" filter="url(#file-pshadow)"><path d="M266 140 H328 L348 160 V298 Q348 312 334 312 H266 Q252 312 252 298 V154 Q252 140 266 140 Z" fill="url(#file-paper)"/><path d="M328 140 V152 Q328 160 336 160 H348 Z" fill="#d3d8de"/><rect x="268" y="164" width="42.88" height="9.5" rx="4.75" fill="#aeb5c0"/><rect x="268" y="188" width="64" height="6" rx="3.0" fill="#d3d8de"/><rect x="268" y="204" width="55.68" height="6" rx="3.0" fill="#d3d8de"/><rect x="268" y="220" width="62.08" height="6" rx="3.0" fill="#d3d8de"/><rect x="268" y="236" width="48.0" height="6" rx="3.0" fill="#d3d8de"/><rect x="268" y="252" width="59.52" height="6" rx="3.0" fill="#d3d8de"/><rect x="268" y="268" width="51.2" height="6" rx="3.0" fill="#d3d8de"/><rect x="268" y="284" width="57.6" height="6" rx="3.0" fill="#d3d8de"/><rect x="268" y="300" width="53.12" height="6" rx="3.0" fill="#d3d8de"/></g><g transform="rotate(-8 220 224)" filter="url(#file-pshadow)"><path d="M156 122 H272 L300 150 V310 Q300 326 284 326 H156 Q140 326 140 310 V138 Q140 122 156 122 Z" fill="url(#file-paper)"/><path d="M272 122 V142 Q272 150 280 150 H300 Z" fill="#d3d8de"/><rect x="160" y="146" width="80.4" height="11" rx="5.5" fill="#aeb5c0"/><rect x="160" y="170" width="120" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="187" width="104.4" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="204" width="116.39999999999999" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="221" width="90.0" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="238" width="111.60000000000001" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="255" width="96.0" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="272" width="108.0" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="289" width="99.6" height="6" rx="3.0" fill="#d3d8de"/><rect x="160" y="306" width="120" height="6" rx="3.0" fill="#d3d8de"/></g></g>
+  <g mask="url(#file-mask)">
+   <rect x="96" y="172" width="320" height="200" fill="url(#file-back)"/>
+   <rect x="96" y="172" width="320" height="200" fill="#e7eaee" opacity=".18"/>
+   <g filter="url(#file-frost)"><use href="#file-panel" fill="url(#file-back)"/><use href="#file-contents"/></g>
+   <use href="#file-front" fill="url(#file-glass)"/>
+   <use href="#file-front" fill="url(#file-sheen)"/>
+   <rect x="96" y="172" width="320" height="200" filter="url(#file-grain)"/>
+   <use href="#file-front" fill="url(#file-spot)"/>
+   <use href="#file-top" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="10" filter="url(#file-edge)"/>
+   <ellipse cx="256" cy="372" rx="150" ry="14" fill="#fff" opacity=".16" filter="url(#file-soft)"/>
+  </g>
+ </g>
+</svg>

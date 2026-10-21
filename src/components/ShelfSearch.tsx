@@ -13,8 +13,7 @@
  */
 import { useCallback, useEffect, useRef } from 'react'
 import { useStore } from '../store/appStore'
-import { edge } from '../lib/edge'
-import { noteSearchEngaged } from '../lib/searchFocus'
+import { acquireKeyboard, releaseKeyboard } from '../lib/keyboardFocus'
 import { useTranslation } from '../i18n'
 import { CloseIcon, SearchIcon } from './icons'
 
@@ -28,13 +27,7 @@ export function ShelfSearch() {
   const disengage = useCallback(() => {
     if (!engagedRef.current) return
     engagedRef.current = false
-    noteSearchEngaged(false)
-    try {
-      void edge.focusWindow(false)?.catch?.(() => {})
-    } catch { /* ignore */ }
-    try {
-      void edge.pauseHotkey(false)?.catch?.(() => {})
-    } catch { /* ignore */ }
+    releaseKeyboard('search')
   }, [])
 
   // Engage BEFORE focus can happen: pointer-down always fires, focus may not.
@@ -42,23 +35,9 @@ export function ShelfSearch() {
   const engage = useCallback(() => {
     if (engagedRef.current) return
     engagedRef.current = true
-    noteSearchEngaged(true)
-    try {
-      window.focus()
-    } catch { /* ignore */ }
-    try {
-      const p = edge.focusWindow(true) as unknown as Promise<void> | undefined
-      if (p && typeof (p as Promise<void>).then === 'function') {
-        ;(p as Promise<void>).then(() => {
-          try { inputRef.current?.focus() } catch { /* ignore */ }
-        }).catch(() => {})
-      } else {
-        try { inputRef.current?.focus() } catch { /* ignore */ }
-      }
-    } catch { /* ignore */ }
-    try {
-      void edge.pauseHotkey(true)?.catch?.(() => {})
-    } catch { /* ignore */ }
+    void acquireKeyboard('search').then(() => {
+      try { inputRef.current?.focus() } catch { /* ignore */ }
+    })
   }, [])
 
   // Safety: if the input unmounts mid-focus (view switch), restore state.

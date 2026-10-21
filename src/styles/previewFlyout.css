@@ -1,0 +1,340 @@
+/**
+ * Preview flyout: shell motion, header, and the per-kind bodies.
+ *
+ * Motion is plain CSS on transform + opacity only, so it runs on the
+ * compositor with no JavaScript per frame. Opening uses a soft spring
+ * (critically under-damped, ~0.5% overshoot, 90% there at ~210ms) sampled
+ * into linear(); closing is a quick ease-in. The shell grows from the card
+ * that was previewed (transform-origin is set inline from its position).
+ * Keep PREVIEW_EXIT_MS in PreviewFlyout.tsx equal to the exit duration.
+ */
+
+.pf-wrap {
+  --pf-spring: linear(0, 0.0172, 0.0616, 0.1238, 0.1968, 0.275, 0.3545, 0.4322, 0.5062, 0.5751, 0.6381, 0.6948, 0.7453, 0.7896, 0.828, 0.8611, 0.8892, 0.9128, 0.9326, 0.9488, 0.9621, 0.9728, 0.9813, 0.988, 0.9932, 0.9971, 1, 1.002, 1.0034, 1.0043, 1.0048, 1.005, 1.005, 1.0048, 1.0045, 1.0042, 1.0038, 1.0034, 1.003, 1.0026, 1);
+  --pf-out: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.pf-wrap.from-left {
+  animation: pf-fade-in 180ms cubic-bezier(0.2, 0, 0, 1) both, pf-in-left 500ms var(--pf-spring) both;
+}
+.pf-wrap.from-right {
+  animation: pf-fade-in 180ms cubic-bezier(0.2, 0, 0, 1) both, pf-in-right 500ms var(--pf-spring) both;
+}
+.pf-wrap.from-top {
+  animation: pf-fade-in 180ms cubic-bezier(0.2, 0, 0, 1) both, pf-in-top 500ms var(--pf-spring) both;
+}
+.pf-wrap.from-left.is-leaving {
+  animation: pf-out-left 170ms var(--pf-out) both;
+}
+.pf-wrap.from-right.is-leaving {
+  animation: pf-out-right 170ms var(--pf-out) both;
+}
+.pf-wrap.from-top.is-leaving {
+  animation: pf-out-top 170ms var(--pf-out) both;
+}
+.pf-wrap.is-reduced {
+  animation: pf-fade-in 120ms linear both;
+}
+.pf-wrap.is-reduced.is-leaving {
+  animation: pf-fade-out 120ms linear both;
+}
+
+@keyframes pf-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pf-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes pf-in-left {
+  from { transform: translateX(-14px) scale(0.94); }
+  to { transform: none; }
+}
+@keyframes pf-in-right {
+  from { transform: translateX(14px) scale(0.94); }
+  to { transform: none; }
+}
+@keyframes pf-in-top {
+  from { transform: translateY(-12px) scale(0.94); }
+  to { transform: none; }
+}
+@keyframes pf-out-left {
+  to { opacity: 0; transform: translateX(-8px) scale(0.97); }
+}
+@keyframes pf-out-right {
+  to { opacity: 0; transform: translateX(8px) scale(0.97); }
+}
+@keyframes pf-out-top {
+  to { opacity: 0; transform: translateY(-8px) scale(0.97); }
+}
+
+/* The panel itself. Black like the blade; a faint inner rim keeps its edge
+   crisp over dark wallpapers (no drop shadow, same as the blade). */
+.preview-flyout {
+  box-shadow: inset 0 0 0 1px var(--edge-light);
+}
+
+/* Content of one item. Re-keyed when the preview switches to another card,
+   so the new content settles in while the panel stays put. */
+.pf-swap {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  animation: pf-swap-in 220ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.pf-wrap.is-reduced .pf-swap {
+  animation: pf-fade-in 120ms linear both;
+}
+@keyframes pf-swap-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ------------------------------ header ------------------------------ */
+
+.pf-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 14px 14px 0 20px;
+  font-family: var(--font-ui);
+  font-size: calc(12px * var(--font-scale, 1));
+  white-space: nowrap;
+}
+.pf-head-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.pf-head-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.pf-head-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+}
+.pf-head-detail,
+.pf-head-time {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+.pf-head-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pf-head-time {
+  flex-shrink: 0;
+}
+.pf-head-detail::before,
+.pf-head-time::before {
+  content: '·';
+  margin-inline-end: 8px;
+  color: rgba(255, 255, 255, 0.28);
+}
+.pf-head-spacer {
+  flex: 1 1 0;
+}
+.pf-head .act-pill {
+  flex-shrink: 0;
+}
+
+/* ------------------------------- body ------------------------------- */
+
+.pf-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 20px 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.pf-scroll.has-batch {
+  padding-bottom: 68px;
+}
+
+.pf-text {
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-ui);
+  font-size: calc(13.5px * var(--font-scale, 1));
+  font-weight: 400;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* The image is drawn at the size fitPreviewImage() picked (inline width and
+   height): centered when smaller than the panel, and taller than the body
+   only for long screenshots, which then scroll. */
+.pf-image-box {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  cursor: grab;
+}
+.pf-image {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* Link: page title, optional section chip, then the full address. */
+.pf-link-title {
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: calc(16px * var(--font-scale, 1));
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.pf-link-sub {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--font-ui);
+  font-size: calc(10.5px * var(--font-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Color: a big swatch, then every format as a row that copies on click. */
+.pf-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 132px;
+  padding: 20px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: calc(24px * var(--font-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: transform 0.12s ease;
+}
+.pf-swatch:active {
+  transform: scale(0.99);
+}
+.pf-formats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 12px;
+}
+.pf-format {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px 0 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-mono);
+  font-size: calc(12.5px * var(--font-scale, 1));
+  text-align: start;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.pf-format:hover {
+  background: var(--bg-card);
+  color: #ffffff;
+}
+.pf-format:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: -2px;
+}
+.pf-format-name {
+  flex-shrink: 0;
+  width: 32px;
+  color: var(--text-tertiary);
+  font-size: calc(10.5px * var(--font-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.pf-format-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pf-format-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+.pf-format-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.pf-format:hover .pf-format-icon,
+.pf-format:focus-visible .pf-format-icon,
+.pf-format.is-done .pf-format-icon {
+  opacity: 1;
+  color: #ffffff;
+}
+
+/* ---------------------------- batch bar ----------------------------- */
+
+/* Same raised surface as the card menu. */
+.pf-batch {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 4px 6px;
+  border-radius: 999px;
+  background: #1c1c1c;
+  box-shadow: inset 0 0 0 1px var(--divider);
+  animation: pf-fade-in 140ms ease-out both, pf-batch-in 440ms var(--pf-spring) both;
+}
+.pf-batch.is-leaving {
+  animation: pf-batch-out 140ms var(--pf-out) both;
+}
+.pf-wrap.is-reduced .pf-batch {
+  animation: pf-fade-in 120ms linear both;
+}
+.pf-wrap.is-reduced .pf-batch.is-leaving {
+  animation: pf-fade-out 120ms linear both;
+}
+.pf-batch-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pf-batch-group:first-child {
+  gap: 10px;
+}
+@keyframes pf-batch-in {
+  from { transform: translateY(14px) scale(0.96); }
+  to { transform: none; }
+}
+@keyframes pf-batch-out {
+  to { opacity: 0; transform: translateY(10px) scale(0.97); }
+}

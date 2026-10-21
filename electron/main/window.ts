@@ -20,6 +20,7 @@ import { runtime } from './config'
 import { PATHS } from '../store/paths'
 import { TRANSLATIONS, en } from '../../src/i18n/translations'
 import { computeStickBounds } from './geometry'
+import { isSafeExternalUrl } from './externalUrl'
 import { WorkAreaCache } from './workAreaCache'
 import { probeSeamAware, isNearProximity, type SeamTickState } from './stickProbe'
 import { loadSettings, saveSettings } from '../store/settings'
@@ -194,6 +195,14 @@ export function isInteractive(): boolean {
 let lastExternalForeground: number | bigint = 0
 /** Last focusability actually applied via native calls (avoids redundant writes). */
 let focusabilityApplied: boolean | null = null
+/**
+ * Bumped on every focusability request. A release's foreground repair keeps
+ * retrying for ~120ms in the background; when a newer request (the shelf
+ * taking focus again for a text field) arrives meanwhile, the old repair
+ * must stop instead of handing the foreground back to the user's app right
+ * after we took it.
+ */
+let focusRequestGeneration = 0
 
 function hwndNumber(h: number | bigint): number {
   try {
@@ -267,7 +276,7 @@ function usableHwnd(h: number | bigint): boolean {
  * Retries with small sleeps. Resolves true only when the target is
  * foreground afterwards.
  */
-export async function restoreFgAwaited(target: number | bigint, tag: string): Promise<boolean> {
+export async function restoreFgAwaited(target: number | bigint, tag: string, isStale?: () => boolean): Promise<boolean> {
   if (process.platform !== 'win32' || !setForegroundWindowFn || !getForegroundWindowFn) {
     return false
   }
@@ -276,6 +285,10 @@ export async function restoreFgAwaited(target: number | bigint, tag: string): Pr
     return false
   }
   for (let attempt = 1; attempt <= 4; attempt++) {
+    if (isStale?.()) {
+      console.log(`[Focus] ${tag}: superseded by a newer focus request, stopped before attempt ${attempt}`)
+      return false
+    }
     try {
       const before = getForegroundWindowFn()
       const ok = !!setForegroundWindowFn(target)
@@ -865,9 +878,14 @@ export function createWindow(): BrowserWindow {
     mainWindow?.setAlwaysOnTop(true, 'screen-saver')
   })
 
-  // Open external links in the default browser.
+  // Open external links in the default browser (web, mail and Store links
+  // only; see externalUrl.ts).
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    if (isSafeExternalUrl(details.url)) {
+      void shell.openExternal(details.url).catch((err) => console.error('[Window] openExternal failed:', err))
+    } else {
+      console.warn('[Window] refused to open a non-web link')
+    }
     return { action: 'deny' }
   })
 
@@ -1091,6 +1109,7 @@ export function setVisible(visible: boolean): void {
 }
 
 export function setWindowFocusable(focusable: boolean): void {
+  const generation = ++focusRequestGeneration
   if (mainWindow && !mainWindow.isDestroyed()) {
     try {
       // Skip redundant native writes: even "no-op" style/focusability calls
@@ -1129,7 +1148,7 @@ export function setWindowFocusable(focusable: boolean): void {
             `after=${after ? hwndHex(after) : 'none'} target=${usableHwnd(target) ? hwndHex(target) : 'none'}`
           )
           if (usableHwnd(target)) {
-            void restoreFgAwaited(target, 'release-repair').catch(() => {})
+            void restoreFgAwaited(target, 'release-repair', () => focusRequestGeneration !== generation).catch(() => {})
           }
         }
         return

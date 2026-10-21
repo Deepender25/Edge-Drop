@@ -186,7 +186,7 @@ function registerImageProtocol(): void {
         })
       }
 
-      // File-kind folder icons (static PNG set, same immutable-cache shape
+      // File-kind folder icons (static SVG set, same immutable-cache shape
       // as emoji). Must sit before the generic imageId fallback below.
       if (request.url.startsWith(`${APP_CONFIG.imageProtocol}://icon/`)) {
         const fileName = decodeURIComponent(request.url.slice(`${APP_CONFIG.imageProtocol}://icon/`.length).split('?')[0] ?? '')
@@ -199,7 +199,7 @@ function registerImageProtocol(): void {
         return new Response(body, {
           status: 200,
           headers: new Headers({
-            'Content-Type': 'image/png',
+            'Content-Type': 'image/svg+xml',
             'Cache-Control': 'public, max-age=31536000, immutable'
           })
         })

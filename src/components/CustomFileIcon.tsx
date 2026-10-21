@@ -95,10 +95,13 @@ function renderMicroIcon(kind: FileKind, color: string): JSX.Element {
 }
 
 /**
- * Vintage textured folder icons (PNG, resources/file-icons, served over
- * edgelocal://icon/). One static file per kind — no per-mount SVG
- * construction, gradients, or unique gradient IDs. The <=16px micro vector
- * path stays for tiny badges where a raster would soften.
+ * Frosted-glass folder icons (SVG, resources/file-icons, served over
+ * edgelocal://icon/). One static file per kind, drawn as an <img>: each
+ * file is its own document, so its gradient / filter IDs never collide and
+ * Chromium caches the raster per size. The files are square and cropped to
+ * the folder (viewBox 64 60 384 384 of the 512 art), so the folder fills
+ * about 80% of any square box, as the previous art did. The <=16px micro
+ * line icons stay for tiny badges, where the folder art turns to a blur.
  */
 export function CustomFileIcon({
   ext,
@@ -166,8 +169,8 @@ export function CustomFileIcon({
         display: 'inline-block',
         verticalAlign: 'middle',
         flexShrink: 0,
-        // 3:2 art in the square boxes the vector icons used — letterbox,
-        // never stretch. Transparent margins blend into the dark cards.
+        // Square art in square boxes; contain keeps it unstretched if a
+        // caller ever passes a non-square box.
         objectFit: 'contain',
         ...style
       }}
@@ -176,10 +179,18 @@ export function CustomFileIcon({
   )
 }
 
-const FOLDER_MASK_PATH =
-  'M 116 136 L 176 136 C 202 136 210 160 238 160 L 398 160 C 411 160 422 171 422 184 L 422 348 C 422 364 410 376 394 376 L 118 376 C 102 376 90 364 90 348 L 90 162 C 90 148 102 136 116 136 Z'
+/**
+ * Outline of the folder icons (back panel + front pocket, copied from the
+ * SVGs in resources/file-icons) in the same cropped frame, so a photo
+ * masked with it lines up with the file icons next to it in a stack.
+ */
+const FOLDER_MASK_SHAPES =
+  "<g transform='translate(0 14)' fill='black'>" +
+  "<rect x='120' y='118' width='272' height='246' rx='24'/>" +
+  "<path d='M124 180 L250 180 C262 180 268 184 274 192 L290 214 C295 221 300 224 310 224 L390 224 C402 224 410 232 408 244 L398 344 C396 356 388 364 376 364 L136 364 C124 364 116 356 114 344 L104 200 C103 188 112 180 124 180 Z'/>" +
+  '</g>'
 
-export const FILE_ICON_MASK = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='black' d='${FOLDER_MASK_PATH}'/></svg>")`
+export const FILE_ICON_MASK = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='64 60 384 384'>${FOLDER_MASK_SHAPES}</svg>")`
 
 export interface FileStackPhotoProps {
   src?: string
@@ -191,7 +202,7 @@ export interface FileStackPhotoProps {
   alt?: string
 }
 
-/** Render a photo preview masked into the 3D folder silhouette for multi-file bundles */
+/** Render a photo preview masked into the folder silhouette for multi-file bundles */
 export function FileStackPhoto({
   src,
   fallbackSrc,

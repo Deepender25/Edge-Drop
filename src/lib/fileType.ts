@@ -133,9 +133,9 @@ export function getFileKindByExt(ext: string, isDirectory?: boolean): FileKindIn
 }
 
 /**
- * edgelocal:// URL for a file-kind folder icon (PNG, see resources/file-icons).
+ * edgelocal:// URL for a file-kind folder icon (SVG, see resources/file-icons).
  * Same hardcoded-scheme convention as the emoji catalog (`edgelocal://emoji/…`).
  */
 export function fileIconUrl(kind: FileKind): string {
-  return `edgelocal://icon/${kind}.png`
+  return `edgelocal://icon/${kind}.svg`
 }

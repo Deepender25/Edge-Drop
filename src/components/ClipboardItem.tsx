@@ -32,6 +32,7 @@ import { detectCode } from '../lib/codeDetect'
 import '../styles/item.css'
 import { tryPaste } from '../lib/tryPaste'
 import { parseColor } from '../lib/colorUtils'
+import { externalHref } from '../lib/urlPreview'
 import { useTranslation, t } from '../i18n'
 import { useRelativeTimeTick } from '../hooks/useRelativeTimeTick'
 
@@ -82,6 +83,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   }, [item.id])
 
   const isPreviewing = useStore((s) => s.previewItemId) === item.id
+  const isMenuTarget = useStore((s) => s.cardMenu?.itemId === item.id)
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
   const isSingleImage = item.data.kind === 'image' || (
     item.data.kind === 'files' &&
@@ -127,6 +129,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       if (!target || typeof target.closest !== 'function') return
       if (target.closest('[data-expanded-stack]')) return
       if (target.closest('[data-preview-flyout], .preview-flyout')) return
+      if (target.closest('.card-menu')) return
       if (target.closest('.item')) return
       setExpandedFlag(false)
     }
@@ -179,8 +182,11 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     if (useStore.getState().previewItemId === item.id) {
       return
     }
-    tryPaste(() => paste(item.id))
-  }, [paste, item.id])
+    // Shift+click: paste text without its formatting (same as the menu's
+    // "Paste as plain text"; plain text has nothing to strip).
+    const plain = !!e?.shiftKey && item.data.kind === 'text'
+    tryPaste(() => paste(item.id, plain ? { plain: true } : undefined))
+  }, [paste, item.id, item.data.kind])
 
   const onExpand = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation()
@@ -229,11 +235,19 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     // Track if THIS card was the actively previewed (blurred) card when pointer clicked
     wasPreviewingRef.current = (useStore.getState().previewItemId === item.id) || isPreviewing
-    if (e.button === 0) {
-      pointerStartRef.current = { x: e.clientX, y: e.clientY, moved: false }
-    }
+    if (e.button !== 0) return // right-click opens the menu; nothing to stage
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, moved: false }
     handlePrestage()
   }, [isPreviewing, item.id, handlePrestage])
+
+  // Right-click: the card menu (not during the tutorial or a drag).
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const s = useStore.getState()
+    if (s.tutorialStep > 0 || s.internalDragReq) return
+    s.openCardMenu(item.id, e.clientX, e.clientY)
+  }, [item.id])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!pointerStartRef.current) return
@@ -291,7 +305,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       }}
       initial={false}
       animate={{ opacity: 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
+      className={`item${item.pinned ? ' pinned' : ''}${isMenuTarget ? ' menu-target' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
       style={{
         ...(expandedWidth ? { width: expandedWidth, minWidth: expandedWidth, maxWidth: expandedWidth } : {}),
@@ -326,6 +340,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
         onMouseEnter={handlePrestage}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
+        onContextMenu={handleContextMenu}
         onDragStart={(e) => {
           if (pointerStartRef.current) pointerStartRef.current.moved = true
           handleDragStart(e, { id: item.id })
@@ -381,6 +396,9 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
           />
         ) : (
           <div className="body">
+            {item.label && !isHorizontal && (!isBundle || !expanded) && (
+              <div className="item-label" title={item.label}>{item.label}</div>
+            )}
             <div className="item-content">
               {isBundle ? (
                   <BundleFluidPreview 
@@ -400,7 +418,19 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
               <div className="item-footer">
                 <div className="meta">
                   <KindBadge item={item} />
-                  <ItemDetails item={item} />
+                  {isHorizontal && item.label ? (
+                    // Fixed-size top-dock card: the label gets the whole line
+                    // (tags stay searchable and show in the tooltip / preview).
+                    <>
+                      <span>·</span>
+                      <span className="meta-label" title={item.tags?.length ? `${item.label} · ${item.tags.map((tag) => `#${tag}`).join(' ')}` : item.label}>{item.label}</span>
+                    </>
+                  ) : (
+                    <>
+                      <MetaTags tags={item.tags} max={2} />
+                      <ItemDetails item={item} />
+                    </>
+                  )}
                   {item.hitCount > 1 && (
                     <>
                       <span>·</span>
@@ -471,7 +501,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
                 e.preventDefault()
                 e.currentTarget.blur()
                 playButtonClickSound()
-                window.open((item.data as any).text, '_blank')
+                window.open(externalHref((item.data as any).text), '_blank')
               }}
             >
               <ExternalLinkIcon />
@@ -1586,17 +1616,23 @@ function ImageFolderCard({
             {/* Flap Footer: Left side shows image source/file name, Right side shows relative time */}
             <div className="image-folder-flap-footer">
               <div className="image-folder-meta">
-                {metaDetail && (
+                {item.label ? (
+                  <span className="image-folder-source-name meta-label" title={metaDetail ? `${item.label} · ${metaDetail}` : item.label}>
+                    {item.label}
+                  </span>
+                ) : metaDetail && (
                   <span className="image-folder-source-name file-name-meta" title={metaDetail}>
                     {metaDetail}
                   </span>
                 )}
+                {/* Narrow top-dock tiles: a label gets the whole line. */}
+                {!(isHorizontal && item.label) && <MetaTags tags={item.tags} max={1} />}
                 {item.hitCount > 1 && (
                   <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
-                    {metaDetail ? ' · ×' : '×'}{item.hitCount}
+                    {(item.label || metaDetail) ? ' · ×' : '×'}{item.hitCount}
                   </span>
                 )}
-                {copied && <span className="meta-copied">{(metaDetail || item.hitCount > 1) ? ' · ' : ''}{t('item.copied')}</span>}
+                {copied && <span className="meta-copied">{(item.label || metaDetail || item.hitCount > 1) ? ' · ' : ''}{t('item.copied')}</span>}
               </div>
               <RelativeTime capturedAt={item.capturedAt} />
             </div>
@@ -1755,8 +1791,8 @@ function MiniFileFolderCard({
               <FileKindIcon
                 path={filePath}
                 isDirectory={subEntry?.isDirectory}
-                width={isHorizontal ? 58 : 154}
-                height={isHorizontal ? 58 : 154}
+                width={isHorizontal ? 58 : 128}
+                height={isHorizontal ? 58 : 128}
               />
             </div>
           )}
@@ -1878,7 +1914,7 @@ function FileFolderCard({
             />
           ) : (
             <div className="single-file-hero" style={{ color: info.color }}>
-              <FileKindIcon path={first} isDirectory={entry?.isDirectory} width={isHorizontal ? 116 : 140} height={isHorizontal ? 116 : 140} />
+              <FileKindIcon path={first} isDirectory={entry?.isDirectory} width={isHorizontal ? 100 : 136} height={isHorizontal ? 100 : 136} />
             </div>
           )
         ) : (
@@ -1887,17 +1923,19 @@ function FileFolderCard({
             deckKey="file-stack-deck"
             panelKey="file-stack-panel"
             deck={
-          <div className="image-folder-stack-deck" data-count={Math.min(count, 4)}>
+          <div className="image-folder-stack-deck is-file-deck" data-count={Math.min(count, 4)}>
             {paths.slice(0, 4).map((filePath, idx) => {
               const fileEntry = entries?.[idx]
               const fileInfo = getFileKind(filePath, fileEntry?.isDirectory)
               const isImg = !fileEntry?.isDirectory && (fileEntry?.isImage || fileInfo.kind === 'image')
-              const iconSize = isHorizontal ? 142 : 160
+              // Front folder art is ~65% of the icon tall; sized so the cascade
+              // fits the viewport above the label flap in each dock.
+              const iconSize = isHorizontal ? 100 : 148
               const imgSrc = fileEntry?.preview || `edgelocal://file/${encodeURIComponent(filePath.replace(/\\/g, '/'))}`
               return (
                 <div
                   key={`${item.id}-${filePath}-${idx}`}
-                  className={`image-folder-stack-item ${isImg ? '' : 'file-stack-item '}pos-${idx}`}
+                  className={`${isImg ? 'image-folder-stack-item' : 'file-stack-folder'} pos-${idx}`}
                   style={{ color: fileInfo.color }}
                 >
                   {isImg ? (
@@ -2066,9 +2104,17 @@ function FileFolderCard({
             {/* Flap Footer: Left side shows file name, Right side shows relative time */}
             <div className="image-folder-flap-footer">
               <div className="image-folder-meta">
-                <span className="image-folder-source-name file-name-meta" title={rawName}>
-                  {rawName}
-                </span>
+                {item.label ? (
+                  <span className="image-folder-source-name meta-label" title={`${item.label} · ${rawName}`}>
+                    {item.label}
+                  </span>
+                ) : (
+                  <span className="image-folder-source-name file-name-meta" title={rawName}>
+                    {rawName}
+                  </span>
+                )}
+                {/* Narrow top-dock tiles: a label gets the whole line. */}
+                {!(isHorizontal && item.label) && <MetaTags tags={item.tags} max={1} />}
                 {item.hitCount > 1 && (
                   <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
                     · ×{item.hitCount}
@@ -2199,6 +2245,21 @@ function Preview({ item }: { item: ClipboardItemDto }) {
 /* ------------------------------------------------------------------ */
 /* Kind badge                                                          */
 /* ------------------------------------------------------------------ */
+
+/** Up to `max` tag chips, then "+N" for the rest. Nothing when untagged. */
+function MetaTags({ tags, max }: { tags?: string[]; max: number }) {
+  if (!tags || tags.length === 0) return null
+  return (
+    <>
+      {tags.slice(0, max).map((tag) => (
+        <span key={tag} className="meta-tag" title={`#${tag}`}>#{tag}</span>
+      ))}
+      {tags.length > max && (
+        <span className="meta-tag-more" title={tags.slice(max).map((tag) => `#${tag}`).join(' ')}>+{tags.length - max}</span>
+      )}
+    </>
+  )
+}
 
 function KindBadge({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {

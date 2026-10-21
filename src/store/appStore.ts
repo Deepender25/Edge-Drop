@@ -8,11 +8,13 @@
  */
 import { create } from 'zustand'
 import { edge } from '../lib/edge'
-import { takeSearchEngaged } from '../lib/searchFocus'
+import { releaseAllKeyboard } from '../lib/keyboardFocus'
 import { t } from '../i18n'
 import { loadRecents } from '../lib/emoji/prefs'
 import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
+import { normalizeLabel, normalizeTags, type ItemMetaPatch } from '../../shared/itemMeta'
+import { itemMetaKey } from '../lib/itemSignature'
 import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 let flareTimer: ReturnType<typeof setTimeout> | null = null
@@ -43,6 +45,26 @@ export interface ToastMsg {
   message: string
   tone: 'info' | 'error'
   params?: Record<string, string | number>
+}
+
+export interface CardMenuState {
+  itemId: string
+  /** Where the right-click happened, in window (client) pixels. */
+  x: number
+  y: number
+  mode: 'menu' | 'edit'
+  /** Editor field that gets the caret first. */
+  focus?: 'label' | 'tags'
+}
+
+/** Grace after the card menu closes before hover-close may shut the shelf. */
+export const CARD_MENU_STAY_MS = 1500
+
+export interface CardMenuRect {
+  left: number
+  top: number
+  right: number
+  bottom: number
 }
 
 export interface UpdateProgress {
@@ -143,12 +165,39 @@ interface AppState {
   languageFlyoutOpen: boolean
   languageFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
   setLanguageFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
-  previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number } | null
-  setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number } | null) => void
+  /**
+   * The open preview flyout's box for hover keep-alive. Top dock: dock
+   * coordinates with left/right. Side docks: top/bottom, plus `reach` (how far
+   * its far edge is from the screen edge; image previews can be wider).
+   */
+  previewFlyoutRect: { top: number; bottom: number; left?: number; right?: number; reach?: number } | null
+  setPreviewFlyoutRect: (rect: { top: number; bottom: number; left?: number; right?: number; reach?: number } | null) => void
   isInternalCopying: boolean
   copyFlareActive: boolean
   flareKey: number
   triggerCopyFlare: () => void
+
+  /** The card right-click menu (one at a time), or null when closed. */
+  cardMenu: CardMenuState | null
+  /** The open menu's on-screen box (window pixels), so hover-close keeps the shelf open over it. */
+  cardMenuRect: CardMenuRect | null
+  /**
+   * Until this time (ms epoch) hover-close waits before closing the shelf:
+   * the menu can reach outside the blade, so after it closes the pointer may
+   * be outside and needs a moment to come back. 0 when not active.
+   */
+  cardMenuStayUntil: number
+  clearCardMenuStay: () => void
+  openCardMenu: (itemId: string, x: number, y: number) => void
+  /** Turn the open menu into the label / tags editor. */
+  editCardMeta: (focus?: 'label' | 'tags') => void
+  closeCardMenu: () => void
+  setCardMenuRect: (rect: CardMenuRect | null) => void
+  /** Save a label / tags (main normalizes; a label or tag also pins). */
+  setItemMeta: (id: string, patch: ItemMetaPatch) => Promise<void>
+  /** Put derived text (clean link, color format, path) on the clipboard without a new card. */
+  copyText: (text: string, opts?: { quiet?: boolean }) => Promise<boolean>
+  saveImages: (id: string) => Promise<void>
 
   /* toasts */
   pushToast: (toast: ToastMsg) => void
@@ -158,9 +207,10 @@ interface AppState {
   togglePin: (id: string, pinned: boolean) => Promise<void>
   remove: (id: string) => Promise<void>
   clear: (ids?: string[]) => Promise<void>
-  copy: (id: string) => Promise<void>
+  /** Copy an item back to the clipboard; false when its content is gone. */
+  copy: (id: string) => Promise<boolean>
   copySubitem: (req: DragRequest) => Promise<void>
-  paste: (id: string) => Promise<void>
+  paste: (id: string, opts?: { plain?: boolean }) => Promise<void>
   pasteSubitem: (req: DragRequest) => Promise<void>
   pasteEmoji: (text: string) => Promise<void>
   patchSettings: (patch: Partial<Settings>) => Promise<void>
@@ -178,7 +228,7 @@ export const useStore = create<AppState>((set, get) => ({
   typeFilter: 'all',
   setTypeFilter: (typeFilter) => {
     if (get().typeFilter === typeFilter && !get().emojiOpen) return
-    set({ typeFilter, emojiOpen: false, expandedStackId: null })
+    set({ typeFilter, emojiOpen: false, expandedStackId: null, cardMenu: null, cardMenuRect: null })
     // The list remounts on filter change; leave the flyout open and it
     // would float over a tab that no longer contains the source card.
     if (get().previewItemId) get().setPreviewItemId(null)
@@ -209,7 +259,9 @@ export const useStore = create<AppState>((set, get) => ({
         styleFlyoutAnchorRect: null,
         languageFlyoutOpen: false,
         languageFlyoutAnchorRect: null,
-        expandedStackId: null
+        expandedStackId: null,
+        cardMenu: null,
+        cardMenuRect: null
       })
       edge.setPreviewMode(false)
     } else {
@@ -420,7 +472,7 @@ export const useStore = create<AppState>((set, get) => ({
     const prevItems = get().items
     if (
       prevItems.length === items.length &&
-      prevItems.every((it, i) => it.id === items[i]?.id && it.pinned === items[i]?.pinned && it.hitCount === items[i]?.hitCount && it.capturedAt === items[i]?.capturedAt)
+      prevItems.every((it, i) => it.id === items[i]?.id && it.pinned === items[i]?.pinned && it.hitCount === items[i]?.hitCount && it.capturedAt === items[i]?.capturedAt && itemMetaKey(it) === itemMetaKey(items[i]))
     ) {
       return
     }
@@ -442,19 +494,17 @@ export const useStore = create<AppState>((set, get) => ({
       // compiling under the DOM-less node tsconfig.)
       const active = (globalThis as { document?: { activeElement?: { blur?: () => void } } }).document?.activeElement
       try { active?.blur?.() } catch { /* ignore */ }
-      // If search held temporary OS focusability + paused hotkey through a
-      // close path that skipped the input's blur (tray toggle, cursor
-      // leave), restore both exactly once. No-op when search was never used.
+      // If a text field (search, label editor) held temporary OS
+      // focusability + paused hotkey through a close path that skipped its
+      // blur (tray toggle, cursor leave), restore both now, exactly once.
+      // No-op when no field ever took the keyboard.
       try {
-        if (takeSearchEngaged()) {
-          void edge.focusWindow(false)?.catch?.(() => {})
-          void edge.pauseHotkey(false)?.catch?.(() => {})
-        }
+        releaseAllKeyboard()
       } catch { /* ignore */ }
       // NOTE: Do NOT reset styleFlyoutOpen here — closePanel() handles the
       // sequencing so the flyout exit animation completes before the panel closes.
       // Only reset previewItemId so the normal preview flyout clears correctly.
-      set({ previewItemId: null, previewItemRect: null, expandedStackId: null })
+      set({ previewItemId: null, previewItemRect: null, expandedStackId: null, cardMenu: null, cardMenuRect: null, cardMenuStayUntil: 0 })
       edge.setPreviewMode(false)
     }
   },
@@ -470,6 +520,8 @@ export const useStore = create<AppState>((set, get) => ({
       languageFlyoutOpen: false,
       languageFlyoutAnchorRect: null,
       expandedStackId: null,
+      cardMenu: null,
+      cardMenuRect: null,
       emojiOpen: settingsOpen ? false : get().emojiOpen
     })
   },
@@ -586,7 +638,9 @@ export const useStore = create<AppState>((set, get) => ({
     // guard active so the external edge copy indicator flare does not appear.
     set({ isInternalCopying: true })
     try {
-      await edge.copyItem(id)
+      return await edge.copyItem(id)
+    } catch {
+      return false
     } finally {
       setTimeout(() => set({ isInternalCopying: false }), 400)
     }
@@ -601,10 +655,85 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  async paste(id) {
+  async paste(id, opts) {
     set({ isInternalCopying: true })
-    await edge.pasteItem(id)
+    await edge.pasteItem(id, opts?.plain ? { plain: true } : undefined)
     setTimeout(() => set({ isInternalCopying: false }), 600)
+  },
+
+  cardMenu: null,
+  cardMenuRect: null,
+  openCardMenu: (itemId, x, y) => {
+    set({ cardMenu: { itemId, x, y, mode: 'menu' }, cardMenuRect: null })
+  },
+  editCardMeta: (focus = 'label') => {
+    const menu = get().cardMenu
+    if (!menu) return
+    set({ cardMenu: { ...menu, mode: 'edit', focus } })
+  },
+  closeCardMenu: () => {
+    if (!get().cardMenu && !get().cardMenuRect) return
+    set({
+      cardMenu: null,
+      cardMenuRect: null,
+      cardMenuStayUntil: get().open ? Date.now() + CARD_MENU_STAY_MS : 0
+    })
+  },
+  cardMenuStayUntil: 0,
+  clearCardMenuStay: () => {
+    if (get().cardMenuStayUntil !== 0) set({ cardMenuStayUntil: 0 })
+  },
+  setCardMenuRect: (cardMenuRect) => set({ cardMenuRect }),
+
+  async setItemMeta(id, patch) {
+    const before = get().items.find((it) => it.id === id)
+    if (!before) return
+    // Optimistic: show the cleaned values at once; main sends the stored truth.
+    const label = 'label' in patch ? normalizeLabel(patch.label) : before.label
+    const tags = 'tags' in patch ? normalizeTags(patch.tags) : before.tags
+    const named = !!label || !!tags?.length
+    set({
+      items: get().items.map((it) => {
+        if (it.id !== id) return it
+        const next: ClipboardItemDto = { ...it, pinned: it.pinned || named }
+        if (label) next.label = label
+        else delete next.label
+        if (tags?.length) next.tags = tags
+        else delete next.tags
+        return next
+      })
+    })
+    try {
+      const items = await edge.setItemMeta(id, patch)
+      set({ items })
+      const after = items.find((it) => it.id === id)
+      if (after && !before.pinned && after.pinned) {
+        get().pushToast({ id: `meta-pin-${Date.now()}`, message: t('toast.labelPinned'), tone: 'info' })
+      }
+    } catch {
+      set({ items: get().items.map((it) => (it.id === id ? before : it)) })
+      get().pushToast({ id: `meta-${Date.now()}`, message: t('toast.labelFailed'), tone: 'error' })
+    }
+  },
+
+  async copyText(text, opts) {
+    set({ isInternalCopying: true })
+    try {
+      const ok = await edge.copyText(text)
+      if (ok && !opts?.quiet) get().pushToast({ id: `copied-${Date.now()}`, message: t('toast.copiedToClipboard'), tone: 'info' })
+      return ok
+    } catch {
+      return false
+    } finally {
+      setTimeout(() => set({ isInternalCopying: false }), 400)
+    }
+  },
+
+  async saveImages(id) {
+    // Main shows the result toast (saved name or failure).
+    try {
+      await edge.saveImages(id)
+    } catch { /* ignore */ }
   },
 
   async pasteSubitem(req) {

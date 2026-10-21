@@ -339,6 +339,49 @@ const TRACKING_PARAMS = new Set([
   'mkt_tok', 'spReportId', '__twitter_impression', 'vero_id', 'vero_conv'
 ])
 
+/**
+ * A copied link as something the browser can open: "www.example.com" (no
+ * scheme) becomes "https://www.example.com". Without this, window.open
+ * resolves it relative to the app page and nothing useful opens.
+ */
+export function externalHref(text: string): string {
+  const t = typeof text === 'string' ? text.trim() : ''
+  return /^[a-z][a-z0-9+.-]*:/i.test(t) ? t : `https://${t}`
+}
+
+function isTrackingParam(key: string): boolean {
+  const k = key.toLowerCase()
+  return TRACKING_PARAMS.has(k) || TRACKING_PARAM_PREFIXES.some((p) => k.startsWith(p))
+}
+
+/**
+ * The link with only its tracking parameters removed (utm_*, fbclid, gclid,
+ * ...). Everything else is kept exactly as written: host, www., path,
+ * trailing slash, other parameters and their order, and the #hash. Returns
+ * the input unchanged when it is not an http(s) link or has nothing to strip.
+ */
+export function stripTracking(rawUrl: string): string {
+  const raw = typeof rawUrl === 'string' ? rawUrl.trim() : ''
+  const q = raw.indexOf('?')
+  if (q < 0 || !/^https?:\/\//i.test(raw)) return raw
+  const hashAt = raw.indexOf('#', q)
+  const head = raw.slice(0, q)
+  const query = raw.slice(q + 1, hashAt < 0 ? undefined : hashAt)
+  const hash = hashAt < 0 ? '' : raw.slice(hashAt)
+  const parts = query.split('&').filter(Boolean)
+  const kept = parts.filter((part) => {
+    const eq = part.indexOf('=')
+    const name = eq < 0 ? part : part.slice(0, eq)
+    let key = name
+    try {
+      key = decodeURIComponent(name.replace(/\+/g, ' '))
+    } catch { /* keep raw name */ }
+    return !isTrackingParam(key)
+  })
+  if (kept.length === parts.length) return raw
+  return `${head}${kept.length ? `?${kept.join('&')}` : ''}${hash}`
+}
+
 /* ------------------------------------------------------------------ */
 /* 4. Common Acronyms & Short Words to Keep Upper-Cased               */
 /* ------------------------------------------------------------------ */

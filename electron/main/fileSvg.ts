@@ -4,24 +4,24 @@ import { app } from 'electron'
 import type { FileKind } from '../../src/lib/fileType'
 
 /**
- * Drag-ghost artwork from the vintage textured PNG set
- * (resources/file-icons, one static file per kind).
+ * Drag-ghost artwork from the file-kind SVG set (resources/file-icons, one
+ * static file per kind).
  *
- * PNGs are read once per session into a bounded data-URI cache, then
- * embedded into the existing stack/badge SVG layout which Resvg rasterizes
- * exactly as before. UI file icons come from the same files over
- * edgelocal://icon/, so there is a single copy of the art.
+ * Each SVG is read once per session into a bounded data-URI cache, then
+ * embedded as a nested image in the stack/badge SVG layout which Resvg
+ * rasterizes. UI file icons come from the same files over edgelocal://icon/,
+ * so there is a single copy of the art. The files are square and already
+ * cropped to the folder (their viewBox), so each one fills the 512 slot.
  */
 
-const PNG_WIDTH = 512
-const PNG_HEIGHT = 341
+const ART_SIZE = 512
 
 let iconDirOverride: string | null = null
 
 /** Test hook: point the builder at a fixture directory instead of resources. */
 export function setFileIconAssetDir(dir: string): void {
   iconDirOverride = dir
-  pngCache.clear()
+  artCache.clear()
 }
 
 function fileIconDir(): string | null {
@@ -35,43 +35,55 @@ function fileIconDir(): string | null {
   }
 }
 
-const pngCache = new Map<string, string | null>()
-const PNG_CACHE_MAX = 16
+const artCache = new Map<string, string>()
+const ART_CACHE_MAX = 16
 
-/** Data-URI for a kind's PNG, or null when the file is unavailable. */
-function kindPngDataUri(kind: FileKind): string | null {
-  const cached = pngCache.get(kind)
-  if (cached !== undefined) return cached
-  let uri: string | null = null
+function readArt(kind: string): string | null {
   try {
     const dir = fileIconDir()
-    if (dir) {
-      const buf = readFileSync(join(dir, `${kind}.png`))
-      if (buf.length > 0) uri = `data:image/png;base64,${buf.toString('base64')}`
-    }
+    if (!dir) return null
+    const buf = readFileSync(join(dir, `${kind}.svg`))
+    return buf.length > 0 ? `data:image/svg+xml;base64,${buf.toString('base64')}` : null
   } catch {
-    uri = null
+    return null
   }
-  if (pngCache.size >= PNG_CACHE_MAX) {
-    const first = pngCache.keys().next().value
-    if (first) pngCache.delete(first)
+}
+
+/**
+ * Data-URI for a kind's SVG; a kind whose file is unreadable borrows the
+ * generic `file` art. Only successful reads are cached, so a file that was
+ * missing for a moment (an update or rebuild swapping the folder) is picked
+ * up on the next drag instead of leaving that kind blank for the session.
+ */
+function kindArtDataUri(kind: FileKind): string | null {
+  const cached = artCache.get(kind)
+  if (cached !== undefined) return cached
+  const uri = readArt(kind) ?? (kind === 'file' ? null : readArt('file'))
+  if (!uri) return null
+  if (artCache.size >= ART_CACHE_MAX) {
+    const first = artCache.keys().next().value
+    if (first) artCache.delete(first)
   }
-  pngCache.set(kind, uri)
+  artCache.set(kind, uri)
   return uri
 }
 
-/** One folder PNG centered in the 512 viewBox (512x341 art). */
+/** One folder icon filling the 512 viewBox. */
 function kindImage(kind: FileKind): string {
-  const uri = kindPngDataUri(kind)
+  const uri = kindArtDataUri(kind)
   if (!uri) return ''
-  const y = Math.round((512 - PNG_HEIGHT) / 2)
-  return `<image href="${uri}" x="0" y="${y}" width="${PNG_WIDTH}" height="${PNG_HEIGHT}"/>`
+  return `<image href="${uri}" x="0" y="0" width="${ART_SIZE}" height="${ART_SIZE}"/>`
+}
+
+/** True when a built drag SVG carries at least one piece of art. */
+export function dragSvgHasArt(svg: string): boolean {
+  return svg.includes('<image ')
 }
 
 /**
  * Builds the standalone SVG string for drag previews.
- * Vintage PNG artwork with the multi-file stack offsets and count badge.
- * Kinds without a readable PNG render as empty slots (the caller falls back
+ * File-kind artwork with the multi-file stack offsets and count badge.
+ * Kinds without readable art render as empty slots (the caller falls back
  * to the generic icon when rasterization yields nothing usable).
  */
 export function buildFileDragSvg(kinds: FileKind[], count: number): string {

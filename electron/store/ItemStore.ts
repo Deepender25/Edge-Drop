@@ -26,6 +26,15 @@ import { PATHS } from './paths'
 import { createId } from './ids'
 import { contentSignature } from './signature'
 import { MAX_ITEM_HTML_CHARS } from '../clipboard/formats'
+import { combineTags, hasItemMeta, normalizeLabel, normalizeTags, type ItemMetaPatch } from '../../shared/itemMeta'
+
+/** Write already-normalized metadata, removing the fields when empty. */
+function applyMeta(it: ClipboardItem, label: string | undefined, tags: string[] | undefined): void {
+  if (label) it.label = label
+  else delete it.label
+  if (tags && tags.length > 0) it.tags = tags
+  else delete it.tags
+}
 
 /** Maps a signature -> item id so dedup is O(1). */
 interface Index {
@@ -103,6 +112,9 @@ export class ItemStore {
         // Auto-migrate large text items to disk payload files
         let migratedAnyPayloads = false
         for (const it of this.items) {
+          // A hand-edited or damaged file must never feed odd label/tag
+          // values to the renderer: re-run the same cleanup as writes.
+          if ('label' in it || 'tags' in it) applyMeta(it, normalizeLabel(it.label), normalizeTags(it.tags))
           if (it.data.kind === 'text') {
             if (!it.data.hasFullPayload && it.data.text.length > 300) {
               this.writeTextPayload(it.id, it.data.text)
@@ -306,6 +318,24 @@ export class ItemStore {
     this.persist()
   }
 
+  /**
+   * Set or clear an item's label and tags. Values are normalized here, so
+   * nothing unclean is ever stored. Giving an unpinned item a label or tag
+   * pins it: history limit, auto-delete and "clear" never touch pinned items,
+   * so something the user named cannot silently disappear. Clearing the
+   * metadata leaves the pin alone. Returns false when the item is gone.
+   */
+  setMeta(id: string, patch: ItemMetaPatch): boolean {
+    const it = this.items.find((x) => x.id === id)
+    if (!it || !patch || typeof patch !== 'object') return false
+    const label = 'label' in patch ? normalizeLabel(patch.label) : it.label
+    const tags = 'tags' in patch ? normalizeTags(patch.tags) : it.tags
+    applyMeta(it, label, tags)
+    if (hasItemMeta(it)) it.pinned = true
+    this.persist()
+    return true
+  }
+
   delete(id: string): void {
     const idx = this.items.findIndex((x) => x.id === id)
     if (idx < 0) return
@@ -415,6 +445,15 @@ export class ItemStore {
     tgt.data = newData
     this.sigToId.set(contentSignature(newData), tgt.id)
     tgt.capturedAt = Date.now() // bump time
+
+    // The source card disappears, so carry what the user gave it: the
+    // target keeps its own label (or takes the source's when it has none)
+    // and gets both sets of tags. A named source was kept by its pin; keep
+    // the merged card the same way.
+    if (hasItemMeta(src)) {
+      applyMeta(tgt, tgt.label ?? src.label, combineTags(tgt.tags, src.tags))
+      if (src.pinned) tgt.pinned = true
+    }
 
     // Remove source item completely but DO NOT delete its underlying files/images
     // because they are now owned by the target!
@@ -809,7 +848,10 @@ export class ItemStore {
             isUrl: d.isUrl,
             isColor: d.isColor,
             hasFullPayload: d.hasFullPayload,
-            previewText: d.previewText
+            previewText: d.previewText,
+            // html itself stays in main (can be large); the renderer only
+            // needs to know it exists to offer "Paste as plain text".
+            hasHtml: !!d.html
           }
         }
       }

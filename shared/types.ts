@@ -85,6 +85,10 @@ export interface ClipboardItem {
   hitCount: number
   /** Pinned items never scroll off and survive app restarts. */
   pinned: boolean
+  /** User-given short name (see shared/itemMeta.ts). Searchable. */
+  label?: string
+  /** User-given lowercase tags (see shared/itemMeta.ts). Searchable. */
+  tags?: string[]
 }
 
 /**
@@ -105,7 +109,7 @@ export interface FileEntry {
 /** Payload sent over IPC: same as ClipboardItem but with inline image previews. */
 export interface ClipboardItemDto extends Omit<ClipboardItem, 'data'> {
   data:
-  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string }
+  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string; hasHtml?: boolean }
   | ({ kind: 'image'; preview: string } & ClipboardImageFields)
   | { kind: 'image-collection'; images: Array<ClipboardImageFields & { preview: string }> }
   | { kind: 'files'; paths: string[]; previews?: string[]; entries?: FileEntry[] }

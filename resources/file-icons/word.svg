@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="64 60 384 384" width="384" height="384" role="img" aria-label="Word file icon"><defs>
+  <linearGradient id="word-back" x1="0" y1="118" x2="0" y2="364" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#34609f"/><stop offset="1" stop-color="#16305e"/></linearGradient>
+  <linearGradient id="word-backlight" x1="0" y1="118" x2="0" y2="230" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".35" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="word-paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eaf0f8"/></linearGradient>
+  <linearGradient id="word-glass" x1="0" y1="180" x2="0" y2="364" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#e6eefa" stop-opacity="0.52"/><stop offset=".5" stop-color="#a9bddc" stop-opacity="0.42"/><stop offset="1" stop-color="#183463" stop-opacity="0.84"/></linearGradient>
+  <linearGradient id="word-sheen" x1="104" y1="0" x2="408" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".24"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#fff" stop-opacity=".03"/><stop offset="1" stop-color="#fff" stop-opacity=".16"/></linearGradient>
+  <radialGradient id="word-spot" cx="170" cy="200" r="190" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  <path id="word-front" d="M124 180 L250 180 C262 180 268 184 274 192 L290 214 C295 221 300 224 310 224 L390 224 C402 224 410 232 408 244 L398 344 C396 356 388 364 376 364 L136 364 C124 364 116 356 114 344 L104 200 C103 188 112 180 124 180 Z"/>
+  <path id="word-top" d="M105 198 C104 187 112 180 124 180 L250 180 C262 180 268 184 274 192 L290 214 C295 221 300 224 310 224 L390 224 C401 224 409 231 408 242"/>
+  <rect id="word-panel" x="120" y="118" width="272" height="246" rx="24"/>
+  <mask id="word-mask" maskUnits="userSpaceOnUse" x="90" y="170" width="332" height="210"><use href="#word-front" fill="#fff"/></mask>
+  <filter id="word-frost" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="word-edge" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.5"/></filter>
+  <filter id="word-soft" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="word-etch" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2"/></filter>
+  <filter id="word-shw" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="11"/></filter>
+  <filter id="word-sht" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="word-pshadow" x="-25%" y="-20%" width="150%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#16305e" flood-opacity=".22"/></filter>
+  <filter id="word-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 .08"/></filter>
+</defs>
+ <g transform="translate(0 14)">
+  <ellipse cx="256" cy="368" rx="150" ry="15" fill="#16305e" opacity=".32" filter="url(#word-shw)"/>
+  <ellipse cx="256" cy="364" rx="134" ry="6" fill="#16305e" opacity=".28" filter="url(#word-sht)"/>
+  <use href="#word-panel" fill="url(#word-back)"/>
+  <rect x="120" y="118" width="272" height="246" rx="24" fill="url(#word-backlight)"/>
+  <g id="word-contents"><g transform="rotate(8 341 240)" filter="url(#word-pshadow)"><rect x="300" y="165" width="82" height="150" rx="13" fill="url(#word-paper)"/><rect x="326.64" y="186" width="30.72" height="9.5" rx="4.75" fill="#8ea8d0"/><rect x="332.4" y="204" width="19.200000000000003" height="6" rx="3" fill="#c2d0e6"/><rect x="318" y="222" width="48" height="6" rx="3.0" fill="#c2d0e6"/><rect x="318" y="236" width="48" height="6" rx="3.0" fill="#c2d0e6"/><rect x="318" y="250" width="48" height="6" rx="3.0" fill="#c2d0e6"/><rect x="318" y="264" width="29.759999999999998" height="6" rx="3.0" fill="#c2d0e6"/><rect x="318" y="286" width="48" height="6" rx="3.0" fill="#c2d0e6"/><rect x="318" y="302" width="41.76" height="6" rx="3.0" fill="#c2d0e6"/></g><g transform="rotate(5 300 226)" filter="url(#word-pshadow)"><rect x="252" y="140" width="96" height="172" rx="14" fill="url(#word-paper)"/><rect x="279.52" y="162" width="40.96" height="9.5" rx="4.75" fill="#8ea8d0"/><rect x="287.2" y="180" width="25.6" height="6" rx="3" fill="#c2d0e6"/><rect x="268" y="198" width="64" height="6" rx="3.0" fill="#c2d0e6"/><rect x="268" y="212" width="64" height="6" rx="3.0" fill="#c2d0e6"/><rect x="268" y="226" width="64" height="6" rx="3.0" fill="#c2d0e6"/><rect x="268" y="240" width="39.68" height="6" rx="3.0" fill="#c2d0e6"/><rect x="268" y="262" width="64" height="6" rx="3.0" fill="#c2d0e6"/><rect x="268" y="278" width="55.68" height="6" rx="3.0" fill="#c2d0e6"/><rect x="268" y="294" width="62.08" height="6" rx="3.0" fill="#c2d0e6"/></g><g transform="rotate(-8 220 224)" filter="url(#word-pshadow)"><rect x="140" y="122" width="160" height="204" rx="16" fill="url(#word-paper)"/><rect x="181.6" y="144" width="76.8" height="11" rx="5.5" fill="#8ea8d0"/><rect x="196.0" y="162" width="48.0" height="6" rx="3" fill="#c2d0e6"/><rect x="160" y="180" width="120" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="196" width="120" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="212" width="120" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="228" width="74.4" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="252" width="120" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="269" width="104.4" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="286" width="116.39999999999999" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="303" width="90.0" height="6" rx="3.0" fill="#c2d0e6"/><rect x="160" y="320" width="111.60000000000001" height="6" rx="3.0" fill="#c2d0e6"/></g></g>
+  <g mask="url(#word-mask)">
+   <rect x="96" y="172" width="320" height="200" fill="url(#word-back)"/>
+   <rect x="96" y="172" width="320" height="200" fill="#dbe5f3" opacity=".18"/>
+   <g filter="url(#word-frost)"><use href="#word-panel" fill="url(#word-back)"/><use href="#word-contents"/></g>
+   <use href="#word-front" fill="url(#word-glass)"/>
+   <use href="#word-front" fill="url(#word-sheen)"/>
+   <rect x="96" y="172" width="320" height="200" filter="url(#word-grain)"/>
+   <use href="#word-front" fill="url(#word-spot)"/>
+   <use href="#word-top" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="10" filter="url(#word-edge)"/>
+   <ellipse cx="256" cy="372" rx="150" ry="14" fill="#fff" opacity=".16" filter="url(#word-soft)"/>
+  </g>
+ </g>
+</svg>
