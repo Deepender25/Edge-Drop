@@ -82,6 +82,13 @@ export interface InvokeMap {
    */
   'emoji:glyphs': { args: [files: string[]]; result: Record<string, string> }
 
+  /**
+   * A file-kind folder icon's SVG source (resources/file-icons/<kind>.svg),
+   * for the window to cut into the layers its hover "opening" moves. Only the
+   * 13 icon names are served; anything else is null.
+   */
+  'icon:svg': { args: [kind: string]; result: string | null }
+
   /** Add local file paths dragged into the shelf. */
   'item:add-files': { args: [paths: string[]]; result: ClipboardItemDto[] }
 
@@ -209,6 +216,12 @@ export interface SendMap {
   'item:prestage-drag': { args: [req: DragRequest] }
   /** Synchronize tutorial step */
   'tutorial:set-step': { args: [step: number] }
+  /**
+   * The cards moved under a still pointer (new item, paste to top, delete,
+   * expand…): re-check what it is over. Chromium only updates :hover on a
+   * mouse move, so main sends one at the cursor's current spot.
+   */
+  'window:resync-hover': { args: [] }
 }
 
 /* ------------------------------------------------------------------ */

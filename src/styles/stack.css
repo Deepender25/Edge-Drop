@@ -1,0 +1,294 @@
+/* ------------------------------------------------------------------ */
+/* Open stack (StackItems.tsx): header, file list, photo grid          */
+/* ------------------------------------------------------------------ */
+
+/* Header: collapse + "N files" over the total size on the left, card
+   actions on the right. The top dock puts title and size on one line and the
+   actions right after them (a long stack runs past the window edge). */
+.stack-head-lead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.stack-head-lead .image-folder-collapse-btn {
+  flex: none;
+}
+.stack-head-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.stack-head-text .image-folder-expanded-title {
+  line-height: 15px;
+  white-space: nowrap;
+}
+.image-folder-expanded-sub {
+  font-size: 10.5px;
+  line-height: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.list.horizontal .stack-head-lead {
+  gap: 6px;
+}
+/* One left edge for every open stack: the header, the list's icons and the
+   photo grid all start 4px in, so the header never shifts between kinds. */
+.stack-head-lead {
+  flex: 1 1 auto;
+  margin-right: 6px;
+}
+.list.horizontal .stack-head-lead {
+  flex: 0 1 auto;
+  margin-right: 0;
+}
+.image-folder-expanded-top-bar .actions-pill {
+  flex: none;
+}
+/* 12.5px fits titles up to "128 images" (70px) beside the four actions. */
+.stack-head-text .image-folder-expanded-title {
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.list.horizontal .stack-head-text {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+}
+
+/* ------------------------------ entries ------------------------------ */
+
+.stack-row,
+.stack-tile {
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+.stack-row:active,
+.stack-tile:active {
+  cursor: grabbing;
+}
+
+.stack-row-actions {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.stack-row:hover .stack-row-actions,
+.stack-tile:hover .stack-row-actions,
+.stack-row:focus-within .stack-row-actions,
+.stack-tile:focus-within .stack-row-actions {
+  opacity: 1;
+  scale: 1;
+  pointer-events: auto;
+}
+
+/* File list: icon or thumbnail, name (2 lines), "kind · size". */
+.stack-items.is-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stack-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 8px 6px 4px;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+.stack-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.stack-row-art {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stack-row-art .file-kind-img {
+  /* the frosted icons read pale at this size next to white text */
+  filter: saturate(1.8) contrast(1.06);
+}
+.stack-row-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.stack-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stack-row-name {
+  font-size: 12.5px;
+  line-height: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.stack-row-meta {
+  font-size: 10.5px;
+  line-height: 13px;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stack-row-kind {
+  font-weight: 600;
+}
+.stack-row .stack-row-actions {
+  right: 6px;
+  top: 50%;
+  translate: 0 -50%;
+}
+/* The text fades out just before the hover pill instead of being cut. */
+.stack-row:is(:hover, :focus-within) .stack-row-text {
+  -webkit-mask-image: linear-gradient(to left, transparent 58px, #000 82px);
+  mask-image: linear-gradient(to left, transparent 58px, #000 82px);
+}
+
+/* Photo grid: two columns; an odd count lets the first photo span both. */
+.stack-items.is-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 0 4px;
+}
+.stack-tile {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #18181b;
+}
+/* 7+ photos: three columns, so a full stack (10) stays about half as tall. */
+.stack-items.is-gallery:is([data-count="7"], [data-count="8"], [data-count="9"], [data-count="10"]) {
+  grid-template-columns: repeat(3, 1fr);
+}
+.stack-items.is-gallery > .stack-tile:first-child:nth-last-child(odd) {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+}
+/* In three columns the grid ends flush too: 10 = wide + 3 rows, 8 = a double
+   first photo, 9 = plain 3 x 3 (7 = wide + 2 rows, from the rule above). */
+.stack-items.is-gallery[data-count="10"] > .stack-tile:first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+}
+.stack-items.is-gallery[data-count="8"] > .stack-tile:first-child {
+  grid-column: span 2;
+  aspect-ratio: auto;
+}
+.stack-items.is-gallery[data-count="9"] > .stack-tile:first-child {
+  grid-column: auto;
+  aspect-ratio: 1;
+}
+.stack-tile-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.stack-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+.stack-tile:hover::after {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+.stack-tile-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 16px 8px 6px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.72));
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+.stack-tile:hover .stack-tile-caption {
+  opacity: 1;
+}
+.stack-tile-caption .stack-row-name {
+  font-size: 11.5px;
+  line-height: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  -webkit-line-clamp: 1;
+}
+.stack-tile-caption .stack-row-meta {
+  color: rgba(255, 255, 255, 0.72);
+}
+.stack-tile .stack-row-actions {
+  top: 6px;
+  right: 6px;
+}
+
+/* ----------------------------- top dock ------------------------------ */
+/* 96px of height under the header: files flow down two rows, then
+   across; photos sit in one strip. */
+
+.list.horizontal .stack-items.is-list {
+  display: grid;
+  grid-template-rows: repeat(2, 46px);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(232px, 1fr); /* stackOpenWidth() */
+  gap: 4px 6px;
+}
+.list.horizontal .stack-row {
+  min-height: 0;
+  height: 46px;
+  gap: 8px;
+  padding: 5px 8px 5px 4px;
+}
+.list.horizontal .stack-row-art {
+  width: 30px;
+  height: 30px;
+}
+.list.horizontal .stack-row-thumb {
+  border-radius: 7px;
+}
+.list.horizontal .stack-row-name {
+  font-size: 12px;
+  line-height: 15px;
+  -webkit-line-clamp: 1;
+}
+.list.horizontal .stack-items.is-gallery {
+  display: flex;
+  gap: 6px;
+  height: 96px;
+  padding: 0 4px;
+}
+.list.horizontal .stack-tile,
+.list.horizontal .stack-items.is-gallery > .stack-tile:first-child:nth-last-child(odd) {
+  flex: none;
+  width: 128px; /* stackOpenWidth() */
+  height: 100%;
+  aspect-ratio: auto;
+  border-radius: 9px;
+}

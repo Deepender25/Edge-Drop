@@ -505,9 +505,12 @@
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The file art keeps one soft shadow; hover only grows it a touch around
-   its center (no lift into the hover buttons, no animated shadow: changing
-   a filter repaints the SVG every frame, a transform does not). */
+/* The file art keeps one soft shadow; hover lifts it 4px. It is its own
+   pre-rastered layer (will-change), so it must stay 1:1 to stay sharp: no
+   scaling, and moves only in multiples of 4px (whole device pixels at
+   100-200% display scaling). Growing it 4% on hover measured 72% of the
+   sharpness of a direct render on a 1x screen; the 4px lift stays sharp.
+   No animated shadow either: changing a filter repaints the SVG every frame. */
 .single-file-hero svg,
 .single-file-hero img.file-kind-img {
   display: block;
@@ -520,12 +523,7 @@
 .item:not(.is-expanded) .item-main:hover .single-file-hero svg,
 .item.is-image-folder-card:not(.is-expanded):hover .single-file-hero img.file-kind-img,
 .item:not(.is-expanded) .item-main:hover .single-file-hero img.file-kind-img {
-  transform: scale(1.04);
-}
-
-.mini-image-folder-card:hover .single-file-hero svg,
-.mini-image-folder-card:hover .single-file-hero img.file-kind-img {
-  transform: scale(1.04);
+  transform: translateY(-4px);
 }
 
 html[data-motion='reduce'] .single-file-hero svg,
@@ -533,27 +531,158 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
   transition: none;
 }
 
-/* File cards: center the art in the part of the viewport the label flap
-   (.image-folder-flap-wrap, pulled up 26px / 24px) leaves visible. */
+/* ------------------------------------------------------------------ */
+/* Folder icons that open on hover (CustomFileIcon layered)           */
+/* ------------------------------------------------------------------ */
+/* At rest the plain icon shows (.fko-plain). Next to it sit its five
+   layers (back panel, three papers, front pocket) as bitmaps drawn once at
+   this exact device size (lib/iconLayers.ts), hidden: not painted, not even
+   decoded. Hovering the card swaps them in (same pixels as the plain icon)
+   and opens the folder: the pocket drops a step and tips forward on its
+   bottom edge, the papers rise a little and fan out. Leaving closes it, and
+   only then (after the motion) the plain icon takes over again. The opening
+   rules wait for .is-armed (set once the layers have their closed style),
+   so layers that arrive mid-hover still animate open instead of jumping.
+   Cost: moving bitmaps is a plain copy, no filter or SVG is redrawn; the
+   wrapper never gets a filter or transform (that would redraw everything
+   each frame). The papers move in multiples of --open-u (4px on large
+   icons, 2px on small ones), whole device pixels at 100-200% scaling, so
+   they stay sharp while open. */
+.file-kind-opening {
+  --open-u: 4px;
+  --open-time: 0.46s;
+  position: relative;
+  display: block;
+  filter: none !important;
+  transform: none !important;
+  will-change: auto !important;
+  transition: none !important;
+}
+/* Plain icon and every layer are pre-rastered layers (will-change): showing,
+   hiding and moving them is then compositor work, not a repaint of the card
+   under them (measured: ~3ms of raster per hover instead of ~12ms; memory
+   at rest unchanged, hidden layers hold no raster). */
+.file-kind-opening > .fko-plain,
+.fko-layers > .fil {
+  will-change: transform;
+}
+/* plain icon and pocket share the icon's one shadow */
+.file-kind-opening > .fko-plain,
+.fko-layers > .fil-front {
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+}
+.file-kind-opening > .fko-plain {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* back to visible only once the closing motion has finished */
+  transition: visibility 0s linear var(--open-time);
+}
+.fko-layers {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  transition: visibility 0s linear var(--open-time);
+}
+.fko-layers > .fil {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: translate var(--open-time) cubic-bezier(0.22, 1, 0.36, 1), transform var(--open-time) cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fko-layers > .fil-front {
+  transform-origin: 50% 83%; /* the pocket's bottom edge */
+}
+/* papers leave one after another: the front one first */
+.fko-layers > .fil-paper2 {
+  transition-delay: 0.035s;
+}
+.fko-layers > .fil-paper1 {
+  transition-delay: 0.07s;
+}
+/* small icons move half as far */
+.flyout-subitem:not(.single-hero-card) .file-kind-opening {
+  --open-u: 2px;
+}
+
+/* open */
+.item:not(.is-expanded) .item-main:hover .file-kind-opening.is-armed > .fko-plain,
+.item.is-image-folder-card:not(.is-expanded):hover .file-kind-opening.is-armed > .fko-plain {
+  visibility: hidden;
+  transition-delay: 0s;
+}
+.item:not(.is-expanded) .item-main:hover .file-kind-opening.is-armed > .fko-layers,
+.item.is-image-folder-card:not(.is-expanded):hover .file-kind-opening.is-armed > .fko-layers {
+  visibility: visible;
+  transition-delay: 0s;
+}
+.item:not(.is-expanded) .item-main:hover .file-kind-opening.is-armed .fil-paper1,
+.item.is-image-folder-card:not(.is-expanded):hover .file-kind-opening.is-armed .fil-paper1 {
+  translate: var(--open-u) calc(var(--open-u) * -1);
+}
+.item:not(.is-expanded) .item-main:hover .file-kind-opening.is-armed .fil-paper2,
+.item.is-image-folder-card:not(.is-expanded):hover .file-kind-opening.is-armed .fil-paper2 {
+  translate: 0 calc(var(--open-u) * -2);
+}
+.item:not(.is-expanded) .item-main:hover .file-kind-opening.is-armed .fil-paper3,
+.item.is-image-folder-card:not(.is-expanded):hover .file-kind-opening.is-armed .fil-paper3 {
+  translate: calc(var(--open-u) * -1) calc(var(--open-u) * -1);
+}
+.item:not(.is-expanded) .item-main:hover .file-kind-opening.is-armed .fil-front,
+.item.is-image-folder-card:not(.is-expanded):hover .file-kind-opening.is-armed .fil-front {
+  transform: translateY(var(--open-u)) perspective(calc(var(--open-u) * 90)) rotateX(-26deg);
+}
+
+html[data-motion='reduce'] .fko-layers > .fil {
+  transition: none;
+}
+
+/* Cards showing an opening folder icon keep the same horizontal hover pill,
+   but dock it on the label flap's shoulder (right of the raised tab, between
+   the folder and the name) instead of the top corner, where the opening
+   papers rise. Measured clear of the open folder and of the text.
+   (`top: auto` sits in each dock's own rule: those outrank the top dock's
+   `.list.horizontal` pill offsets.) */
+.item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions {
+  transform-origin: bottom right;
+}
+.item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions {
+  top: auto;
+  bottom: 37px;
+}
+.list.horizontal .item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions {
+  top: auto;
+  bottom: 28px;
+}
+
+/* The preview's cards have no flap: their pill stays in the top corner and
+   the folder sits a little lower so the open papers clear it. */
+.flyout-subitem:not(.single-hero-card) .item-content:has(.file-kind-opening) {
+  padding-top: 28px;
+}
+/* Grid cards: the pill centred on the select box's row (box 10-30px). */
+.flyout-subitem:has(.subitem-select-badge) .actions {
+  top: 5px;
+}
+
+/* File cards: the art sits in the part of the viewport the label flap
+   (.image-folder-flap-wrap, pulled up 26px / 24px) leaves visible, high
+   enough that the open folder clears the hover pill on the flap's shoulder
+   (top dock: 94px icon, measured >= 6px gaps to folder and name). */
 .image-folder-viewport > .single-file-hero {
   margin-top: 0;
   padding-bottom: 26px;
   box-sizing: border-box;
 }
 .list.horizontal .image-folder-viewport > .single-file-hero {
-  padding-bottom: 24px;
-}
-/* Same for the mini cards of an expanded stack. Their flap covers 16px /
-   12px of the viewport (measured on the rendered cards). */
-.mini-image-folder-viewport > .single-file-hero {
-  padding-bottom: 16px;
-  box-sizing: border-box;
-}
-.list.horizontal .mini-image-folder-viewport > .single-file-hero {
-  padding-bottom: 12px;
+  padding-bottom: 34px;
 }
 
 /* Single Image Folder Card (Framed image in folder card + borderless folder flap) */
+/* The hover background switches in one step (no fade): the textured viewport
+   paints with the card, so a fade redrew its grain and glow on every frame. */
 .item.is-image-folder-card {
   height: 205px;
   background: var(--bg-card, #141414);
@@ -561,9 +690,7 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
   overflow: hidden;
   padding: 5px;
   box-sizing: border-box;
-  transition: background 0.16s ease;
 }
-
 
 .item.is-image-folder-card:not(.is-expanded):hover {
   background: var(--bg-card-hover, #1c1c1c);
@@ -590,19 +717,18 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
   border-radius: calc(var(--radius-card, 18px) - 5px);
   overflow: hidden;
   background: var(--bg-card, #141414);
-  transition: background 0.16s ease;
 }
-
 
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-card-inner,
 .item:not(.is-expanded) .item-main:hover .image-folder-card-inner {
   background: var(--bg-card-hover, #1c1c1c);
 }
 
-/* Lift the viewport with the flap on hover so the folder tab keeps its contrast. */
+/* Lift the viewport with the flap on hover so the folder tab keeps its contrast.
+   background-color only: the shorthand would also drop the glow and grain. */
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-viewport,
 .item:not(.is-expanded) .item-main:hover .image-folder-viewport {
-  background: #222222;
+  background-color: #222222;
 }
 
 .image-folder-viewport {
@@ -859,7 +985,7 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
   justify-content: space-between;
   width: 100%;
   height: 28px;
-  padding: 0 4px;
+  padding: 0 0 0 4px; /* the actions sit flush right: room for the title */
   margin-bottom: 10px;
   flex-shrink: 0;
   cursor: pointer;
@@ -868,8 +994,10 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
 }
 
 .list.horizontal .image-folder-expanded-top-bar {
-  height: 20px;
-  margin-bottom: 5px;
+  justify-content: flex-start;
+  gap: 12px;
+  height: 22px;
+  margin-bottom: 8px;
   padding: 0 4px;
 }
 
@@ -915,326 +1043,69 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
   display: flex;
   align-items: center;
 }
-
-/* Horizontal Track (Horizontal Dock Mode - Naturally expanded across items) */
-.image-stack-expanded-track {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  flex: 1;
-  min-height: 0;
-  height: 104px;
-  max-height: 104px;
-  align-items: center;
-  overflow: visible;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 4px 2px 5px 2px;
-  box-sizing: border-box;
+/* The header sits in the card's flow, not over content: no drop shadows
+   (in the top dock they fell onto the first row). */
+.image-folder-expanded-top-bar .actions-pill,
+.image-folder-expanded-top-bar .image-folder-collapse-btn {
+  box-shadow: none;
 }
 
-.image-stack-expanded-track::-webkit-scrollbar {
-  display: none;
+
+/* Textured card backgrounds (file and image cards):
+   a neutral, Apple-style dark surface, no color.
+   - Light: a faint white glow centered behind the art, a barely-there sheen
+     at the top and a soft darkening toward the bottom, like macOS's dark
+     widget materials.
+   - Grain: one static 128px seamless tile (assets/grain.png, soft Gaussian
+     luminance noise as light/dark specks with alpha; the light specks at half
+     strength so the grain darkens rather than greys the card).
+   All of it is background layers of one pseudo-element behind the content,
+   kept on its own layer (will-change): rastered once, so the card's hover
+   color change never redraws it (painted with the card it doubled the hover
+   raster work). No filter, blur or animation.
+   --glow-lift centers the glow on the art, which sits in the part the label
+   flap leaves visible (half the flap: 26/24px). */
+.image-folder-viewport.is-textured {
+  --glow-lift: 13px;
+  isolation: isolate;
 }
-
-/* Vertical List (Vertical Dock Mode - No internal scroll, fully expanded) */
-.image-stack-expanded-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  height: auto;
-  max-height: none;
-  overflow: visible;
-  padding: 2px 0 2px 0;
-  box-sizing: border-box;
-}
-
-/* ------------------------------------------------------------------ */
-/* Mini Image Folder Card (Exact Same Look & Design as Single Image)  */
-/* ------------------------------------------------------------------ */
-
-.mini-image-folder-card {
-  position: relative;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 242 / 205;
-  padding: 4px;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  cursor: grab;
-  border-radius: 15px;
-  overflow: hidden;
-  background: var(--bg-card, #141414);
-  box-shadow: none !important;
-  border: none;
-  transition: background 0.16s ease;
-  user-select: none;
-}
-
-.mini-image-folder-card:active {
-  cursor: grabbing;
-}
-
-.mini-image-folder-card:hover {
-  background: var(--bg-card-hover, #1c1c1c);
-  transform: none;
-  box-shadow: none !important;
-}
-
-/* Horizontal Dock mini card sizing */
-.list.horizontal .mini-image-folder-card {
-  width: 124px;
-  min-width: 124px;
-  max-width: 124px;
-  height: 94px;
-  max-height: 94px;
-  aspect-ratio: 210 / 146;
-  flex-shrink: 0;
-  padding: 2px;
-  border-radius: 9px;
-  box-shadow: none !important;
-}
-
-.list.horizontal .mini-image-folder-card:hover {
-  background: var(--bg-card-hover, #1c1c1c);
-  transform: none;
-  box-shadow: none !important;
-}
-
-.mini-image-folder-card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--bg-card, #141414);
-  transition: background 0.16s ease;
-}
-
-.mini-image-folder-card:hover .mini-image-folder-card-inner {
-  background: var(--bg-card-hover, #1c1c1c);
-}
-
-.list.horizontal .mini-image-folder-card-inner {
-  border-radius: 7px;
-}
-
-/* Mini Charcoal Viewport */
-.mini-image-folder-viewport {
-  position: relative;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  background: #1b1b1b;
-  transition: background-color 0.16s ease;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px 12px 0 0;
-}
-
-.list.horizontal .mini-image-folder-viewport {
-  border-radius: 7px 7px 0 0;
-}
-
-.mini-image-folder-thumb {
-  position: relative;
-  max-width: calc(100% - 20px);
-  max-height: calc(100% - 20px);
-  object-fit: contain;
-  border-radius: 6px;
-  z-index: 2;
-  filter: none;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
-}
-
-.list.horizontal .mini-image-folder-thumb {
-  max-width: calc(100% - 12px);
-  max-height: calc(100% - 10px);
-  border-radius: 4px;
-  filter: none;
-}
-
-.mini-image-folder-card:hover .mini-image-folder-thumb {
-  transform: scale(1.02);
-  filter: none;
-}
-
-.list.horizontal .mini-image-folder-card:hover .mini-image-folder-thumb {
-  transform: scale(1.02);
-  filter: none;
-}
-
-/* Mini Solid Black Curved Folder Flap */
-.mini-image-folder-flap-wrap {
-  position: relative;
-  width: 100%;
-  flex-shrink: 0;
-  margin-top: -22px;
-  z-index: 5;
-}
-
-.list.horizontal .mini-image-folder-flap-wrap {
-  margin-top: -18px;
-  flex-shrink: 0;
-}
-
-.mini-image-folder-flap-svg {
+.is-textured::before {
+  content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
   pointer-events: none;
-  z-index: 1;
+  will-change: transform;
+  background-image:
+    url('../assets/grain.png'),
+    radial-gradient(
+      60% 66% at 50% calc(50% - var(--glow-lift)),
+      rgba(255, 255, 255, 0.045) 0%,
+      rgba(255, 255, 255, 0.016) 50%,
+      transparent 80%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.022) 0%,
+      transparent 38%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+  background-size: 128px 128px, 100% 100%, 100% 100%;
+  background-repeat: repeat, no-repeat, no-repeat;
 }
-
-.mini-image-folder-flap-svg path {
-  fill: var(--bg-card, #141414);
-  stroke: none;
-  border: none;
-  transition: fill 0.16s ease;
+.list.horizontal .image-folder-viewport.is-textured {
+  --glow-lift: 12px;
 }
-
-.mini-image-folder-card:hover .mini-image-folder-flap-svg path {
-  fill: var(--bg-card-hover, #1c1c1c);
+/* Textured cards keep their base on hover: the lift to #222 would sit under
+   the texture for nothing, and the texture already sets the flap apart. */
+.item.is-image-folder-card:not(.is-expanded):hover .image-folder-viewport.is-textured,
+.item:not(.is-expanded) .item-main:hover .image-folder-viewport.is-textured {
+  background-color: #1b1b1b;
 }
-
-.mini-image-folder-card:hover .mini-image-folder-viewport {
-  background: #222222;
-}
-
-.mini-image-folder-flap-content {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.mini-image-folder-flap-header {
-  height: 24px;
-  display: flex;
-  align-items: center;
-  padding-left: 5px;
-  padding-top: 1px;
-  box-sizing: border-box;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.list.horizontal .mini-image-folder-flap-header {
-  height: 16px;
-  padding-left: 3px;
-  max-width: 80px;
-}
-
-.list.horizontal .mini-image-folder-flap-header .file-elevated-badge {
-  font-size: 8px;
-  padding: 0 1px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-}
-
-.mini-image-folder-flap-footer {
-  padding: 2px 8px 5px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  min-width: 0;
-}
-
-.list.horizontal .mini-image-folder-flap-footer {
-  padding: 2px 4.5px 3px 4.5px;
-  gap: 3px;
-  box-sizing: border-box;
-}
-
-.mini-image-folder-meta {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.list.horizontal .mini-image-folder-meta {
-  gap: 2px;
-}
-
-.mini-image-folder-meta .kind-badge {
-  font-size: calc(10.5px * var(--font-scale, 1));
-  padding: 1px 5px;
-}
-
-.list.horizontal .mini-image-folder-meta .kind-badge {
-  font-size: 8px;
-  padding: 0 2px;
-}
-
-.mini-image-folder-source-name {
-  font-size: calc(11.5px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.85);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-  min-width: 0;
-  flex: 1;
-  max-width: none;
-}
-
-.list.horizontal .mini-image-folder-source-name {
-  font-size: 9px;
-  line-height: 1.25;
-  max-width: 74px;
-}
-
-.mini-image-folder-size {
-  font-size: calc(10.5px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.55);
-  font-family: var(--font-mono);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.list.horizontal .mini-image-folder-size {
-  font-size: 8.5px;
-  line-height: 1.25;
-}
-
-/* Hover Action Pill for Mini Card (Expand, Copy, Ungroup) */
-.mini-image-folder-actions {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.list.horizontal .mini-image-folder-actions {
-  top: 4px;
-  right: 4px;
-}
-
-.mini-image-folder-card:hover .mini-image-folder-actions,
-.mini-image-folder-card:focus-within .mini-image-folder-actions {
-  opacity: 1;
-  pointer-events: auto;
-  scale: 1;
+/* An open stack shows its list of entries; keep its frame plain. */
+.image-folder-viewport.is-textured.is-expanded-viewport::before {
+  content: none;
 }
 
 /* Folder Flap Sleeve - completely borderless */
@@ -1260,7 +1131,6 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
   fill: var(--bg-card, #141414);
   stroke: none;
   border: none;
-  transition: fill 0.16s ease;
 }
 
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-flap-svg path,
@@ -1317,18 +1187,44 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
 /* The folders have see-through fronts, so a tight fan of four (each with
    its own heavy shadow) read as a smear. The front folder sits in full
    color with the only shadow; the others peek out to the sides and behind,
-   smaller and dimmed, so the glass reads as depth. Positions are % of the
-   icon, so the same rules fit both docks. Hover spreads them a little with
-   a small tilt. Only transform animates (each folder is its own layer,
-   rastered once); the dimming and the shadow never change. Photo cards in
-   a mixed stack keep the .image-folder-stack-item rules above. */
+   smaller and dimmed, so the glass reads as depth. Hover spreads them and
+   lifts the front one. Photo cards in a mixed stack keep the
+   .image-folder-stack-item rules above.
+
+   Pixel-sharp on every screen: each folder is its own pre-rastered layer
+   (will-change), and a layer stays sharp only while it is shown 1:1. So
+   - its size never changes (each position has one fixed scale, the same at
+     rest and on hover) and nothing is tilted;
+   - it only ever moves by multiples of 4px, a whole number of device pixels
+     at 100/125/150/175/200% display scaling.
+   Measured on a 1x screen this took the front folder from 62% to ~100% of
+   the sharpness of a direct render, with no extra raster work on hover. */
+
+.image-folder-stack-deck.is-file-deck {
+  --spread: 36px;      /* side folders, at rest */
+  --spread-h: 44px;    /* ... on hover */
+  --pair: 24px;        /* second folder of a 2-stack */
+  --pair-h: 32px;
+  --pair-front: -12px; /* front folder of a 2-stack */
+  --back: -24px;       /* fourth folder, behind */
+  --back-h: -32px;
+}
+.list.horizontal .image-folder-stack-deck.is-file-deck {
+  --spread: 24px;
+  --spread-h: 28px;
+  --pair: 16px;
+  --pair-h: 24px;
+  --pair-front: -8px;
+  --back: -16px;
+  --back-h: -20px;
+}
 
 .file-stack-folder {
   position: absolute;
   display: block;
   line-height: 0;
   transform-origin: 50% 70%;
-  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: translate 0.42s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
@@ -1362,88 +1258,108 @@ html[data-motion='reduce'] .single-file-hero img.file-kind-img {
 
 /* 2 files: front a little left, the second behind on the right. */
 .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-0 {
-  transform: translate(-9%, 3%);
+  translate: var(--pair-front) 4px;
 }
 .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-1 {
-  transform: translate(17%, -5%) rotate(3deg) scale(0.88);
+  translate: var(--pair) -4px;
+  scale: 0.88;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-0,
 .item-main:hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-0 {
-  transform: translate(-12%, 2%) scale(1.03);
+  translate: var(--pair-front) 0;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-1,
 .item-main:hover .image-folder-stack-deck[data-count="2"] .file-stack-folder.pos-1 {
-  transform: translate(23%, -7%) rotate(6deg) scale(0.9);
+  translate: var(--pair-h) -8px;
 }
 
 /* 3 files: front centered, one each side behind (right first, as the photo cards). */
 .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-0 {
-  transform: translate(0, 3%);
+  translate: 0 4px;
 }
 .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-1 {
-  transform: translate(24%, -4%) rotate(3deg) scale(0.84);
+  translate: var(--spread) -4px;
+  scale: 0.84;
 }
 .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-2 {
-  transform: translate(-24%, -4%) rotate(-3deg) scale(0.84);
+  translate: calc(-1 * var(--spread)) -4px;
+  scale: 0.84;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-0,
 .item-main:hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-0 {
-  transform: translate(0, 2%) scale(1.03);
+  translate: 0 0;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-1,
 .item-main:hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-1 {
-  transform: translate(30%, -6%) rotate(6deg) scale(0.86);
+  translate: var(--spread-h) -8px;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-2,
 .item-main:hover .image-folder-stack-deck[data-count="3"] .file-stack-folder.pos-2 {
-  transform: translate(-30%, -6%) rotate(-6deg) scale(0.86);
+  translate: calc(-1 * var(--spread-h)) -8px;
 }
 
 /* 4+ files: front centered, left and right behind, a fourth further back. */
 .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-0 {
-  transform: translate(0, 4%);
+  translate: 0 4px;
 }
 .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-1 {
-  transform: translate(-24%, -3%) rotate(-3deg) scale(0.84);
+  translate: calc(-1 * var(--spread)) -4px;
+  scale: 0.84;
 }
 .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-2 {
-  transform: translate(24%, -3%) rotate(3deg) scale(0.84);
+  translate: var(--spread) -4px;
+  scale: 0.84;
 }
 .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-3 {
-  transform: translate(0, -17%) scale(0.74);
+  translate: 0 var(--back);
+  scale: 0.74;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-0,
 .item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-0 {
-  transform: translate(0, 3%) scale(1.03);
+  translate: 0 0;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-1,
 .item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-1 {
-  transform: translate(-30%, -5%) rotate(-6deg) scale(0.86);
+  translate: calc(-1 * var(--spread-h)) -8px;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-2,
 .item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-2 {
-  transform: translate(30%, -5%) rotate(6deg) scale(0.86);
+  translate: var(--spread-h) -8px;
 }
 .item.is-image-folder-card:not(.is-expanded):hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-3,
 .item-main:hover .image-folder-stack-deck[data-count="4"] .file-stack-folder.pos-3 {
-  transform: translate(0, -22%) scale(0.76);
+  translate: 0 var(--back-h);
 }
 
 html[data-motion='reduce'] .file-stack-folder {
   transition: none;
 }
 
-/* Center the cascade in the viewport above the label flap. The back
-   folders rise above the front one, so the box is nudged down by about
-   half that rise to keep the whole group optically centered. */
+/* The cascade sits above the label flap, raised so the open front folder
+   clears the hover pill on the flap's shoulder (the back folders rise above
+   the front one, so the group still keeps a top margin). */
 .image-folder-viewport .image-folder-stack-deck.is-file-deck {
   margin-top: 0;
-  padding: 8px 0 26px;
+  padding: 0 0 36px;
   box-sizing: border-box;
 }
 .list.horizontal .image-folder-viewport .image-folder-stack-deck.is-file-deck {
   margin-top: 0;
-  padding: 6px 0 24px;
+  padding: 0 0 34px;
+}
+/* A photo in a top-dock file stack scales with the folders (icon 94px), so
+   the group keeps its top margin. */
+/* ...and in any file stack its hover swing lifts 4px less, so its corner
+   stays clear of the card's top edge. */
+.image-folder-stack-deck.is-file-deck .image-folder-stack-item {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), translate 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, opacity 0.28s ease;
+}
+.item-main:hover .image-folder-stack-deck.is-file-deck .image-folder-stack-item {
+  translate: 0 4px;
+}
+.list.horizontal .image-folder-stack-deck.is-file-deck .image-folder-stack-item {
+  width: 92px;
+  height: 60px;
 }
 
 .file-stack-expanded-track {
@@ -1974,7 +1890,7 @@ html[data-motion='reduce'] .file-stack-folder {
 }
 
 .flyout-subitem .single-file-hero svg,
-.flyout-subitem .single-file-hero img.file-kind-img {
+.flyout-subitem .single-file-hero .file-kind-img {
   width: 88px;
   height: 88px;
   display: block;
@@ -1984,7 +1900,7 @@ html[data-motion='reduce'] .file-stack-folder {
 
 .flyout-subitem:hover .single-file-hero svg,
 .flyout-subitem:hover .single-file-hero img.file-kind-img {
-  transform: translateY(-2px) scale(1.04);
+  transform: translateY(-4px);
 }
 
 .flyout-subitem .single-file-meta {
@@ -2100,7 +2016,7 @@ html[data-motion='reduce'] .file-stack-folder {
   width: 100%;
 }
 .single-hero-card .single-file-hero svg,
-.single-hero-card .single-file-hero img.file-kind-img {
+.single-hero-card .single-file-hero .file-kind-img {
   width: 120px;
   height: 120px;
 }
@@ -2579,7 +2495,6 @@ html[data-motion='reduce'] .file-stack-folder {
   font-size: 9.5px;
 }
 
-
 /* ------------------------------------------------------------------ */
 /* Horizontal Expanded Stack & Sub-Item Tile Styling                  */
 /* ------------------------------------------------------------------ */
@@ -3051,9 +2966,9 @@ html[data-motion='reduce'] .file-stack-folder {
 .actions,
 .actions-pill,
 .act-pill,
-.mini-image-folder-actions,
 .fluid-row-actions,
-.horizontal-subitem-actions {
+.horizontal-subitem-actions,
+.stack-row-actions {
   display: flex;
   align-items: center;
   gap: 0;
@@ -3066,16 +2981,17 @@ html[data-motion='reduce'] .file-stack-folder {
 
 /* Hover pills grow in from their corner, then shrink back on leave. */
 .actions,
-.mini-image-folder-actions,
 .fluid-row-actions,
-.horizontal-subitem-actions {
+.horizontal-subitem-actions,
+.stack-row-actions {
   scale: 0.94;
   transform-origin: top right;
   transition:
     opacity 0.12s ease,
     scale 0.18s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
-.fluid-row-actions {
+.fluid-row-actions,
+.stack-row .stack-row-actions {
   transform-origin: right center;
 }
 

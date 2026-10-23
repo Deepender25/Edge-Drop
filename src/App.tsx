@@ -14,6 +14,7 @@ import { useStore } from './store/appStore'
 import { edge } from './lib/edge'
 import { applyReduceMotion } from './lib/theme'
 import { useEdgeHover } from './hooks/useEdgeHover'
+import { useHoverResync } from './hooks/useHoverResync'
 
 export default function App() {
   const hydrate = useStore((s) => s.hydrate)
@@ -28,6 +29,7 @@ export default function App() {
 
   // Drive the edge open/close behavior.
   useEdgeHover()
+  useHoverResync(typeof document !== 'undefined' ? document.body : null)
 
   // Cold-start warmup (no visual / feature change).
   // The first shelf open and first emoji open jank because one-time init

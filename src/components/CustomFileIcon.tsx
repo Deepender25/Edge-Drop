@@ -1,5 +1,7 @@
-import { useState, type ImgHTMLAttributes, type SVGProps, type JSX } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ImgHTMLAttributes, type SVGProps, type JSX } from 'react'
 import { getFileKind, getFileKindByExt, extOf, fileIconUrl, type FileKind } from '../lib/fileType'
+import { useIconLayers } from '../lib/iconLayers'
+import { ICON_LAYER_PARTS } from '../../shared/fileIconLayers'
 
 export interface CustomFileIconProps extends ImgHTMLAttributes<HTMLImageElement> {
   ext?: string
@@ -9,6 +11,12 @@ export interface CustomFileIconProps extends ImgHTMLAttributes<HTMLImageElement>
   isFolder?: boolean
   width?: number | string
   height?: number | string
+  /**
+   * Let hovering its card open the folder: the pocket tips forward, the
+   * papers rise and fan out (item.css, .file-kind-opening). At rest it is the
+   * plain icon; the moving layers are pre-rendered bitmaps (lib/iconLayers).
+   */
+  layered?: boolean
 }
 
 /** Micro-mode simplified icons for tiny sizes (width <= 16px) */
@@ -109,6 +117,7 @@ export function CustomFileIcon({
   kind: explicitKind,
   isDirectory,
   isFolder,
+  layered = false,
   width = 32,
   height,
   style,
@@ -157,6 +166,10 @@ export function CustomFileIcon({
     )
   }
 
+  if (layered) {
+    return <OpeningFileIcon kind={kind} width={width} height={resolvedHeight} className={className} style={style} alt={alt} />
+  }
+
   return (
     <img
       src={fileIconUrl(kind)}
@@ -184,6 +197,76 @@ export function CustomFileIcon({
  * SVGs in resources/file-icons) in the same cropped frame, so a photo
  * masked with it lines up with the file icons next to it in a stack.
  */
+/**
+ * A folder icon that opens when its card is hovered. At rest it shows the
+ * plain icon; next to it sit the five layer bitmaps (back, three papers,
+ * front pocket) drawn once at this exact size, hidden until hover, when CSS
+ * swaps them in and moves them (see .file-kind-opening in item.css). The
+ * bitmaps are built the first time its card is hovered; until they are ready
+ * the icon simply stays closed.
+ */
+function OpeningFileIcon({
+  kind,
+  width,
+  height,
+  className,
+  style,
+  alt
+}: {
+  kind: FileKind
+  width: number | string
+  height: number | string
+  className?: string
+  style?: CSSProperties
+  alt: string
+}): JSX.Element {
+  const ref = useRef<HTMLSpanElement>(null)
+  // The size it is really shown at (CSS may override the prop, e.g. in the flyout).
+  const [cssSize, setCssSize] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    const w = ref.current?.offsetWidth
+    if (w) setCssSize(w)
+  }, [width, height])
+  // Build on the first hover of the card it sits in (the hover that opens it).
+  const [wanted, setWanted] = useState(false)
+  useEffect(() => {
+    if (wanted) return
+    const card = ref.current?.closest('.item-main, .flyout-subitem')
+    if (!card) return
+    const onEnter = (): void => setWanted(true)
+    card.addEventListener('pointerenter', onEnter, { once: true })
+    return () => card.removeEventListener('pointerenter', onEnter)
+  }, [wanted])
+  const layers = useIconLayers(kind, cssSize, wanted)
+  // Layers that appear while the card is already hovered must first take
+  // their closed style, or they would jump open with no motion: style them,
+  // then arm the opening rules (CSS keys them on .is-armed).
+  const [armed, setArmed] = useState(false)
+  useEffect(() => {
+    if (!layers || armed) return
+    const el = ref.current?.querySelector('.fko-layers')
+    if (el) void getComputedStyle(el).visibility
+    setArmed(true)
+  }, [layers, armed])
+
+  return (
+    <span
+      ref={ref}
+      className={['file-kind-img', 'file-kind-opening', armed ? 'is-armed' : '', className].filter(Boolean).join(' ')}
+      style={{ width, height, flexShrink: 0, ...style }}
+    >
+      <img className="fko-plain" src={fileIconUrl(kind)} alt={alt} draggable={false} />
+      {layers && (
+        <span className="fko-layers" aria-hidden="true">
+          {ICON_LAYER_PARTS.map((part) => (
+            <img key={part} className={`fil fil-${part}`} src={layers[part]} alt="" draggable={false} />
+          ))}
+        </span>
+      )}
+    </span>
+  )
+}
+
 const FOLDER_MASK_SHAPES =
   "<g transform='translate(0 14)' fill='black'>" +
   "<rect x='120' y='118' width='272' height='246' rx='24'/>" +

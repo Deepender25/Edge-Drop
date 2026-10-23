@@ -192,6 +192,7 @@ const api = {
   pasteSubitem: (req: import('../../shared/types').DragRequest) => invoke('item:paste-subitem', req),
   pasteEmoji: (text: string) => invoke('emoji:paste', text),
   emojiGlyphs: (files: string[]) => invoke('emoji:glyphs', files),
+  iconSvg: (kind: string) => invoke('icon:svg', kind),
   installUpdate: () => invoke('app:install-update'),
   checkForUpdatesManual: () => invoke('updater:check-manual'),
   startUpdateDownload: () => invoke('updater:start-download'),
@@ -219,6 +220,7 @@ const api = {
   focusWindow: (focusable?: boolean) => invoke('window:focus', focusable),
   setInternalDrag: (active: boolean) => { setInternalDragState(active) },
   broadcastTutorialStep: (step: number) => send('tutorial:set-step', step),
+  resyncHover: () => send('window:resync-hover'),
 
   /* Main -> Renderer */
   onItems: (cb: (items: EventArgs<'state:items'>[0]) => void) => on('state:items', cb),

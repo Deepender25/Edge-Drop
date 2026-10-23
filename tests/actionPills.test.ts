@@ -20,7 +20,7 @@ describe('action pills share one look', () => {
   })
 
   it('every hover/quick-action container gets the same surface from one rule', () => {
-    const shared = css.match(/\.actions,\n\.actions-pill,\n\.act-pill,\n\.mini-image-folder-actions,\n\.fluid-row-actions,\n\.horizontal-subitem-actions \{([^}]*)\}/)?.[1] ?? ''
+    const shared = css.match(/\.actions,\n\.actions-pill,\n\.act-pill,\n\.fluid-row-actions,\n\.horizontal-subitem-actions,\n\.stack-row-actions \{([^}]*)\}/)?.[1] ?? ''
     expect(shared).toContain('background: var(--act-surface);')
     expect(shared).toContain('border: none;')
     expect(shared).toContain('border-radius: 999px;')
@@ -28,10 +28,14 @@ describe('action pills share one look', () => {
   })
 
   it('containers only position themselves: no own background, border or size', () => {
-    for (const sel of ['.actions', '.mini-image-folder-actions', '.fluid-row-actions', '.flyout-subitem .actions', '.horizontal-subitem-actions', '.list.horizontal .actions']) {
+    for (const sel of ['.actions', '.fluid-row-actions', '.flyout-subitem .actions', '.horizontal-subitem-actions', '.list.horizontal .actions']) {
       const body = rule(sel)
       expect(body, sel).not.toMatch(/background|border:|box-shadow|padding|will-change/)
     }
+    // an open stack's row pill (stack.css) too
+    const row = read('src/styles/stack.css').match(/\n\.stack-row-actions \{([^}]*)\}/)?.[1] ?? ''
+    expect(row).toContain('position: absolute;')
+    expect(row).not.toMatch(/background|border:|box-shadow|padding|will-change/)
   })
 
   it('buttons are sized and coloured only through the shared values', () => {

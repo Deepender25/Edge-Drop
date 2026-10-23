@@ -37,6 +37,8 @@ export interface EdgeApi {
   pasteSubitem: (req: DragRequest) => Promise<boolean>
   pasteEmoji: (text: string) => Promise<boolean>
   emojiGlyphs: (files: string[]) => Promise<Record<string, string>>
+  /** A file-kind folder icon's SVG source, or null (see ipc 'icon:svg'). */
+  iconSvg: (kind: string) => Promise<string | null>
   installUpdate: () => Promise<void>
   checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>
   startUpdateDownload: () => Promise<void>
@@ -64,6 +66,8 @@ export interface EdgeApi {
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   refreshLaunchAtLogin: () => Promise<Settings>
   setInteractive: (value: boolean) => Promise<void>
+  /** Re-check what the pointer is over after the cards moved under it (ipc 'window:resync-hover'). */
+  resyncHover: () => void
   setPreviewMode: (active: boolean) => Promise<void>
   pauseHotkey: (paused: boolean) => Promise<void>
   revealFile: (path: string) => Promise<boolean>

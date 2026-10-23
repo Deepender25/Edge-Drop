@@ -179,6 +179,24 @@ export function isInteractive(): boolean {
 }
 
 /**
+ * Re-check what the pointer is over after the cards moved under it.
+ * Chromium updates :hover (the card's action buttons) only on a mouse move,
+ * so a new item, a paste-to-top or a delete under a still pointer left the
+ * buttons on the card that moved away until the user wiggled the mouse.
+ * One real mouse-move at the cursor's current spot re-runs hit testing.
+ * Only while the shelf is open and the cursor is over this window.
+ */
+export function resyncHover(): void {
+  if (!mainWindow || mainWindow.isDestroyed() || !interactive) return
+  const pt = screen.getCursorScreenPoint()
+  const b = mainWindow.getContentBounds()
+  const x = pt.x - b.x
+  const y = pt.y - b.y
+  if (x < 0 || y < 0 || x >= b.width || y >= b.height) return
+  mainWindow.webContents.sendInputEvent({ type: 'mouseMove', x, y })
+}
+
+/**
  * Foreground memory for shelf search + paste.
  *
  * The shelf normally never takes OS focus, so paste (Ctrl+V to "whatever is

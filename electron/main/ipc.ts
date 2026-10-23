@@ -7,13 +7,14 @@
  */
 import { app, ipcMain, clipboard, nativeImage, shell, net } from 'electron'
 import { existsSync } from 'node:fs'
-import { basename } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { basename, join } from 'node:path'
 import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
-import { sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
+import { resyncHover, sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
@@ -26,7 +27,7 @@ import { isStoreBuild } from './config'
 import { applyLaunchAtLogin, refreshLaunchAtLoginFromOs } from './loginItems'
 import { toUnpackagedFilePath, toUnpackagedFilePaths } from '../store/paths'
 import { isPasteableEmoji } from '../../shared/emoji'
-import { emojiAssetDir, readEmojiBatch } from './imageProtocol'
+import { emojiAssetDir, readEmojiBatch, resolveIconAsset } from './imageProtocol'
 import { saveItemImages } from './saveImages'
 
 export { isStoreBuild }
@@ -590,6 +591,17 @@ export function registerIpc(): void {
     )
   )
 
+  handle('icon:svg', async (kind) => {
+    if (typeof kind !== 'string') return null
+    const filePath = resolveIconAsset(join(app.getAppPath(), 'resources', 'file-icons'), `${kind}.svg`)
+    if (!filePath) return null
+    try {
+      return await readFile(filePath, 'utf8')
+    } catch {
+      return null
+    }
+  })
+
   handle('emoji:paste', async (text) => {
     if (!isPasteableEmoji(text)) return false
     const now = Date.now()
@@ -852,6 +864,10 @@ function on<C extends SendChannel>(
 }
 
 export function registerSendListeners(): void {
+  on('window:resync-hover', () => {
+    resyncHover()
+  })
+
   on('item:start-drag', (sender, req) => {
     console.log('[IPC] item:start-drag req=', JSON.stringify(req))
     const resolved = resolveDragData(req)
