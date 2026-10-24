@@ -88,6 +88,7 @@ export function WakeSlider({
   const barEls = useRef<(HTMLSpanElement | null)[]>([])
   const crestEls = useRef<(HTMLSpanElement | null)[]>([])
   const pointerId = useRef<number | null>(null)
+  const pendingX = useRef<number | null>(null)
   const lastAmp = useRef(0)
   const latest = useRef(value)
   latest.current = value
@@ -99,12 +100,16 @@ export function WakeSlider({
   const wv = 2000 / smoothing
   const speed = useSpring(rawSpeed, { stiffness: wv * wv, damping: 2.5 * wv, mass: 1 })
 
+  // While dragging, the pointer drives `target` directly (see flushDrag); the
+  // snapped value only takes over again on release.
   useEffect(() => {
-    target.set(pct)
+    if (pointerId.current === null) target.set(pct)
   }, [pct, target])
 
   const paint = (force = false) => {
-    const h = ((reduce ? target.get() : head.get()) / 100) * (bars - 1)
+    // Under the finger the fill tracks the pointer 1:1; the spring only drives
+    // the wake (and glides between values for clicks, keys and the release).
+    const h = ((reduce || pointerId.current !== null ? target.get() : head.get()) / 100) * (bars - 1)
     const v = reduce ? 0 : speed.get()
     const amp = smoothstep(clamp((Math.abs(v) * sensitivity) / FULL_SPEED, 0, 1))
     const dir = Math.sign(v) || 1
@@ -141,12 +146,17 @@ export function WakeSlider({
     paintRef.current(true)
   })
 
+  // One tick per detent: every value step, but never more than one per bar,
+  // so fine-grained sliders don't buzz.
+  const detents = Math.max(1, Math.min(bars - 1, Math.round((max - min) / (step > 0 ? step : 1))))
+  const detentOf = (v: number) => Math.round((toPct(v, min, max) / 100) * detents)
+
   const commit = (next: number) => {
     const clean = snap(next, min, max, step)
     if (clean === latest.current) return
+    if (detentOf(clean) !== detentOf(latest.current)) playDialTickSound()
     latest.current = clean
     if (valueProp === undefined) setInner(clean)
-    playDialTickSound()
     onChange?.(clean)
   }
   const commitFromX = (x: number) => {
@@ -156,8 +166,19 @@ export function WakeSlider({
     if (!rect.width) return
     let ratio = clamp((x - rect.left) / rect.width, 0, 1)
     if (getComputedStyle(track).direction === 'rtl') ratio = 1 - ratio
+    target.set(ratio * 100)
+    schedule()
     commit(min + ratio * (max - min))
   }
+  // Pointer moves can arrive far faster than the screen refreshes (1000 Hz
+  // mice); handle only the latest one, once per frame.
+  const flushDrag = useCallback(() => {
+    const x = pendingX.current
+    pendingX.current = null
+    if (x !== null && pointerId.current !== null) commitRef.current(x)
+  }, [])
+  const commitRef = useRef(commitFromX)
+  commitRef.current = commitFromX
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (disabled || pointerId.current !== null) return
     pointerId.current = e.pointerId
@@ -170,14 +191,24 @@ export function WakeSlider({
     commitFromX(e.clientX)
   }
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerId === pointerId.current) commitFromX(e.clientX)
+    if (e.pointerId !== pointerId.current) return
+    pendingX.current = e.clientX
+    frameSteps.update.schedule(flushDrag)
   }
   const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerId !== pointerId.current) return
     try {
       e.currentTarget.releasePointerCapture(e.pointerId)
     } catch {}
+    if (pendingX.current !== null) {
+      commitFromX(pendingX.current)
+      pendingX.current = null
+    }
     pointerId.current = null
+    // Hand the fill back to the spring from where the finger left it, then
+    // let it settle into the snapped value.
+    head.jump(target.get())
+    target.set(toPct(latest.current, min, max))
     onRelease?.(latest.current)
   }
   const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {

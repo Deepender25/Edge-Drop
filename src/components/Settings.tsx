@@ -69,7 +69,6 @@ export function Settings({
     l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
   const selectedLang = languages.find((l) => l.code === (language || 'system')) || languages[0]
 
-  const lastTickVal = useRef<number>(settings.verticalOffset ?? 0.5)
   const horizontalTab = useStore((s) => s.settingsTab)
   const shelfTrackRef = useRef<HTMLDivElement>(null)
   const horizontalTabScrollPositions = useRef<Record<SettingsTab, number>>({
@@ -110,29 +109,22 @@ export function Settings({
     return () => cancelAnimationFrame(id)
   }, [isHorizontal, horizontalTab])
 
+  // The slider plays its own detent ticks while dragging; presets tick on click.
   const handleSliderInput = (rawVal: number) => {
     const clamped = Math.min(1.0, Math.max(0.0, rawVal))
-    if (Math.abs(clamped - lastTickVal.current) >= 0.05) {
-      lastTickVal.current = clamped
-      playDialTickSound()
-    }
     useStore.setState((s) => ({
       settings: { ...s.settings, verticalOffset: clamped }
     }))
   }
 
   const handleSliderRelease = (rawVal: number) => {
-    const snapped = Math.round(rawVal / 0.05) * 0.05
-    const clamped = Math.min(1.0, Math.max(0.0, snapped))
-    lastTickVal.current = clamped
-    playDialTickSound()
+    const clamped = Math.min(1.0, Math.max(0.0, Math.round(rawVal * 100) / 100))
     patch({ verticalOffset: clamped })
   }
 
   const handleThicknessInput = (rawVal: number) => {
     const clamped = Math.min(7, Math.max(1, Math.round(rawVal)))
     if (clamped !== (settings.hotZoneWidth ?? 3)) {
-      playDialTickSound()
       useStore.setState((s) => ({
         settings: { ...s.settings, hotZoneWidth: clamped }
       }))
@@ -142,7 +134,6 @@ export function Settings({
   const handleThicknessRelease = (rawVal: number) => {
     const clamped = Math.min(7, Math.max(1, Math.round(rawVal)))
     setSliderActive(false)
-    playDialTickSound()
     patch({ hotZoneWidth: clamped })
   }
 
@@ -155,7 +146,6 @@ export function Settings({
   const handleHoverDelayInput = (rawVal: number) => {
     const next = normalizeHoverOpenDelay(rawVal)
     if (next !== normalizeHoverOpenDelay(useStore.getState().settings.hoverOpenDelay)) {
-      playDialTickSound()
       useStore.setState((s) => ({
         settings: { ...s.settings, hoverOpenDelay: next }
       }))
@@ -164,7 +154,6 @@ export function Settings({
 
   const handleHoverDelayRelease = (rawVal: number) => {
     setSliderActive(false)
-    playDialTickSound()
     patch({ hoverOpenDelay: normalizeHoverOpenDelay(rawVal) })
   }
 
@@ -1084,7 +1073,7 @@ export function Settings({
                     ariaLabel={offsetIsHorizontal ? (t('position.horizontalPositionTitle') || 'Horizontal Position') : t('position.verticalPositionTitle')}
                     min={0}
                     max={1}
-                    step={0.002}
+                    step={0.01}
                     bars={28}
                     height={28}
                     restHeight={8}
@@ -1123,6 +1112,7 @@ export function Settings({
                           type="button"
                           className={`slider-label-btn${active ? ' active' : ''}`}
                           onClick={() => {
+                            playDialTickSound()
                             if (offsetIsHorizontal) {
                               patch({ horizontalOffset: pos.val })
                             } else {
@@ -1269,6 +1259,7 @@ export function Settings({
                         className={`slider-label-btn${thicknessPx === preset.val ? ' active' : ''}`}
                         onClick={() => {
                           if (thicknessPx !== preset.val) {
+                            playDialTickSound()
                             handleThicknessRelease(preset.val)
                           }
                         }}

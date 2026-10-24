@@ -1,6 +1,18 @@
 /**
- * Web Audio API Haptic Sound Synthesizer for Edge-Drop.
- * Provides zero-latency, tactile mechanical audio effects for sliders, toggles, and buttons.
+ * UI sound design for Edge-Drop, synthesized live with the Web Audio API.
+ *
+ * Every sound is built from the same three ingredients, so the app speaks with
+ * one voice:
+ *   - touch: a very short band-passed noise tick (a fingertip on glass)
+ *   - body:  a damped sine, like a small struck piece of wood or glass
+ *   - air:   a soft filtered-noise swell for things that move (the shelf)
+ * All pitches come from one scale (D major pentatonic), every attack eases in
+ * over a millisecond or two (no clicks from instant gain steps), and everything
+ * goes through one bus with a gentle high cut, so nothing turns harsh. Each
+ * sound's loudness is set once, in its `play` call, and the set is levelled by
+ * ear-weighted loudness: the slider tick lightest, everyday taps next, then
+ * toggles, deletes, cards and shelf moves; closing sounds sit a touch softer
+ * than opening ones.
  */
 
 import { useStore } from '../store/appStore'
@@ -42,7 +54,8 @@ function getAudioContext(): any | null {
  */
 export function warmAudioContext(): void {
   try {
-    getAudioContext()
+    const ctx = getAudioContext()
+    if (ctx) busFor(ctx)
   } catch {
     /* ignore Web Audio API restrictions */
   }
@@ -68,468 +81,238 @@ if (win && win.addEventListener) {
   win.addEventListener('keydown', unlockAudio, true)
 }
 
+// ── Scale ──────────────────────────────────────────────────────────────────
+// D major pentatonic: any two of these sound good together.
+const D4 = 293.66
+const A4 = 440
+const D5 = 587.33
+const E5 = 659.26
+const FS5 = 739.99
+const A5 = 880
+const B5 = 987.77
+const D6 = 1174.66
+const A6 = 1760
+
+// ── Bus ────────────────────────────────────────────────────────────────────
+
+interface Bus {
+  ctx: any
+  out: any
+  noise: any
+}
+
+let bus: Bus | null = null
+
+/** One shared output chain and noise buffer per context, built once. */
+function busFor(ctx: any): Bus {
+  if (bus && bus.ctx === ctx) return bus
+  // Takes the glassy edge off without dulling the ticks. (No compressor: the
+  // levels below peak around -15 dBFS, and Chromium's adds ~6ms of latency.)
+  const out = ctx.createBiquadFilter()
+  out.type = 'lowpass'
+  out.frequency.value = 7000
+  out.Q.value = 0.5
+  out.connect(ctx.destination)
+
+  const length = Math.floor(ctx.sampleRate * 0.5)
+  const noise = ctx.createBuffer(1, length, ctx.sampleRate)
+  const data = noise.getChannelData(0)
+  for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1
+
+  bus = { ctx, out, noise }
+  return bus
+}
+
+/** Eases in over `attack`, then decays naturally to silence over `decay`. */
+function envelope(param: any, at: number, peak: number, attack: number, decay: number): void {
+  param.setValueAtTime(0.0001, at)
+  param.linearRampToValueAtTime(peak, at + attack)
+  param.exponentialRampToValueAtTime(0.0001, at + attack + decay)
+}
+
+/** Slight per-play variation so repeated sounds feel physical, not machine-gunned. */
+const vary = (value: number, amount: number) => value * (1 + (Math.random() * 2 - 1) * amount)
+
+// ── Ingredients ────────────────────────────────────────────────────────────
+
+function touch(b: Bus, at: number, freq: number, level: number, decay: number, q = 1): void {
+  const { ctx } = b
+  const src = ctx.createBufferSource()
+  src.buffer = b.noise
+  const band = ctx.createBiquadFilter()
+  band.type = 'bandpass'
+  band.frequency.value = vary(freq, 0.04)
+  band.Q.value = q
+  const gain = ctx.createGain()
+  envelope(gain.gain, at, level, 0.0008, decay)
+  src.connect(band)
+  band.connect(gain)
+  gain.connect(b.out)
+  src.start(at, Math.random() * 0.4)
+  src.stop(at + decay + 0.02)
+}
+
+interface BodyOptions {
+  attack?: number
+  /** End pitch as a ratio of the start, reached over the first half of the decay. */
+  glide?: number
+  /** A quieter overtone at `ratio` x the pitch; 2 sounds glassy, 2.76 woody. */
+  partial?: { ratio: number; level: number }
+}
+
+function body(b: Bus, at: number, freq: number, level: number, decay: number, opts: BodyOptions = {}): void {
+  const { ctx } = b
+  const attack = opts.attack ?? 0.0015
+  const voice = (pitch: number, peak: number, length: number) => {
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(pitch, at)
+    if (opts.glide) osc.frequency.exponentialRampToValueAtTime(pitch * opts.glide, at + attack + length * 0.5)
+    const gain = ctx.createGain()
+    envelope(gain.gain, at, peak, attack, length)
+    osc.connect(gain)
+    gain.connect(b.out)
+    osc.start(at)
+    osc.stop(at + attack + length + 0.02)
+  }
+  voice(freq, level, decay)
+  if (opts.partial) voice(freq * opts.partial.ratio, level * opts.partial.level, decay * 0.45)
+}
+
+function air(b: Bus, at: number, from: number, to: number, level: number, dur: number): void {
+  const { ctx } = b
+  const src = ctx.createBufferSource()
+  src.buffer = b.noise
+  src.loop = true
+  const sweep = ctx.createBiquadFilter()
+  sweep.type = 'lowpass'
+  sweep.Q.value = 0.7
+  sweep.frequency.setValueAtTime(from, at)
+  sweep.frequency.exponentialRampToValueAtTime(to, at + dur)
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.0001, at)
+  gain.gain.linearRampToValueAtTime(level, at + dur * 0.4)
+  gain.gain.exponentialRampToValueAtTime(0.0001, at + dur)
+  src.connect(sweep)
+  sweep.connect(gain)
+  gain.connect(b.out)
+  src.start(at, Math.random() * 0.4)
+  src.stop(at + dur + 0.02)
+}
+
+// ── Player ─────────────────────────────────────────────────────────────────
+
+const lastPlayed: Record<string, number> = {}
+
 /**
- * Plays a satisfying mechanical rotary dial tick sound.
- * Emulates a camera dial / Apple Watch Digital Crown detent click.
+ * Schedules a sound a few ms ahead (so its attack is never cut off) at `level`,
+ * skipping repeats of the same sound closer than `minGap` seconds apart.
  */
+function play(key: string, minGap: number, level: number, voice: (b: Bus, at: number) => void): void {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+    const go = () => {
+      const now = ctx.currentTime
+      if (now - (lastPlayed[key] ?? -1) < minGap) return
+      lastPlayed[key] = now
+      const main = busFor(ctx)
+      const gain = ctx.createGain()
+      gain.gain.value = level
+      gain.connect(main.out)
+      voice({ ...main, out: gain }, now + 0.004)
+    }
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(go).catch(() => {})
+    } else {
+      go()
+    }
+  } catch {
+    /* ignore Web Audio API restrictions */
+  }
+}
+
+// ── Sounds ─────────────────────────────────────────────────────────────────
+
+/** Slider detent: the lightest tick in the set, fine to repeat quickly. */
 export function playDialTickSound(): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      // 1. High-frequency metallic ratchet sweep (2600Hz -> 700Hz in 10ms)
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(2600, now)
-      osc.frequency.exponentialRampToValueAtTime(700, now + 0.01)
-
-      gain.gain.setValueAtTime(0.18, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.01)
-
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-
-      osc.start(now)
-      osc.stop(now + 0.01)
-
-      // 2. Subtle low-end mechanical detent thud (180Hz -> 60Hz in 12ms)
-      const bodyOsc = ctx.createOscillator()
-      const bodyGain = ctx.createGain()
-
-      bodyOsc.type = 'triangle'
-      bodyOsc.frequency.setValueAtTime(180, now)
-      bodyOsc.frequency.exponentialRampToValueAtTime(60, now + 0.012)
-
-      bodyGain.gain.setValueAtTime(0.12, now)
-      bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012)
-
-      bodyOsc.connect(bodyGain)
-      bodyGain.connect(ctx.destination)
-
-      bodyOsc.start(now)
-      bodyOsc.stop(now + 0.012)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore Web Audio API restrictions */
-  }
+  play('dial', 0.025, 0.42, (b, at) => {
+    touch(b, at, 3600, 0.62, 0.009, 1.4)
+    body(b, at, A6, 0.14, 0.018)
+  })
 }
 
-/**
- * Plays a mechanical toggle switch sound (ON / OFF).
- * Emulates a tactile hardware toggle switch snap.
- */
+/** Toggle switch: one soft click, a step brighter when switching on. */
 export function playToggleSound(enabled: boolean): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-
-      const startFreq = enabled ? 2200 : 1300
-      const endFreq = enabled ? 950 : 450
-      const vol = enabled ? 0.15 : 0.11
-
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(startFreq, now)
-      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.014)
-
-      gain.gain.setValueAtTime(vol, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.014)
-
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-
-      osc.start(now)
-      osc.stop(now + 0.014)
-
-      // Mechanical click thud
-      const bodyOsc = ctx.createOscillator()
-      const bodyGain = ctx.createGain()
-
-      bodyOsc.type = 'triangle'
-      bodyOsc.frequency.setValueAtTime(enabled ? 220 : 150, now)
-      bodyOsc.frequency.exponentialRampToValueAtTime(enabled ? 70 : 40, now + 0.016)
-
-      bodyGain.gain.setValueAtTime(0.10, now)
-      bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.016)
-
-      bodyOsc.connect(bodyGain)
-      bodyGain.connect(ctx.destination)
-
-      bodyOsc.start(now)
-      bodyOsc.stop(now + 0.016)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore Web Audio API restrictions */
-  }
+  play('toggle', 0.03, 0.42, (b, at) => {
+    touch(b, at, enabled ? 2800 : 2200, 0.36, 0.014)
+    body(b, at, enabled ? B5 : FS5, enabled ? 0.19 : 0.18, 0.05, { partial: { ratio: 2.76, level: 0.25 } })
+  })
 }
 
-/**
- * Plays a subtle, tactile keycap button click sound.
- * Ideal for filter chips, action buttons, pills, and icons.
- */
+/** Buttons, chips and pills: the everyday tap. */
 export function playButtonClickSound(): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(2100, now)
-      osc.frequency.exponentialRampToValueAtTime(900, now + 0.009)
-
-      gain.gain.setValueAtTime(0.10, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.009)
-
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-
-      osc.start(now)
-      osc.stop(now + 0.009)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore Web Audio API restrictions */
-  }
+  play('tap', 0.03, 0.4, (b, at) => {
+    touch(b, at, 2600, 0.56, 0.012)
+    body(b, at, A5, 0.23, 0.03)
+  })
 }
 
-/**
- * Plays a satisfying downward popping delete sound.
- * Pitch sweeps rapidly downward (1400Hz -> 250Hz) with a soft low-end thud (150Hz -> 40Hz)
- * to instantly signify item removal/deletion.
- */
+/** Removing an item: a soft, low tap that settles downward as it swipes away. */
 export function playDeleteSound(): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      // 1. Downward popping pitch sweep (1400Hz -> 250Hz in 14ms)
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(1400, now)
-      osc.frequency.exponentialRampToValueAtTime(250, now + 0.014)
-
-      gain.gain.setValueAtTime(0.14, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.014)
-
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-
-      osc.start(now)
-      osc.stop(now + 0.014)
-
-      // 2. Soft mechanical release thud (150Hz -> 40Hz in 16ms)
-      const bodyOsc = ctx.createOscillator()
-      const bodyGain = ctx.createGain()
-
-      bodyOsc.type = 'triangle'
-      bodyOsc.frequency.setValueAtTime(150, now)
-      bodyOsc.frequency.exponentialRampToValueAtTime(40, now + 0.016)
-
-      bodyGain.gain.setValueAtTime(0.12, now)
-      bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.016)
-
-      bodyOsc.connect(bodyGain)
-      bodyGain.connect(ctx.destination)
-
-      bodyOsc.start(now)
-      bodyOsc.stop(now + 0.016)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore Web Audio API restrictions */
-  }
+  play('delete', 0.04, 0.55, (b, at) => {
+    touch(b, at, 1500, 0.27, 0.022, 0.8)
+    body(b, at, D5, 0.16, 0.09, { glide: 0.8 })
+    air(b, at, 2400, 500, 0.047, 0.12)
+  })
 }
 
-/**
- * Plays a warm mechanical expansion/contraction sound for collapsible sections (e.g. Pinned section).
- */
+/** Collapsible sections: two quick notes, up to open and down to close. */
 export function playExpandSound(expanding: boolean): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      const startFreq = expanding ? 450 : 1100
-      const endFreq = expanding ? 1250 : 380
-      const dur = expanding ? 0.022 : 0.018
-
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(startFreq, now)
-      osc.frequency.exponentialRampToValueAtTime(endFreq, now + dur)
-
-      gain.gain.setValueAtTime(0.12, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
-
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-
-      osc.start(now)
-      osc.stop(now + dur)
-
-      const bodyOsc = ctx.createOscillator()
-      const bodyGain = ctx.createGain()
-
-      bodyOsc.type = 'triangle'
-      bodyOsc.frequency.setValueAtTime(expanding ? 90 : 140, now)
-      bodyOsc.frequency.exponentialRampToValueAtTime(expanding ? 180 : 60, now + dur + 0.004)
-
-      bodyGain.gain.setValueAtTime(0.09, now)
-      bodyGain.gain.exponentialRampToValueAtTime(0.001, now + dur + 0.004)
-
-      bodyOsc.connect(bodyGain)
-      bodyGain.connect(ctx.destination)
-
-      bodyOsc.start(now)
-      bodyOsc.stop(now + dur + 0.004)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore */
-  }
+  play('section', 0.05, 1.42, (b, at) => {
+    const [first, second] = expanding ? [D5, A5] : [A5, D5]
+    touch(b, at, 2400, 0.07, 0.012)
+    body(b, at, first, 0.042, 0.06, { partial: { ratio: 2, level: 0.2 } })
+    body(b, at + 0.045, second, 0.042, 0.08, { attack: 0.004, partial: { ratio: 2, level: 0.2 } })
+  })
 }
 
-/**
- * Plays a rich 3D glassmorphic pop sound when cards expand, file bundles open/close, or preview flyout toggles.
- */
+/** Cards, stacks and the preview: the section notes, a little fuller, with a breath of air. */
 export function playCardExpandSound(expanding: boolean): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      const startFreq = expanding ? 650 : 1500
-      const endFreq = expanding ? 1650 : 480
-      const dur = expanding ? 0.028 : 0.022
-
-      // Primary tone
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(startFreq, now)
-      osc.frequency.exponentialRampToValueAtTime(endFreq, now + dur)
-
-      gain.gain.setValueAtTime(0.15, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
-
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-
-      osc.start(now)
-      osc.stop(now + dur)
-
-      // Harmonics for rich glassmorphic texture
-      const harmonicOsc = ctx.createOscillator()
-      const harmonicGain = ctx.createGain()
-
-      harmonicOsc.type = 'triangle'
-      harmonicOsc.frequency.setValueAtTime(startFreq * 1.5, now)
-      harmonicOsc.frequency.exponentialRampToValueAtTime(endFreq * 1.5, now + dur * 0.8)
-
-      harmonicGain.gain.setValueAtTime(0.06, now)
-      harmonicGain.gain.exponentialRampToValueAtTime(0.001, now + dur * 0.8)
-
-      harmonicOsc.connect(harmonicGain)
-      harmonicGain.connect(ctx.destination)
-
-      harmonicOsc.start(now)
-      harmonicOsc.stop(now + dur * 0.8)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore */
-  }
+  play('card', 0.05, 1.39, (b, at) => {
+    const [first, second] = expanding ? [E5, B5] : [B5, E5]
+    touch(b, at, 2400, 0.066, 0.014)
+    body(b, at, first, 0.038, 0.07, { partial: { ratio: 2, level: 0.25 } })
+    body(b, at + 0.05, second, 0.038, expanding ? 0.12 : 0.09, { attack: 0.004, partial: { ratio: 2, level: 0.25 } })
+    if (expanding) air(b, at, 700, 2600, 0.012, 0.12)
+    else air(b, at, 2600, 700, 0.01, 0.1)
+  })
 }
 
-/**
- * 1. Plays a tactile mechanical dock/retract sound when the panel slides into the edge bar.
- */
+/** The shelf slides into its edge bar: air falls away and lands with a low, soft tock. */
 export function playEdgeRetractSound(): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      // Smooth downward glide into the dock
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(540, now)
-      osc.frequency.exponentialRampToValueAtTime(190, now + 0.08)
-      gain.gain.setValueAtTime(0.09, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start(now)
-      osc.stop(now + 0.08)
-
-      // Mechanical latch click thud
-      const bodyOsc = ctx.createOscillator()
-      const bodyGain = ctx.createGain()
-      bodyOsc.type = 'triangle'
-      bodyOsc.frequency.setValueAtTime(140, now + 0.06)
-      bodyOsc.frequency.exponentialRampToValueAtTime(45, now + 0.11)
-      bodyGain.gain.setValueAtTime(0.08, now + 0.06)
-      bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
-      bodyOsc.connect(bodyGain)
-      bodyGain.connect(ctx.destination)
-      bodyOsc.start(now + 0.06)
-      bodyOsc.stop(now + 0.11)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore */
-  }
+  play('retract', 0.1, 1.8, (b, at) => {
+    air(b, at, 2200, 380, 0.037, 0.2)
+    touch(b, at + 0.15, 1200, 0.05, 0.016, 0.8)
+    body(b, at + 0.15, D4, 0.08, 0.09, { partial: { ratio: 2, level: 0.15 } })
+  })
 }
 
-/**
- * 2. Plays a subtle magnetic detent ping when the edge bar fades in on the new screen edge.
- */
+/** The edge bar appears on its new edge: one quiet glass note. */
 export function playEdgeBeaconAppearSound(): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(780, now)
-      osc.frequency.exponentialRampToValueAtTime(520, now + 0.045)
-      gain.gain.setValueAtTime(0.07, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start(now)
-      osc.stop(now + 0.045)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore */
-  }
+  play('beacon', 0.1, 0.77, (b, at) => {
+    body(b, at, D6, 0.037, 0.2, { attack: 0.004, partial: { ratio: 2, level: 0.3 } })
+  })
 }
 
-/**
- * 3. Plays a tactile mechanical spring unlatch sound when the clipboard expands out from the bar.
- */
+/** The shelf grows out of the bar: the retract sound in reverse, rising into the open. */
 export function playEdgeExpandSound(): void {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    const play = () => {
-      const now = ctx.currentTime
-
-      // Upward expanding slide
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(260, now)
-      osc.frequency.exponentialRampToValueAtTime(740, now + 0.06)
-      gain.gain.setValueAtTime(0.08, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start(now)
-      osc.stop(now + 0.06)
-
-      // Tactile detent release snap
-      const snapOsc = ctx.createOscillator()
-      const snapGain = ctx.createGain()
-      snapOsc.type = 'triangle'
-      snapOsc.frequency.setValueAtTime(180, now + 0.02)
-      snapOsc.frequency.exponentialRampToValueAtTime(70, now + 0.07)
-      snapGain.gain.setValueAtTime(0.10, now + 0.02)
-      snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07)
-      snapOsc.connect(snapGain)
-      snapGain.connect(ctx.destination)
-      snapOsc.start(now + 0.02)
-      snapOsc.stop(now + 0.07)
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume().then(() => play()).catch(() => {})
-    } else {
-      play()
-    }
-  } catch {
-    /* ignore */
-  }
+  play('expand', 0.1, 0.55, (b, at) => {
+    touch(b, at, 1400, 0.16, 0.016, 0.8)
+    body(b, at, A4, 0.2, 0.08, { partial: { ratio: 2, level: 0.15 } })
+    air(b, at, 380, 2200, 0.12, 0.2)
+  })
 }
 
 /** Legacy alias for backwards compatibility */
 export const playEdgeTransitionSound = playEdgeRetractSound
-
