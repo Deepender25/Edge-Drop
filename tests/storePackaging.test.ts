@@ -186,7 +186,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
 
   it('Settings hides the in-app updater on Store builds', () => {
     const src = read('src/components/Settings.tsx')
-    expect(src).toContain('{!isStoreBuild && (')
+    // the Updates group only exists on GitHub builds
+    expect(src).toMatch(/\.\.\.\(!isStoreBuild \? \[\{\n\s+id: 'updates'/)
     expect(src).toContain('behaviour.autoUpdatesTitle')
     expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild &&')
     expect(src).toContain('if (isStoreBuild) return null')

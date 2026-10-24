@@ -13,9 +13,24 @@ describe('update prompt placement contracts (promoted lifecycle, bottom hides wh
     const src = read('src/components/Settings.tsx')
     // Top card shows all active update lifecycle stages.
     expect(src).toContain('hasPromotedTopUpdate = !isStoreBuild && (')
-    // Bottom manual card and horizontal status card hide while promoted.
+    // The manual "check for updates" row hides while promoted, in both docks.
     expect(src).toContain('if (isStoreBuild || hasPromotedTopUpdate) return null')
-    expect(src).toContain('{!isStoreBuild && !hasPromotedTopUpdate && (')
+    expect(src).toContain('...(updateCheck ? [updateCheck] : [])')
+  })
+
+  it('the check row keeps its title and reports the state underneath', () => {
+    const src = read('src/components/Settings.tsx')
+    const row = src.slice(src.indexOf('const renderUpdateCheckRow'), src.indexOf('// ── Building blocks shared by both layouts'))
+    expect(row).toContain("title: t('behaviour.checkForUpdates'),")
+    expect(row).toContain("t('behaviour.checkingForUpdates')")
+    expect(row).toContain("t('behaviour.isUpToDate')")
+    expect(row).toContain("checkState.error || t('behaviour.updateCheckFailed')")
+    // the refresh arrow spins while checking (no coloured dot)
+    expect(row).toContain("status === 'checking' ? ' is-busy' : ''")
+    const css = read('src/styles/settings.css')
+    expect(css).toMatch(/\.set-row-icon-btn\.is-busy svg \{[^}]*animation: setRowSpin/)
+    expect(css).toMatch(/\.update-dot \{[^}]*background: #ffffff;/)
+    expect(css).not.toContain('updateBtnGlow')
   })
 
   it('store tracks manual-flow ownership across check, download, and dismiss', () => {

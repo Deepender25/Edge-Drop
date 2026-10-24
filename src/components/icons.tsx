@@ -123,6 +123,8 @@ export const TagIcon = uiIcon('tag')
 export const PasteIcon = uiIcon('clipboardText')
 export const DownloadIcon = uiIcon('downloadSimple')
 
+export const ArrowsClockwiseIcon = uiIcon('arrowsClockwise')
+
 export const EmojiSmileIcon = uiIcon('smiley', 18)
 export const EmojiClockIcon = (p: P) => <ClockIcon width={p.width ?? 18} height={p.height ?? 18} {...(p as any)} />
 export const EmojiUserIcon = uiIcon('users', 18)

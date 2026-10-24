@@ -69,16 +69,6 @@
   box-shadow: none;
 }
 
-.settings-tab-indicator {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: #ffffff;
-  box-shadow: none;
-  z-index: 0;
-  pointer-events: none;
-}
-
 .settings-tab-text {
   position: relative;
   z-index: 1;
@@ -86,29 +76,6 @@
   line-height: 1.2;
   padding: 1px 0;
   white-space: nowrap;
-}
-
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 4px;
-}
-
-.setting-row.vertical {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.setting-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-right: 8px;
 }
 
 .setting-title {
@@ -132,62 +99,7 @@
   overflow-wrap: break-word;
 }
 
-.setting-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 4px 4px;
-  flex-shrink: 0;
-}
-
-/* ── Section Dividers across Vertical Settings (Matches Horizontal Subcategory Style) ── */
-.setting-section-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 22px 2px 10px;
-  user-select: none;
-  flex-shrink: 0;
-}
-
-.setting-section-divider:first-of-type,
-.setting-section-divider:first-child {
-  margin-top: 6px;
-}
-
-.setting-section-divider .setting-section-divider-text {
-  font-size: calc(9.5px * var(--font-scale, 1));
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.38);
-  white-space: nowrap;
-}
-
-.setting-section-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.setting-group-label {
-  font-size: calc(10px * var(--font-scale, 1));
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.42);
-  margin: 18px 4px 8px;
-  user-select: none;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-.setting-group-label:first-of-type {
-  margin-top: 4px;
-}
-
-/* ── Vertical Setting Card (Matches Horizontal Shelf Card Aesthetic) ── */
+/* ── Update card (side docks); the settings themselves use .set-group ── */
 .setting-card {
   width: 100%;
   background: var(--bg-card, #141414);
@@ -238,16 +150,6 @@
   opacity: 1.2;
 }
 
-.setting-card .setting-group-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
-  margin: 0 0 2px 0;
-  flex-shrink: 0;
-}
-
 .setting-card .setting-title {
   font-size: calc(13px * var(--font-scale, 1));
   font-weight: 600;
@@ -260,14 +162,6 @@
   color: rgba(255, 255, 255, 0.62);
   line-height: 1.4;
   margin-top: 2px;
-}
-
-.setting-card .shelf-card-inline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
 }
 
 .setting-card .shelf-card-top {
@@ -306,21 +200,6 @@
   color: #000000;
   font-weight: 600;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
-}
-
-.setting-badge-subtle {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 4px;
-  padding: 2px 7px;
-  font-size: calc(10px * var(--font-scale, 1));
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  width: fit-content;
-  user-select: none;
 }
 
 /* Minimalist Pill Selector (Replaces Sliders!) */
@@ -399,8 +278,7 @@
 }
 
 /* Edge pill transition pulse */
-.placement-3way-wrap .pill.transitioning,
-.placement-diamond-wrap .pill.transitioning {
+.placement-3way-wrap .pill.transitioning {
   animation: edgePillPulse 0.44s ease-in-out infinite alternate;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
 }
@@ -423,99 +301,6 @@
   flex-direction: column;
   gap: 6px;
   width: 100%;
-}
-
-.setting-slider-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-}
-
-.setting-slider-val {
-  font-size: calc(11px * var(--font-scale, 1));
-  font-weight: 600;
-  font-family: var(--font-mono);
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 3px 9px;
-  border-radius: 999px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.setting-range-input {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  outline: none;
-  cursor: pointer;
-  margin: 6px 0 2px 0;
-  transition: background 0.15s ease;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
-
-.setting-range-input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 1.5px solid #000000;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  cursor: grab;
-  transition: transform 0.15s ease;
-}
-
-.setting-range-input::-webkit-slider-thumb:hover {
-  transform: scale(1.18);
-  box-shadow: 0 1.5px 6px rgba(0, 0, 0, 0.6);
-}
-
-.setting-range-input::-webkit-slider-thumb:active {
-  cursor: grabbing;
-  transform: scale(1.24);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
-}
-
-/* Slider 5% Tick Marks Bar */
-.setting-slider-ticks {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  height: 8px;
-  padding: 0 6px;
-  margin-top: 1px;
-  pointer-events: none;
-}
-
-.slider-tick {
-  width: 1px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 1px;
-  transition: background 0.15s ease, height 0.15s ease;
-}
-
-.slider-tick.major {
-  height: 7px;
-  width: 1.5px;
-  background: rgba(255, 255, 255, 0.55);
-}
-
-.slider-tick.active {
-  background: #ffffff;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
 }
 
 /* 3 Main Percentage Labels (0%, 50%, 100%) */
@@ -641,270 +426,7 @@
   background: #000000;
 }
 
-/* Update Prompt Banner (Monochrome Glassmorphic Glow) */
-.update-prompt {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  margin: 6px 4px 10px 4px;
-}
-
-.update-text {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #ffffff;
-  line-height: 1.45;
-  letter-spacing: 0.01em;
-}
-
-.update-btn {
-  width: 100%;
-  padding: 8px 0;
-  border-radius: 6px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #000000;
-  background: #ffffff;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  transition: opacity 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-  text-align: center;
-}
-
-.update-btn:hover {
-  opacity: 0.92;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
-}
-
-.update-btn:active {
-  transform: scale(0.98);
-}
-
-/* Quit Application Button */
-.quit-app-btn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #ff5555;
-  background: rgba(255, 60, 60, 0.08);
-  border: 1px solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-background-clip: padding-box;
-  background-clip: padding-box;
-}
-
-.quit-app-btn:hover {
-  background: rgba(255, 60, 60, 0.16);
-  color: #ff7777;
-  box-shadow: 0 0 16px rgba(255, 60, 60, 0.2);
-}
-
-.quit-app-btn:active {
-  transform: scale(0.98);
-}
-
-/* Support & GitHub Promo Footer Card */
-.support-promo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 14px 14px;
-  background: #141414;
-  border: none;
-  border-radius: 16px;
-  margin: 16px 4px 8px 4px;
-  text-align: center;
-  box-shadow: none;
-}
-
-.support-promo-title {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.68);
-  line-height: 1.48;
-  font-weight: 450;
-  max-width: 100%;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  padding: 0 4px;
-}
-
-.support-buttons-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  max-width: 100%;
-  margin-top: 2px;
-}
-
-.kofi-support-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  height: 38px;
-  padding: 0 16px;
-  border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #000000;
-  background: #ffffff;
-  border: none;
-  box-shadow: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.kofi-support-btn:hover {
-  background: rgba(255, 255, 255, 0.92);
-  transform: translateY(-1px);
-}
-
-.kofi-support-btn:active {
-  transform: scale(0.98);
-}
-
-/* Secondary Action Promo Footer (GitHub Star on GitHub builds / Store Review on Store builds) */
-.github-promo-btn,
-.store-review-promo-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  height: 38px;
-  padding: 0 16px;
-  border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 550;
-  color: rgba(255, 255, 255, 0.9);
-  background: #1c1c1c;
-  border: none;
-  box-shadow: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.github-promo-btn:hover,
-.store-review-promo-btn:hover {
-  background: #252525;
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.github-promo-btn:active,
-.store-review-promo-btn:active {
-  transform: scale(0.98);
-}
-
-.github-promo-btn .github-octocat-icon,
-.store-review-promo-btn .store-logo-icon {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.github-promo-btn .star-icon {
-  color: #fbbf24;
-}
-
-.app-version-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.38);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  margin-top: 4px;
-  user-select: none;
-}
-
-.version-separator {
-  opacity: 0.35;
-}
-
-.version-changelog-link {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.45);
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  transition: color 0.15s ease;
-}
-
-.version-changelog-link:hover {
-  color: #ffffff;
-}
-
-/* Subtle Bottom Quit Button */
-.subtle-quit-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.subtle-quit-btn:hover {
-  background: rgba(255, 80, 80, 0.12);
-  color: #ff6b6b;
-}
-
-.subtle-quit-btn:active {
-  transform: scale(0.96);
-}
-
-/* Visual Copy Indicator Style Cards */
-.indicator-card-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  width: 100%;
-  margin-top: 6px;
-}
-
-.indicator-card-grid.three-col {
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
+/* Indicator style: opens the style flyout */
 .style-preview-toggle-btn {
   width: 32px;
   height: 32px;
@@ -970,20 +492,6 @@
   justify-content: center;
   overflow: hidden;
   border: none;
-}
-
-.indicator-card-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-top: 2px;
-}
-
-.indicator-card-desc {
-  font-size: 10.5px;
-  color: #a1a1aa;
-  text-align: center;
-  line-height: 1.2;
 }
 
 .indicator-card-badge {
@@ -1180,231 +688,6 @@
   line-height: 1;
 }
 
-/* ── Top Update Banner (Live Downloading Progress & Ready to Install) ── */
-.settings-top-update-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px;
-  background: #141414;
-  border-radius: 14px;
-  margin: 4px 4px 14px 4px;
-  box-shadow: none;
-  box-sizing: border-box;
-  animation: updateCardFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes updateCardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.settings-update-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 18px;
-}
-
-.settings-update-badge-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 550;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-}
-
-.settings-update-desc {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.35;
-}
-
-.update-status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: #ffffff;
-}
-
-.settings-update-restart-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 36px;
-  min-height: 36px;
-  max-height: 36px;
-  background: #ffffff;
-  color: #000000;
-  border: none;
-  border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: none;
-  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-  margin-top: 4px;
-  box-sizing: border-box;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-variant-numeric: tabular-nums;
-}
-
-.settings-update-restart-btn:hover {
-  background: rgba(255, 255, 255, 0.92);
-  transform: translateY(-1px);
-}
-
-.settings-update-restart-btn:active {
-  transform: scale(0.98);
-}
-
-.settings-update-restart-btn.downloading {
-  cursor: default;
-  opacity: 0.92;
-}
-
-.settings-update-restart-btn.downloading:hover {
-  background: #ffffff;
-  transform: none;
-}
-
-.settings-update-restart-btn.downloading:active {
-  transform: none;
-}
-
-/* ── Manual Update Section (Bottom of Behaviour, above Community) ── */
-.manual-update-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.manual-update-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
-  background: var(--bg-card, #141414);
-  border-radius: var(--radius-card, 16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-sizing: border-box;
-  animation: updateCardFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  transition: background 0.14s ease, border-color 0.14s ease;
-}
-
-.manual-update-card:hover {
-  background: var(--bg-card-hover, #1c1c1c);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-.manual-update-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.manual-update-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: calc(13px * var(--font-scale, 1));
-  font-weight: 600;
-  color: #ffffff;
-  line-height: 1.3;
-}
-
-.manual-update-title.error {
-  color: #f87171;
-}
-
-.manual-update-desc {
-  font-size: calc(11.5px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.62);
-  line-height: 1.35;
-}
-
-.manual-update-desc.error {
-  color: rgba(248, 113, 113, 0.75);
-}
-
-.manual-update-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  height: 32px;
-  min-height: 32px;
-  max-height: 32px;
-  padding: 0 14px;
-  border-radius: 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-  box-sizing: border-box;
-  cursor: pointer;
-  border: none;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  outline: none;
-  user-select: none;
-}
-
-.manual-update-pill.primary {
-  background: #ffffff;
-  color: #000000;
-}
-
-.manual-update-pill.primary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-1px);
-}
-
-.manual-update-pill.primary:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.manual-update-pill.primary:disabled {
-  cursor: default;
-  opacity: 0.92;
-}
-
-.manual-update-pill.outline {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-}
-
-.manual-update-pill.outline:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.09);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.manual-update-pill.outline:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.manual-update-pill.outline:disabled {
-  cursor: default;
-  opacity: 0.6;
-}
-
 /* ── Unified Update Indicator Dots ── */
 .update-dot {
   width: 6px;
@@ -1412,8 +695,7 @@
   border-radius: 50%;
   flex-shrink: 0;
   display: inline-block;
-  background: #30d158;
-  box-shadow: 0 0 8px rgba(48, 209, 88, 0.6);
+  background: #ffffff;
 }
 
 .update-dot.checking {
@@ -1423,13 +705,9 @@
 @keyframes dotPulse {
   0%, 100% {
     opacity: 1;
-    transform: scale(1);
-    box-shadow: 0 0 8px rgba(48, 209, 88, 0.6);
   }
   50% {
-    opacity: 0.4;
-    transform: scale(0.85);
-    box-shadow: 0 0 2px rgba(48, 209, 88, 0.2);
+    opacity: 0.35;
   }
 }
 
@@ -1446,11 +724,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 9.5px;
-  font-weight: 700;
+  font-size: calc(10px * var(--font-scale, 1));
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.42);
   margin: 0;
   user-select: none;
 }
@@ -1495,9 +773,10 @@
   height: 32px;
   min-height: 32px;
   max-height: 32px;
-  padding: 0 12px;
-  border-radius: 10px;
-  font-size: 11.5px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: calc(12px * var(--font-scale, 1));
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -1517,43 +796,25 @@
   transform: scale(0.98);
 }
 
-.update-action-btn.full-width {
-  width: 100%;
-}
-
 .update-action-btn.primary {
+  flex: 1;
   background: #ffffff;
   color: #000000;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.16), 0 2px 8px rgba(0, 0, 0, 0.35);
-  animation: updateBtnGlow 3s ease-in-out infinite;
 }
 
 .update-action-btn.primary:hover:not(:disabled) {
-  background: #ffffff;
-  box-shadow: 0 0 22px rgba(255, 255, 255, 0.35), 0 4px 12px rgba(0, 0, 0, 0.45);
-  transform: translateY(-1px);
-}
-
-@keyframes updateBtnGlow {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.28), 0 2px 8px rgba(0, 0, 0, 0.4);
-  }
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .update-action-btn.secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.07);
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .update-action-btn.secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.11);
-  color: #ffffff;
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .update-action-btn.secondary:disabled {
@@ -1569,18 +830,18 @@
   transition: background 0.14s ease;
 }
 
-.update-promoted-card:hover {
-  background: var(--bg-card-hover, #1c1c1c) !important;
+.setting-card.update-promoted-card {
+  border-radius: 14px;
+  padding: 14px;
 }
 
 .settings-shelf-card.update-promoted-card {
-  width: 250px;
+  width: 252px;
+  padding: 10px 14px;
 }
-
-/* ==========================================================================
-   Horizontal Settings Layout (Top / Bottom Dock Position)
-   Fixed 210px Height Shelf with Horizontal Scrolling Cards
-   ========================================================================== */
+.update-promoted-card .setting-desc {
+  color: rgba(255, 255, 255, 0.58);
+}
 
 /* Header category pills for horizontal mode */
 .settings-header-pills {
@@ -1660,42 +921,7 @@
   gap: 12px;
 }
 
-/* Vertical subsection divider in horizontal shelf matching recent-header */
-.settings-shelf-track.tab-view .shelf-section-divider {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  min-width: 20px;
-  height: 146px;
-  margin: 0 2px 0 0;
-  padding: 0;
-  background: transparent;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  box-sizing: border-box;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.settings-shelf-track.tab-view .shelf-section-divider:first-child {
-  border-left: none;
-}
-
-.settings-shelf-track.tab-view .shelf-section-divider .shelf-section-divider-text {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: calc(9.5px * var(--font-scale, 1));
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.38);
-  max-height: 130px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+/* Top-dock update card */
 .settings-shelf-track.tab-view .settings-shelf-card,
 .settings-shelf-card {
   flex: 0 0 auto;
@@ -1765,16 +991,6 @@
   border-radius: 10px;
 }
 
-.settings-shelf-card .setting-group-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
-  margin: 0 0 3px 0;
-  flex-shrink: 0;
-}
-
 .settings-shelf-card .setting-title {
   font-size: 13px;
   font-weight: 600;
@@ -1804,26 +1020,6 @@
   gap: 6px;
 }
 
-.shelf-card-inline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  height: 100%;
-}
-
-.shelf-card-inline-text {
-  min-width: 0;
-  flex: 1;
-}
-
-.shelf-card-inline-action {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* Segmented pills in shelf cards */
 .settings-shelf-card .setting-pills .pill {
   height: 32px;
@@ -1846,11 +1042,6 @@
   color: #000000;
   font-weight: 600;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
-}
-
-/* Specific Card Widths tailored dynamically to content */
-.settings-shelf-card.shortcuts-card {
-  width: 250px;
 }
 
 /* Language Shelf Select Button */
@@ -1885,358 +1076,13 @@
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.06);
 }
 
-.settings-shelf-card.hotkey-card {
-  width: 250px;
-}
-
-.settings-shelf-card.hover-card {
-  width: 240px;
-}
-
-/* Measured: 310px keeps the longest translations (ro) inside the 146px card. */
-.settings-shelf-card.hover-delay-card {
-  width: 310px;
-}
-
-.settings-shelf-card.fullscreen-card {
-  width: 250px;
-}
-
-.settings-shelf-card.system-card {
-  width: 230px;
-}
-
-.settings-shelf-card.incognito-card {
-  width: 230px;
-}
-
-.settings-shelf-card.rules-card {
-  width: 240px;
-}
-
-.settings-shelf-card.order-card {
-  width: 240px;
-}
-
-.settings-shelf-card.storage-card {
-  width: 270px;
-}
-
-.settings-shelf-card.autodelete-card {
-  width: 330px;
-}
-
-.settings-shelf-card.updates-card {
-  width: 290px;
-}
-
-.settings-shelf-card.check-updates-card {
-  width: 240px;
-}
-
-.settings-shelf-card.placement-card {
-  width: 320px;
-}
-
-.settings-shelf-card.display-card {
-  width: 280px;
-}
-
-.settings-shelf-card.display-card .shelf-card-bottom {
-  max-height: 74px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 2px;
-  gap: 5px;
-}
-
-.settings-shelf-card.display-card .shelf-card-bottom::-webkit-scrollbar {
-  width: 3px;
-}
-
-.settings-shelf-card.display-card .shelf-card-bottom::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.settings-shelf-card.display-card .shelf-card-bottom::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-}
-
-.settings-shelf-card.beacon-card {
-  width: 240px;
-}
-
-.settings-shelf-card.position-slider-card {
-  width: 320px;
-}
-
-.settings-shelf-card.dimensions-card {
-  width: 270px;
-}
-
-.settings-shelf-card.panel-height-card {
-  width: 270px;
-}
-
-.settings-shelf-card.trigger-bar-card {
-  width: 300px;
-}
-
-.settings-shelf-card.trigger-thickness-card {
-  width: 290px;
-}
-
-.settings-shelf-card.copy-card {
-  width: 240px;
-}
-
-.settings-shelf-card.beacon-toggle-card {
-  width: 230px;
-}
-
-.settings-shelf-card.typography-card {
-  width: 280px;
-}
-
-.settings-shelf-card.audio-card {
-  width: 230px;
-}
-
-.settings-shelf-card.support-card {
-  width: 260px;
-}
-
-.settings-shelf-card.about-card {
-  width: 260px;
-}
-
-.settings-shelf-card.update-card {
-  width: 250px;
-}
-
-/* Card Header */
-.shelf-card-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex-shrink: 0;
-}
-
-.shelf-card-category {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-}
-
-.shelf-card-title {
-  font-size: calc(12.5px * var(--font-scale, 1));
-  font-weight: 600;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.25;
-  letter-spacing: 0.01em;
-}
-
-/* Card Body */
-.shelf-card-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: 1;
-  min-height: 0;
-  gap: 6px;
-}
-
-/* Shelf Row for Toggle items */
-.shelf-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-}
-
-.shelf-row-label {
-  font-size: calc(11.5px * var(--font-scale, 1));
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-}
-
-/* Card Footer */
-.shelf-card-footer {
-  font-size: calc(10.5px * var(--font-scale, 1));
-  color: rgba(255, 255, 255, 0.45);
-  line-height: 1.3;
-  flex-shrink: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Miniature 4-tile Indicator Style Grid */
-.shelf-indicator-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  width: 100%;
-}
-
-.shelf-indicator-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 5px 3px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-
-.shelf-indicator-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.shelf-indicator-item.active {
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
-}
-
-.shelf-indicator-icon {
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.shelf-indicator-name {
-  font-size: 9.5px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  white-space: nowrap;
-}
-
-/* Shelf Community & Support Action Buttons (Matches Vertical Settings Aesthetic) */
-.shelf-kofi-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 100%;
-  height: 30px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #000000;
-  background: #ffffff;
-  border: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-  box-sizing: border-box;
-}
-
-.shelf-kofi-btn:hover {
-  background: rgba(255, 255, 255, 0.92);
-  transform: translateY(-1px);
-}
-
-.shelf-kofi-btn:active {
-  transform: scale(0.98);
-}
-
-.shelf-github-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 100%;
-  height: 30px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 550;
-  color: rgba(255, 255, 255, 0.92);
-  background: #1c1c1c;
-  border: 1px solid transparent;
-  box-shadow: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-  box-sizing: border-box;
-}
-
-.shelf-github-btn:hover {
-  background: #262626;
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.shelf-github-btn:active {
-  transform: scale(0.98);
-}
-
-.shelf-github-btn .github-octocat-icon,
-.shelf-github-btn .store-logo-icon {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.shelf-github-btn .star-icon {
-  color: #fbbf24;
-}
-
-/* Subtle Quit Button for Horizontal Shelf */
-.shelf-quit-btn {
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid transparent;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.18s ease;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.shelf-quit-btn:hover {
-  background: rgba(255, 69, 58, 0.14);
-  color: #ff5e57;
-}
-
-.shelf-quit-btn:active {
-  transform: scale(0.96);
-}
-
 /* Update Progress inside Shelf / Vertical Settings */
 .shelf-update-progress-wrap {
   width: 100%;
   height: 32px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: none;
+  border-radius: 999px;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -2580,4 +1426,552 @@
   }
 }
 
+/* Tabs: one segmented control */
+.settings-tab-bar {
+  background: #141414;
+  padding: 3px;
+  border-radius: 999px;
+  gap: 2px;
+}
+.settings-tab-btn {
+  min-height: 28px;
+  padding: 5px 2px;
+  background: transparent;
+}
+.settings-tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+}
+.settings-header-pills {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px;
+  border-radius: 999px;
+  gap: 2px;
+}
+.settings-header-pill {
+  height: 22px;
+  background: transparent;
+}
+.settings-header-pill.active {
+  box-shadow: none;
+}
 
+.settings-scroll-list {
+  padding: 2px var(--pad) 12px;
+}
+
+.set-group {
+  margin-top: 16px;
+}
+.set-group:first-child,
+.update-promoted-card + .set-group {
+  margin-top: 4px;
+}
+.set-group-label {
+  margin: 0 0 8px;
+  padding: 0 6px;
+  font-size: calc(10.5px * var(--font-scale, 1));
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+.set-group-card {
+  position: relative;
+  background: var(--bg-card, #141414);
+  border-radius: 14px;
+  padding: 2px 0;
+}
+
+.set-row {
+  position: relative;
+  padding: 12px 14px;
+}
+/* hairline between rows, inset to the text like a native list */
+.set-row + .set-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.set-row-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.set-row-text {
+  flex: 1;
+  min-width: 0;
+}
+.set-row-title {
+  font-size: calc(14px * var(--font-scale, 1));
+  font-weight: 600;
+  line-height: 1.3;
+  color: #ffffff;
+  overflow-wrap: break-word;
+}
+.set-row-desc {
+  margin-top: 3px;
+  font-size: calc(12.5px * var(--font-scale, 1));
+  line-height: 1.42;
+  color: rgba(255, 255, 255, 0.58);
+  overflow-wrap: break-word;
+}
+.set-row-desc.is-error {
+  color: rgba(255, 150, 140, 0.9);
+}
+.set-row-trailing {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.set-row-below {
+  margin-top: 12px;
+}
+.set-row.is-disabled .set-row-main,
+.set-row.is-disabled .set-row-below {
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+.set-row-badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.set-row-icon-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.set-row-icon-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+.set-row-icon-btn:disabled {
+  cursor: default;
+}
+.set-row-icon-btn.is-busy svg {
+  animation: setRowSpin 0.9s linear infinite;
+}
+@keyframes setRowSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+html[data-motion='reduce'] .set-row-icon-btn.is-busy svg {
+  animation: none;
+}
+
+/* controls inside a group card sit on the card, not on the page */
+.set-row .pill {
+  background: rgba(255, 255, 255, 0.06);
+}
+.set-row .pill:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
+}
+.set-row .pill.active {
+  background: #ffffff;
+}
+.set-row .slider-label-btn {
+  font-family: var(--font-ui);
+}
+/* choices never cut their label: they share the row, and a long
+   translation moves the last ones onto a second row */
+.set-row .setting-pills {
+  flex-wrap: wrap;
+}
+.set-row .setting-pills .pill {
+  flex: 1 1 0;
+  min-width: fit-content;
+  padding-left: 8px;
+  padding-right: 8px;
+  overflow: visible;
+}
+.set-row .placement-3way-wrap .pill {
+  max-width: none;
+}
+/* the style arrow is a small round button that stays on the title line */
+.set-row-trailing .style-preview-toggle-btn {
+  width: 26px;
+  height: 26px;
+}
+
+/* onboarding: indicator styles inline */
+.tutorial-indicator-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+}
+.tutorial-indicator-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.tutorial-indicator-option.active {
+  background: rgba(255, 255, 255, 0.12);
+}
+.tutorial-indicator-art {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tutorial-indicator-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.language-shelf-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  overflow: hidden;
+}
+.language-shelf-label > svg {
+  flex: none;
+  opacity: 0.65;
+}
+.language-shelf-label > span {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* After the settings, two cards with one job each: Community & Support
+   (tagline, Ko-fi as the one white button, GitHub) and About Edge-Drop
+   (version, feedback, quit). They end every tab and scroll with it. */
+.settings-support {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg-card, #141414);
+  display: flex;
+  flex-direction: column;
+}
+.settings-support .set-group-label {
+  margin: 0 0 4px;
+  padding: 0;
+}
+.settings-support-tagline {
+  font-size: calc(12.5px * var(--font-scale, 1));
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.72);
+}
+.settings-support-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+.settings-support-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.settings-support-btn > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.settings-support-btn > svg {
+  flex: none;
+}
+.settings-support-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.settings-support-btn.is-primary {
+  background: #ffffff;
+  color: #000000;
+}
+.settings-support-btn.is-primary:hover {
+  background: rgba(255, 255, 255, 0.88);
+}
+.settings-support-btn .store-logo-icon {
+  filter: grayscale(1) brightness(1.5);
+}
+.settings-support-link {
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: inherit;
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.settings-support-link:hover {
+  color: #ffffff;
+}
+.settings-support + .settings-support {
+  margin-top: 10px;
+}
+.settings-about-title {
+  font-size: calc(14px * var(--font-scale, 1));
+  font-weight: 600;
+  line-height: 1.3;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+.settings-about .subtle-quit-btn {
+  align-self: center;
+  margin-top: 4px;
+}
+
+/* ── Top dock ─────────────────────────────────────────────────────────── */
+.settings-horizontal-shelf {
+  flex-direction: row;
+}
+.settings-horizontal-shelf .settings-shelf-track.tab-view {
+  flex: 1;
+  min-width: 0;
+  gap: 10px;
+  padding: 6px 18px 12px 18px;
+}
+.set-group.is-h {
+  flex: none;
+  height: 146px;
+  margin: 0;
+  padding: 10px 14px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card, #141414);
+  border-radius: var(--radius-card, 18px);
+}
+.set-group.is-h .set-group-label {
+  margin: 0 0 6px;
+  padding: 0;
+  font-size: calc(10px * var(--font-scale, 1));
+}
+/* Columns of one width: a setting with a wide control fills one, settings
+   with only a toggle stack two to a column, split by a hairline. Titles,
+   text and controls line up across the group. */
+.set-group.is-h .set-group-card {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: row;
+}
+.set-col {
+  position: relative;
+  flex: none;
+  width: 252px;
+  min-height: 0;
+  padding: 0 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.set-col:first-child {
+  padding-left: 0;
+}
+.set-col:last-child {
+  padding-right: 0;
+}
+.set-col + .set-col::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.set-group.is-h .set-row {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.set-group.is-h .set-row + .set-row::before {
+  display: none;
+}
+.set-col.is-pair > .set-row {
+  justify-content: center;
+}
+.set-col.is-pair > .set-row + .set-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.set-group.is-h .set-row-main {
+  align-items: flex-start;
+  gap: 12px;
+}
+.set-group.is-h .set-row-title {
+  font-size: calc(13.5px * var(--font-scale, 1));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.set-group.is-h .set-row-desc {
+  margin-top: 3px;
+  font-size: calc(11.5px * var(--font-scale, 1));
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+/* two to a column: each keeps two lines of description */
+.set-col.is-pair > .set-row {
+  padding: 4px 0;
+}
+.set-col.is-pair > .set-row:first-child {
+  padding-top: 0;
+}
+.set-col.is-pair > .set-row:last-child {
+  padding-bottom: 0;
+}
+.set-col.is-pair .set-row-desc {
+  margin-top: 1px;
+  font-size: calc(11px * var(--font-scale, 1));
+  line-height: 1.32;
+  -webkit-line-clamp: 2;
+}
+.set-group.is-h .set-row-below {
+  margin-top: auto;
+  padding-top: 8px;
+}
+.set-group.is-h .set-row.has-below .set-row-desc {
+  -webkit-line-clamp: 2;
+}
+.set-group.is-h .set-row.is-slider .set-row-below {
+  padding-top: 4px;
+}
+.set-group.is-h .set-row.is-slider .set-row-desc {
+  -webkit-line-clamp: 2;
+}
+/* the top dock has no spare height: choices stay on one line and share it */
+.set-group.is-h .setting-pills {
+  flex-wrap: nowrap;
+}
+.set-group.is-h .setting-pills .pill {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-support.is-h {
+  flex: none;
+  width: 252px;
+  height: 146px;
+  margin: 0;
+  padding: 10px 14px 10px;
+  box-sizing: border-box;
+  border-radius: var(--radius-card, 18px);
+}
+.settings-support.is-h .set-group-label {
+  font-size: calc(10px * var(--font-scale, 1));
+  margin-bottom: 3px;
+}
+.settings-support.is-h .settings-support-tagline {
+  font-size: calc(11.5px * var(--font-scale, 1));
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.settings-support.is-h .settings-support-actions {
+  margin-top: auto;
+  padding-top: 7px;
+  gap: 5px;
+}
+.settings-support.is-h .settings-support-btn {
+  height: 28px;
+  font-size: calc(11.5px * var(--font-scale, 1));
+}
+/* in the track the two cards sit side by side, like the groups */
+.settings-support.is-h + .settings-support.is-h {
+  margin-top: 0;
+}
+.settings-about.is-h .settings-about-title {
+  font-size: calc(13.5px * var(--font-scale, 1));
+}
+.settings-about.is-h .subtle-quit-btn {
+  margin-top: 2px;
+}
+.settings-support.is-h .settings-support-link {
+  font-size: calc(11px * var(--font-scale, 1));
+}
+
+/* Side docks are narrow: the title shares its line with the control, and
+   the description runs the full width beneath both (2 lines, not 4). */
+.set-group:not(.is-h) .set-row-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 12px;
+  align-items: center;
+}
+.set-group:not(.is-h) .set-row-text {
+  display: contents;
+}
+.set-group:not(.is-h) .set-row-title {
+  grid-column: 1;
+  grid-row: 1;
+}
+.set-group:not(.is-h) .set-row-trailing {
+  grid-column: 2;
+  grid-row: 1;
+  /* a toggle or badge may overhang the title line instead of pushing the
+     description down */
+  margin: -5px 0;
+}
+.set-group:not(.is-h) .set-row-desc {
+  grid-column: 1 / 3;
+  grid-row: 2;
+}

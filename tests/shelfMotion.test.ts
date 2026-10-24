@@ -72,7 +72,7 @@ describe('shelf open/close motion', () => {
     expect(insets.length).toBeGreaterThanOrEqual(6)
     for (const clip of insets) expect(clip).not.toMatch(/800px|600px|999px|- 100px/)
     // The top dock's closed bar uses the same 24px corners as the side docks.
-    expect(panel).toContain('calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 24px 24px)`')
+    expect(panel).toContain('calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 24px 24px / 0px 0px ${hotWidth}px ${hotWidth}px)`')
   })
 
   it('content veil sits above every in-blade layer and hides only after the close finishes', () => {

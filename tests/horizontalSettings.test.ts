@@ -82,21 +82,17 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(flyoutSrc).not.toContain("outline: active ? '2px solid #ffffff' : 'none'")
   })
 
-  it('Appearance shelf renders Show Copy Indicator toggle card first, followed by Indicator Style card matching Left/Right', () => {
+  it('Appearance lists the Copy Indicator toggle first, then the Indicator Style flyout trigger (both docks)', () => {
     const src = read('src/components/Settings.tsx')
-    const appearanceSection = src.slice(src.indexOf("horizontalTab === 'appearance'"), src.indexOf("horizontalTab === 'appearance'") + 4000)
-    const toggleCardIdx = appearanceSection.indexOf('beacon-toggle-card')
-    const styleCardIdx = appearanceSection.indexOf('copy-card')
-
-    expect(toggleCardIdx).toBeGreaterThan(-1)
-    expect(styleCardIdx).toBeGreaterThan(-1)
-    // Card 1 (beacon-toggle-card) must appear BEFORE Card 2 (copy-card)
-    expect(toggleCardIdx).toBeLessThan(styleCardIdx)
-    // Indicator style card is only shown when showCopyIndicator is enabled
-    expect(appearanceSection).toContain('{(settings.showCopyIndicator ?? true) && (')
-    // Indicator style card uses standard style-preview-toggle-btn with Close/Chevron icons, matching Left/Right
-    expect(appearanceSection).toContain('className={`icon-btn style-preview-toggle-btn ${isFlyoutActive ? \'active\' : \'\'}`}')
-    expect(appearanceSection).toContain('{isFlyoutActive ? <CloseIcon /> : <ChevronRightIcon />}')
+    const appearance = src.slice(src.indexOf('// appearance'))
+    const toggleIdx = appearance.indexOf("id: 'copy-indicator',\n            title")
+    const styleIdx = appearance.indexOf("id: 'indicator-style'")
+    expect(toggleIdx).toBeGreaterThan(-1)
+    expect(styleIdx).toBeGreaterThan(toggleIdx)
+    // the style row only exists while the indicator is on
+    expect(appearance).toContain('...(indicatorOn ? [{')
+    expect(appearance).toContain('className={`icon-btn style-preview-toggle-btn ${isFlyoutActive ? \'active\' : \'\'}`}')
+    expect(appearance).toContain('{isFlyoutActive ? <CloseIcon /> : <ChevronRightIcon />}')
   })
 
   it('Panel.tsx passes isHorizontal to Settings component', () => {
@@ -111,9 +107,13 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(css).toContain('.settings-shelf-card')
     expect(css).toContain('.settings-header-pills')
     expect(css).toContain('.settings-header-pill')
-    expect(css).toContain('.shelf-indicator-grid')
-    expect(css).toContain('.shelf-indicator-item')
-    expect(css).toContain('.shelf-quit-btn')
+    // grouped cards in the top dock, and the support card pinned beside them
+    expect(css).toContain('.set-group.is-h {')
+    // columns of one width; toggle-only settings stack two to a column
+    expect(css).toMatch(/\n\.set-col \{[^}]*width: 252px;/)
+    expect(css).toMatch(/\.set-col\.is-pair > \.set-row \+ \.set-row \{[^}]*border-top: 1px solid/)
+    expect(css).toMatch(/\.set-group\.is-h \.set-row-below \{[^}]*margin-top: auto;/)
+    expect(css).toContain('.settings-support.is-h {')
   })
 
   it('getHorizontalDockMetrics scales trigger bar length based on hotZoneHeight (+25% increase)', async () => {
@@ -166,75 +166,61 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(panelSrc).toContain("insetRight = '0px'")
   })
 
-  it('Horizontal shelf includes trigger thickness and auto-updates, without panel height, horizontal position, or edge trigger position', () => {
+  it('One definition serves both docks; side-dock-only rows are left out of the top dock', () => {
     const src = read('src/components/Settings.tsx')
-    // Find the isHorizontal branch
-    const horizontalBlock = src.slice(src.indexOf('if (isHorizontal) {'), src.indexOf('const maxTabLen ='))
-    // Should NOT contain horizontal position offset slider or panel height pills
-    expect(horizontalBlock).not.toContain('horizontalPositionTitle')
-    expect(horizontalBlock).not.toContain('panelHeightTitle')
-    // Should NOT contain trigger alignment pills in horizontal shelf
-    expect(horizontalBlock).not.toContain('edgeTriggerPositionTitle')
-    expect(horizontalBlock).not.toContain('triggerAlignment: opt.val')
-    // Should contain trigger thickness
-    expect(horizontalBlock).toContain('trigger-thickness-card')
-    expect(horizontalBlock).toContain('handleThicknessRelease')
-    // Should contain 3-mode updates selector (Automatic / Notify me / Off)
-    expect(horizontalBlock).toContain('autoUpdatesTitle')
-    expect(horizontalBlock).toContain('updateMode')
-    expect(horizontalBlock).toContain("patch({ updateMode: opt.id })")
-    // Should contain clearUnpinnedOnRestart
-    expect(horizontalBlock).toContain('clearUnpinnedTitle')
-    expect(horizontalBlock).toContain('clearUnpinnedOnRestart')
-    // Should contain support links
-    expect(horizontalBlock).toContain('supportOnKofi')
-    expect(horizontalBlock).toContain('starOnGithub')
+    const groups = src.slice(src.indexOf('const groupsFor = (tab: SettingsTab)'), src.indexOf('const layout: '))
+    // sliding along a vertical edge, panel height, the trigger's spot and text size: side docks only
+    for (const id of ['offset', 'panel-height', 'trigger-position']) {
+      expect(groups, id).toMatch(new RegExp(`\\.\\.\\.\\(!isHorizontal \\? \\[\\{\\n\\s+id: '${id}'`))
+    }
+    expect(groups).toMatch(/\.\.\.\(!isHorizontal \? \[\{\n\s+id: 'typography'/)
+    expect(groups).toContain('verticalPositionTitle')
+    expect(groups).toContain('panelHeightTitle')
+    expect(groups).toContain('edgeTriggerPositionTitle')
+    // in both docks: thickness, the 3-mode updater, clean-up, hover area presets
+    expect(groups).toContain("id: 'trigger-thickness'")
+    expect(groups).toContain('handleThicknessRelease')
+    expect(groups).toContain('(v) => patch({ updateMode: v })')
+    expect(groups).toContain('clearUnpinnedOnRestart')
+    expect(groups).toContain("t('appearance.small')")
+    expect(groups).toContain("t('position.medium')")
+    expect(groups).toContain('`${thicknessPx}px`')
+    // both layouts render the same groups
+    expect(src.match(/renderGroups\((horizontalTab|activeTab)\)/g)).toEqual(['renderGroups(horizontalTab)', 'renderGroups(activeTab)'])
   })
 
-  it('Vertical left/right settings remain untouched with position slider and vertical controls intact', () => {
+  it('Edge placement is a 3-way control in both docks (the top dock adds its shelf variant)', () => {
     const src = read('src/components/Settings.tsx')
-    const verticalBlock = src.slice(src.indexOf('const maxTabLen ='))
-    expect(verticalBlock).toContain('verticalPositionTitle')
-    expect(verticalBlock).toContain('edgeTriggerPositionTitle')
-    expect(verticalBlock).toContain('panelHeightTitle')
-  })
-
-  it('Vertical settings arranges edge placement buttons in 3-way layout (left, top, right)', () => {
-    const src = read('src/components/Settings.tsx')
-    const verticalBlock = src.slice(src.indexOf('const maxTabLen ='))
-    expect(verticalBlock).toContain('placement-3way-wrap')
-
+    expect(src).toContain("className={`placement-3way-wrap${isHorizontal ? ' shelf-placement-3way' : ''}`}")
     const css = read('src/styles/settings.css')
     expect(css).toContain('.placement-3way-wrap')
     expect(css).toContain('.placement-3way-wrap .pill')
   })
 
-  it('Horizontal dashboard uses correct translations, multi-column classes, and explicit pixel values', () => {
+  it('After the settings come two cards: Community & Support, then About Edge-Drop', () => {
     const src = read('src/components/Settings.tsx')
-    const horizontalBlock = src.slice(src.indexOf('if (isHorizontal) {'), src.indexOf('const maxTabLen ='))
+    const cards = src.slice(src.indexOf('const renderClosingCards = () =>'), src.indexOf('const handleOpenChangelog'))
+    const support = cards.slice(0, cards.indexOf('data-card="about"'))
+    const about = cards.slice(cards.indexOf('data-card="about"'))
+    expect(support).toContain("t('footer.supportTagline')")
+    expect(support).toContain("<span>{t('footer.supportOnKofi')}</span>")
+    expect(support).not.toContain("t('footer.supportDev')")
+    expect(support).toContain("<span>{t('footer.starOnGithub')}</span>")
+    expect(about).toContain("t('groups.aboutEdgeDrop')")
+    expect(about).toContain("t('footer.submitFeedback')")
+    expect(about).toContain('window.edge.quitApp()')
+    // they end every tab and scroll with it: inside the top-dock track, after the groups
+    expect(src).toMatch(/\{renderGroups\(horizontalTab\)\}\n\s+\{renderClosingCards\(\)\}\n\s+<\/div>/)
+    expect(src).toMatch(/\{renderGroups\(activeTab\)\}\n\s+\{renderClosingCards\(\)\}/)
+    expect(src).not.toContain('PersistentFooter')
+  })
 
-    // Translation fix: supportOnKofi instead of supportDev
-    expect(horizontalBlock).toContain("t('footer.supportOnKofi')")
-    expect(horizontalBlock).not.toContain("t('footer.supportDev')")
-
-    // Multi-column dashboard structure
-    expect(horizontalBlock).toContain('tab-view')
-    expect(horizontalBlock).toContain('behaviour-col')
-    expect(horizontalBlock).toContain('position-col')
-    expect(horizontalBlock).toContain('appearance-col')
-
-    // Edge placement 3-way layout for horizontal card shelf
-    expect(horizontalBlock).toContain('placement-3way-wrap')
-    expect(horizontalBlock).toContain('shelf-placement-3way')
-
-    // Clean names on length presets & live thickness badge without pixel strings
-    expect(horizontalBlock).toContain("t('appearance.small')")
-    expect(horizontalBlock).toContain("t('position.medium')")
-    expect(horizontalBlock).toContain("t('appearance.large')")
-    expect(horizontalBlock).not.toContain('(220px)')
-    expect(horizontalBlock).not.toContain('(320px)')
-    expect(horizontalBlock).not.toContain('(460px)')
-    expect(horizontalBlock).toContain('${settings.hotZoneWidth ?? 3}px')
+  it('Top dock pairs toggle-only settings into one column; wide controls get their own', () => {
+    const src = read('src/components/Settings.tsx')
+    expect(src).toContain('if (!row.below && last && last.length === 1 && !last[0].below) last.push(row)')
+    // hover settings sit together (and pair up in the top dock)
+    expect(src.indexOf("id: 'fullscreen'")).toBe(src.indexOf("id: 'hover-activation'") + src.slice(src.indexOf("id: 'hover-activation'")).indexOf("id: 'fullscreen'"))
+    expect(src.indexOf("id: 'fullscreen'")).toBeLessThan(src.indexOf("id: 'hover-delay'"))
   })
 
   it('settings.css contains tab-view full-width obsidian rules', () => {
@@ -265,23 +251,15 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     // Reset to behaviour tab on mount
     expect(settingsSrc).toContain("useStore.getState().setSettingsTab('behaviour')")
   })
-it('Appearance shelf renders Card 1 Copy Indicator toggle first, then Card 2 Indicator Style flyout trigger second', () => {
+it('Settings rows are monochrome: no icon tiles or accent colours', () => {
     const src = read('src/components/Settings.tsx')
-    const appearanceIndex = src.indexOf("horizontalTab === 'appearance'")
-    expect(appearanceIndex).toBeGreaterThan(-1)
-    const appearanceBlock = src.slice(appearanceIndex)
-
-    const toggleCardIndex = appearanceBlock.indexOf('beacon-toggle-card')
-    const styleCardIndex = appearanceBlock.indexOf('copy-card')
-
-    expect(toggleCardIndex).toBeGreaterThan(-1)
-    expect(styleCardIndex).toBeGreaterThan(-1)
-    // Toggle card must come before Indicator style card
-    expect(toggleCardIndex).toBeLessThan(styleCardIndex)
-
-    // Indicator style button uses style-preview-toggle-btn with Chevron/Close
-    expect(appearanceBlock).toContain('style-preview-toggle-btn')
-    expect(appearanceBlock).toContain('handleToggleFlyout(e.currentTarget)')
+    expect(src).not.toMatch(/\btone: '(blue|green|indigo|purple|orange|yellow|pink|red|cyan|teal|gray)'/)
+    expect(src).not.toMatch(/set-row-icon(?!-btn)/)
+    const css = read('src/styles/settings.css')
+    expect(css).not.toMatch(/\.tone-[a-z]+ \{/)
+    expect(css).not.toContain('.set-row-icon {')
+    // the style button still opens the flyout from the row
+    expect(src).toContain('handleToggleFlyout(e.currentTarget)')
   })
 
   it('IndicatorStyleFlyout anchors horizontally relative to styleFlyoutAnchorRect', () => {

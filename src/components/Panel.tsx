@@ -8,7 +8,7 @@
  * the reverse: the content dims first and the shape draws back into the bar.
  */
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react'
 import { useStore } from '../store/appStore'
 import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
@@ -38,6 +38,18 @@ import { useTranslation } from '../i18n'
 //   a pixel of travel is left. Dismissal is quicker than presentation.
 const SHELF_OPEN_MOTION =
   'clip-path 285ms linear(0, 0.055 3.5%, 0.149 8.5%, 0.414 21.8%, 0.524 27.8%, 0.614 33.3%, 0.693 38.8%, 0.759 44.3%, 0.817 50%, 0.866 56%, 0.907 62.5%, 0.941 69.8%, 0.969 78.3%, 0.989 88.5%, 1)'
+/** Launch intro of the edge bar: appears a little wider and longer as a dark
+ * pill, then settles into the slim black bar (see the beacon in Panel). */
+const EDGE_INTRO_MS = 1300
+/** The edge bar's ends taper over 24px of its length (the blade's corner
+ * size) across its full thickness, so it reads as a soft pill, not a box.
+ * The closed clip-path in Panel uses the same shape, so the intro lands on it
+ * exactly. */
+const EDGE_BAR_RADIUS = {
+  left: '0 100% 100% 0 / 0 24px 24px 0',
+  right: '100% 0 0 100% / 24px 0 0 24px',
+  top: '0 0 24px 24px / 0 0 100% 100%'
+}
 const SHELF_CLOSE_MOTION =
   'clip-path 289ms linear(0, 0.021 1.8%, 0.058 3.8%, 0.116 6.3%, 0.23 10.5%, 0.402 16.8%, 0.503 20.8%, 0.586 24.5%, 0.659 28.2%, 0.725 32.3%, 0.782 36.5%, 0.832 41%, 0.874 46%, 0.911 51.7%, 0.941 58.5%, 0.965 66.8%, 0.982 77.5%, 0.994 93.8%, 1)'
 
@@ -68,12 +80,34 @@ export function Panel() {
 
   useEffect(() => {
     setMounted(true)
-    // Graceful startup fade-in intro for the trigger bar on launch
+    // Launch intro: the edge bar settles into place (EDGE_INTRO_MS), then the
+    // intro hands over to the real bar underneath.
     const timer = window.setTimeout(() => {
       setStartupBeacon(false)
-    }, 2200)
+    }, EDGE_INTRO_MS + 250)
     return () => window.clearTimeout(timer)
   }, [])
+
+  // The edge bar is the closed panel clipped to a thin strip, so an intro that
+  // is briefly wider than that strip is drawn outside the panel, over the
+  // panel's own box (measured here), with the same strip insets.
+  const containerRef = useRef<HTMLDivElement>(null)
+  const showEdgeHint = !!edgeHintActive && (settings.showEdgeLocationHint ?? false)
+  const showEdgeBeacon = !open && (startupBeacon || showEdgeHint)
+  const [beaconFrame, setBeaconFrame] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  useLayoutEffect(() => {
+    if (!showEdgeBeacon || !containerRef.current) return
+    const r = containerRef.current.getBoundingClientRect()
+    setBeaconFrame({ left: r.left, top: r.top, width: r.width, height: r.height })
+  }, [
+    showEdgeBeacon,
+    settings.stickPosition,
+    settings.panelHeight,
+    settings.verticalOffset,
+    settings.horizontalOffset,
+    settings.hotZoneHeight,
+    settings.triggerAlignment
+  ])
 
   useEffect(() => {
     if (!open) {
@@ -349,22 +383,95 @@ export function Panel() {
   if (isRight) {
     clipPath = isVisuallyOpen
       ? 'inset(-30px 0px -30px 0px round 24px 0px 0px 24px)'
-      : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round 24px 0px 0px 24px)`
+      : `inset(${insetTop} 0px ${insetBottom} calc(100% - ${hotWidth}px) round ${hotWidth}px 0px 0px ${hotWidth}px / 24px 0px 0px 24px)`
   } else if (isTop) {
     clipPath = isVisuallyOpen
       ? 'inset(0px -30px 0px -30px round 0px 0px 24px 24px)'
-      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 24px 24px)`
+      : `inset(0px ${insetRight} calc(100% - ${hotWidth}px) ${insetLeft} round 0px 0px 24px 24px / 0px 0px ${hotWidth}px ${hotWidth}px)`
   } else {
     clipPath = isVisuallyOpen
       ? 'inset(-30px 0px -30px 0px round 0px 24px 24px 0px)'
-      : `inset(${insetTop} calc(100% - ${hotWidth}px) ${insetBottom} 0px round 0px 24px 24px 0px)`
+      : `inset(${insetTop} calc(100% - ${hotWidth}px) ${insetBottom} 0px round 0px ${hotWidth}px ${hotWidth}px 0px / 0px 24px 24px 0px)`
   }
   containerStyle.clipPath = clipPath
+
+  // Edge bar intro (launch) and location hint. Not a light: the bar itself,
+  // drawn as a dark pill with the cards' faint edge highlight, a little wider
+  // and longer than the bar, settling into the slim black bar it lands on
+  // exactly (same insets, same black), so the hand-over is invisible. The
+  // hint is the same shape as a short swell.
+  const beaconThick = isHorizontal ? 'height' : 'width'
+  const beaconLong = isHorizontal ? 'width' : 'height'
+  const beaconWide = hotWidth + 6
+  const edgeLight = (a: number) => `inset 0 0 0 1px rgba(255, 255, 255, ${a})`
+  // Launch: the bar swells out of itself (solid all along, so the bar under
+  // it never shows through), holds a beat, then glides back to slim.
+  const beaconMotion = startupBeacon
+    ? {
+        animate: {
+          [beaconThick]: reduceMotion ? hotWidth : [hotWidth, beaconWide, beaconWide, hotWidth],
+          [beaconLong]: reduceMotion ? '100%' : ['100%', '114%', '114%', '100%'],
+          opacity: 1,
+          backgroundColor: ['#000000', '#2c2c2c', '#2c2c2c', '#000000'],
+          boxShadow: [edgeLight(0), edgeLight(0.18), edgeLight(0.18), edgeLight(0)]
+        },
+        transition: {
+          duration: EDGE_INTRO_MS / 1000,
+          times: [0, 0.22, 0.38, 1],
+          ease: [[0.22, 1, 0.36, 1], 'linear', [0.22, 1, 0.36, 1]]
+        }
+      }
+    : {
+        animate: {
+          [beaconThick]: reduceMotion ? hotWidth : [hotWidth, hotWidth + 4, hotWidth],
+          [beaconLong]: reduceMotion ? '100%' : ['100%', '106%', '100%'],
+          opacity: 1,
+          backgroundColor: ['#000000', '#2c2c2c', '#000000'],
+          boxShadow: [edgeLight(0), edgeLight(0.16), edgeLight(0)]
+        },
+        transition: { duration: 0.45, ease: 'easeInOut' }
+      }
 
   return (
     <div className="root">
       <CopyIndicatorCurve />
+      <AnimatePresence>
+        {showEdgeBeacon && beaconFrame && (
+          <motion.div
+            key="edge-beacon"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            style={{ position: 'absolute', ...beaconFrame, pointerEvents: 'none', zIndex: 11 }}
+          >
+            <div
+              style={
+                isHorizontal
+                  ? { position: 'absolute', left: insetLeft, right: insetRight, top: 0, height: hotWidth }
+                  : { position: 'absolute', top: insetTop, bottom: insetBottom, [isRight ? 'right' : 'left']: 0, width: hotWidth }
+              }
+            >
+              <motion.div
+                key={startupBeacon ? 'intro' : 'hint'}
+                data-edge-beacon=""
+                {...beaconMotion}
+                style={
+                  isHorizontal
+                    ? { position: 'absolute', top: 0, left: '50%', x: '-50%', borderRadius: EDGE_BAR_RADIUS.top }
+                    : {
+                        position: 'absolute',
+                        top: '50%',
+                        [isRight ? 'right' : 'left']: 0,
+                        y: '-50%',
+                        borderRadius: isRight ? EDGE_BAR_RADIUS.right : EDGE_BAR_RADIUS.left
+                      }
+                }
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div
+        ref={containerRef}
         className={containerClass}
         onDragEnter={onDragEnter}
         onDragOver={onDragOver}
@@ -373,50 +480,6 @@ export function Panel() {
         style={containerStyle}
       >
 
-        {/* Edge Trigger Bar & Location Hint Beacon (Startup fade-in intro + pulse on wrong-position touch) */}
-        <AnimatePresence>
-          {!open && (startupBeacon || (edgeHintActive && (settings.showEdgeLocationHint ?? false))) && (
-            <motion.div
-              key="edge-location-beacon"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: startupBeacon ? 0.8 : 0.5 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                duration: reduceMotion ? 0.01 : startupBeacon ? 0.5 : 0.18,
-                ease: [0.16, 1, 0.3, 1]
-              }}
-              style={
-                isHorizontal
-                  ? {
-                      position: 'absolute',
-                      left: insetLeft,
-                      right: insetRight,
-                      top: 0,
-                      height: 2,
-                      boxSizing: 'border-box',
-                      background: 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
-                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
-                      borderRadius: '999px',
-                      pointerEvents: 'none',
-                      zIndex: 99
-                    }
-                  : {
-                      position: 'absolute',
-                      top: insetTop,
-                      bottom: insetBottom,
-                      [isRight ? 'right' : 'left']: 0,
-                      width: 2,
-                      boxSizing: 'border-box',
-                      background: 'linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.75) 20%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.75) 80%, transparent)',
-                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.4)',
-                      borderRadius: isRight ? '999px 0 0 999px' : '0 999px 999px 0',
-                      pointerEvents: 'none',
-                      zIndex: 99
-                    }
-              }
-            />
-          )}
-        </AnimatePresence>
         {isTop && (
           <>
             <div className="flare-horizontal flare-top-left" style={{ opacity: isVisuallyOpen ? 1 : 0 }}>

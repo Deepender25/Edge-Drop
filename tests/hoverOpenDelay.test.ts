@@ -93,8 +93,9 @@ describe('hover open delay — wiring', () => {
 
   it('renders the slider in both the horizontal and vertical settings layouts', () => {
     const src = read('src/components/Settings.tsx')
-    expect(src).toContain("{renderHoverDelayCard('shelf')}")
-    expect(src).toContain("{renderHoverDelayCard('stack')}")
+    // one row definition, rendered by both layouts
+    expect(src).toContain('below: renderHoverDelayControl()')
+    expect(src).toMatch(/renderGroups\(horizontalTab\)[\s\S]*renderGroups\(activeTab\)/)
     expect(src).toContain('min={HOVER_OPEN_DELAY_MIN}')
     expect(src).toContain('max={HOVER_OPEN_DELAY_MAX}')
     expect(src).toContain('step={HOVER_OPEN_DELAY_STEP}')
