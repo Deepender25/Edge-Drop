@@ -247,7 +247,7 @@ export function StackHeader({
   onRemove?: () => void
 }) {
   const { t } = useTranslation()
-  const isPreviewing = useStore((s) => s.previewItemId) === item.id
+  const isPreviewing = useStore((s) => s.previewItemId === item.id)
   const total = stackTotalSize(item)
   return (
     <div

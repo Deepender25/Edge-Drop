@@ -20,7 +20,7 @@ import { join, extname } from 'node:path'
 import { getUnpackagedTempDir, toUnpackagedFilePaths } from '../store/paths'
 import type { DragRequest, ItemData } from '../../shared/types'
 import { getStore } from './state'
-import { getFileKind } from '../../src/lib/fileType'
+import { fileKindOf } from '../../src/lib/fileKind'
 import { recordStagedFiles } from './stagedTemp'
 
 function stampForFilename(capturedAt?: number): string {
@@ -390,7 +390,7 @@ function createFileStackDragIcon(paths: string[], entries?: Array<{ isDirectory?
         }
       } catch {}
     }
-    return getFileKind(p, isDir).kind
+    return fileKindOf(p, isDir)
   })
   const cacheKey = `stack|svg|${kinds.join('-')}|${count}`
   const cached = iconCache.get(cacheKey)

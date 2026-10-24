@@ -29,8 +29,9 @@ export function ItemList() {
   const total = pinned.length + recent.length
   
   const isDraggingAny = useStore((s) => !!s.dragActive || !!s.internalDragReq)
-  const settings = useStore((s) => s.settings)
-  const isHorizontal = settings.stickPosition === 'top'
+  const stickPosition = useStore((s) => s.settings.stickPosition)
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
+  const isHorizontal = stickPosition === 'top'
   
   const typeFilter = useStore((s) => s.typeFilter) || 'all'
   const filterScrollMap = useRef<Record<string, { top: number; left: number }>>({})
@@ -187,17 +188,17 @@ export function ItemList() {
   }, [query, isHorizontal])
 
   // Reset scroll map when switching dock position
-  const prevStickPos = useRef(settings.stickPosition)
+  const prevStickPos = useRef(stickPosition)
   useLayoutEffect(() => {
-    if (prevStickPos.current !== settings.stickPosition) {
-      prevStickPos.current = settings.stickPosition
+    if (prevStickPos.current !== stickPosition) {
+      prevStickPos.current = stickPosition
       filterScrollMap.current = {}
       if (listRef.current) {
         listRef.current.scrollTop = 0
         listRef.current.scrollLeft = 0
       }
     }
-  }, [settings.stickPosition])
+  }, [stickPosition])
 
   useEffect(() => {
     if (!isDraggingAny) {
@@ -337,7 +338,18 @@ export function ItemList() {
     stopScrolling()
   }
 
+  // A filter or search change replays the list's short fade-in. The list used
+  // to be keyed on this for that, which destroyed and rebuilt every card on
+  // each keystroke; keeping it lets unchanged cards stay and replays the same
+  // fade (started before paint, so the first frame is already at 0.45).
   const filterKey = `${typeFilter}:${query}`
+  const stackRef = useRef<HTMLDivElement>(null)
+  const hasStack = total > 0
+  useLayoutEffect(() => {
+    const el = stackRef.current
+    if (!el || typeof el.animate !== 'function') return
+    el.animate([{ opacity: 0.45 }, { opacity: 1 }], { duration: 120, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' })
+  }, [filterKey, hasStack])
 
   return (
     <div
@@ -351,13 +363,7 @@ export function ItemList() {
       {total === 0 ? (
         <EmptyState filtered={query.trim().length > 0} />
       ) : (
-        <motion.div
-          key={filterKey}
-          className="list-stack"
-          initial={{ opacity: 0.45 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div ref={stackRef} className="list-stack">
           {pinned.length > 0 && (
             <section className="pinned-section">
               <div
@@ -413,7 +419,7 @@ export function ItemList() {
               ))}
             </section>
           )}
-        </motion.div>
+        </div>
       )}
 
       <AnimatePresence>
@@ -422,7 +428,7 @@ export function ItemList() {
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: settings.reduceMotion ? 0.01 : 0.14, ease: 'easeOut' }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.14, ease: 'easeOut' }}
             className={`scroll-top-btn${isHorizontal ? ' horizontal' : ''}`}
             onClick={scrollToTop}
             title={t('item.scrollToTop')}

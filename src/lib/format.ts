@@ -19,6 +19,31 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+// Every card shows a relative time, so the list formats hundreds at once.
+// Building an Intl formatter is far costlier than using one; reuse them.
+const relativeFormats = new Map<string, Intl.RelativeTimeFormat>()
+const dateFormats = new Map<string, Intl.DateTimeFormat>()
+
+function relativeFormat(lang: string, style: 'narrow' | 'short'): Intl.RelativeTimeFormat {
+  const key = `${lang}|${style}`
+  let f = relativeFormats.get(key)
+  if (!f) {
+    f = new Intl.RelativeTimeFormat(lang, { numeric: 'always', style })
+    relativeFormats.set(key, f)
+  }
+  return f
+}
+
+/** Same output as `date.toLocaleDateString(lang)` (numeric year, month, day). */
+function dateFormat(lang: string): Intl.DateTimeFormat {
+  let f = dateFormats.get(lang)
+  if (!f) {
+    f = new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'numeric', day: 'numeric' })
+    dateFormats.set(lang, f)
+  }
+  return f
+}
+
 /** Relative time formatted with native Intl locale rules (e.g. "2 дня назад", "3 hours ago"). */
 export function relativeTime(ts: number): string {
   const diff = Date.now() - ts
@@ -28,18 +53,18 @@ export function relativeTime(ts: number): string {
   const lang = getResolvedLanguage()
 
   try {
-    const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'always', style: 'narrow' })
+    const rtf = relativeFormat(lang, 'narrow')
     let res: string
     if (s < 60) res = rtf.format(-s, 'second')
     else if (s < 3600) res = rtf.format(-Math.round(s / 60), 'minute')
     else if (s < 86400) res = rtf.format(-Math.round(s / 3600), 'hour')
     else if (s < 604800) res = rtf.format(-Math.round(s / 86400), 'day')
-    else return new Date(ts).toLocaleDateString(lang)
+    else return dateFormat(lang).format(new Date(ts))
 
     // In locales where narrow style outputs leading '-' without past indicator (e.g. French "-30 s", Russian "-30 с"),
     // fallback to short style which provides abbreviated units with proper past tense ("il y a 30 s", "30 сек. назад").
     if (res.startsWith('-')) {
-      const rtfShort = new Intl.RelativeTimeFormat(lang, { numeric: 'always', style: 'short' })
+      const rtfShort = relativeFormat(lang, 'short')
       if (s < 60) return rtfShort.format(-s, 'second')
       if (s < 3600) return rtfShort.format(-Math.round(s / 60), 'minute')
       if (s < 86400) return rtfShort.format(-Math.round(s / 3600), 'hour')

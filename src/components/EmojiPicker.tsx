@@ -13,7 +13,7 @@ import {
   type EmojiEntry
 } from '../lib/emoji/catalog'
 import { glyphSrc, glyphsVersion, loadGlyphs, setScreenGlyphCount, subscribeGlyphs } from '../lib/emoji/glyphCache'
-import { loadEmojiCatalog } from '../lib/emoji/load'
+import { loadEmojiCatalog, peekEmojiCatalog } from '../lib/emoji/load'
 import { loadRecents, saveRecents } from '../lib/emoji/prefs'
 import { useStore } from '../store/appStore'
 import { playButtonClickSound } from '../lib/soundEffects'
@@ -26,6 +26,14 @@ const ROW_H = 36
 const PASTE_GAP_MS = 180
 const TONE_POP_W = 216
 const TONE_POP_H = 44
+
+/**
+ * The grid's last measured size. The picker is unmounted once the shelf has
+ * closed (Panel) and mounts again on the next open; starting from the last
+ * size (and the already-loaded catalog) makes that first frame identical to
+ * re-showing a kept picker: no skeleton flash, no wrong column count.
+ */
+const lastView = { w: 0, h: 320 }
 
 interface TonePopup {
   entry: EmojiEntry
@@ -67,13 +75,13 @@ export function EmojiPicker({
   const pasteEmoji = useStore((s) => s.pasteEmoji)
   const category = useStore((s) => s.emojiCategory)
   const setCategory = useStore((s) => s.setEmojiCategory)
-  const [catalog, setCatalog] = useState<EmojiCatalog | null>(null)
+  const [catalog, setCatalog] = useState<EmojiCatalog | null>(peekEmojiCatalog)
   const [roomy, setRoomy] = useState(false)
   const [failed, setFailed] = useState(false)
   const [recents, setRecents] = useState<string[]>(loadRecents)
   const [scrollTop, setScrollTop] = useState(0)
-  const [viewW, setViewW] = useState(0)
-  const [viewH, setViewH] = useState(320)
+  const [viewW, setViewW] = useState(lastView.w)
+  const [viewH, setViewH] = useState(lastView.h)
   const [tonePop, setTonePop] = useState<TonePopup | null>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -146,8 +154,14 @@ export function EmojiPicker({
     const apply = () => {
       const h = el.clientHeight
       const w = el.clientWidth
-      if (h > 0) setViewH(h)
-      if (w > 0) setViewW(w)
+      if (h > 0) {
+        lastView.h = h
+        setViewH(h)
+      }
+      if (w > 0) {
+        lastView.w = w
+        setViewW(w)
+      }
     }
     const ro = new ResizeObserver(apply)
     ro.observe(el)

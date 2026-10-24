@@ -33,6 +33,9 @@ export default defineConfig({
       }
     },
     build: {
+      // electron-vite leaves the renderer unminified by default; Chromium keeps
+      // every loaded script's source in memory, and parses it at startup.
+      minify: 'esbuild',
       rollupOptions: {
         input: { index: resolve(__dirname, 'index.html') }
       }

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { app } from 'electron'
-import type { FileKind } from '../../src/lib/fileType'
+import type { FileKind } from '../../src/lib/fileKind'
 
 /**
  * Drag-ghost artwork from the file-kind SVG set (resources/file-icons, one

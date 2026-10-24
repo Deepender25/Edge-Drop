@@ -92,13 +92,19 @@ describe('folder icons open on hover', () => {
   it('hover buttons stay a horizontal pill, docked off the opening folder', () => {
     // never turned into a column: same pill as every other card
     expect(css).not.toMatch(/actions[^{]*\{[^}]*flex-direction: column/)
-    // shelf and expanded-stack folder cards: on the flap's shoulder, in each dock
+    // every folder-style card (files, folders, photos, stacks): on the flap's shoulder, in each dock
     for (const [sel, bottom] of [
-      ['.item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions', '37px'],
-      ['.list.horizontal .item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions', '28px'],
+      ['.item.is-image-folder-card .item-main > .actions', '37px'],
+      ['.list.horizontal .item.is-image-folder-card .item-main > .actions', '28px'],
     ]) {
       expect(css, sel).toContain(`\n${sel} {\n  top: auto;\n  bottom: ${bottom};`)
     }
+    // ...so photos and photo stacks sit above it, like file art
+    expect(css).toContain('.image-folder-viewport:has(> .image-folder-thumb) {\n  padding-bottom: 36px;')
+    expect(css).toContain('.list.horizontal .image-folder-viewport:has(> .image-folder-thumb) {\n  padding-bottom: 34px;')
+    expect(css).toContain('.image-folder-viewport .image-folder-stack-deck:not(.is-file-deck) {\n  margin-top: 0;\n  padding-bottom: 32px;')
+    expect(css).toContain('.list.horizontal .image-folder-viewport .image-folder-stack-deck:not(.is-file-deck) {\n  margin-top: 0;\n  padding-bottom: 30px;')
+    expect(css).not.toContain(':has(.file-kind-opening) > .actions')
     // the preview keeps the pill in the corner and lowers its grid folders instead
     expect(css).toContain('.flyout-subitem:not(.single-hero-card) .item-content:has(.file-kind-opening) {\n  padding-top: 28px;')
   })

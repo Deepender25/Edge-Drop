@@ -68,10 +68,15 @@ export function Panel() {
   const setQuery = useStore((s) => s.setQuery)
   const emojiOpen = useStore((s) => s.emojiOpen)
   const setEmojiOpen = useStore((s) => s.setEmojiOpen)
-  // Mount the picker on first open, then keep it. Tearing it (and ItemList)
-  // down on every smile click is what made the switch hitch.
+  // Mount the picker on first open and keep it while the shelf stays open.
+  // Tearing it (and ItemList) down on every smile click is what made the
+  // switch hitch. Once the shelf has closed and the picker is no longer shown
+  // it is freed: its grid, images and glyph state would otherwise stay in
+  // memory for the rest of the session. Every open lands on the first page
+  // anyway, so the next mount looks the same.
   const emojiMountedRef = useRef(false)
   if (emojiOpen) emojiMountedRef.current = true
+  else if (!open) emojiMountedRef.current = false
   const emojiMounted = emojiMountedRef.current
   const edgeHintActive = useStore((s) => s.edgeHintActive)
   const edgeTransition = useStore((s) => s.edgeTransition)

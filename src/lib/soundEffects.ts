@@ -29,6 +29,22 @@ function isSoundEnabled(): boolean {
   }
 }
 
+/**
+ * A running AudioContext keeps the audio device stream open and wakes the CPU
+ * ~200 times a second even in silence. Pause it this long after it was last
+ * needed; every sound is far shorter, so none is ever cut off.
+ */
+const IDLE_SUSPEND_MS = 2000
+let idleTimer: ReturnType<typeof setTimeout> | undefined
+
+function armIdleSuspend(): void {
+  if (idleTimer !== undefined) clearTimeout(idleTimer)
+  idleTimer = setTimeout(() => {
+    idleTimer = undefined
+    if (audioCtx && audioCtx.state === 'running') audioCtx.suspend().catch(() => {})
+  }, IDLE_SUSPEND_MS)
+}
+
 function getAudioContext(): any | null {
   if (!isSoundEnabled()) return null
   const win = typeof globalThis !== 'undefined' ? (globalThis as any).window : undefined
@@ -42,6 +58,7 @@ function getAudioContext(): any | null {
   if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {})
   }
+  if (audioCtx) armIdleSuspend()
   return audioCtx
 }
 
@@ -61,24 +78,20 @@ export function warmAudioContext(): void {
   }
 }
 
-// Global auto-unlock listener: resumes AudioContext on first pointerdown/mouseenter/keydown
+// Wake the context on every press. A click's sound plays when the click ends,
+// 50-100ms after the press, and resuming takes ~8ms, so sounds are never
+// delayed by the idle pause (and the first press also unlocks audio).
 const win = typeof globalThis !== 'undefined' ? (globalThis as any).window : undefined
 if (win && win.addEventListener) {
-  const unlockAudio = () => {
-    const ctx = getAudioContext()
-    if (ctx && ctx.state === 'suspended') {
-      ctx.resume().then(() => {
-        if (ctx.state === 'running') {
-          win.removeEventListener('pointerdown', unlockAudio, true)
-          win.removeEventListener('mouseenter', unlockAudio, true)
-          win.removeEventListener('keydown', unlockAudio, true)
-        }
-      }).catch(() => {})
+  const wake = () => {
+    try {
+      getAudioContext()
+    } catch {
+      /* ignore Web Audio API restrictions */
     }
   }
-  win.addEventListener('pointerdown', unlockAudio, true)
-  win.addEventListener('mouseenter', unlockAudio, true)
-  win.addEventListener('keydown', unlockAudio, true)
+  win.addEventListener('pointerdown', wake, true)
+  win.addEventListener('keydown', wake, true)
 }
 
 // ── Scale ──────────────────────────────────────────────────────────────────
@@ -213,14 +226,16 @@ function play(key: string, minGap: number, level: number, voice: (b: Bus, at: nu
     const ctx = getAudioContext()
     if (!ctx) return
     const go = () => {
-      const now = ctx.currentTime
-      if (now - (lastPlayed[key] ?? -1) < minGap) return
-      lastPlayed[key] = now
+      // repeat guard in wall-clock seconds: the context's own clock stops while
+      // it is paused; sounds are still scheduled on the context's clock
+      const wall = performance.now() / 1000
+      if (wall - (lastPlayed[key] ?? -Infinity) < minGap) return
+      lastPlayed[key] = wall
       const main = busFor(ctx)
       const gain = ctx.createGain()
       gain.gain.value = level
       gain.connect(main.out)
-      voice({ ...main, out: gain }, now + 0.004)
+      voice({ ...main, out: gain }, ctx.currentTime + 0.004)
     }
     if (ctx.state === 'suspended') {
       ctx.resume().then(go).catch(() => {})

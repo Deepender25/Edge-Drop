@@ -70,20 +70,20 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
   const startDrag = useDragOut()
   const [copied, setCopied] = useState(false)
 
-  const settings = useStore((s) => s.settings)
-  const isHorizontal = settings.stickPosition === 'top'
+  // Narrow subscriptions: a card re-renders only when what it shows changes
+  // (not on every settings write, or when another card previews / expands).
+  const isHorizontal = useStore((s) => s.settings.stickPosition === 'top')
   const colorInfo = item.data.kind === 'text' ? parseColor(item.data.text) : null
 
   // Accordion expansion: ONE stack open at a time, coordinated store-wide
   // (expanding another stack collapses this one; Escape / outside click /
   // filter or settings switches collapse via the same store field).
-  const expandedStackId = useStore((s) => s.expandedStackId)
-  const expanded = expandedStackId === item.id
+  const expanded = useStore((s) => s.expandedStackId === item.id)
   const setExpandedFlag = useCallback((v: boolean) => {
     useStore.getState().setExpandedStackId(v ? item.id : null)
   }, [item.id])
 
-  const isPreviewing = useStore((s) => s.previewItemId) === item.id
+  const isPreviewing = useStore((s) => s.previewItemId === item.id)
   const isMenuTarget = useStore((s) => s.cardMenu?.itemId === item.id)
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
   const isSingleImage = item.data.kind === 'image' || (
@@ -716,7 +716,7 @@ function HorizontalBundleExpanded({
   onDragStart: (e: React.DragEvent, req: DragRequest) => void
 }) {
   const { t } = useTranslation()
-  const isPreviewing = useStore((s) => s.previewItemId) === item.id
+  const isPreviewing = useStore((s) => s.previewItemId === item.id)
   const isImageCollection = item.data.kind === 'image-collection'
   const isFiles = item.data.kind === 'files'
   const images = item.data.kind === 'image-collection' ? item.data.images : []

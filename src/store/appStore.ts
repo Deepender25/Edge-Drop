@@ -286,7 +286,11 @@ export const useStore = create<AppState>((set, get) => ({
     sliderReleasedTime: active ? 0 : Date.now()
   }),
   notifyPositionChanged: () => set({ sliderReleasedTime: Date.now() }),
-  resetPositionChangedTime: () => set({ sliderReleasedTime: 0 }),
+  // Called on every cursor message while the shelf is open (~60/s); writing an
+  // unchanged value would still notify every store subscriber.
+  resetPositionChangedTime: () => {
+    if (get().sliderReleasedTime !== 0) set({ sliderReleasedTime: 0 })
+  },
   edgeHintActive: false,
   setEdgeHintActive: (active) => set({ edgeHintActive: active }),
   styleFlyoutOpen: false,

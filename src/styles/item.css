@@ -639,20 +639,21 @@ html[data-motion='reduce'] .fko-layers > .fil {
   transition: none;
 }
 
-/* Cards showing an opening folder icon keep the same horizontal hover pill,
-   but dock it on the label flap's shoulder (right of the raised tab, between
-   the folder and the name) instead of the top corner, where the opening
-   papers rise. Measured clear of the open folder and of the text.
+/* Folder-style cards (files, folders, photos, stacks) keep the same
+   horizontal hover pill, but dock it on the label flap's shoulder (right of
+   the raised tab, between the art and the name) instead of the top corner:
+   the art sits above it, clear of it (see the file / photo art rules below),
+   so the pill is in one place on every one of these cards.
    (`top: auto` sits in each dock's own rule: those outrank the top dock's
    `.list.horizontal` pill offsets.) */
-.item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions {
+.item.is-image-folder-card .item-main > .actions {
   transform-origin: bottom right;
 }
-.item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions {
+.item.is-image-folder-card .item-main > .actions {
   top: auto;
   bottom: 37px;
 }
-.list.horizontal .item.is-image-folder-card .item-main:has(.file-kind-opening) > .actions {
+.list.horizontal .item.is-image-folder-card .item-main > .actions {
   top: auto;
   bottom: 28px;
 }
@@ -678,6 +679,39 @@ html[data-motion='reduce'] .fko-layers > .fil {
 }
 .list.horizontal .image-folder-viewport > .single-file-hero {
   padding-bottom: 34px;
+}
+
+/* Photos and photo stacks sit the same way: the frame keeps a strip at the
+   bottom for the pill, so the photo (shown whole, any shape) rests above it.
+   Measured on hover with landscape, portrait, square, panorama and tiny
+   images: >= 6px from the pill and >= 5px from the frame's top in both docks
+   (top-dock 4-photo stacks overhang the top edge as they always have). */
+.image-folder-viewport:has(> .image-folder-thumb) {
+  padding-bottom: 36px;
+  box-sizing: border-box;
+}
+.list.horizontal .image-folder-viewport:has(> .image-folder-thumb) {
+  padding-bottom: 34px;
+}
+.list.horizontal .image-folder-viewport > .image-folder-thumb {
+  max-height: calc(100% - 14px);
+}
+.image-folder-viewport .image-folder-stack-deck:not(.is-file-deck) {
+  margin-top: 0;
+  padding-bottom: 32px;
+  box-sizing: border-box;
+}
+.list.horizontal .image-folder-viewport .image-folder-stack-deck:not(.is-file-deck) {
+  margin-top: 0;
+  padding-bottom: 30px;
+}
+.image-folder-stack-deck:not(.is-file-deck) .image-folder-stack-item {
+  width: 128px;
+  height: 86px;
+}
+.list.horizontal .image-folder-stack-deck:not(.is-file-deck) .image-folder-stack-item {
+  width: 86px;
+  height: 56px;
 }
 
 /* Single Image Folder Card (Framed image in folder card + borderless folder flap) */
