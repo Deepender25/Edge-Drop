@@ -267,7 +267,7 @@
   animation: none;
 }
 
-/* The drag targets' dashed line (DashedOutline / DashedLine): a 2px stroke,
+/* The drag targets' dashed line (DashedOutline): a 2px stroke,
    10px dashes with round ends and 8px clear between them, the same for the
    drop zone, the stacking ring and the detach edge. --dash-color sets how lit
    it is. The rect is inset by half the stroke so it is never clipped. */

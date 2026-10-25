@@ -252,14 +252,28 @@ describe('drag looks', () => {
     expect(list).toContain("s.setDropTargetId(target && target.data.kind !== 'text' ? target.id : null)")
   })
 
-  it('detach zone: only the dashed line along the screen edge of the shelf, no text, no orange glow', () => {
-    expect(itemCss).not.toMatch(/249, 115, 22|#f97316|#ff8a3d|glow-line|split-well|split-label/)
-    expect(panel).toContain("<DashedLine vertical={stickPosition !== 'top'} />")
+  it('detach zone: a light on the screen edge (bright core, blue bloom), in the place of the edge bar, no text, no orange', () => {
+    expect(itemCss).not.toMatch(/249, 115, 22|#f97316|#ff8a3d|glow-line|split-well|split-label|split-line|split-cue/)
     expect(panel).not.toContain('split-label')
-    expect(itemCss).toMatch(/\.split-dropzone\.pos-top \.split-line \{\n  top: 3px;/)
-    expect(itemCss).toMatch(/\.split-dropzone\.pos-left \.split-line \{\n  left: 3px;/)
-    expect(itemCss).toMatch(/\.split-dropzone\.pos-right \.split-line \{\n  right: 3px;/)
-    expect(itemCss).toMatch(/\.split-dropzone\.active \.split-line \{\n  --dash-color: rgba\(255, 255, 255, 0\.95\);/)
+    expect(panel).not.toContain('DashedLine')
+    expect(panel).toContain('<div className={`split-glow side-${stickPosition}`} />')
+    // as long as the closed edge bar and aligned like it
+    expect(panel).toContain('lineStart={isHorizontal ? insetLeft : insetTop}')
+    expect(panel).toContain('lineEnd={isHorizontal ? insetRight : insetBottom}')
+    expect(panel).toContain("? { left: `max(0px, ${lineStart})`, right: `max(0px, ${lineEnd})` }")
+    expect(panel).toContain(": { top: `max(0px, ${lineStart})`, bottom: `max(0px, ${lineEnd})` }")
+    // the light starts on the screen edge itself: a near-white core, then a system-blue glow and bloom into the shelf
+    for (const dir of ['to right', 'to left', 'to bottom']) {
+      expect(itemCss).toContain(`background: linear-gradient(\n    ${dir},\n    rgba(222, 240, 255, 1) 0,\n    rgba(222, 240, 255, 0.95) 1.5px,\n    rgba(10, 132, 255, 0.85) 3px,`)
+    }
+    expect(itemCss).toContain('rgba(10, 132, 255, 0) 48px')
+    // its ends fade out along the edge
+    expect(itemCss).toContain('mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);')
+    expect(itemCss).toContain('mask-image: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);')
+    // dimmer and reaching less while dragging, full over the strip, by transform and opacity only
+    expect(itemCss).toMatch(/\.split-glow \{\n  position: absolute;\n  opacity: 0\.6;/)
+    expect(itemCss).toMatch(/transition: transform 260ms cubic-bezier\(0\.22, 1, 0\.36, 1\), opacity 260ms cubic-bezier\(0\.22, 1, 0\.36, 1\);/)
+    expect(itemCss).toMatch(/\.split-dropzone\.active \.split-glow \{\n  opacity: 1;\n  transform: none;/)
     // the strip that takes the drop stays inside the reach of Panel's internal-drop fallback (80px top, 100px sides)
     expect(itemCss).toMatch(/\.split-dropzone\.pos-top \{[^}]*height: 64px;/)
     expect(itemCss).toMatch(/\.split-dropzone\.pos-left,\n\.split-dropzone\.pos-right \{[^}]*width: 88px;/)

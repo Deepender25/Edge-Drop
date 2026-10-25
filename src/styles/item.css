@@ -2968,33 +2968,106 @@ html[data-motion='reduce'] .file-stack-folder {
   right: 0;
 }
 
-/* The line: along the screen edge, in the shelf's gutter, clear of its
-   rounded ends; lit while the card is over the strip. */
-.split-line {
+/* The light: a lit strip on the screen edge in the edge bar's place (inline
+   insets, see SplitDropZone). A near-white core right on the edge, a tight
+   system-blue glow around it and a wide soft bloom into the shelf, its ends
+   fading out along the edge. Drawn once at full reach; while dragging it is
+   dimmer and reaches less, over the strip it comes up to full (transform and
+   opacity only). */
+.split-bar {
   position: absolute;
   pointer-events: none;
-  --dash-color: rgba(255, 255, 255, 0.45);
 }
-.split-dropzone.active .split-line {
-  --dash-color: rgba(255, 255, 255, 0.95);
+.split-dropzone.pos-top .split-bar {
+  top: 0;
+  height: 0;
 }
-.split-dropzone.pos-top .split-line {
-  top: 3px;
-  left: 28px;
-  right: 28px;
-  height: 4px;
+.split-dropzone.pos-left .split-bar {
+  left: 0;
+  width: 0;
 }
-.split-dropzone.pos-left .split-line,
-.split-dropzone.pos-right .split-line {
-  top: 28px;
-  bottom: 28px;
-  width: 4px;
+.split-dropzone.pos-right .split-bar {
+  right: 0;
+  width: 0;
 }
-.split-dropzone.pos-left .split-line {
-  left: 3px;
+.split-glow {
+  position: absolute;
+  opacity: 0.6;
+  will-change: transform, opacity;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: split-glow-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.split-dropzone.pos-right .split-line {
-  right: 3px;
+.split-glow.side-left,
+.split-glow.side-right {
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  transform: scaleX(0.7);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
+}
+.split-glow.side-left {
+  left: 0;
+  transform-origin: left center;
+  background: linear-gradient(
+    to right,
+    rgba(222, 240, 255, 1) 0,
+    rgba(222, 240, 255, 0.95) 1.5px,
+    rgba(10, 132, 255, 0.85) 3px,
+    rgba(10, 132, 255, 0.55) 6px,
+    rgba(10, 132, 255, 0.32) 11px,
+    rgba(10, 132, 255, 0.17) 18px,
+    rgba(10, 132, 255, 0.08) 27px,
+    rgba(10, 132, 255, 0.03) 37px,
+    rgba(10, 132, 255, 0) 48px
+  );
+}
+.split-glow.side-right {
+  right: 0;
+  transform-origin: right center;
+  background: linear-gradient(
+    to left,
+    rgba(222, 240, 255, 1) 0,
+    rgba(222, 240, 255, 0.95) 1.5px,
+    rgba(10, 132, 255, 0.85) 3px,
+    rgba(10, 132, 255, 0.55) 6px,
+    rgba(10, 132, 255, 0.32) 11px,
+    rgba(10, 132, 255, 0.17) 18px,
+    rgba(10, 132, 255, 0.08) 27px,
+    rgba(10, 132, 255, 0.03) 37px,
+    rgba(10, 132, 255, 0) 48px
+  );
+}
+.split-glow.side-top {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 48px;
+  transform: scaleY(0.7);
+  transform-origin: center top;
+  background: linear-gradient(
+    to bottom,
+    rgba(222, 240, 255, 1) 0,
+    rgba(222, 240, 255, 0.95) 1.5px,
+    rgba(10, 132, 255, 0.85) 3px,
+    rgba(10, 132, 255, 0.55) 6px,
+    rgba(10, 132, 255, 0.32) 11px,
+    rgba(10, 132, 255, 0.17) 18px,
+    rgba(10, 132, 255, 0.08) 27px,
+    rgba(10, 132, 255, 0.03) 37px,
+    rgba(10, 132, 255, 0) 48px
+  );
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
+}
+.split-dropzone.active .split-glow {
+  opacity: 1;
+  transform: none;
+}
+@keyframes split-glow-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* In-app drag onto another card: the card a drop would stack into gets the

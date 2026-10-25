@@ -25,7 +25,7 @@ import { CardMenu } from './CardMenu'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 import { registerEdgeDragCue } from '../lib/edgeDrag'
-import { DashedLine, DashedOutline } from './DashedOutline'
+import { DashedOutline } from './DashedOutline'
 import { isKept } from '../../shared/itemMeta'
 
 import { useTranslation } from '../i18n'
@@ -673,7 +673,11 @@ export function Panel() {
             </AnimatePresence>
           </div>
           <DropOverlay isHorizontal={isHorizontal} />
-          <SplitDropZone stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')} />
+          <SplitDropZone
+            stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')}
+            lineStart={isHorizontal ? insetLeft : insetTop}
+            lineEnd={isHorizontal ? insetRight : insetBottom}
+          />
         </div>
         <PreviewFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
@@ -818,12 +822,13 @@ function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
 }
 
 /**
- * Detach target while a card is dragged out of an open stack: the edge of the
- * shelf that meets the screen edge (where you drag it to) gets the drop
- * zone's dashed line, lit while the card is over it. The whole strip along
- * that edge takes the drop; only the line is drawn.
+ * Detach target while a card is dragged out of an open stack: a soft blue
+ * glow coming out of the screen edge where the slim edge bar sits when the
+ * shelf is closed (same length, same alignment), fading out toward its ends;
+ * with the card over the strip it grows and brightens. The whole strip along
+ * that edge takes the drop. lineStart/lineEnd are the edge bar's insets.
  */
-function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'right' | 'top' }) {
+function SplitDropZone({ stickPosition = 'left', lineStart, lineEnd }: { stickPosition?: 'left' | 'right' | 'top'; lineStart: string; lineEnd: string }) {
   const internalDragReq = useStore((s) => s.internalDragReq)
   const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
   const isSubitemDragging = !!(
@@ -855,9 +860,6 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
     }
   }
 
-  // Slides in from the edge it belongs to.
-  const offset = stickPosition === 'top' ? { y: -8 } : stickPosition === 'right' ? { x: 8 } : { x: -8 }
-
   return (
     <AnimatePresence>
       {isSubitemDragging && (
@@ -870,13 +872,20 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          initial={{ opacity: 0, ...offset }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          exit={{ opacity: 0, ...offset }}
-          transition={reduceMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 420, damping: 34 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduceMotion ? 0.01 : 0.14 }}
         >
-          <div className="split-line">
-            <DashedLine vertical={stickPosition !== 'top'} />
+          <div
+            className="split-bar"
+            style={
+              stickPosition === 'top'
+                ? { left: `max(0px, ${lineStart})`, right: `max(0px, ${lineEnd})` }
+                : { top: `max(0px, ${lineStart})`, bottom: `max(0px, ${lineEnd})` }
+            }
+          >
+            <div className={`split-glow side-${stickPosition}`} />
           </div>
         </motion.div>
       )}

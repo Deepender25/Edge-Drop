@@ -51,10 +51,10 @@ describe('Stack Features: SVG Folder Silhouette, Sizing, Horizontal Expansion & 
 
   it('Panel.tsx passes stickPosition to SplitDropZone for left/top/right orientations without text pill', () => {
     const src = read('src/components/Panel.tsx')
-    expect(src).toContain('SplitDropZone stickPosition={settings.stickPosition')
+    expect(src).toMatch(/<SplitDropZone\s+stickPosition=\{settings\.stickPosition/)
     expect(src).toContain('pos-${stickPosition}')
-    // slides in from its own edge in each dock
-    expect(src).toContain("const offset = stickPosition === 'top' ? { y: -8 } : stickPosition === 'right' ? { x: 8 } : { x: -8 }")
+    // grows out of its own edge in each dock (the bar's side class)
+    expect(src).toContain('side-${stickPosition}')
     // Text pill must NOT be introduced into SplitDropZone
     expect(src).not.toContain('split-dropzone-pill')
   })
