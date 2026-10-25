@@ -28,6 +28,7 @@ import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandS
 import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { DashedOutline } from './DashedOutline'
 import { LinkPreviewCard } from './LinkPreviewCard'
+import { parseUrlPreview } from '../lib/urlPreview'
 import { CodeBlock } from './CodeBlock'
 import { StackHeader, StackItems, fileStackEntries, imageCollectionEntries, stackOpenWidth } from './StackItems'
 import { detectCode } from '../lib/codeDetect'
@@ -1601,7 +1602,7 @@ function Preview({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
     case 'text': {
       if (item.data.isUrl) {
-        return <LinkPreviewCard url={item.data.text} />
+        return <LinkPreviewCard url={item.data.text} pageTitle={item.data.linkTitle} />
       }
       const colorInfo = parseColor(item.data.text)
       if (colorInfo) {
@@ -1755,13 +1756,8 @@ function ItemDetails({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
     case 'text': {
       if (item.data.isUrl) {
-        let domain = ''
-        try {
-          const urlStr = item.data.text.startsWith('http://') || item.data.text.startsWith('https://')
-            ? item.data.text
-            : `https://${item.data.text}`
-          domain = new URL(urlStr).hostname.replace(/^www\./, '')
-        } catch {}
+        // same readable host as the card (cached parse, international names decoded)
+        const domain = parseUrlPreview(item.data.text).domain
         if (domain) {
           return <span className="meta-detail">· {domain}</span>
         }

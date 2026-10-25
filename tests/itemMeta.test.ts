@@ -171,6 +171,27 @@ describe('ItemStore notes', () => {
     expect(Array.from(store.get('x3')!.note!)).toHaveLength(NOTE_MAX)
   })
 
+  it('a link copied with its page title keeps it; a repeat copy can bring it; old saved links learn it on load', () => {
+    const store = new ItemStore()
+    const link = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    const html = `<html><body><!--StartFragment--><a href="${link}">Never Gonna Give You Up</a><!--EndFragment--></body></html>`
+    store.add({ kind: 'text', text: link, html, isUrl: true }, 50)
+    expect(store.toDto()[0].data).toMatchObject({ kind: 'text', linkTitle: 'Never Gonna Give You Up', hasHtml: true })
+    // plain copy first, then the same link with its title: the card learns the title
+    store.add({ kind: 'text', text: 'https://example.com/a', isUrl: true }, 50)
+    expect(store.toDto()[0].data).not.toHaveProperty('linkTitle', expect.anything())
+    store.add({ kind: 'text', text: 'https://example.com/a', html: '<a href="https://example.com/a">Example A</a>', isUrl: true }, 50)
+    expect(store.toDto()[0]).toMatchObject({ hitCount: 2, data: { linkTitle: 'Example A' } })
+    // not a link: no title is read
+    store.add({ kind: 'text', text: 'hello', html: '<a href="hello">Hi</a>', isUrl: false }, 50)
+    expect(store.toDto()[0].data).not.toHaveProperty('linkTitle', expect.anything())
+    // saved before titles were kept
+    writeFileSync(PATHS.indexFile(), JSON.stringify({ items: [{ id: 'old', data: { kind: 'text', text: 'https://e.com/x', html: '<a href="https://e.com/x">Old Page</a>', isUrl: true }, capturedAt: 1, hitCount: 1, pinned: true }] }))
+    const reopened = new ItemStore()
+    reopened.load()
+    expect(reopened.toDto()[0].data).toMatchObject({ linkTitle: 'Old Page' })
+  })
+
   it('the DTO tells the renderer when a text item has html, without sending the html', () => {
     const store = new ItemStore()
     store.add({ kind: 'text', text: 'rich', html: '<b>rich</b>', isUrl: false }, 50)

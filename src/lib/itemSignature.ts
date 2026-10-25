@@ -26,7 +26,7 @@ export function itemRenderKey(item: ClipboardItemDto): string {
       // text feeds both the plain preview and the offline link-preview card;
       // isUrl switches the whole body layout. Do not include html: Excel
       // CF_HTML can be megabytes and cards never render it.
-      key = `t|${d.isUrl ? 1 : 0}|${d.isColor ? 1 : 0}|${d.text}`
+      key = `t|${d.isUrl ? 1 : 0}|${d.isColor ? 1 : 0}|${d.linkTitle ?? ''}|${d.text}`
       break
     case 'image':
       key = `i|${d.imageId}|${d.width}x${d.height}|${d.bytes}|${d.ext ?? ''}|${d.source ?? ''}|${d.fileName ?? ''}|${d.preview}`

@@ -4,32 +4,39 @@ import { LinkIcon } from './icons'
 
 interface LinkPreviewCardProps {
   url: string
+  /** The page title copied with the link, when the browser provided one. */
+  pageTitle?: string
   compact?: boolean
   onClick?: (e: React.MouseEvent) => void
 }
 
+/**
+ * A link card, worked out offline (lib/urlPreview.ts):
+ *   top    — the site's name and what kind of page it is ("GitHub · Issue")
+ *   body   — the page title copied with the link, else what the link itself
+ *            tells (repo, article, search, place), else the link
+ *   bottom — the link, readable, when the body shows a title
+ */
 export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({
   url,
+  pageTitle,
   compact = false,
   onClick
 }) => {
   const info: UrlPreviewInfo = useMemo(() => parseUrlPreview(url), [url])
 
-  // Clean, professional display:
-  // Top: Link SVG + Domain (e.g. 🔗 github.com)
-  const domain = info.domain || 'link'
+  const top = info.subtitle ? `${info.serviceName} · ${info.subtitle}` : info.serviceName
+  const link = info.displayUrl || info.url
 
-  // Clean URL without protocol (e.g. linkedin.com/in/gaurav-jha-hr)
-  const displayUrl = info.cleanUrl.replace(/^https?:\/\//, '')
-
-  // Main: Clean, human-readable title if distinct from domain and URL
-  const rawTitle = info.title?.trim()
-  const hasDistinctTitle = Boolean(
-    rawTitle &&
-    rawTitle.toLowerCase() !== displayUrl.toLowerCase() &&
-    rawTitle.toLowerCase() !== domain.toLowerCase()
+  // The body says something the other two lines don't
+  const candidate = (pageTitle || info.title || '').trim()
+  const lower = candidate.toLowerCase()
+  const hasTitle = Boolean(
+    candidate &&
+    lower !== link.toLowerCase() &&
+    lower !== info.domain.toLowerCase() &&
+    lower !== info.serviceName.toLowerCase()
   )
-  const displayTitle = hasDistinctTitle ? rawTitle : displayUrl
 
   return (
     <div
@@ -38,16 +45,16 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({
     >
       <div className="link-card-top">
         <LinkIcon width={12} height={12} className="link-card-icon" />
-        <span className="link-card-domain">{domain}</span>
+        <span className="link-card-domain" title={top}>{top}</span>
       </div>
 
-      <div className="link-card-body" title={info.cleanUrl}>
-        {displayTitle}
+      <div className="link-card-body" title={hasTitle ? candidate : link}>
+        {hasTitle ? candidate : link}
       </div>
 
-      {hasDistinctTitle && (
-        <div className="link-card-url" title={info.cleanUrl}>
-          {displayUrl}
+      {hasTitle && (
+        <div className="link-card-url" title={link}>
+          {link}
         </div>
       )}
     </div>

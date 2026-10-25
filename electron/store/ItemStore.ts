@@ -28,6 +28,7 @@ import { createId } from './ids'
 import { contentSignature } from './signature'
 import { MAX_ITEM_HTML_CHARS } from '../clipboard/formats'
 import { isKept, joinNotes, normalizeNote, noteFromLegacy, type ItemMetaPatch } from '../../shared/itemMeta'
+import { linkTitleFromHtml } from '../../shared/linkText'
 
 /** Write an already-normalized note, removing the field when empty. */
 function applyNote(it: ClipboardItem, note: string | undefined): void {
@@ -125,6 +126,11 @@ export class ItemStore {
             applyNote(it, normalizeNote(it.note))
           }
           if (it.data.kind === 'text') {
+            // links saved before page titles were kept: read it from the saved html once
+            if (it.data.isUrl && it.data.html && !it.data.linkTitle) {
+              const linkTitle = linkTitleFromHtml(it.data.html, it.data.text.trim())
+              if (linkTitle) it.data.linkTitle = linkTitle
+            }
             if (!it.data.hasFullPayload && it.data.text.length > 300) {
               this.writeTextPayload(it.id, it.data.text)
               it.data.hasFullPayload = true
@@ -259,12 +265,22 @@ export class ItemStore {
     const existingId = this.sigToId.get(sig)
     const now = Date.now()
 
+    // A link copied with its page title (browsers put `<a href>Title</a>` in
+    // the html): keep the title for the card and search.
+    if (data.kind === 'text' && data.isUrl && data.html && !data.linkTitle) {
+      const linkTitle = linkTitleFromHtml(data.html, data.text.trim())
+      if (linkTitle) data = { ...data, linkTitle }
+    }
+
     if (existingId) {
       const idx = this.items.findIndex((it) => it.id === existingId)
       if (idx >= 0) {
         const it = this.items[idx]
-        // Bump count and move to front.
+        // Bump count and move to front (and learn the page title if this copy brought one).
         const updated: ClipboardItem = { ...it, hitCount: it.hitCount + 1, capturedAt: now }
+        if (data.kind === 'text' && data.linkTitle && updated.data.kind === 'text' && !updated.data.linkTitle) {
+          updated.data = { ...updated.data, linkTitle: data.linkTitle }
+        }
         this.items.splice(idx, 1)
         this.items.unshift(updated)
         this.persist()
@@ -850,6 +866,7 @@ export class ItemStore {
             isColor: d.isColor,
             hasFullPayload: d.hasFullPayload,
             previewText: d.previewText,
+            linkTitle: d.linkTitle,
             // html itself stays in main (can be large); the renderer only
             // needs to know it exists to offer "Paste as plain text".
             hasHtml: !!d.html

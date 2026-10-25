@@ -55,6 +55,7 @@ function on<C extends EventChannel>(
  * to fail. Handling it here natively bypasses the bridge entirely.
  */
 import { reduceGuard, isGuarded } from './internalDragGuard'
+import { isLinkText } from '../../shared/linkText'
 
 let guard: import('./internalDragGuard').GuardState = { phase: 'idle', fireAt: null }
 let guardIdleTimer: ReturnType<typeof setTimeout> | null = null
@@ -163,7 +164,7 @@ win.addEventListener('drop', (e: any) => {
   // 3. Plain Text / HTML
   if (plainText) {
     e.preventDefault()
-    const isUrl = /^(https?:\/\/|www\.)[^\s]+$/i.test(plainText)
+    const isUrl = isLinkText(plainText)
     const isColor = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(plainText)
     invoke('item:add-data', {
       kind: 'text',

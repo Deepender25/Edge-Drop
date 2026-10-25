@@ -3,7 +3,7 @@ import { useStore } from '../store/appStore'
 import { formatBytes, formatImageDisplayName, relativeTime } from '../lib/format'
 import { getFileKind } from '../lib/fileType'
 import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon, TypeIcon, ImageIcon, PaletteIcon, FilesIcon } from './icons'
-import { externalHref, parseUrlPreview, stripTracking } from '../lib/urlPreview'
+import { cleanLink, externalHref, parseUrlPreview } from '../lib/urlPreview'
 import { colorFormats, parseColor } from '../lib/colorUtils'
 import { fitPreviewImage, type PreviewImageFit } from '../lib/previewImageFit'
 import { detectCode } from '../lib/codeDetect'
@@ -688,6 +688,8 @@ function PreviewContent({
 
     if (isUrl) {
       const info = parseUrlPreview(activeText)
+      // the page title copied with the link, else what the link itself tells
+      const linkTitle = (item.data.linkTitle || info.title || '').trim()
       return frame(
         <FlyoutHead icon={<GlobeIcon />} title={info.serviceName} detail={info.domain} time={time}>
           <QuickActionButton
@@ -699,7 +701,7 @@ function PreviewContent({
             title={t('flyout.copyText')}
             icon={CopyIcon}
             // Through main (watcher paused): the copy is not captured as a new card.
-            onClick={() => void useStore.getState().copyText(stripTracking(activeText), { quiet: true })}
+            onClick={() => void useStore.getState().copyText(cleanLink(activeText), { quiet: true })}
           />
         </FlyoutHead>,
         <div
@@ -707,8 +709,8 @@ function PreviewContent({
           title={t('flyout.clickToPaste')}
           style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12, cursor: 'pointer' }}
         >
-          {info.title && <div className="pf-link-title">{info.title}</div>}
-          {info.title && info.subtitle && <span className="pf-link-sub">{info.subtitle}</span>}
+          {linkTitle && <div className="pf-link-title">{linkTitle}</div>}
+          {info.subtitle && <span className="pf-link-sub">{info.subtitle}</span>}
           <div
             onClick={(e) => {
               e.stopPropagation()
@@ -716,7 +718,7 @@ function PreviewContent({
             }}
             className="flyout-url"
           >
-            {info.cleanUrl || activeText}
+            {info.displayUrl || activeText}
           </div>
         </div>
       )

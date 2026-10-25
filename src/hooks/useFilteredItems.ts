@@ -21,7 +21,8 @@ function itemText(it: ClipboardItemDto): SearchText {
     const d = it.data
     // Images have no text of their own: they are found through their note.
     const content = d.kind === 'text' ? d.text : d.kind === 'files' ? d.paths.map((p) => basename(p)).join('\n') : ''
-    text = searchText([content, it.note])
+    // a link is also found by the page title copied with it
+    text = searchText([content, d.kind === 'text' ? d.linkTitle : undefined, it.note])
     textCache.set(it, text)
   }
   return text

@@ -63,7 +63,7 @@ export type ClipboardImageFields = {
 
 /** Discriminated union describing the payload of a clipboard item. */
 export type ItemData =
-  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string }
+  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string; linkTitle?: string }
   | ({ kind: 'image' } & ClipboardImageFields)
   | { kind: 'image-collection'; images: ClipboardImageFields[] }
   | { kind: 'files'; paths: string[]; entries?: FileEntry[] }
@@ -107,7 +107,7 @@ export interface FileEntry {
 /** Payload sent over IPC: same as ClipboardItem but with inline image previews. */
 export interface ClipboardItemDto extends Omit<ClipboardItem, 'data'> {
   data:
-  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string; hasHtml?: boolean }
+  | { kind: 'text'; text: string; html?: string; isUrl: boolean; isColor?: boolean; hasFullPayload?: boolean; previewText?: string; hasHtml?: boolean; linkTitle?: string }
   | ({ kind: 'image'; preview: string } & ClipboardImageFields)
   | { kind: 'image-collection'; images: Array<ClipboardImageFields & { preview: string }> }
   | { kind: 'files'; paths: string[]; previews?: string[]; entries?: FileEntry[] }

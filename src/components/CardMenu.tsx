@@ -31,7 +31,7 @@ import { useTranslation } from '../i18n'
 import { edge } from '../lib/edge'
 import { tryPaste } from '../lib/tryPaste'
 import { colorFormats, type ColorFormat } from '../lib/colorUtils'
-import { externalHref, stripTracking } from '../lib/urlPreview'
+import { cleanLink, externalHref } from '../lib/urlPreview'
 import { acquireKeyboard, releaseKeyboard } from '../lib/keyboardFocus'
 import { playCardExpandSound, playDeleteSound, playToggleSound } from '../lib/soundEffects'
 import {
@@ -365,7 +365,8 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
   const isLink = isText && d.isUrl
   const colors = isText && !d.isUrl ? colorFormats(text) : null
   const canPastePlain = isText && !colors && (!!d.hasHtml || text.includes('\t'))
-  const canCleanLink = isLink && (!!d.hasFullPayload || stripTracking(text) !== text.trim())
+  // the real destination of a redirect link, tracking removed, stray punctuation dropped
+  const canCleanLink = isLink && (!!d.hasFullPayload || cleanLink(text) !== text.trim())
   const isImage = d.kind === 'image' || d.kind === 'image-collection'
   const filePaths = d.kind === 'files' ? d.paths : []
 
@@ -395,7 +396,7 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
           label={t('menu.copyCleanLink')}
           onSelect={() => {
             close()
-            void fullTextOf(item).then((full) => store().copyText(stripTracking(full)))
+            void fullTextOf(item).then((full) => store().copyText(cleanLink(full)))
           }}
         />
       )

@@ -12,6 +12,7 @@ import { promisify } from 'node:util'
 import { existsSync } from 'node:fs'
 import koffi from 'koffi'
 import type { ClipboardImageSource, ItemData } from '../../shared/types'
+import { isLinkText } from '../../shared/linkText'
 
 let getSeqNum: (() => number) | null = null
 
@@ -641,7 +642,8 @@ export async function readClipboard(): Promise<ItemData | null> {
 
     const textToStore = normalizeClipboardText(rawText)
 
-    const isUrl = URL_RE.test(trimmedText)
+    // A link card: scheme, www., mailto:/tel: or a bare domain (shared/linkText)
+    const isUrl = isLinkText(trimmedText)
     const isColor = COLOR_HEX_RE.test(trimmedText)
 
     return { kind: 'text', text: textToStore, html, isUrl, isColor }
@@ -745,7 +747,7 @@ export function clipboardSignature(): string {
 
 /** True if the text payload looks like a single URL. */
 export function isUrlText(s: string): boolean {
-  return URL_RE.test(s)
+  return isLinkText(s)
 }
 
 /**
