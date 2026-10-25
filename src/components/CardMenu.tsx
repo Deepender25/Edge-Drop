@@ -1,6 +1,6 @@
 /**
- * CardMenu — the right-click menu of an item card, and the label / tags
- * editor it turns into.
+ * CardMenu — the right-click menu of an item card, and the note editor it
+ * turns into.
  *
  * One instance for the whole shelf (mounted next to the other flyouts),
  * rendered only while open, so it costs nothing the rest of the time. It is
@@ -22,21 +22,19 @@
  * shelf waits a moment before hover-closing (cardMenuStayUntil), so a
  * pointer left outside the blade by the menu has time to come back.
  */
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { ClipboardItemDto } from '../../shared/types'
-import { LABEL_MAX, TAGS_MAX, TAG_MAX_LEN, hasItemMeta, normalizeLabel, normalizeTag } from '../../shared/itemMeta'
-import { useStore } from '../store/appStore'
+import { NOTE_MAX, normalizeNote } from '../../shared/itemMeta'
+import { registerCardEditorCommit, useStore } from '../store/appStore'
 import { useTranslation } from '../i18n'
 import { edge } from '../lib/edge'
 import { tryPaste } from '../lib/tryPaste'
 import { colorFormats, type ColorFormat } from '../lib/colorUtils'
 import { externalHref, stripTracking } from '../lib/urlPreview'
 import { acquireKeyboard, releaseKeyboard } from '../lib/keyboardFocus'
-import { suggestTags, tagCounts } from '../lib/tagQuery'
 import { playCardExpandSound, playDeleteSound, playToggleSound } from '../lib/soundEffects'
 import {
-  CloseIcon,
   CopyIcon,
   DownloadIcon,
   ExpandIcon,
@@ -47,14 +45,14 @@ import {
   PaletteIcon,
   PasteIcon,
   PinFillIcon,
+  NoteIcon,
   PinIcon,
-  TagIcon,
   TrashIcon,
   TypeIcon
 } from './icons'
 import '../styles/cardMenu.css'
 
-/** Keyboard-focus holder name for the label / tags editor. */
+/** Keyboard-focus holder name for the note editor. */
 const EDITOR_FOCUS_OWNER = 'card-meta'
 /** Space kept between the menu and the edge of its allowed area. */
 const EDGE_GAP = 8
@@ -178,6 +176,11 @@ export function CardMenu() {
   const closeCardMenu = useStore((s) => s.closeCardMenu)
   const boxRef = useRef<HTMLDivElement>(null)
   const commitRef = useRef<(() => void) | null>(null)
+  // The shelf closing while the editor is open saves it (see setOpen).
+  useEffect(() => {
+    registerCardEditorCommit(() => commitRef.current?.())
+    return () => registerCardEditorCommit(null)
+  }, [])
   const [placement, setPlacement] = useState<MenuPlacement | null>(null)
 
   // The item was deleted / merged away (auto-delete, another window).
@@ -186,7 +189,7 @@ export function CardMenu() {
   }, [menu, item, closeCardMenu])
 
   // The editor's keyboard hold ends with edit mode (or a pointer-down on
-  // "Label & tags" that never became a click).
+  // "Add note" that never became a click).
   const editing = menu?.mode === 'edit'
   useEffect(() => {
     if (!editing) releaseKeyboard(EDITOR_FOCUS_OWNER)
@@ -295,7 +298,6 @@ export function CardMenu() {
         <MetaEditor
           key={item.id}
           item={item}
-          focus={menu.focus ?? 'label'}
           commitRef={commitRef}
           onDone={() => useStore.getState().closeCardMenu()}
         />
@@ -366,7 +368,6 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
   const canCleanLink = isLink && (!!d.hasFullPayload || stripTracking(text) !== text.trim())
   const isImage = d.kind === 'image' || d.kind === 'image-collection'
   const filePaths = d.kind === 'files' ? d.paths : []
-  const named = hasItemMeta(item)
 
   const copyText = (value: string) => {
     void store().copyText(value)
@@ -494,12 +495,12 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
       />
       <Separator />
       <MenuRow
-        icon={<TagIcon />}
-        label={named ? t('menu.editLabel') : t('menu.addLabel')}
+        icon={<NoteIcon />}
+        label={item.note ? t('menu.editNote') : t('menu.addNote')}
         // Borrow the keyboard on pointer-down: the shelf window may never
         // see a focus event from a plain click (NOACTIVATE).
         onPress={() => void acquireKeyboard(EDITOR_FOCUS_OWNER)}
-        onSelect={() => store().editCardMeta('label')}
+        onSelect={() => store().editCardMeta()}
       />
       <MenuRow
         icon={item.pinned ? <PinFillIcon /> : <PinIcon />}
@@ -537,33 +538,21 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Label / tags editor                                                 */
+/* Note editor                                                         */
 /* ------------------------------------------------------------------ */
 
 function MetaEditor({
   item,
-  focus,
   commitRef,
   onDone
 }: {
   item: ClipboardItemDto
-  focus: 'label' | 'tags'
   commitRef: React.MutableRefObject<(() => void) | null>
   onDone: () => void
 }) {
   const { t } = useTranslation()
-  const [label, setLabel] = useState(item.label ?? '')
-  const [tags, setTags] = useState<string[]>(item.tags ?? [])
-  const [draft, setDraft] = useState('')
-  const labelRef = useRef<HTMLInputElement>(null)
-  const tagRef = useRef<HTMLInputElement>(null)
-  const items = useStore((s) => s.items)
-  const counts = useMemo(() => tagCounts(items), [items])
-  const suggestions = useMemo(
-    () => (tags.length < TAGS_MAX ? suggestTags(counts, draft, { exclude: tags, limit: 6 }) : []),
-    [counts, draft, tags]
-  )
-  const full = tags.length >= TAGS_MAX
+  const [note, setNote] = useState(item.note ?? '')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Hold the keyboard while the editor is open (acquired on the menu row's
   // pointer-down already; this is a no-op then) and put the caret in.
@@ -571,161 +560,62 @@ function MetaEditor({
     let alive = true
     void acquireKeyboard(EDITOR_FOCUS_OWNER).then(() => {
       if (!alive) return
-      const el = focus === 'tags' ? tagRef.current ?? labelRef.current : labelRef.current
       try {
-        el?.focus()
-        el?.select?.()
+        inputRef.current?.focus()
+        inputRef.current?.select()
       } catch { /* ignore */ }
     })
     return () => {
       alive = false
       releaseKeyboard(EDITOR_FOCUS_OWNER)
     }
-  }, [focus])
-
-  const addTag = useCallback((raw: string) => {
-    const tag = normalizeTag(raw)
-    setDraft('')
-    if (!tag) return
-    setTags((cur) => (cur.includes(tag) || cur.length >= TAGS_MAX ? cur : [...cur, tag]))
   }, [])
 
   const save = useCallback(() => {
-    let nextTags = tags
-    const pending = normalizeTag(draft)
-    if (pending && !nextTags.includes(pending) && nextTags.length < TAGS_MAX) nextTags = [...nextTags, pending]
-    const nextLabel = normalizeLabel(label)
-    const changed = (nextLabel ?? '') !== (item.label ?? '') || nextTags.join('\u0001') !== (item.tags ?? []).join('\u0001')
-    if (changed) void useStore.getState().setItemMeta(item.id, { label: nextLabel ?? null, tags: nextTags })
+    const next = normalizeNote(note)
+    if ((next ?? '') !== (item.note ?? '')) void useStore.getState().setItemMeta(item.id, { note: next ?? null })
     onDone()
-  }, [tags, draft, label, item, onDone])
+  }, [note, item, onDone])
   commitRef.current = save
 
-  const removeAll = () => {
-    void useStore.getState().setItemMeta(item.id, { label: null, tags: null })
+  const remove = () => {
+    void useStore.getState().setItemMeta(item.id, { note: null })
     onDone()
   }
 
   return (
     <form
       className="card-meta-editor"
-      aria-label={t('menu.editLabel')}
+      aria-label={item.note ? t('menu.editNote') : t('menu.addNote')}
       onSubmit={(e) => {
         e.preventDefault()
         save()
       }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-          e.preventDefault()
-          save()
-        }
-      }}
     >
       <label className="card-meta-field">
-        <span className="card-meta-caption">{t('menu.label')}</span>
+        <span className="card-meta-caption">{t('menu.note')}</span>
         <input
-          ref={labelRef}
+          ref={inputRef}
           className="card-meta-input"
-          value={label}
-          maxLength={LABEL_MAX}
-          placeholder={t('menu.labelPlaceholder')}
+          value={note}
+          maxLength={NOTE_MAX}
+          placeholder={t('menu.notePlaceholder')}
           spellCheck={false}
           autoComplete="off"
-          onChange={(e) => setLabel(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
-              e.preventDefault()
-              if (full) save()
-              else tagRef.current?.focus()
-            }
-          }}
+          onChange={(e) => setNote(e.target.value)}
         />
+        <span className="card-meta-hint">{t('menu.noteHint')}</span>
       </label>
 
-      <div className="card-meta-field">
-        <span className="card-meta-caption">
-          {t('menu.tags')}
-          <span className="card-meta-count">{tags.length}/{TAGS_MAX}</span>
-        </span>
-        <div className="card-meta-tags" onMouseDown={(e) => {
-          if (e.target === e.currentTarget) {
-            e.preventDefault()
-            tagRef.current?.focus()
-          }
-        }}>
-          {tags.map((tag) => (
-            <span key={tag} className="card-meta-chip">
-              <span className="card-meta-chip-text">#{tag}</span>
-              <button
-                type="button"
-                className="card-meta-chip-remove"
-                aria-label={t('menu.removeTag', { tag })}
-                title={t('menu.removeTag', { tag })}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setTags((cur) => cur.filter((x) => x !== tag))}
-              >
-                <CloseIcon width={8} height={8} />
-              </button>
-            </span>
-          ))}
-          {!full && (
-            <input
-              ref={tagRef}
-              className="card-meta-tag-input"
-              value={draft}
-              maxLength={TAG_MAX_LEN + 1}
-              placeholder={tags.length === 0 ? t('menu.tagPlaceholder') : ''}
-              spellCheck={false}
-              autoComplete="off"
-              onChange={(e) => {
-                const v = e.target.value
-                if (v.includes(',')) {
-                  const parts = v.split(',')
-                  parts.slice(0, -1).forEach(addTag)
-                  setDraft(parts[parts.length - 1])
-                } else {
-                  setDraft(v)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
-                  e.preventDefault()
-                  if (draft.trim()) addTag(draft)
-                  else save()
-                } else if (e.key === 'Backspace' && draft === '' && tags.length > 0) {
-                  e.preventDefault()
-                  setTags((cur) => cur.slice(0, -1))
-                }
-              }}
-            />
-          )}
-        </div>
-        {suggestions.length > 0 && (
-          <div className="card-meta-suggest" aria-label={t('menu.usedBefore')}>
-            {suggestions.map((s) => (
-              <button
-                key={s.tag}
-                type="button"
-                className="card-meta-suggestion"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => addTag(s.tag)}
-              >
-                #{s.tag}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
       <div className="card-meta-actions">
-        {hasItemMeta(item) && (
+        {item.note && (
           <button
             type="button"
             className="card-meta-btn is-quiet"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={removeAll}
+            onClick={remove}
           >
-            {t('menu.removeAll')}
+            {t('menu.removeNote')}
           </button>
         )}
         <span className="card-meta-spacer" />

@@ -44,12 +44,11 @@ const TOP_FLYOUT_MAX_W = 760
 const IMAGE_CHROME_H = 78
 const BODY_SIDE_PADDING = 40
 
-/** Rough height of the label + tags block above the content. */
+/** Rough height of the note above the content (up to 120 characters wrap to ~3 lines). */
 function metaHeight(item: any): number {
-  const hasLabel = !!item?.label
-  const hasTags = !!item?.tags?.length
-  if (!hasLabel && !hasTags) return 0
-  return 14 + (hasLabel ? 22 : 0) + (hasTags ? 22 : 0) + (hasLabel && hasTags ? 8 : 0)
+  const note: string | undefined = item?.note
+  if (!note) return 0
+  return 14 + 20 * Math.min(3, Math.ceil(note.length / 46))
 }
 
 /** Same soft spring as the CSS open, for the slide when the anchor card moves. */
@@ -592,19 +591,12 @@ function FlyoutHead({
   )
 }
 
-/** The item's label and every tag, above the content. */
+/** The item's whole note, above the content. */
 function MetaHead({ item }: { item: any }) {
-  if (!item.label && !item.tags?.length) return null
+  if (!item.note) return null
   return (
     <div className="flyout-meta-head">
-      {item.label && <div className="flyout-meta-label">{item.label}</div>}
-      {item.tags?.length ? (
-        <div className="flyout-meta-tags">
-          {item.tags.map((tag: string) => (
-            <span key={tag} className="flyout-meta-tag">#{tag}</span>
-          ))}
-        </div>
-      ) : null}
+      <div className="flyout-meta-label">{item.note}</div>
     </div>
   )
 }

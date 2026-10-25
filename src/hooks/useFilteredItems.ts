@@ -9,25 +9,26 @@ import { useStore } from '../store/appStore'
 import type { ClipboardItemDto, TypeFilter } from '../../shared/types'
 import { basename, isImagePath } from '../lib/format'
 import { parseColor } from '../lib/colorUtils'
-import { matchesTagFilters, metaMatchesText, parseQuery, type ParsedQuery } from '../lib/tagQuery'
+import { matchesWords, queryWords, searchText, type SearchText, type SearchWord } from '../lib/search'
 
-function contentMatches(it: ClipboardItemDto, needle: string): boolean {
-  switch (it.data.kind) {
-    case 'text':
-      return it.data.text.toLowerCase().includes(needle)
-    case 'files':
-      return it.data.paths.some((p) => basename(p).toLowerCase().includes(needle))
-    case 'image':
-    case 'image-collection':
-      // No text of their own: found only through a label or tag.
-      return false
+// Each item's searchable text, folded once per item object (items are
+// replaced, never mutated, when they change), so typing doesn't redo it.
+const textCache = new WeakMap<ClipboardItemDto, SearchText>()
+
+function itemText(it: ClipboardItemDto): SearchText {
+  let text = textCache.get(it)
+  if (!text) {
+    const d = it.data
+    // Images have no text of their own: they are found through their note.
+    const content = d.kind === 'text' ? d.text : d.kind === 'files' ? d.paths.map((p) => basename(p)).join('\n') : ''
+    text = searchText([content, it.note])
+    textCache.set(it, text)
   }
+  return text
 }
 
-export function matches(it: ClipboardItemDto, q: ParsedQuery): boolean {
-  if (!matchesTagFilters(it, q.tags)) return false
-  if (!q.text) return true
-  return contentMatches(it, q.text) || metaMatchesText(it, q.text)
+export function matches(it: ClipboardItemDto, words: readonly SearchWord[]): boolean {
+  return words.length === 0 || matchesWords(itemText(it), words)
 }
 
 /**
@@ -92,9 +93,9 @@ export function useFilteredItems(): GroupedItems {
       }
     })
 
-    const parsed = parseQuery(query)
+    const words = queryWords(query)
     for (const it of filteredByTutorial) {
-      if (!matches(it, parsed)) continue
+      if (!matches(it, words)) continue
       if (!itemMatchesTypeFilter(it, typeFilter)) continue
       ;(it.pinned ? pinned : recent).push(it)
     }

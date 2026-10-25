@@ -5,7 +5,7 @@
  * app). A field that needs typing calls acquireKeyboard() on pointer-down —
  * a NOACTIVATE window may never fire a focus event from a plain click — and
  * releaseKeyboard() on every exit. Holders are counted (searchFocus.ts), so
- * search and the label editor can hand over to each other.
+ * search and the note editor can hand over to each other.
  *
  * Giving focus back is deferred a moment and cancelled if anyone takes it
  * again meanwhile. Without that, a release immediately followed by an

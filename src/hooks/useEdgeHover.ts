@@ -148,40 +148,25 @@ export function cursorToWindow(
   return { x: cursor.x, y: cursor.y }
 }
 
-/** True while the card menu should hold the shelf open for this cursor. */
+/**
+ * True while the card menu (or the note editor it turns into) holds the shelf
+ * open for this cursor: only while the pointer is on it. Leaving both the
+ * shelf and the menu closes the shelf like any other leave; an open editor
+ * saves what was typed as it closes (setOpen in the store) and the keyboard
+ * goes back to the app that had it.
+ */
 export function cardMenuHolds(
   menu: { mode: 'menu' | 'edit' } | null,
   rect: { left: number; top: number; right: number; bottom: number } | null,
-  point: { x: number; y: number },
-  hasKeyboard = false
+  point: { x: number; y: number }
 ): boolean {
-  if (!menu) return false
-  // Typing a label (the shelf holds the keyboard): never close under the
-  // user. An outside click or app switch saves and closes the editor, then
-  // normal hover rules resume. Without the keyboard nobody can be typing, so
-  // the editor counts only where it is, like the menu.
-  if (menu.mode === 'edit' && hasKeyboard) return true
-  if (!rect) return false
+  if (!menu || !rect) return false
   return (
     point.x >= rect.left - CARD_MENU_BUFFER &&
     point.x <= rect.right + CARD_MENU_BUFFER &&
     point.y >= rect.top - CARD_MENU_BUFFER &&
     point.y <= rect.bottom + CARD_MENU_BUFFER
   )
-}
-
-/** Whether the shelf window currently holds OS keyboard focus. */
-function windowHasKeyboard(): boolean {
-  try {
-    return typeof document !== 'undefined' && document.hasFocus()
-  } catch {
-    return false
-  }
-}
-
-/** The label editor is open and the user can actually type into it. */
-function isTypingInCardMenu(state: { cardMenu: { mode: 'menu' | 'edit' } | null }): boolean {
-  return state.cardMenu?.mode === 'edit' && windowHasKeyboard()
 }
 
 export function useEdgeHover(): void {
@@ -308,7 +293,6 @@ export function useEdgeHover(): void {
       const state = useStore.getState()
       if (!state.open) return
       if (state.sliderActive || state.edgeTransition?.active) return
-      if (isTypingInCardMenu(state)) return
       if (state.dragActive && !state.internalDragReq) return
 
       // If any flyout is open, let it play its exit spring first.
@@ -345,7 +329,6 @@ export function useEdgeHover(): void {
     const scheduleClose = (delay = GRACE_MS) => {
       const state = useStore.getState()
       if (state.sliderActive || state.edgeTransition?.active) return
-      if (isTypingInCardMenu(state)) return
       if (state.dragActive && !state.internalDragReq) return
       if (graceTimer !== undefined) return // already closing
 
@@ -447,7 +430,7 @@ export function useEdgeHover(): void {
     const isInsideBlade = () => {
       const state = useStore.getState()
       if (state.sliderActive || state.edgeTransition?.active) return true
-      if (state.cardMenu && cardMenuHolds(state.cardMenu, state.cardMenuRect, cursorInWindow(state, lastClient.current), windowHasKeyboard())) return true
+      if (state.cardMenu && cardMenuHolds(state.cardMenu, state.cardMenuRect, cursorInWindow(state, lastClient.current))) return true
       const timeSincePositionChange = state.sliderReleasedTime > 0 ? Date.now() - state.sliderReleasedTime : Infinity
       if (timeSincePositionChange < 1750) return true
 
@@ -572,8 +555,8 @@ export function useEdgeHover(): void {
         if (!drag) setEdgeDragPull(0)
       }
 
-      // The card menu (or its label editor) is part of the shelf while open.
-      if (state.open && state.cardMenu && cardMenuHolds(state.cardMenu, state.cardMenuRect, cursorInWindow(state, data), windowHasKeyboard())) {
+      // The card menu (or its note editor) is part of the shelf while the pointer is on it.
+      if (state.open && state.cardMenu && cardMenuHolds(state.cardMenu, state.cardMenuRect, cursorInWindow(state, data))) {
         const now = Date.now()
         if (now - lastSetInteractiveRef.current > 2000) {
           lastSetInteractiveRef.current = now

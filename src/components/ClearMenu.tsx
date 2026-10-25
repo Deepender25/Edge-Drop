@@ -4,6 +4,7 @@ import { TrashIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
 import type { ClipboardItemDto } from '../../shared/types'
+import { isKept } from '../../shared/itemMeta'
 
 interface ClearMenuProps {
   /** Full item list (pinned + recent) to compute time-window ids from. */
@@ -79,8 +80,8 @@ export function ClearMenu({
 
   const clearWindow = (hours: number) => {
     const cutoff = Date.now() - hours * 3600 * 1000
-    // Pinned items are never included in a bulk clear
-    const ids = items.filter((it) => !it.pinned && it.capturedAt >= cutoff).map((it) => it.id)
+    // Pinned and noted cards are never included in a bulk clear
+    const ids = items.filter((it) => !isKept(it) && it.capturedAt >= cutoff).map((it) => it.id)
     playButtonClickSound()
     setOpen(false)
     if (ids.length > 0) onClear(ids)

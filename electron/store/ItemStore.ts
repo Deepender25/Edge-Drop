@@ -5,7 +5,8 @@
  *   - Keep an ordered list (most recent first) of ClipboardItem.
  *   - Deduplicate by content signature so re-copies bump `hitCount` instead of
  *     adding a clone.
- *   - Enforce a size cap, evicting the oldest *unpinned* items.
+ *   - Enforce a size cap, evicting the oldest items that aren't kept
+ *     (pinned or noted, see isKept).
  *   - Persist the index to JSON and image bytes to per-item PNG files.
  *   - Convert internal items to the serializable DTO form for the renderer.
  */
@@ -26,14 +27,12 @@ import { PATHS } from './paths'
 import { createId } from './ids'
 import { contentSignature } from './signature'
 import { MAX_ITEM_HTML_CHARS } from '../clipboard/formats'
-import { combineTags, hasItemMeta, normalizeLabel, normalizeTags, type ItemMetaPatch } from '../../shared/itemMeta'
+import { isKept, joinNotes, normalizeNote, noteFromLegacy, type ItemMetaPatch } from '../../shared/itemMeta'
 
-/** Write already-normalized metadata, removing the fields when empty. */
-function applyMeta(it: ClipboardItem, label: string | undefined, tags: string[] | undefined): void {
-  if (label) it.label = label
-  else delete it.label
-  if (tags && tags.length > 0) it.tags = tags
-  else delete it.tags
+/** Write an already-normalized note, removing the field when empty. */
+function applyNote(it: ClipboardItem, note: string | undefined): void {
+  if (note) it.note = note
+  else delete it.note
 }
 
 /** Maps a signature -> item id so dedup is O(1). */
@@ -112,9 +111,19 @@ export class ItemStore {
         // Auto-migrate large text items to disk payload files
         let migratedAnyPayloads = false
         for (const it of this.items) {
-          // A hand-edited or damaged file must never feed odd label/tag
-          // values to the renderer: re-run the same cleanup as writes.
-          if ('label' in it || 'tags' in it) applyMeta(it, normalizeLabel(it.label), normalizeTags(it.tags))
+          // A hand-edited or damaged file must never feed an odd note to the
+          // renderer: re-run the same cleanup as writes. Items saved with the
+          // old label + tags get them as one note (they were pinned when
+          // named, and stay pinned).
+          const legacy = it as ClipboardItem & { label?: unknown; tags?: unknown }
+          if ('label' in legacy || 'tags' in legacy) {
+            applyNote(it, joinNotes(normalizeNote(it.note), noteFromLegacy(legacy.label, legacy.tags)))
+            delete legacy.label
+            delete legacy.tags
+            migratedAnyPayloads = true
+          } else if ('note' in it) {
+            applyNote(it, normalizeNote(it.note))
+          }
           if (it.data.kind === 'text') {
             if (!it.data.hasFullPayload && it.data.text.length > 300) {
               this.writeTextPayload(it.id, it.data.text)
@@ -210,8 +219,8 @@ export class ItemStore {
   }
 
   /**
-   * Enforce the size cap by evicting oldest *unpinned* items. Walks from the
-   * tail (oldest) forward, skipping anything pinned so favorites survive.
+   * Enforce the size cap by evicting the oldest items that aren't kept. Walks
+   * from the tail (oldest) forward, skipping pinned and noted items.
    */
   private trim(limit: number): void {
     if (this.items.length <= limit) return
@@ -221,7 +230,7 @@ export class ItemStore {
     let stillNeed = need
     for (let i = this.items.length - 1; i >= 0; i--) {
       const it = this.items[i]
-      if (stillNeed > 0 && !it.pinned) {
+      if (stillNeed > 0 && !isKept(it)) {
         this.sigToId.delete(contentSignature(it.data))
         if (it.data.kind === 'image') this.removeImageFile(it.data.imageId)
         if (it.data.kind === 'image-collection') {
@@ -319,19 +328,15 @@ export class ItemStore {
   }
 
   /**
-   * Set or clear an item's label and tags. Values are normalized here, so
-   * nothing unclean is ever stored. Giving an unpinned item a label or tag
-   * pins it: history limit, auto-delete and "clear" never touch pinned items,
-   * so something the user named cannot silently disappear. Clearing the
-   * metadata leaves the pin alone. Returns false when the item is gone.
+   * Set or clear an item's note. Normalized here, so nothing unclean is ever
+   * stored. The pin is left alone: a note keeps the item by itself (history
+   * limit, auto-delete and "clear" skip noted items, see isKept). Returns
+   * false when the item is gone.
    */
   setMeta(id: string, patch: ItemMetaPatch): boolean {
     const it = this.items.find((x) => x.id === id)
     if (!it || !patch || typeof patch !== 'object') return false
-    const label = 'label' in patch ? normalizeLabel(patch.label) : it.label
-    const tags = 'tags' in patch ? normalizeTags(patch.tags) : it.tags
-    applyMeta(it, label, tags)
-    if (hasItemMeta(it)) it.pinned = true
+    if ('note' in patch) applyNote(it, normalizeNote(patch.note))
     this.persist()
     return true
   }
@@ -447,13 +452,8 @@ export class ItemStore {
     tgt.capturedAt = Date.now() // bump time
 
     // The source card disappears, so carry what the user gave it: the
-    // target keeps its own label (or takes the source's when it has none)
-    // and gets both sets of tags. A named source was kept by its pin; keep
-    // the merged card the same way.
-    if (hasItemMeta(src)) {
-      applyMeta(tgt, tgt.label ?? src.label, combineTags(tgt.tags, src.tags))
-      if (src.pinned) tgt.pinned = true
-    }
+    // target gets both notes (and with them, is kept).
+    if (src.note) applyNote(tgt, joinNotes(tgt.note, src.note))
 
     // Remove source item completely but DO NOT delete its underlying files/images
     // because they are now owned by the target!
@@ -595,11 +595,12 @@ export class ItemStore {
     return false
   }
 
+  /** Remove everything that isn't kept (pinned or noted). */
   clearUnpinned(): void {
     const kept: ClipboardItem[] = []
     const removed: ClipboardItem[] = []
     for (const it of this.items) {
-      if (it.pinned) kept.push(it)
+      if (isKept(it)) kept.push(it)
       else {
         this.sigToId.delete(contentSignature(it.data))
         if (it.data.kind === 'image') this.removeImageFile(it.data.imageId)
@@ -621,7 +622,7 @@ export class ItemStore {
     const kept: ClipboardItem[] = []
     const expired: ClipboardItem[] = []
     for (const it of this.items) {
-      if (it.pinned || it.capturedAt >= cutoff) {
+      if (isKept(it) || it.capturedAt >= cutoff) {
         kept.push(it)
       } else {
         expired.push(it)

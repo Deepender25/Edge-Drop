@@ -85,10 +85,8 @@ export interface ClipboardItem {
   hitCount: number
   /** Pinned items never scroll off and survive app restarts. */
   pinned: boolean
-  /** User-given short name (see shared/itemMeta.ts). Searchable. */
-  label?: string
-  /** User-given lowercase tags (see shared/itemMeta.ts). Searchable. */
-  tags?: string[]
+  /** The user's note (see shared/itemMeta.ts). Searchable; keeps the item. */
+  note?: string
 }
 
 /**

@@ -14,15 +14,15 @@ export interface SaveImagesDeps {
   destDir: string
   /** On-disk original for a stored image, or null when it is gone. */
   resolveSource: (imageId: string, ext?: string) => string | null
-  /** Default name when the item has no label (same names drag-out uses). */
+  /** Default name when the item has no note (same names drag-out uses). */
   defaultName: (capturedAt: number, ext: string, img: ClipboardImageFields, index: number) => string
 }
 
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
 
-/** A label as a Windows-safe file name base (no extension). */
-export function fileBaseFromLabel(label: string): string {
-  let base = label
+/** A note as a Windows-safe file name base (no extension). */
+export function fileBaseFromNote(note: string): string {
+  let base = note
     .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
     .replace(/\s+/g, ' ')
     .trim()
@@ -54,14 +54,14 @@ export function saveItemImages(item: ClipboardItem, deps: SaveImagesDeps): strin
   if (images.length === 0) return []
   mkdirSync(deps.destDir, { recursive: true })
 
-  const labelBase = item.label ? fileBaseFromLabel(item.label) : null
+  const noteBase = item.note ? fileBaseFromNote(item.note) : null
   const saved: string[] = []
   images.forEach((img, i) => {
     const src = deps.resolveSource(img.imageId, img.ext)
     if (!src) return
     const ext = extname(src).replace(/^\./, '') || img.ext || 'png'
-    const base = labelBase
-      ? images.length > 1 ? `${labelBase} (${i + 1})` : labelBase
+    const base = noteBase
+      ? images.length > 1 ? `${noteBase} (${i + 1})` : noteBase
       : deps.defaultName(item.capturedAt, ext, img, i + 1).replace(/\.[^.]+$/, '')
     const dest = uniqueDest(deps.destDir, base, ext)
     try {

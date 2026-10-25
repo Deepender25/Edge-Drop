@@ -406,8 +406,8 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
           />
         ) : (
           <div className="body">
-            {item.label && !isHorizontal && (!isBundle || !expanded) && (
-              <div className="item-label" title={item.label}>{item.label}</div>
+            {item.note && (!isBundle || !expanded) && (
+              <div className="item-note" title={item.note}>{item.note}</div>
             )}
             <div className="item-content">
               {isBundle ? (
@@ -428,19 +428,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
               <div className="item-footer">
                 <div className="meta">
                   <KindBadge item={item} />
-                  {isHorizontal && item.label ? (
-                    // Fixed-size top-dock card: the label gets the whole line
-                    // (tags stay searchable and show in the tooltip / preview).
-                    <>
-                      <span>·</span>
-                      <span className="meta-label" title={item.tags?.length ? `${item.label} · ${item.tags.map((tag) => `#${tag}`).join(' ')}` : item.label}>{item.label}</span>
-                    </>
-                  ) : (
-                    <>
-                      <MetaTags tags={item.tags} max={2} />
-                      <ItemDetails item={item} />
-                    </>
-                  )}
+                  <ItemDetails item={item} />
                   {item.hitCount > 1 && (
                     <>
                       <span>·</span>
@@ -1364,23 +1352,21 @@ function ImageFolderCard({
             {/* Flap Footer: Left side shows image source/file name, Right side shows relative time */}
             <div className="image-folder-flap-footer">
               <div className="image-folder-meta">
-                {item.label ? (
-                  <span className="image-folder-source-name meta-label" title={metaDetail ? `${item.label} · ${metaDetail}` : item.label}>
-                    {item.label}
+                {item.note ? (
+                  <span className="image-folder-source-name meta-label" title={metaDetail ? `${item.note} · ${metaDetail}` : item.note}>
+                    {item.note}
                   </span>
                 ) : metaDetail && (
                   <span className="image-folder-source-name file-name-meta" title={metaDetail}>
                     {metaDetail}
                   </span>
                 )}
-                {/* Narrow top-dock tiles: a label gets the whole line. */}
-                {!(isHorizontal && item.label) && <MetaTags tags={item.tags} max={1} />}
                 {item.hitCount > 1 && (
                   <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
-                    {(item.label || metaDetail) ? ' · ×' : '×'}{item.hitCount}
+                    {(item.note || metaDetail) ? ' · ×' : '×'}{item.hitCount}
                   </span>
                 )}
-                {copied && <span className="meta-copied">{(item.label || metaDetail || item.hitCount > 1) ? ' · ' : ''}{t('item.copied')}</span>}
+                {copied && <span className="meta-copied">{(item.note || metaDetail || item.hitCount > 1) ? ' · ' : ''}{t('item.copied')}</span>}
               </div>
               <RelativeTime capturedAt={item.capturedAt} />
             </div>
@@ -1582,17 +1568,15 @@ function FileFolderCard({
             {/* Flap Footer: Left side shows file name, Right side shows relative time */}
             <div className="image-folder-flap-footer">
               <div className="image-folder-meta">
-                {item.label ? (
-                  <span className="image-folder-source-name meta-label" title={`${item.label} · ${rawName}`}>
-                    {item.label}
+                {item.note ? (
+                  <span className="image-folder-source-name meta-label" title={`${item.note} · ${rawName}`}>
+                    {item.note}
                   </span>
                 ) : (
                   <span className="image-folder-source-name file-name-meta" title={rawName}>
                     {rawName}
                   </span>
                 )}
-                {/* Narrow top-dock tiles: a label gets the whole line. */}
-                {!(isHorizontal && item.label) && <MetaTags tags={item.tags} max={1} />}
                 {item.hitCount > 1 && (
                   <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
                     · ×{item.hitCount}
@@ -1723,21 +1707,6 @@ function Preview({ item }: { item: ClipboardItemDto }) {
 /* ------------------------------------------------------------------ */
 /* Kind badge                                                          */
 /* ------------------------------------------------------------------ */
-
-/** Up to `max` tag chips, then "+N" for the rest. Nothing when untagged. */
-function MetaTags({ tags, max }: { tags?: string[]; max: number }) {
-  if (!tags || tags.length === 0) return null
-  return (
-    <>
-      {tags.slice(0, max).map((tag) => (
-        <span key={tag} className="meta-tag" title={`#${tag}`}>#{tag}</span>
-      ))}
-      {tags.length > max && (
-        <span className="meta-tag-more" title={tags.slice(max).map((tag) => `#${tag}`).join(' ')}>+{tags.length - max}</span>
-      )}
-    </>
-  )
-}
 
 function KindBadge({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {

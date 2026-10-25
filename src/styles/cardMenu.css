@@ -205,15 +205,17 @@ html[data-motion='reduce'] .card-meta-editor {
   color: rgba(255, 255, 255, 0.55);
 }
 
-.card-meta-count {
-  font-weight: 500;
+/* What the note is for, under the field. */
+.card-meta-hint {
+  padding: 0 2px;
+  font-size: calc(11px * var(--font-scale, 1));
+  line-height: 1.35;
   color: rgba(255, 255, 255, 0.4);
 }
 
 /* Fields: borderless pills like the search box; hover and focus lift the
    fill a step (no ring). */
-.card-meta-input,
-.card-meta-tags {
+.card-meta-input {
   box-sizing: border-box;
   width: 100%;
   border: none;
@@ -221,8 +223,7 @@ html[data-motion='reduce'] .card-meta-editor {
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 
-.card-meta-input:hover,
-.card-meta-tags:hover {
+.card-meta-input:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -240,120 +241,17 @@ html[data-motion='reduce'] .card-meta-editor {
   -webkit-user-select: text;
 }
 
-.card-meta-input::placeholder,
-.card-meta-tag-input::placeholder {
+.card-meta-input::placeholder {
   color: var(--text-tertiary);
   font-weight: 400;
 }
 
-.card-meta-input::selection,
-.card-meta-tag-input::selection {
+.card-meta-input::selection {
   background: rgba(255, 255, 255, 0.28);
 }
 
-.card-meta-input:focus,
-.card-meta-tags:focus-within {
+.card-meta-input:focus {
   background: rgba(255, 255, 255, 0.11);
-}
-
-/* Wraps to more lines when there are many tags, so a fixed radius (a pill
-   while it is one line high) instead of 999px. */
-.card-meta-tags {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  min-height: 32px;
-  padding: 4px 5px;
-  border-radius: 16px;
-  cursor: text;
-}
-
-.card-meta-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 22px;
-  max-width: 100%;
-  padding: 0 3px 0 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  font-size: calc(11.5px * var(--font-scale, 1));
-  font-weight: 600;
-  box-sizing: border-box;
-}
-
-.card-meta-chip-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card-meta-chip-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-}
-
-.card-meta-chip-remove:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-
-.card-meta-tag-input {
-  flex: 1;
-  min-width: 56px;
-  height: 22px;
-  padding: 0 4px;
-  border: none;
-  background: transparent;
-  color: #ffffff;
-  font-family: var(--font-ui);
-  font-size: calc(12px * var(--font-scale, 1));
-  font-weight: 500;
-  outline: none;
-  user-select: text;
-  -webkit-user-select: text;
-}
-
-.card-meta-suggest {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.card-meta-suggestion {
-  height: 22px;
-  max-width: 100%;
-  padding: 0 8px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.82);
-  font-family: var(--font-ui);
-  font-size: calc(11px * var(--font-scale, 1));
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-/* Same as the #tag suggestion chips under the search box. */
-.card-meta-suggestion:hover {
-  background: var(--act-on);
-  color: var(--act-on-ink);
 }
 
 .card-meta-actions {
@@ -391,9 +289,7 @@ html[data-motion='reduce'] .card-meta-editor {
   transform: scale(0.96);
 }
 
-.card-meta-btn:focus-visible,
-.card-meta-chip-remove:focus-visible,
-.card-meta-suggestion:focus-visible {
+.card-meta-btn:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.45);
   outline-offset: 2px;
 }

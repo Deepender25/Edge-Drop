@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { ClipboardItemDto } from '../shared/types'
-import { activeTagPrefix, completeTag, matchesTagFilters, metaMatchesText, parseQuery, suggestTags, tagCounts } from '../src/lib/tagQuery'
+import { queryWords } from '../src/lib/search'
 import { matches } from '../src/hooks/useFilteredItems'
 import { colorFormats } from '../src/lib/colorUtils'
 import { externalHref, stripTracking } from '../src/lib/urlPreview'
@@ -32,52 +32,41 @@ const imageItem = (id: string, extra: Partial<ClipboardItemDto> = {}): Clipboard
   ...extra
 })
 
-describe('search over labels and tags', () => {
-  it('a query without #tags is one substring, as before', () => {
-    expect(parseQuery('  Hello World ')).toEqual({ text: 'hello world', tags: [] })
-    expect(parseQuery('')).toEqual({ text: '', tags: [] })
+describe('search: every word, any order, across content and note', () => {
+  const find = (item: ClipboardItemDto, q: string) => matches(item, queryWords(q))
+
+  it('finds a card by its note, words in any order', () => {
+    const img = imageItem('g', { note: 'Invoice for Acme, March' })
+    expect(find(img, 'acme invoice')).toBe(true)
+    expect(find(img, 'march')).toBe(true)
+    expect(find(img, 'acme april')).toBe(false)
+    // images have no text of their own: only a note finds them
+    expect(find(imageItem('x'), 'anything')).toBe(false)
   })
 
-  it('#words become tag filters, the rest stays text', () => {
-    expect(parseQuery('#Work invoice #client-a')).toEqual({ text: 'invoice', tags: ['work', 'client-a'] })
-    expect(parseQuery('#')).toEqual({ text: '', tags: [] })
+  it('content and note count together', () => {
+    const t = textItem('n', 'correct-horse-battery-staple', { note: 'Office Wi-Fi password' })
+    expect(find(t, 'wifi office')).toBe(true) // hyphen ignored
+    expect(find(t, 'horse password')).toBe(true) // one word from each
+    expect(find(t, 'WI-FI')).toBe(true)
+    expect(find(t, 'printer')).toBe(false)
   })
 
-  it('finds images by label, text by label or tag, keeps content search', () => {
-    const img = imageItem('g', { label: 'Invoice March', tags: ['finance'] })
-    const note = textItem('n', 'agenda', { label: 'Meeting', tags: ['work', 'team'] })
+  it('ignores case and accents; plain search still works', () => {
+    expect(find(textItem('r', 'Mon Résumé final'), 'resume')).toBe(true)
+    expect(find(textItem('e', 'send an email'), 'e-mail')).toBe(true)
     const plain = textItem('p', 'just some words')
-    expect(matches(img, parseQuery('invoice'))).toBe(true)
-    expect(matches(img, parseQuery('finance'))).toBe(true)
-    expect(matches(imageItem('x'), parseQuery('anything'))).toBe(false)
-    expect(matches(note, parseQuery('meet'))).toBe(true)
-    expect(matches(note, parseQuery('agenda'))).toBe(true)
-    expect(matches(note, parseQuery('#wo'))).toBe(true)
-    expect(matches(note, parseQuery('#work #team'))).toBe(true)
-    expect(matches(note, parseQuery('#work #finance'))).toBe(false)
-    expect(matches(note, parseQuery('#work agenda'))).toBe(true)
-    expect(matches(note, parseQuery('#work nothing'))).toBe(false)
-    expect(matches(plain, parseQuery('some words'))).toBe(true)
-    expect(matches(plain, parseQuery('#work'))).toBe(false)
-    expect(matches(plain, parseQuery(''))).toBe(true)
+    expect(find(plain, 'some words')).toBe(true)
+    expect(find(plain, 'words just')).toBe(true)
+    expect(find(plain, '')).toBe(true)
+    expect(find(plain, '   ')).toBe(true)
+    expect(find(plain, '#')).toBe(false)
   })
 
-  it('tag helpers', () => {
-    expect(matchesTagFilters({ tags: ['work'] }, [])).toBe(true)
-    expect(matchesTagFilters({}, ['w'])).toBe(false)
-    expect(metaMatchesText({ tags: ['wifi'] }, '#wi')).toBe(true)
-    expect(metaMatchesText({ tags: ['wifi'] }, '#')).toBe(false)
-    const counts = tagCounts([{ tags: ['work', 'wifi'] }, { tags: ['work'] }, {}, { tags: ['team'] }])
-    expect([...counts]).toEqual([['work', 2], ['wifi', 1], ['team', 1]])
-    expect(suggestTags(counts, '')).toEqual([{ tag: 'work', count: 2 }, { tag: 'team', count: 1 }, { tag: 'wifi', count: 1 }])
-    expect(suggestTags(counts, '#W', { exclude: ['work'] })).toEqual([{ tag: 'wifi', count: 1 }])
-    expect(suggestTags(counts, '', { limit: 1 })).toHaveLength(1)
-    expect(activeTagPrefix('invoice #wo')).toBe('wo')
-    expect(activeTagPrefix('#')).toBe('')
-    expect(activeTagPrefix('#work ')).toBeNull()
-    expect(activeTagPrefix('a#b')).toBeNull()
-    expect(completeTag('invoice #wo', 'work')).toBe('invoice #work ')
-    expect(completeTag('#', 'team')).toBe('#team ')
+  it('file cards are found by file name', () => {
+    const f: ClipboardItemDto = { id: 'f', data: { kind: 'files', paths: ['C:/Docs/Quarterly report.pdf'] }, capturedAt: 1, hitCount: 1, pinned: false }
+    expect(find(f, 'report quarterly')).toBe(true)
+    expect(find(f, 'docs')).toBe(false) // the folder is not part of the name
   })
 })
 
@@ -138,10 +127,31 @@ describe('menu helpers', () => {
     expect(cardMenuHolds({ mode: 'menu' }, rect, { x: 310, y: 405 })).toBe(true) // small margin
     expect(cardMenuHolds({ mode: 'menu' }, rect, { x: 500, y: 250 })).toBe(false)
     expect(cardMenuHolds({ mode: 'menu' }, null, { x: 150, y: 250 })).toBe(false)
-    expect(cardMenuHolds({ mode: 'edit' }, rect, { x: 900, y: 900 }, true)).toBe(true)
-    // editor open but the shelf never got the keyboard: only its own box holds
-    expect(cardMenuHolds({ mode: 'edit' }, rect, { x: 900, y: 900 }, false)).toBe(false)
-    expect(cardMenuHolds({ mode: 'edit' }, rect, { x: 150, y: 250 }, false)).toBe(true)
+    // the note editor holds only where it is, typing or not: pointer gone -> the shelf may close
+    expect(cardMenuHolds({ mode: 'edit' }, rect, { x: 900, y: 900 })).toBe(false)
+    expect(cardMenuHolds({ mode: 'edit' }, rect, { x: 150, y: 250 })).toBe(true)
+    expect(cardMenuHolds({ mode: 'edit' }, rect, { x: 310, y: 405 })).toBe(true)
+    expect(cardMenuHolds({ mode: 'edit' }, null, { x: 150, y: 250 })).toBe(false)
+    // and nothing in the close path waits for the editor any more
+    const hover = read('src/hooks/useEdgeHover.ts')
+    expect(hover).not.toContain('isTypingInCardMenu')
+    expect(hover).not.toContain('windowHasKeyboard')
+  })
+
+  it('closing the shelf with the note editor open saves what was typed, then gives the keyboard back', () => {
+    const store = read('src/store/appStore.ts')
+    const setOpen = store.slice(store.indexOf('  setOpen: (open) => {'), store.indexOf('  setSettingsOpen: (settingsOpen) =>'))
+    // save first (while the editor still exists), then release the keyboard, then clear the menu
+    const commit = setOpen.indexOf('cardEditorCommit?.()')
+    const release = setOpen.indexOf('releaseAllKeyboard()')
+    const clear = setOpen.indexOf('cardMenu: null')
+    expect(commit).toBeGreaterThan(0)
+    expect(setOpen).toContain("if (!open && get().cardMenu?.mode === 'edit') {")
+    expect(release).toBeGreaterThan(commit)
+    expect(clear).toBeGreaterThan(release)
+    const menu = read('src/components/CardMenu.tsx')
+    expect(menu).toContain('registerCardEditorCommit(() => commitRef.current?.())')
+    expect(menu).toContain('return () => registerCardEditorCommit(null)')
   })
 
   it('maps the work-area cursor into window pixels for each dock', () => {
@@ -177,23 +187,30 @@ describe('keyboard focus holders', () => {
   })
 })
 
-describe('cards re-render on a label / tag change', () => {
-  it('render key and meta key include label and tags', () => {
+describe('cards re-render on a note change', () => {
+  it('render key and meta key include the note', () => {
     const a = textItem('a', 'x')
-    const b = textItem('a', 'x', { label: 'L' })
-    const c = textItem('a', 'x', { label: 'L', tags: ['t'] })
+    const b = textItem('a', 'x', { note: 'N' })
+    const c = textItem('a', 'x', { note: 'N2' })
     expect(itemMetaKey(a)).toBe('')
     expect(itemRenderKey(a)).not.toBe(itemRenderKey(b))
     expect(itemRenderKey(b)).not.toBe(itemRenderKey(c))
-    expect(itemRenderKey(c)).toBe(itemRenderKey(textItem('a', 'x', { label: 'L', tags: ['t'] })))
+    expect(itemRenderKey(c)).toBe(itemRenderKey(textItem('a', 'x', { note: 'N2' })))
   })
 })
 
-describe('store: card menu and label saving', () => {
+describe('store: card menu and note saving', () => {
   let setItemMeta: ReturnType<typeof vi.fn>
   beforeEach(() => {
-    setItemMeta = vi.fn(async (id: string, meta: { label?: string | null; tags?: string[] | null }) =>
-      useStore.getState().items.map((it) => (it.id === id ? { ...it, label: meta.label ?? undefined, tags: meta.tags ?? undefined, pinned: true } : it))
+    setItemMeta = vi.fn(async (id: string, meta: { note?: string | null }) =>
+      useStore.getState().items.map((it) => {
+        if (it.id !== id) return it
+        const next = { ...it }
+        const note = meta.note?.trim().replace(/\s+/g, ' ')
+        if (note) next.note = note
+        else delete next.note
+        return next
+      })
     )
     ;(globalThis as any).window = {
       edge: {
@@ -211,18 +228,18 @@ describe('store: card menu and label saving', () => {
     delete (globalThis as any).window
   })
 
-  it('a label-only change from main is applied (not skipped as "unchanged")', () => {
-    const items = useStore.getState().items.map((it) => (it.id === 'a' ? { ...it, label: 'New' } : it))
+  it('a note-only change from main is applied (not skipped as "unchanged")', () => {
+    const items = useStore.getState().items.map((it) => (it.id === 'a' ? { ...it, note: 'New' } : it))
     useStore.getState().setItems(items)
-    expect(useStore.getState().items[0].label).toBe('New')
+    expect(useStore.getState().items[0].note).toBe('New')
   })
 
   it('opens, switches to the editor, and closes with every view change', () => {
     const s = () => useStore.getState()
     s().openCardMenu('a', 10, 20)
     expect(s().cardMenu).toEqual({ itemId: 'a', x: 10, y: 20, mode: 'menu' })
-    s().editCardMeta('tags')
-    expect(s().cardMenu).toMatchObject({ mode: 'edit', focus: 'tags' })
+    s().editCardMeta()
+    expect(s().cardMenu).toEqual({ itemId: 'a', x: 10, y: 20, mode: 'edit' })
     s().setCardMenuRect({ left: 1, top: 2, right: 3, bottom: 4 })
     s().setOpen(false)
     expect(s().cardMenu).toBeNull()
@@ -239,18 +256,21 @@ describe('store: card menu and label saving', () => {
     expect(s().cardMenu).toBeNull()
   })
 
-  it('saves through main, shows the cleaned value at once, and says when it pinned', async () => {
-    const pending = useStore.getState().setItemMeta('a', { label: '  Office  Wi-Fi ', tags: ['#Work'] })
-    expect(useStore.getState().items[0]).toMatchObject({ label: 'Office Wi-Fi', tags: ['work'], pinned: true })
+  it('saves through main and shows the cleaned note at once, without pinning or a toast', async () => {
+    const pending = useStore.getState().setItemMeta('a', { note: '  Office  Wi-Fi ' })
+    expect(useStore.getState().items[0]).toMatchObject({ note: 'Office Wi-Fi', pinned: false })
     await pending
-    expect(setItemMeta).toHaveBeenCalledWith('a', { label: '  Office  Wi-Fi ', tags: ['#Work'] })
-    expect(useStore.getState().toasts.map((t) => t.message)).toContain("Pinned so it's kept")
+    expect(setItemMeta).toHaveBeenCalledWith('a', { note: '  Office  Wi-Fi ' })
+    expect(useStore.getState().items[0]).toMatchObject({ note: 'Office Wi-Fi', pinned: false })
+    expect(useStore.getState().toasts).toHaveLength(0)
+    await useStore.getState().setItemMeta('a', { note: null })
+    expect('note' in useStore.getState().items[0]).toBe(false)
   })
 
   it('rolls back and reports when saving fails', async () => {
     setItemMeta.mockRejectedValueOnce(new Error('down'))
-    await useStore.getState().setItemMeta('b', { label: 'X' })
-    expect(useStore.getState().items[1].label).toBeUndefined()
+    await useStore.getState().setItemMeta('b', { note: 'X' })
+    expect(useStore.getState().items[1].note).toBeUndefined()
     expect(useStore.getState().items[1].pinned).toBe(false)
     expect(useStore.getState().toasts.some((t) => t.tone === 'error')).toBe(true)
   })
@@ -289,20 +309,20 @@ describe('wiring', () => {
     expect(read('electron/main/window.ts')).toContain('if (isSafeExternalUrl(details.url))')
   })
 
-  it('cards open the menu on right-click and show labels / tags', () => {
+  it('cards open the menu on right-click and show the note', () => {
     const card = read('src/components/ClipboardItem.tsx')
     expect(card).toContain('onContextMenu={handleContextMenu}')
     expect(card).toContain('s.openCardMenu(item.id, e.clientX, e.clientY)')
     expect(card).toContain("if (e.button !== 0) return // right-click opens the menu; nothing to stage")
-    expect(card).toContain('<div className="item-label" title={item.label}>{item.label}</div>')
+    expect(card).toContain('<div className="item-note" title={item.note}>{item.note}</div>')
+    expect(card).not.toMatch(/item\.label\b|item\.tags\b|MetaTags/)
     expect(card).toContain("if (target.closest('.card-menu')) return")
     const panel = read('src/components/Panel.tsx')
     expect(panel).toContain('<CardMenu />')
-    expect(panel).toContain('<TagSuggest isHorizontal={false} />')
-    expect(panel).toContain('<TagSuggest isHorizontal />')
+    expect(panel).not.toContain('TagSuggest')
   })
 
-  it('search and the label editor share the keyboard hand-over', () => {
+  it('search and the note editor share the keyboard hand-over', () => {
     expect(read('src/components/ShelfSearch.tsx')).toContain("acquireKeyboard('search')")
     expect(read('src/components/ShelfSearch.tsx')).toContain("releaseKeyboard('search')")
     const menu = read('src/components/CardMenu.tsx')
@@ -314,12 +334,15 @@ describe('wiring', () => {
     const src = read('src/i18n/translations.ts')
     const dictionaries = src.match(/export const \w+: TranslationKeys = \{/g)?.length ?? 0
     expect(dictionaries).toBe(31)
-    for (const key of ['title', 'paste', 'pastePlain', 'addLabel', 'editLabel', 'openLink', 'copyCleanLink', 'copyAs', 'showInFolder', 'copyPath', 'copyPaths', 'saveToDownloads', 'preview', 'closePreview', 'label', 'labelPlaceholder', 'tags', 'tagPlaceholder', 'removeTag', 'usedBefore', 'removeAll', 'cancel', 'save', 'labelPinned', 'labelFailed', 'savedToDownloads', 'savedManyToDownloads', 'saveImagesFailed']) {
+    for (const key of ['title', 'paste', 'pastePlain', 'addNote', 'editNote', 'openLink', 'copyCleanLink', 'copyAs', 'showInFolder', 'copyPath', 'copyPaths', 'saveToDownloads', 'preview', 'closePreview', 'note', 'notePlaceholder', 'noteHint', 'removeNote', 'cancel', 'save', 'noteFailed', 'savedToDownloads', 'savedManyToDownloads', 'saveImagesFailed']) {
       expect(src.split(`"${key}":`).length - 1, key).toBeGreaterThanOrEqual(dictionaries)
     }
     expect(src.split('"menu": {').length - 1).toBe(dictionaries)
+    // the label / tags strings are gone everywhere
+    for (const key of ['addLabel', 'editLabel', 'labelPlaceholder', 'tagPlaceholder', 'removeTag', 'usedBefore', 'labelPinned', 'labelFailed']) {
+      expect(src.includes(`"${key}":`), key).toBe(false)
+    }
     // placeholders survive translation
-    expect(src.split('#{tag}').length - 1).toBe(dictionaries)
     expect(src.split('"savedToDownloads": "').length - 1).toBe(dictionaries)
     for (const m of src.matchAll(/"savedToDownloads": "([^"]*)"/g)) expect(m[1]).toContain('{name}')
     for (const m of src.matchAll(/"savedManyToDownloads": "([^"]*)"/g)) expect(m[1]).toContain('{count}')
@@ -349,7 +372,7 @@ describe('keyboard hand-over is race-free', () => {
     expect(focusWindow.mock.calls).toEqual([[true]])
   })
 
-  it('search hands over to the label editor without a focus flip', () => {
+  it('search hands over to the note editor without a focus flip', () => {
     void acquireKeyboard('search')
     releaseKeyboard('search') // input blurs as the editor opens
     vi.advanceTimersByTime(KEYBOARD_RELEASE_DELAY_MS - 10)

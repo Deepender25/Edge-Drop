@@ -3140,12 +3140,13 @@ html[data-motion='reduce'] .item.is-drag-source::after {
 }
 
 /* ------------------------------------------------------------------ */
-/* Label + tags (user metadata)                                        */
+/* Note (user metadata)                                                */
 /* ------------------------------------------------------------------ */
 
-/* Side-dock text cards: the label is a title line above the content
-   (cards there are content-height, so this simply adds one line). */
-.item-label {
+/* Text, link, code and color cards: the note is one line above the
+   content. Side-dock cards are content-height, so this simply adds a line;
+   fixed-height top-dock cards give it a line of their content (below). */
+.item-note {
   padding: 11px 16px 0 16px;
   font-family: var(--font-ui);
   font-size: calc(12px * var(--font-scale, 1));
@@ -3156,12 +3157,32 @@ html[data-motion='reduce'] .item.is-drag-source::after {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.item-label + .item-content {
+.item-note + .item-content {
   padding-top: 4px;
 }
 
-/* Fixed-height cards (top dock, image and file cards): the label takes the
-   place of the small detail text in the bottom line, so nothing grows. */
+/* Top dock: the note line plus one line less of content keeps the content
+   clear of the hover pill's band above the bottom row. */
+.list.horizontal .item-note {
+  padding: 8px 14px 0 14px;
+}
+.list.horizontal .item-note + .item-content {
+  padding-top: 2px;
+}
+.list.horizontal .item-note + .item-content .preview {
+  -webkit-line-clamp: 4;
+}
+.list.horizontal .item-note + .item-content .link-card-body {
+  -webkit-line-clamp: 2;
+}
+/* code: 4 of its 16.1px lines instead of 5 */
+.list.horizontal .item-note + .item-content .code-card-preview {
+  height: 65px;
+  max-height: 65px;
+}
+
+/* Image and file cards: the note takes the place of the file or source name
+   in the bottom line, so nothing grows. */
 .meta-label {
   min-width: 0;
   flex-shrink: 1;
@@ -3172,46 +3193,14 @@ html[data-motion='reduce'] .item.is-drag-source::after {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.meta-tag {
-  flex-shrink: 0;
-  max-width: 96px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: calc(10.5px * var(--font-scale, 1));
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0.5px 5px;
-  border-radius: 4px;
-  letter-spacing: 0.01em;
-}
-
-.meta-tag-more {
-  flex-shrink: 0;
-  font-size: calc(10.5px * var(--font-scale, 1));
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.item.is-color-card.is-light-color .item-label {
+.item.is-color-card.is-light-color .item-note {
   color: rgba(0, 0, 0, 0.86);
 }
-.item.is-color-card.is-light-color .meta-label,
-.item.is-color-card.is-light-color .meta-tag,
-.item.is-color-card.is-light-color .meta-tag-more {
+.item.is-color-card.is-light-color .meta-label {
   color: rgba(0, 0, 0, 0.7) !important;
 }
-.item.is-color-card.is-light-color .meta-tag {
-  background: rgba(0, 0, 0, 0.08);
-}
-.item.is-color-card.is-dark-color .meta-label,
-.item.is-color-card.is-dark-color .meta-tag,
-.item.is-color-card.is-dark-color .meta-tag-more {
+.item.is-color-card.is-dark-color .meta-label {
   color: rgba(255, 255, 255, 0.82) !important;
-}
-.item.is-color-card.is-dark-color .meta-tag {
-  background: rgba(255, 255, 255, 0.12);
 }
 
 /* The card whose right-click menu is open keeps its hover look. */
@@ -3219,11 +3208,8 @@ html[data-motion='reduce'] .item.is-drag-source::after {
   background: var(--bg-card-hover);
 }
 
-/* Preview flyout: the item's label and every tag above the content. */
+/* Preview flyout: the whole note above the content. */
 .flyout-meta-head {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   margin-bottom: 14px;
 }
 .flyout-meta-label {
@@ -3233,21 +3219,4 @@ html[data-motion='reduce'] .item.is-drag-source::after {
   line-height: 1.3;
   color: #ffffff;
   word-break: break-word;
-}
-.flyout-meta-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.flyout-meta-tag {
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 9px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.82);
-  font-family: var(--font-ui);
-  font-size: calc(11.5px * var(--font-scale, 1));
-  font-weight: 600;
 }

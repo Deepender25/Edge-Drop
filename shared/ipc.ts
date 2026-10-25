@@ -51,8 +51,8 @@ export interface InvokeMap {
   'item:paste': { args: [id: string, opts?: { plain?: boolean }]; result: boolean }
 
   /**
-   * Set or clear an item's label / tags (normalized in main). Giving an item
-   * a label or tag also pins it. Returns the updated list.
+   * Set or clear an item's note (normalized in main). Returns the updated
+   * list.
    */
   'item:set-meta': { args: [id: string, meta: import('./itemMeta').ItemMetaPatch]; result: ClipboardItemDto[] }
 

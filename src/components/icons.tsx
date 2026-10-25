@@ -119,7 +119,7 @@ export const RecentIcon = ClockIcon
 export const TypeIcon = uiIcon('textT')
 export const FilesIcon = uiIcon('files')
 export const PaletteIcon = uiIcon('palette')
-export const TagIcon = uiIcon('tag')
+export const NoteIcon = uiIcon('pencilSimple')
 export const PasteIcon = uiIcon('clipboardText')
 export const DownloadIcon = uiIcon('downloadSimple')
 

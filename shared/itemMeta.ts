@@ -1,21 +1,20 @@
 /**
- * User-given metadata on a clipboard item: one short label and a few tags.
+ * The user's note on a clipboard item: one line of plain text that says what
+ * it is ("Office Wi-Fi password", "Invoice for Acme, March"), so search finds
+ * it later and the card is recognizable.
  *
- * Both are optional, live at the top level of the item (not inside `data`, so
- * dedup, touch and the DTO keep them unchanged) and are searchable. The main
- * process normalizes every write through these functions, so whatever the
- * renderer sends, only clean values are ever stored.
+ * It lives at the top level of the item (not inside `data`, so dedup, touch
+ * and the DTO keep it unchanged). The main process normalizes every write
+ * through these functions, so whatever the renderer sends, only clean values
+ * are ever stored. A note also keeps the item: history limit, auto-delete,
+ * clear-on-restart and the Clear button leave it alone (see isKept).
  */
 
-export const LABEL_MAX = 60
-export const TAG_MAX_LEN = 24
-export const TAGS_MAX = 5
+export const NOTE_MAX = 120
 
 export interface ItemMetaPatch {
-  /** New label; empty / null removes it. Omitted keeps the current one. */
-  label?: string | null
-  /** New tag list; empty / null removes all. Omitted keeps the current ones. */
-  tags?: string[] | null
+  /** New note; empty / null removes it. Omitted keeps the current one. */
+  note?: string | null
 }
 
 /** Cut a string to `max` characters without splitting a surrogate pair. */
@@ -26,47 +25,34 @@ function clip(value: string, max: number): string {
 
 /**
  * One line of plain text: control characters and runs of whitespace become a
- * single space, trimmed, at most LABEL_MAX characters. Empty -> undefined.
+ * single space, trimmed, at most NOTE_MAX characters. Empty -> undefined.
  */
-export function normalizeLabel(value: unknown): string | undefined {
+export function normalizeNote(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined
   const flat = value.replace(/[\u0000-\u001f\u007f\s]+/g, ' ').trim()
-  const out = clip(flat, LABEL_MAX).trim()
+  const out = clip(flat, NOTE_MAX).trim()
   return out || undefined
 }
 
+/** Two notes as one (merging cards): both, once each, joined with " · ". */
+export function joinNotes(a: string | undefined, b: string | undefined): string | undefined {
+  if (!a || !b) return normalizeNote(a ?? b)
+  if (a.toLowerCase() === b.toLowerCase()) return normalizeNote(a)
+  return normalizeNote(`${a} · ${b}`)
+}
+
 /**
- * A tag is one lowercase word: a leading '#' is dropped, spaces become '-',
- * and only letters, marks and numbers (any language) plus - _ . + are kept.
- * At most TAG_MAX_LEN characters. Empty -> undefined.
+ * The note for an item saved before notes replaced labels and tags: the
+ * label, then the tags as words ("Wifi password · home network").
  */
-export function normalizeTag(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined
-  let tag = value.trim().replace(/^#+/, '').toLowerCase()
-  tag = tag.replace(/\s+/g, '-').replace(/[^\p{L}\p{M}\p{N}_.+-]/gu, '')
-  tag = tag.replace(/-{2,}/g, '-').replace(/^[-.]+|[-.]+$/g, '')
-  tag = clip(tag, TAG_MAX_LEN).replace(/[-.]+$/g, '')
-  return tag || undefined
+export function noteFromLegacy(label: unknown, tags: unknown): string | undefined {
+  const words = Array.isArray(tags)
+    ? tags.filter((t): t is string => typeof t === 'string').map((t) => t.replace(/^#+/, '').trim()).filter(Boolean).join(' ')
+    : ''
+  return joinNotes(normalizeNote(label), normalizeNote(words))
 }
 
-/** Clean, de-duplicated tags in their given order, at most TAGS_MAX. Empty -> undefined. */
-export function normalizeTags(value: unknown): string[] | undefined {
-  if (!Array.isArray(value)) return undefined
-  const out: string[] = []
-  for (const raw of value) {
-    const tag = normalizeTag(raw)
-    if (tag && !out.includes(tag)) out.push(tag)
-    if (out.length >= TAGS_MAX) break
-  }
-  return out.length > 0 ? out : undefined
-}
-
-/** Tags of `a` followed by the new ones of `b`, normalized and capped. */
-export function combineTags(a: readonly string[] | undefined, b: readonly string[] | undefined): string[] | undefined {
-  return normalizeTags([...(a ?? []), ...(b ?? [])])
-}
-
-/** True when the item carries a label or at least one tag. */
-export function hasItemMeta(item: { label?: string; tags?: readonly string[] }): boolean {
-  return !!item.label || (Array.isArray(item.tags) && item.tags.length > 0)
+/** Kept items survive every automatic or bulk removal: pinned, or noted. */
+export function isKept(item: { pinned?: boolean; note?: string }): boolean {
+  return !!item.pinned || !!item.note
 }

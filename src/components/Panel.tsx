@@ -22,11 +22,11 @@ import { PreviewFlyout } from './PreviewFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { LanguageFlyout } from './LanguageFlyout'
 import { CardMenu } from './CardMenu'
-import { TagSuggest } from './TagSuggest'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 import { registerEdgeDragCue } from '../lib/edgeDrag'
 import { DashedLine, DashedOutline } from './DashedOutline'
+import { isKept } from '../../shared/itemMeta'
 
 import { useTranslation } from '../i18n'
 
@@ -60,6 +60,9 @@ export function Panel() {
   const { pinned, recent } = useFilteredItems()
   const filteredItems = useMemo(() => [...pinned, ...recent], [pinned, recent])
   const filteredCount = filteredItems.length
+  // What Clear removes: the visible recent cards without a note (pinned and
+  // noted cards are kept).
+  const clearable = useMemo(() => recent.filter((it) => !isKept(it)), [recent])
   const clear = useStore((s) => s.clear)
   const typeFilter = useStore((s) => s.typeFilter)
   const query = useStore((s) => s.query)
@@ -573,14 +576,14 @@ export function Panel() {
             itemCount={filteredCount}
             clearProps={{
               items: filteredItems,
-              disabled: recent.length === 0,
+              disabled: clearable.length === 0,
               panelOpen: open,
               onClear: (ids) => clear(ids),
               onClearAll: () => {
                 if (typeFilter === 'all' && !query.trim()) {
                   clear()
                 } else {
-                  clear(recent.map((it) => it.id))
+                  clear(clearable.map((it) => it.id))
                 }
               }
             }}
@@ -588,9 +591,7 @@ export function Panel() {
 
           <ToastStack />
           {!isHorizontal && !emojiOpen && !settingsOpen && <ShelfSearch />}
-          {!isHorizontal && !emojiOpen && !settingsOpen && <TagSuggest isHorizontal={false} />}
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
-            {isHorizontal && !emojiOpen && !settingsOpen && <TagSuggest isHorizontal />}
             {/* Main clipboard / emoji view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
             <div
               style={{
@@ -644,14 +645,14 @@ export function Panel() {
                   <div className="spacer" />
                   <ClearMenu
                     items={filteredItems}
-                    disabled={recent.length === 0}
+                    disabled={clearable.length === 0}
                     panelOpen={open}
                     onClear={(ids) => clear(ids)}
                     onClearAll={() => {
                       if (typeFilter === 'all' && !query.trim()) {
                         clear()
                       } else {
-                        clear(recent.map((it) => it.id))
+                        clear(clearable.map((it) => it.id))
                       }
                     }}
                   />

@@ -13,11 +13,17 @@ import { t } from '../i18n'
 import { loadRecents } from '../lib/emoji/prefs'
 import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
-import { normalizeLabel, normalizeTags, type ItemMetaPatch } from '../../shared/itemMeta'
+import { isKept, normalizeNote, type ItemMetaPatch } from '../../shared/itemMeta'
 import { itemMetaKey } from '../lib/itemSignature'
 import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 let flareTimer: ReturnType<typeof setTimeout> | null = null
+
+/** Saves the open note editor (registered by CardMenu while it is mounted). */
+let cardEditorCommit: (() => void) | null = null
+export function registerCardEditorCommit(commit: (() => void) | null): void {
+  cardEditorCommit = commit
+}
 
 /**
  * Version dismissed this run. Session-only (never persisted): quitting and
@@ -53,8 +59,6 @@ export interface CardMenuState {
   x: number
   y: number
   mode: 'menu' | 'edit'
-  /** Editor field that gets the caret first. */
-  focus?: 'label' | 'tags'
 }
 
 /** Grace after the card menu closes before hover-close may shut the shelf. */
@@ -199,11 +203,11 @@ interface AppState {
   cardMenuStayUntil: number
   clearCardMenuStay: () => void
   openCardMenu: (itemId: string, x: number, y: number) => void
-  /** Turn the open menu into the label / tags editor. */
-  editCardMeta: (focus?: 'label' | 'tags') => void
+  /** Turn the open menu into the note editor. */
+  editCardMeta: () => void
   closeCardMenu: () => void
   setCardMenuRect: (rect: CardMenuRect | null) => void
-  /** Save a label / tags (main normalizes; a label or tag also pins). */
+  /** Save or remove a note (main normalizes). */
   setItemMeta: (id: string, patch: ItemMetaPatch) => Promise<void>
   /** Put derived text (clean link, color format, path) on the clipboard without a new card. */
   copyText: (text: string, opts?: { quiet?: boolean }) => Promise<boolean>
@@ -507,6 +511,13 @@ export const useStore = create<AppState>((set, get) => ({
 
   setQuery: (query) => set({ query }),
   setOpen: (open) => {
+    // The shelf closing with the note editor open (the pointer left it, the
+    // hotkey, the tray) keeps what was typed, like a click outside does.
+    if (!open && get().cardMenu?.mode === 'edit') {
+      try {
+        cardEditorCommit?.()
+      } catch { /* ignore */ }
+    }
     set({ open })
     if (!open) {
       // Release any focused control inside the blade. Without this, a button
@@ -516,7 +527,7 @@ export const useStore = create<AppState>((set, get) => ({
       // compiling under the DOM-less node tsconfig.)
       const active = (globalThis as { document?: { activeElement?: { blur?: () => void } } }).document?.activeElement
       try { active?.blur?.() } catch { /* ignore */ }
-      // If a text field (search, label editor) held temporary OS
+      // If a text field (search, note editor) held temporary OS
       // focusability + paused hotkey through a close path that skipped its
       // blur (tray toggle, cursor leave), restore both now, exactly once.
       // No-op when no field ever took the keyboard.
@@ -627,7 +638,7 @@ export const useStore = create<AppState>((set, get) => ({
   async clear(ids?: string[]) {
     if (!ids || ids.length === 0) {
       const previousItems = get().items
-      set({ items: previousItems.filter((it) => it.pinned) })
+      set({ items: previousItems.filter((it) => isKept(it)) })
       try {
         const items = await edge.clearItems()
         const current = get().items
@@ -688,10 +699,10 @@ export const useStore = create<AppState>((set, get) => ({
   openCardMenu: (itemId, x, y) => {
     set({ cardMenu: { itemId, x, y, mode: 'menu' }, cardMenuRect: null })
   },
-  editCardMeta: (focus = 'label') => {
+  editCardMeta: () => {
     const menu = get().cardMenu
     if (!menu) return
-    set({ cardMenu: { ...menu, mode: 'edit', focus } })
+    set({ cardMenu: { ...menu, mode: 'edit' } })
   },
   closeCardMenu: () => {
     if (!get().cardMenu && !get().cardMenuRect) return
@@ -710,31 +721,23 @@ export const useStore = create<AppState>((set, get) => ({
   async setItemMeta(id, patch) {
     const before = get().items.find((it) => it.id === id)
     if (!before) return
-    // Optimistic: show the cleaned values at once; main sends the stored truth.
-    const label = 'label' in patch ? normalizeLabel(patch.label) : before.label
-    const tags = 'tags' in patch ? normalizeTags(patch.tags) : before.tags
-    const named = !!label || !!tags?.length
+    // Optimistic: show the cleaned note at once; main sends the stored truth.
+    const note = 'note' in patch ? normalizeNote(patch.note) : before.note
     set({
       items: get().items.map((it) => {
         if (it.id !== id) return it
-        const next: ClipboardItemDto = { ...it, pinned: it.pinned || named }
-        if (label) next.label = label
-        else delete next.label
-        if (tags?.length) next.tags = tags
-        else delete next.tags
+        const next: ClipboardItemDto = { ...it }
+        if (note) next.note = note
+        else delete next.note
         return next
       })
     })
     try {
       const items = await edge.setItemMeta(id, patch)
       set({ items })
-      const after = items.find((it) => it.id === id)
-      if (after && !before.pinned && after.pinned) {
-        get().pushToast({ id: `meta-pin-${Date.now()}`, message: t('toast.labelPinned'), tone: 'info' })
-      }
     } catch {
       set({ items: get().items.map((it) => (it.id === id ? before : it)) })
-      get().pushToast({ id: `meta-${Date.now()}`, message: t('toast.labelFailed'), tone: 'error' })
+      get().pushToast({ id: `meta-${Date.now()}`, message: t('toast.noteFailed'), tone: 'error' })
     }
   },
 
