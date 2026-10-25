@@ -272,6 +272,43 @@
   transform: scale(0.96);
 }
 
+/* "Back to where you were": the scroll-to-top button itself (same class, same
+   corner, which is free while the list is at the top), pointing the other way.
+   A white ring around its edge shrinks while it is offered and holds while
+   the pointer is on it. */
+.back-btn-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+
+.back-btn-ring circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  animation: back-btn-ring var(--back-btn-ms, 6000ms) linear forwards;
+}
+
+.back-btn.is-held .back-btn-ring circle {
+  animation-play-state: paused;
+}
+
+/* Reduced motion shortens every animation to nothing: keep the button, drop the ring. */
+:root[data-motion='reduce'] .back-btn-ring {
+  display: none;
+}
+
+@keyframes back-btn-ring {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 100; }
+}
+
 .bundle-stack {
   display: flex;
   align-items: center;
