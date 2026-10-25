@@ -197,6 +197,196 @@
 
 
 
+/* Edge bar getting ready for a drag from another app (EdgeDragCue): the bar
+   itself, solid black like it, swelling a little wider and longer. It starts
+   just wider than the bar and grows in three eased steps as the drag comes
+   closer: --pull is 0, 1/3, 2/3 or 1 (set from the cursor poll, see
+   lib/edgeDrag.ts), so it only animates when it changes step. The pill is
+   laid out at its largest (bar + 10px thick, 114% long) and scaled down to
+   the step, so a step is a transform on its own layer: no layout or repaint
+   per frame. --barn is the bar's thickness as a plain number. */
+.edge-drag-cue {
+  --pull: 0;
+  --bar: 3px;
+  --barn: 3;
+  --cue-thick: calc((var(--barn) + 3 + 7 * var(--pull)) / (var(--barn) + 10));
+  --cue-long: calc((1.04 + 0.1 * var(--pull)) / 1.14);
+  position: absolute;
+  background-color: #000000;
+  will-change: transform;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.edge-drag-cue.side-left,
+.edge-drag-cue.side-right {
+  top: 50%;
+  width: calc(var(--bar) + 10px);
+  height: 114%;
+  transform: translateY(-50%) scale(var(--cue-thick), var(--cue-long));
+}
+.edge-drag-cue.side-left {
+  left: 0;
+  transform-origin: left center;
+  border-radius: 0 100% 100% 0 / 0 24px 24px 0;
+}
+.edge-drag-cue.side-right {
+  right: 0;
+  transform-origin: right center;
+  border-radius: 100% 0 0 100% / 24px 0 0 24px;
+}
+.edge-drag-cue.side-top {
+  top: 0;
+  left: 50%;
+  height: calc(var(--bar) + 10px);
+  width: 114%;
+  transform-origin: center top;
+  transform: translateX(-50%) scale(var(--cue-long), var(--cue-thick));
+  border-radius: 0 0 24px 24px / 0 0 100% 100%;
+}
+/* Grows out of the bar itself */
+.edge-drag-cue.side-left,
+.edge-drag-cue.side-right {
+  animation-name: edge-drag-cue-in-side;
+}
+.edge-drag-cue.side-top {
+  animation-name: edge-drag-cue-in-top;
+}
+@keyframes edge-drag-cue-in-side {
+  from {
+    transform: translateY(-50%) scale(calc(var(--barn) / (var(--barn) + 10)), calc(1 / 1.14));
+  }
+}
+@keyframes edge-drag-cue-in-top {
+  from {
+    transform: translateX(-50%) scale(calc(1 / 1.14), calc(var(--barn) / (var(--barn) + 10)));
+  }
+}
+[data-motion='reduce'] .edge-drag-cue {
+  transition: none;
+  animation: none;
+}
+
+/* The drag targets' dashed line (DashedOutline / DashedLine): a 2px stroke,
+   10px dashes with round ends and 8px clear between them, the same for the
+   drop zone, the stacking ring and the detach edge. --dash-color sets how lit
+   it is. The rect is inset by half the stroke so it is never clipped. */
+.dashed-outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.dashed-outline-shape {
+  fill: none;
+  stroke: var(--dash-color, rgba(255, 255, 255, 0.38));
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-dasharray: 8 10;
+  transition: stroke 180ms ease;
+}
+rect.dashed-outline-shape {
+  x: 1px;
+  y: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+}
+
+/* Drop zone for drags from other apps (DropOverlay): solid black over the
+   whole shelf (nothing shows through), a dashed well, and the tray icon on its
+   own. The well's dashes light up once the drag is over the shelf, and it
+   tightens as it takes the drop. */
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 320; /* above the header and the split zone, below the content veil (400) */
+  display: flex;
+  padding: 12px;
+  pointer-events: none;
+  background: #000000;
+}
+.drop-overlay.is-horizontal {
+  padding: 10px 12px 12px;
+}
+.drop-well {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  position: relative;
+  border-radius: 16px;
+  --dash-color: rgba(255, 255, 255, 0.38);
+  text-align: center;
+  transform: scale(0.98);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: drop-well-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drop-overlay.is-horizontal .drop-well {
+  flex-direction: row;
+  gap: 14px;
+  text-align: left;
+}
+@keyframes drop-well-in {
+  from {
+    transform: scale(0.94);
+  }
+}
+.drop-overlay.is-over .drop-well {
+  --dash-color: rgba(255, 255, 255, 0.7);
+  transform: scale(1);
+}
+.drop-overlay.is-accepted .drop-well {
+  --dash-color: rgba(255, 255, 255, 0.9);
+  transform: scale(0.97);
+  transition-duration: 200ms;
+}
+.drop-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+.drop-icon .drop-arrow {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 160ms ease;
+}
+.drop-overlay.is-over .drop-icon .drop-arrow {
+  transform: translateY(1.5px);
+}
+.drop-overlay.is-accepted .drop-icon .drop-arrow {
+  transform: translateY(4px);
+  opacity: 0;
+}
+.drop-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.drop-title {
+  font-size: calc(14px * var(--font-scale, 1));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.01em;
+}
+.drop-sub {
+  font-size: calc(12px * var(--font-scale, 1));
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.5);
+}
+[data-motion='reduce'] .dashed-outline-shape,
+[data-motion='reduce'] .drop-well,
+[data-motion='reduce'] .drop-icon,
+[data-motion='reduce'] .drop-icon .drop-arrow {
+  transition: none;
+  animation: none;
+}
+
 /* Header */
 .header {
   display: flex;

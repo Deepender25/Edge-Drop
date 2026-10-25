@@ -19,6 +19,7 @@ import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
 import { startDragOut, resolveDragData, prestageDrag, stageDragFile, formatClipboardImageFilename } from './drag'
+import { setOwnDragActive } from './externalDrag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
@@ -891,7 +892,14 @@ export function registerSendListeners(): void {
     // dragged item appear to vanish ~0.5 s into any drag gesture.
     setHeartbeatPaused(true)
 
-    const dragStarted = startDragOut(sender, data, capturedAt, subIndex)
+    // Our own drag image must not read as a drag coming in from another app.
+    setOwnDragActive(true)
+    let dragStarted: boolean
+    try {
+      dragStarted = startDragOut(sender, data, capturedAt, subIndex)
+    } finally {
+      setOwnDragActive(false)
+    }
     console.log('[IPC] start-drag returned, sending drag-end')
     sender.send('item:drag-end')
 

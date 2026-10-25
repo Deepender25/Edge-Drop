@@ -53,16 +53,16 @@ describe('Stack Features: SVG Folder Silhouette, Sizing, Horizontal Expansion & 
     const src = read('src/components/Panel.tsx')
     expect(src).toContain('SplitDropZone stickPosition={settings.stickPosition')
     expect(src).toContain('pos-${stickPosition}')
-    expect(src).toContain("isTop = stickPosition === 'top'")
-    expect(src).toContain("isRight = stickPosition === 'right'")
+    // slides in from its own edge in each dock
+    expect(src).toContain("const offset = stickPosition === 'top' ? { y: -8 } : stickPosition === 'right' ? { x: 8 } : { x: -8 }")
     // Text pill must NOT be introduced into SplitDropZone
     expect(src).not.toContain('split-dropzone-pill')
   })
 
   it('item.css includes styles for orientation-aware split-dropzone and no split-dropzone-pill', () => {
     const css = read('src/styles/item.css')
+    // one per dock (left, right, top; there is no bottom dock)
     expect(css).toContain('.split-dropzone.pos-top')
-    expect(css).toContain('.split-dropzone.pos-bottom')
     expect(css).toContain('.split-dropzone.pos-left')
     expect(css).toContain('.split-dropzone.pos-right')
     expect(css).not.toContain('.split-dropzone-pill')

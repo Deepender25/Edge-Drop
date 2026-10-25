@@ -26,6 +26,7 @@ import { probeSeamAware, isNearProximity, type SeamTickState } from './stickProb
 import { loadSettings, saveSettings } from '../store/settings'
 import { isFullscreenAppActive, registerFullscreenActiveListener } from './fullscreen'
 import { noteUiMotion } from './thumbnailCache'
+import { isExternalDragActive } from './externalDrag'
 
 type RegisterWindowMessageFn = (lpString: string) => number
 type SetWindowLongPtrFn = (hWnd: number | bigint, nIndex: number, dwNewLong: number | bigint) => number | bigint
@@ -487,6 +488,8 @@ export function requestPollBoost(durationMs = 8000): void {
 /** Last sent cursor position — used to suppress duplicate IPC messages. */
 let _lastSentX = -9999
 let _lastSentY = -9999
+/** Last sent "a drag from another app is in progress" flag. */
+let _lastSentDrag = false
 /** Seam-policy tracker threaded between ticks (see stickProbe.ts pillars). */
 let _seamState: SeamTickState = {}
 
@@ -615,17 +618,23 @@ function _pollTick(): void {
     Math.abs(clientX - _lastSentX) >= IPC_MIN_DELTA_PX ||
     Math.abs(clientY - _lastSentY) >= IPC_MIN_DELTA_PX
 
-  const shouldSend = newState !== lastEdgeState || interactive || (nearEdge && positionChangedEnough)
+  //   d) A drag from another app starts or ends (the edge bar gets ready
+  //      for it wherever the cursor is; near the edge (c) streams it in).
+  const drag = isExternalDragActive()
+
+  const shouldSend = newState !== lastEdgeState || interactive || (nearEdge && positionChangedEnough) || drag !== _lastSentDrag
 
   if (shouldSend) {
     lastEdgeState = newState
     _lastSentX = clientX
     _lastSentY = clientY
+    _lastSentDrag = drag
     sendToMainWindow('window:cursor-edge', {
       x: clientX,
       y: clientY,
       inEdge,
       inZone: true,
+      drag,
       stickPosition: settings.stickPosition,
       displayWidth: wa.width,
       displayHeight: wa.height

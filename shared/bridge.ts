@@ -92,6 +92,8 @@ export interface EdgeApi {
     stickPosition: import('./types').StickPosition
     displayWidth: number
     displayHeight: number
+    /** A drag from another app is in progress anywhere on screen (see electron/main/externalDrag.ts). */
+    drag?: boolean
   }) => void) => () => void
   onToast: (cb: (toast: { id: string; message: string; tone: 'info' | 'error'; params?: Record<string, string | number> }) => void) => () => void
   onCopyFlare: (cb: () => void) => () => void

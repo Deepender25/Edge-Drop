@@ -198,6 +198,8 @@ export interface EventMap {
     stickPosition: import('./types').StickPosition
     displayWidth: number
     displayHeight: number
+    /** A drag from another app is in progress anywhere on screen (see electron/main/externalDrag.ts). */
+    drag?: boolean
   }]
 }
 

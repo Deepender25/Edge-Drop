@@ -95,6 +95,16 @@ interface AppState {
   /** True while an OS file drag is hovering the panel (prevents premature close). */
   dragActive: boolean
   /**
+   * True while main sees a drag from another app in progress anywhere on
+   * screen (before it reaches the window): the edge bar gets ready for it and
+   * the shelf opens straight into its drop zone.
+   */
+  externalDrag: boolean
+  setExternalDrag: (active: boolean) => void
+  /** In-app drag: the card a drop would stack the dragged card into. */
+  dropTargetId: string | null
+  setDropTargetId: (id: string | null) => void
+  /**
    * The one stack/bundle whose expanded sub-item list is open (accordion).
    * Single source of truth so expanding one stack collapses the previous,
    * and so Escape / outside-click / view switches can coordinate closure.
@@ -269,6 +279,14 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   dragActive: false,
+  externalDrag: false,
+  setExternalDrag: (externalDrag) => {
+    if (get().externalDrag !== externalDrag) set({ externalDrag })
+  },
+  dropTargetId: null,
+  setDropTargetId: (dropTargetId) => {
+    if (get().dropTargetId !== dropTargetId) set({ dropTargetId })
+  },
   expandedStackId: null,
   setExpandedStackId: (expandedStackId) => set({ expandedStackId }),
   internalDragReq: null,
@@ -532,7 +550,7 @@ export const useStore = create<AppState>((set, get) => ({
   setDragActive: (dragActive) => set({ dragActive }),
   setInternalDragReq: (internalDragReq) => {
     if (internalDragReq === null) {
-      set({ internalDragReq: null, dragActive: false })
+      set({ internalDragReq: null, dragActive: false, dropTargetId: null })
     } else {
       set({ internalDragReq })
     }

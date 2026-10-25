@@ -29,6 +29,7 @@ export function ItemList() {
   const total = pinned.length + recent.length
   
   const isDraggingAny = useStore((s) => !!s.dragActive || !!s.internalDragReq)
+  const isDraggingCard = useStore((s) => !!s.internalDragReq)
   const stickPosition = useStore((s) => s.settings.stickPosition)
   const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
   const isHorizontal = stickPosition === 'top'
@@ -337,6 +338,34 @@ export function ItemList() {
   const handleDragLeaveOrDrop = () => {
     stopScrolling()
   }
+
+  // In-app drag: mark the card a drop would stack the dragged card into.
+  // One listener for the whole window instead of enter/leave pairs on every
+  // card: dragover fires on whatever is under the drag (also while it rests),
+  // so the mark follows the drag exactly and clears off any card, outside the
+  // list, or when the drag leaves the window. Text cards never stack.
+  useEffect(() => {
+    if (!isDraggingCard) return
+    const onOver = (e: DragEvent) => {
+      const s = useStore.getState()
+      const card = (e.target as Element | null)?.closest?.('.list .item-main') as HTMLElement | null
+      const id = card?.dataset.id
+      const target = id && s.internalDragReq && id !== s.internalDragReq.id ? s.items.find((it) => it.id === id) : undefined
+      s.setDropTargetId(target && target.data.kind !== 'text' ? target.id : null)
+    }
+    const onLeave = (e: DragEvent) => {
+      if (e.clientX <= 0 || e.clientY <= 0 || e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
+        useStore.getState().setDropTargetId(null)
+      }
+    }
+    document.addEventListener('dragover', onOver, true)
+    document.addEventListener('dragleave', onLeave, true)
+    return () => {
+      document.removeEventListener('dragover', onOver, true)
+      document.removeEventListener('dragleave', onLeave, true)
+      useStore.getState().setDropTargetId(null)
+    }
+  }, [isDraggingCard])
 
   // A filter or search change replays the list's short fade-in. The list used
   // to be keyed on this for that, which destroyed and rebuilt every card on

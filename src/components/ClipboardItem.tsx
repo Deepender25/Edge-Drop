@@ -26,6 +26,7 @@ import { basename, formatBytes, previewText, relativeTime, formatImageDisplayNam
 import { getFileKind } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
 import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { DashedOutline } from './DashedOutline'
 import { LinkPreviewCard } from './LinkPreviewCard'
 import { CodeBlock } from './CodeBlock'
 import { StackHeader, StackItems, fileStackEntries, imageCollectionEntries, stackOpenWidth } from './StackItems'
@@ -85,6 +86,9 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   const isPreviewing = useStore((s) => s.previewItemId === item.id)
   const isMenuTarget = useStore((s) => s.cardMenu?.itemId === item.id)
+  // In-app drag: the card a drop would merge into, and the whole card being dragged.
+  const isDropTarget = useStore((s) => s.dropTargetId === item.id)
+  const isDragSource = useStore((s) => s.internalDragReq?.id === item.id && !s.internalDragReq.imageId && !s.internalDragReq.paths?.length)
   const isBundle = (item.data.kind === 'files' && item.data.paths.length > 1) || item.data.kind === 'image-collection'
   const isSingleImage = item.data.kind === 'image' || (
     item.data.kind === 'files' &&
@@ -306,7 +310,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       }}
       initial={false}
       animate={{ opacity: 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isMenuTarget ? ' menu-target' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
+      className={`item${item.pinned ? ' pinned' : ''}${isMenuTarget ? ' menu-target' : ''}${isDropTarget ? ' is-drop-target' : ''}${isDragSource ? ' is-drag-source' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
       style={{
         ...(expandedWidth ? { width: expandedWidth, minWidth: expandedWidth, maxWidth: expandedWidth } : {}),
@@ -333,6 +337,11 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
             zIndex: 15
           }}
         />
+      )}
+      {isDropTarget && (
+        <div className="drop-target-ring" aria-hidden="true">
+          <DashedOutline radius={14} />
+        </div>
       )}
       <div
         className={`item-main${isPreviewing ? ' force-actions previewing' : ''}`}

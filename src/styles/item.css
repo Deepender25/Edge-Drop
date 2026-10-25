@@ -658,6 +658,38 @@ html[data-motion='reduce'] .fko-layers > .fil {
   bottom: 28px;
 }
 
+/* Text, link, code and color cards dock the same pill at the bottom right,
+   in the room their content leaves at the bottom:
+   - top dock (fixed-height tiles): in the free band just above the bottom
+     row, >= 3px clear of a full 5-line preview and of the row; color values
+     sit above that band (see the color card rules).
+   - side dock (cards as tall as their content): in the bottom row, over the
+     time. These cards keep 6px more room at the bottom for it, and while the
+     pill shows the row's extras (tags, link domain, x-count, time) step aside
+     but keep their size, so the card never changes height; the type and
+     "copied" stay. They come back once the pill has faded out. */
+.list-stack .item:not(.is-image-folder-card) .item-main > .actions {
+  top: auto;
+  bottom: 6px;
+  transform-origin: bottom right;
+}
+.list.horizontal .list-stack .item:not(.is-image-folder-card) .item-main > .actions {
+  bottom: 27px;
+}
+.list:not(.horizontal) .list-stack .item:not(.is-image-folder-card) .item-footer {
+  padding-bottom: 14px;
+}
+.list:not(.horizontal) .list-stack .item:not(.is-image-folder-card) .item-footer :is(.meta > :not(.kind-badge, .meta-copied), .meta-time) {
+  transition: visibility 0s linear 0.12s, order 0s linear 0.12s;
+}
+.list:not(.horizontal) .list-stack .item:not(.is-image-folder-card) .item-main:is(:hover, :focus-within, .force-actions) .item-footer :is(.meta > :not(.kind-badge, .meta-copied), .meta-time) {
+  visibility: hidden;
+  transition-delay: 0s;
+}
+.list:not(.horizontal) .list-stack .item:not(.is-image-folder-card) .item-main:is(:hover, :focus-within, .force-actions) .item-footer .meta > :not(.kind-badge, .meta-copied) {
+  order: 1;
+}
+
 /* The preview's cards have no flap: their pill stays in the top corner and
    the folder sits a little lower so the open papers clear it. */
 .flyout-subitem:not(.single-hero-card) .item-content:has(.file-kind-opening) {
@@ -2852,12 +2884,13 @@ html[data-motion='reduce'] .file-stack-folder {
   margin-bottom: 2px;
 }
 
-/* In horizontal mode: give breathing room above the code */
+/* In horizontal mode: give breathing room above the code, and keep it above
+   the band the hover pill uses (bottom right, just above the bottom row) */
 .list.horizontal .item.is-color-card .item-content {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding-bottom: 0;
+  padding-bottom: 28px;
 }
 
 .list.horizontal .item.is-color-card .color-swatch-code {
@@ -2872,124 +2905,104 @@ html[data-motion='reduce'] .file-stack-folder {
 .split-dropzone {
   position: absolute;
   z-index: 300;
-  display: flex;
   pointer-events: auto;
   box-sizing: border-box;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Top Dock: Attached to top screen edge */
+/* Each dock: along the edge the card is dragged out to. The hit area is the
+   whole strip; Panel's internal-drop fallback uses the same reach (80px from
+   the top, 100px from a side). */
 .split-dropzone.pos-top {
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
-  align-items: flex-start;
-  justify-content: center;
+  height: 64px;
 }
-
-.split-dropzone.pos-bottom {
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 56px;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-/* Left Dock: Attached to left screen edge */
-.split-dropzone.pos-left {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 80px;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* Right Dock: Attached to right screen edge */
+.split-dropzone.pos-left,
 .split-dropzone.pos-right {
   top: 0;
   bottom: 0;
+  width: 88px;
+}
+.split-dropzone.pos-left {
+  left: 0;
+}
+.split-dropzone.pos-right {
   right: 0;
-  width: 80px;
-  align-items: center;
-  justify-content: flex-end;
 }
 
-/* The neon laser capsule glow bar */
-.split-dropzone .glow-line {
+/* The line: along the screen edge, in the shelf's gutter, clear of its
+   rounded ends; lit while the card is over the strip. */
+.split-line {
   position: absolute;
   pointer-events: none;
-  border-radius: 9999px;
-  background: linear-gradient(180deg, transparent 0%, rgba(249, 115, 22, 0.85) 30%, rgba(249, 115, 22, 0.85) 70%, transparent 100%);
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.45), 0 0 32px rgba(249, 115, 22, 0.2);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --dash-color: rgba(255, 255, 255, 0.45);
+}
+.split-dropzone.active .split-line {
+  --dash-color: rgba(255, 255, 255, 0.95);
+}
+.split-dropzone.pos-top .split-line {
+  top: 3px;
+  left: 28px;
+  right: 28px;
+  height: 4px;
+}
+.split-dropzone.pos-left .split-line,
+.split-dropzone.pos-right .split-line {
+  top: 28px;
+  bottom: 28px;
+  width: 4px;
+}
+.split-dropzone.pos-left .split-line {
+  left: 3px;
+}
+.split-dropzone.pos-right .split-line {
+  right: 3px;
 }
 
-/* Horizontal line for Top/Bottom docks */
-.split-dropzone.pos-top .glow-line,
-.split-dropzone.pos-bottom .glow-line {
-  width: 55%;
-  max-width: 360px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(249, 115, 22, 0.85) 30%, rgba(249, 115, 22, 0.85) 70%, transparent 100%);
+/* In-app drag onto another card: the card a drop would stack into gets the
+   drop zone's dashed ring over its dimmed content; the card being dragged
+   dims. Both sit over every layer of the card's own content (its pill is 20).
+   The dim is ::after because the card's framer motion keeps an inline
+   opacity on .item. */
+.drop-target-ring {
+  position: absolute;
+  inset: 4px;
+  z-index: 25;
+  pointer-events: none;
+  border-radius: calc(var(--radius-card) - 4px);
+  background-color: rgba(0, 0, 0, 0.45);
+  --dash-color: rgba(255, 255, 255, 0.75);
+  animation: drop-target-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-.split-dropzone.pos-top .glow-line {
-  top: 4px;
+@keyframes drop-target-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
 }
-
-.split-dropzone.pos-bottom .glow-line {
-  bottom: 4px;
+.item.is-drag-source::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  border-radius: inherit;
+  background-color: rgba(0, 0, 0, 0.6);
+  animation: drag-source-in 150ms ease;
 }
-
-/* Vertical line for Left/Right docks */
-.split-dropzone.pos-left .glow-line,
-.split-dropzone.pos-right .glow-line {
-  height: 55%;
-  max-height: 260px;
-  width: 2px;
-  background: linear-gradient(180deg, transparent 0%, rgba(249, 115, 22, 0.85) 30%, rgba(249, 115, 22, 0.85) 70%, transparent 100%);
+@keyframes drag-source-in {
+  from {
+    opacity: 0;
+  }
 }
-
-.split-dropzone.pos-left .glow-line {
-  left: 4px;
+/* its hover buttons stay out of the way while it is the target */
+.item.is-drop-target .item-main > .actions {
+  visibility: hidden;
 }
-
-.split-dropzone.pos-right .glow-line {
-  right: 4px;
-}
-
-/* Active / Drag-over States */
-.split-dropzone.active.pos-left,
-.split-dropzone.active.pos-right {
-  width: 100px;
-}
-
-.split-dropzone.active.pos-top,
-.split-dropzone.active.pos-bottom {
-  height: 72px;
-}
-
-.split-dropzone.active .glow-line {
-  background: linear-gradient(180deg, transparent 0%, #f97316 25%, #ff8a3d 50%, #f97316 75%, transparent 100%);
-  box-shadow: 0 0 24px rgba(249, 115, 22, 0.9), 0 0 48px rgba(249, 115, 22, 0.45);
-}
-
-.split-dropzone.pos-left.active .glow-line,
-.split-dropzone.pos-right.active .glow-line {
-  width: 3.5px;
-  height: 68%;
-  max-height: 320px;
-}
-
-.split-dropzone.pos-top.active .glow-line,
-.split-dropzone.pos-bottom.active .glow-line {
-  height: 3.5px;
-  width: 68%;
-  max-width: 440px;
-  background: linear-gradient(90deg, transparent 0%, #f97316 25%, #ff8a3d 50%, #f97316 75%, transparent 100%);
+html[data-motion='reduce'] .drop-target-ring,
+html[data-motion='reduce'] .item.is-drag-source::after {
+  animation: none;
 }
 
 /* ------------------------------------------------------------------ */

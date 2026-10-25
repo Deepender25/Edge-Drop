@@ -19,11 +19,15 @@
  *     before React's mouseleave has a chance to fire.
  *
  *  Drag-awareness: while an external OS file drag is active we never close.
+ *  A drag from another app is also seen before it reaches the window (main
+ *  flags it on every cursor update): the edge bar gets ready for it, and at
+ *  the bar the shelf opens straight into its drop zone (see lib/edgeDrag.ts).
  */
 import { useEffect, useRef } from 'react'
 import { edge } from '../lib/edge'
 import { useStore } from '../store/appStore'
 import { normalizeHoverOpenDelay } from '../../shared/types'
+import { DRAG_CATCH_DWELL_MS, edgeDragPull, inEdgeDragCatch, setEdgeDragPull, type EdgeDragLane } from '../lib/edgeDrag'
 
 const TRIGGER_PX = 3    // leftmost px that count as "the edge"
 const DWELL_MS = 40      // cursor must linger this long to open (base; user delay adds on top)
@@ -286,6 +290,7 @@ export function useEdgeHover(): void {
     let dwellTimer: number | undefined
     let graceTimer: number | undefined
     let interactiveTimer: number | undefined
+    let dragOpenTimer: number | undefined
 
     const closePanelNow = () => {
       const s = useStore.getState()
@@ -522,6 +527,13 @@ export function useEdgeHover(): void {
     // The main process polls screen.getCursorScreenPoint() every 16ms and
     // sends window:cursor-edge with raw x/y coords. We check the hot zone
     // here with the renderer's own settings so everything stays in sync.
+    const clearDragOpen = () => {
+      if (dragOpenTimer !== undefined) {
+        window.clearTimeout(dragOpenTimer)
+        dragOpenTimer = undefined
+      }
+    }
+
     const unsubCursorEdge = window.edge.onCursorEdge((data) => {
       lastClient.current = { x: data.x, y: data.y }
       if (data.displayWidth) displaySize.current.width = data.displayWidth
@@ -529,6 +541,36 @@ export function useEdgeHover(): void {
       const state = useStore.getState()
       const { stickPosition, displayWidth } = data
       const { top, bottom, midY, panelHalfH } = zone.current
+
+      // ── A drag from another app (anywhere on screen) ─────────────────────
+      // Follows the hover setting: with hover opening off, cursor moves never
+      // open the shelf, dragged or not.
+      const drag = !!data.drag && !state.internalDragReq && (state.settings.hoverActivation ?? true)
+      if (state.externalDrag !== drag) state.setExternalDrag(drag)
+      if (drag && !state.open) {
+        const dispW = displayWidth || displaySize.current.width
+        const s = state.settings
+        const bar = stickPosition === 'top'
+          ? getHorizontalDockMetrics(dispW, s.horizontalOffset ?? 0.5, s.hotZoneHeight ?? 0.25, s.triggerAlignment || 'center')
+          : null
+        const lane: EdgeDragLane = bar
+          ? { stickPosition: 'top', start: bar.triggerLeft, end: bar.triggerRight, displayWidth: dispW }
+          : { stickPosition: stickPosition === 'right' ? 'right' : 'left', start: top, end: bottom, displayWidth: dispW }
+        setEdgeDragPull(edgeDragPull(lane, data.x, data.y))
+        if (inEdgeDragCatch(lane, data.x, data.y)) {
+          if (dragOpenTimer === undefined) {
+            dragOpenTimer = window.setTimeout(() => {
+              dragOpenTimer = undefined
+              if (useStore.getState().externalDrag) openPanel()
+            }, DRAG_CATCH_DWELL_MS)
+          }
+        } else {
+          clearDragOpen()
+        }
+      } else {
+        clearDragOpen()
+        if (!drag) setEdgeDragPull(0)
+      }
 
       // The card menu (or its label editor) is part of the shelf while open.
       if (state.open && state.cardMenu && cardMenuHolds(state.cardMenu, state.cardMenuRect, cursorInWindow(state, data), windowHasKeyboard())) {
@@ -825,6 +867,7 @@ export function useEdgeHover(): void {
       window.clearTimeout(dwellTimer)
       window.clearTimeout(graceTimer)
       window.clearTimeout(interactiveTimer)
+      window.clearTimeout(dragOpenTimer)
     }
   }, [])
 }

@@ -25,6 +25,8 @@ import { CardMenu } from './CardMenu'
 import { TagSuggest } from './TagSuggest'
 import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
+import { registerEdgeDragCue } from '../lib/edgeDrag'
+import { DashedLine, DashedOutline } from './DashedOutline'
 
 import { useTranslation } from '../i18n'
 
@@ -99,13 +101,28 @@ export function Panel() {
   const containerRef = useRef<HTMLDivElement>(null)
   const showEdgeHint = !!edgeHintActive && (settings.showEdgeLocationHint ?? false)
   const showEdgeBeacon = !open && (startupBeacon || showEdgeHint)
+  // A drag from another app is on its way: the bar swells, ready for it
+  // (placed like the beacon, see EdgeDragCue). After the shelf closes it waits
+  // for the close to finish, so it never appears over the shape drawing back.
+  const externalDrag = useStore((s) => s.externalDrag)
+  const [closeSettled, setCloseSettled] = useState(true)
+  useEffect(() => {
+    if (open) {
+      setCloseSettled(false)
+      return
+    }
+    const timer = window.setTimeout(() => setCloseSettled(true), 320)
+    return () => window.clearTimeout(timer)
+  }, [open])
+  const showDragCue = externalDrag && !open && closeSettled && !startupBeacon
   const [beaconFrame, setBeaconFrame] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   useLayoutEffect(() => {
-    if (!showEdgeBeacon || !containerRef.current) return
+    if (!(showEdgeBeacon || showDragCue) || !containerRef.current) return
     const r = containerRef.current.getBoundingClientRect()
     setBeaconFrame({ left: r.left, top: r.top, width: r.width, height: r.height })
   }, [
     showEdgeBeacon,
+    showDragCue,
     settings.stickPosition,
     settings.panelHeight,
     settings.verticalOffset,
@@ -475,6 +492,26 @@ export function Panel() {
           </motion.div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {showDragCue && beaconFrame && (
+          <motion.div
+            key="edge-drag-cue"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: reduceMotion ? 0.01 : 0.14 } }}
+            style={{ position: 'absolute', ...beaconFrame, pointerEvents: 'none', zIndex: 11 }}
+          >
+            <div
+              style={
+                isHorizontal
+                  ? { position: 'absolute', left: insetLeft, right: insetRight, top: 0, height: hotWidth }
+                  : { position: 'absolute', top: insetTop, bottom: insetBottom, [isRight ? 'right' : 'left']: 0, width: hotWidth }
+              }
+            >
+              <EdgeDragCue side={isHorizontal ? 'top' : isRight ? 'right' : 'left'} barPx={hotWidth} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div
         ref={containerRef}
         className={containerClass}
@@ -638,7 +675,7 @@ export function Panel() {
               )}
             </AnimatePresence>
           </div>
-          <DropOverlay />
+          <DropOverlay isHorizontal={isHorizontal} />
           <SplitDropZone stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')} />
         </div>
         <PreviewFlyout isRight={isRight} />
@@ -669,60 +706,113 @@ function getTutorialText(step: number): string {
 }
 */
 
-function DropOverlay() {
+/**
+ * The edge bar getting ready for a drag from another app: a slightly wider,
+ * lit pill over the bar (same look as the launch beacon) that grows as the
+ * drag gets closer (--pull, written by lib/edgeDrag.ts without a render).
+ */
+function EdgeDragCue({ side, barPx }: { side: 'left' | 'right' | 'top'; barPx: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    registerEdgeDragCue(ref.current)
+    return () => registerEdgeDragCue(null)
+  }, [])
+  return (
+    <div
+      ref={ref}
+      data-edge-drag-cue=""
+      className={`edge-drag-cue side-${side}`}
+      style={{ '--bar': `${barPx}px`, '--barn': barPx } as React.CSSProperties}
+    />
+  )
+}
+
+/** Tray with an arrow dropping into it; the arrow is its own group so it can move. */
+function TrayArrowIcon() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <g className="drop-arrow">
+        <path d="M12 3.25v9" />
+        <path d="m8.25 8.75 3.75 3.75 3.75-3.75" />
+      </g>
+      <path d="M3.5 14h4.1l1.6 2.6h5.6l1.6-2.6h4.1" />
+      <path d="M3.5 14v3.75a2.25 2.25 0 0 0 2.25 2.25h12.5a2.25 2.25 0 0 0 2.25-2.25V14l-2.1-5.1" />
+      <path d="M5.6 8.9 3.5 14" />
+    </svg>
+  )
+}
+
+/**
+ * Drop zone for anything dragged in from another app: a dashed well over the
+ * dimmed shelf. It is up from the first frame of an open caused by the drag
+ * (the content veil reveals it with the shelf), lights up once the drag is
+ * over the shelf, and on a drop it takes the item in (the well tightens, the
+ * arrow sinks into the tray) before handing over to the new card.
+ */
+function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
   const { t } = useTranslation()
-  const dragActive = useStore((s) => s.dragActive)
-  const internalDragReq = useStore((s) => s.internalDragReq)
+  const open = useStore((s) => s.open)
+  const incoming = useStore((s) => !s.internalDragReq && (s.externalDrag || s.dragActive))
+  const over = useStore((s) => s.dragActive && !s.internalDragReq)
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
+  const [accepted, setAccepted] = useState(false)
+  // Once up, the zone stays when the drag goes away without a drop (it left
+  // the shelf, was let go elsewhere or cancelled): either the shelf then
+  // closes, and the zone stays until the shape has drawn back (320ms) so no
+  // cards show through the collapse; or the shelf stays open (the pointer is
+  // still on it), and after the close grace has passed (GRACE_MS 250 in
+  // useEdgeHover, plus margin) the zone fades and the cards return. A drop
+  // hands over to the accept instead.
+  const [held, setHeld] = useState(false)
+  useEffect(() => {
+    if (accepted) {
+      if (held) setHeld(false)
+      return
+    }
+    if (open && incoming) {
+      if (!held) setHeld(true)
+      return
+    }
+    if (!held) return
+    const timer = window.setTimeout(() => setHeld(false), open ? 450 : 320)
+    return () => window.clearTimeout(timer)
+  }, [open, incoming, held, accepted])
+  const visible = held || (open && incoming)
+
+  useEffect(() => {
+    if (!visible) return
+    // Capture phase: the preload's own drop handler stops nothing for drops
+    // from other apps, so this sees each of them.
+    const onDrop = () => setAccepted(true)
+    document.addEventListener('drop', onDrop, true)
+    return () => document.removeEventListener('drop', onDrop, true)
+  }, [visible])
+  useEffect(() => {
+    if (!accepted) return
+    const timer = window.setTimeout(() => setAccepted(false), reduceMotion ? 0 : 240)
+    return () => window.clearTimeout(timer)
+  }, [accepted, reduceMotion])
 
   return (
     <AnimatePresence>
-      {dragActive && !internalDragReq && (
+      {(visible || accepted) && (
         <motion.div
+          key="drop-overlay"
+          className={`drop-overlay${isHorizontal ? ' is-horizontal' : ''}${over ? ' is-over' : ''}${accepted ? ' is-accepted' : ''}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '14px',
-            pointerEvents: 'none',
-            background: 'rgba(6, 6, 8, 0.95)',
-            textAlign: 'center',
-            padding: '24px'
-          }}
+          transition={{ duration: reduceMotion ? 0.01 : accepted ? 0.2 : 0.14, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div
-            style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '16px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'rgba(255, 255, 255, 0.9)'
-            }}
-          >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3v13"></path>
-              <path d="m8 12 4 4 4-4"></path>
-              <path d="M4 20h16"></path>
-            </svg>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.95)', letterSpacing: '0.01em' }}>
-              {t('item.dropToSave')}
-            </div>
-            <div style={{ fontSize: '12px', fontWeight: 400, color: 'rgba(255, 255, 255, 0.5)', lineHeight: 1.4 }}>
-              {t('item.dropToSaveDesc')}
-            </div>
+          <div className="drop-well">
+            <DashedOutline radius={16} />
+            <span className="drop-icon">
+              <TrayArrowIcon />
+            </span>
+            <span className="drop-text">
+              <span className="drop-title">{t('item.dropToSave')}</span>
+              <span className="drop-sub">{t('item.dropToSaveDesc')}</span>
+            </span>
           </div>
         </motion.div>
       )}
@@ -730,8 +820,15 @@ function DropOverlay() {
   )
 }
 
+/**
+ * Detach target while a card is dragged out of an open stack: the edge of the
+ * shelf that meets the screen edge (where you drag it to) gets the drop
+ * zone's dashed line, lit while the card is over it. The whole strip along
+ * that edge takes the drop; only the line is drawn.
+ */
 function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'right' | 'top' }) {
   const internalDragReq = useStore((s) => s.internalDragReq)
+  const reduceMotion = useStore((s) => !!s.settings.reduceMotion)
   const isSubitemDragging = !!(
     internalDragReq &&
     (internalDragReq.imageId || (internalDragReq.paths && internalDragReq.paths.length > 0))
@@ -744,7 +841,9 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
     setIsOver(true)
   }
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    const related = e.relatedTarget as Node | null
+    if (related && e.currentTarget.contains(related)) return
     setIsOver(false)
   }
 
@@ -759,48 +858,8 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
     }
   }
 
-  const isTop = stickPosition === 'top'
-  const isRight = stickPosition === 'right'
-
-  // Orientation alignment:
-  // When dock is on LEFT, drop zone is on the LEFT (-15px x-offset)
-  // When dock is on RIGHT, drop zone is on the RIGHT (+15px x-offset)
-  // When dock is on TOP, drop zone is at the TOP (-15px y-offset)
-  const initialMotion = isTop
-    ? { opacity: 0, y: -15 }
-    : isRight
-      ? { opacity: 0, x: 15 }
-      : { opacity: 0, x: -15 }
-
-  const exitMotion = initialMotion
-
-  const styleByPos: React.CSSProperties = isTop
-    ? {
-        top: 0,
-        left: 0,
-        right: 0,
-        height: isOver ? 72 : 56,
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start'
-      }
-    : isRight
-      ? {
-          top: 0,
-          bottom: 0,
-          right: 0,
-          width: isOver ? 100 : 80,
-          justifyContent: 'flex-end',
-          alignItems: 'center'
-        }
-      : {
-          top: 0,
-          bottom: 0,
-          left: 0,
-          width: isOver ? 100 : 80,
-          justifyContent: 'flex-start',
-          alignItems: 'center'
-        }
+  // Slides in from the edge it belongs to.
+  const offset = stickPosition === 'top' ? { y: -8 } : stickPosition === 'right' ? { x: 8 } : { x: -8 }
 
   return (
     <AnimatePresence>
@@ -814,13 +873,14 @@ function SplitDropZone({ stickPosition = 'left' }: { stickPosition?: 'left' | 'r
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          initial={initialMotion}
+          initial={{ opacity: 0, ...offset }}
           animate={{ opacity: 1, x: 0, y: 0 }}
-          exit={exitMotion}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          style={styleByPos}
+          exit={{ opacity: 0, ...offset }}
+          transition={reduceMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 420, damping: 34 }}
         >
-          <div className="glow-line" />
+          <div className="split-line">
+            <DashedLine vertical={stickPosition !== 'top'} />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
