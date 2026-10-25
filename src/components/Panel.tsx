@@ -421,14 +421,13 @@ export function Panel() {
   containerStyle.clipPath = clipPath
 
   // Edge bar intro (launch) and location hint. Not a light: the bar itself,
-  // drawn as a dark pill with the cards' faint edge highlight, a little wider
-  // and longer than the bar, settling into the slim black bar it lands on
-  // exactly (same insets, same black), so the hand-over is invisible. The
-  // hint is the same shape as a short swell.
+  // solid black with no border like the drag cue, a little wider and longer
+  // than the bar, settling into the slim black bar it lands on exactly (same
+  // insets, same black), so the hand-over is invisible. The hint is the same
+  // shape as a short swell.
   const beaconThick = isHorizontal ? 'height' : 'width'
   const beaconLong = isHorizontal ? 'width' : 'height'
   const beaconWide = hotWidth + 6
-  const edgeLight = (a: number) => `inset 0 0 0 1px rgba(255, 255, 255, ${a})`
   // Launch: the bar swells out of itself (solid all along, so the bar under
   // it never shows through), holds a beat, then glides back to slim.
   const beaconMotion = startupBeacon
@@ -436,9 +435,7 @@ export function Panel() {
         animate: {
           [beaconThick]: reduceMotion ? hotWidth : [hotWidth, beaconWide, beaconWide, hotWidth],
           [beaconLong]: reduceMotion ? '100%' : ['100%', '114%', '114%', '100%'],
-          opacity: 1,
-          backgroundColor: ['#000000', '#2c2c2c', '#2c2c2c', '#000000'],
-          boxShadow: [edgeLight(0), edgeLight(0.18), edgeLight(0.18), edgeLight(0)]
+          opacity: 1
         },
         transition: {
           duration: EDGE_INTRO_MS / 1000,
@@ -450,9 +447,7 @@ export function Panel() {
         animate: {
           [beaconThick]: reduceMotion ? hotWidth : [hotWidth, hotWidth + 4, hotWidth],
           [beaconLong]: reduceMotion ? '100%' : ['100%', '106%', '100%'],
-          opacity: 1,
-          backgroundColor: ['#000000', '#2c2c2c', '#000000'],
-          boxShadow: [edgeLight(0), edgeLight(0.16), edgeLight(0)]
+          opacity: 1
         },
         transition: { duration: 0.45, ease: 'easeInOut' }
       }
@@ -481,9 +476,10 @@ export function Panel() {
                 {...beaconMotion}
                 style={
                   isHorizontal
-                    ? { position: 'absolute', top: 0, left: '50%', x: '-50%', borderRadius: EDGE_BAR_RADIUS.top }
+                    ? { position: 'absolute', top: 0, left: '50%', x: '-50%', backgroundColor: '#000000', borderRadius: EDGE_BAR_RADIUS.top }
                     : {
                         position: 'absolute',
+                        backgroundColor: '#000000',
                         top: '50%',
                         [isRight ? 'right' : 'left']: 0,
                         y: '-50%',

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const panel = readFileSync(join(__dirname, '..', 'src/components/Panel.tsx'), 'utf8')
+const panel = readFileSync(join(__dirname, '..', 'src/components/Panel.tsx'), 'utf8').replace(/\r\n/g, '\n')
 const motionBlock = panel.slice(panel.indexOf('const beaconMotion = startupBeacon'), panel.indexOf('return (\n    <div className="root">'))
 
 describe('edge bar intro and location hint', () => {
@@ -15,11 +15,16 @@ describe('edge bar intro and location hint', () => {
     expect(motionBlock).toContain('[hotWidth, beaconWide, beaconWide, hotWidth]')
     expect(motionBlock).toContain("['100%', '114%', '114%', '100%']")
     // solid the whole time, so the bar under it never shows through
-    expect(motionBlock).toMatch(/startupBeacon\s+\? \{\s+animate: \{[\s\S]*?opacity: 1,/)
-    // ends on the bar's own black, edge light gone
-    expect(motionBlock).toContain("backgroundColor: ['#000000', '#2c2c2c', '#2c2c2c', '#000000']")
-    expect(motionBlock).toContain('edgeLight(0.18), edgeLight(0.18), edgeLight(0)]')
+    expect(motionBlock).toMatch(/startupBeacon\s+\? \{\s+animate: \{[\s\S]*?opacity: 1\s*\}/)
     expect(panel).toContain('const beaconWide = hotWidth + 6')
+  })
+
+  it('solid black with no border all the way, like the bar and the drag cue (no grey, no edge light)', () => {
+    expect(motionBlock).not.toMatch(/backgroundColor|boxShadow|#2c2c2c|edgeLight/)
+    expect(panel).not.toContain('edgeLight')
+    const beacon = panel.slice(panel.indexOf('data-edge-beacon=""'), panel.indexOf('key="edge-drag-cue"'))
+    expect(beacon.match(/backgroundColor: '#000000'/g)?.length).toBe(2)
+    expect(beacon).not.toMatch(/border(Width|Color|:)|boxShadow/)
   })
 
   it('hint: the same shape as a short swell', () => {
