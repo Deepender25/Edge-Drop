@@ -69,10 +69,9 @@ function kindArtDataUri(kind: FileKind): string | null {
 }
 
 /** One folder icon filling the 512 viewBox. */
-function kindImage(kind: FileKind): string {
-  const uri = kindArtDataUri(kind)
-  if (!uri) return ''
-  return `<image href="${uri}" x="0" y="0" width="${ART_SIZE}" height="${ART_SIZE}"/>`
+function artImage(href: string | null): string {
+  if (!href) return ''
+  return `<image href="${href}" x="0" y="0" width="${ART_SIZE}" height="${ART_SIZE}"/>`
 }
 
 /** True when a built drag SVG carries at least one piece of art. */
@@ -87,27 +86,39 @@ export function dragSvgHasArt(svg: string): boolean {
  * to the generic icon when rasterization yields nothing usable).
  */
 export function buildFileDragSvg(kinds: FileKind[], count: number): string {
-  if (count <= 1 || kinds.length === 1) {
-    const kind = kinds[0] || 'file'
+  const shown = count <= 1 || kinds.length === 1 ? [kinds[0] || 'file'] : kinds.slice(0, 3)
+  return dragSvgLayout(shown.map((kind) => kindArtDataUri(kind)), count)
+}
+
+/**
+ * The same ghost, from art already rasterized (one PNG data-URI per shown
+ * file, at most 3). Placing finished bitmaps is far cheaper than running each
+ * piece of art's blur and grain filters again for every stack.
+ */
+export function buildDragSvgFromArt(art: Array<string | null>, count: number): string {
+  return dragSvgLayout(count <= 1 ? art.slice(0, 1) : art.slice(0, 3), count)
+}
+
+function dragSvgLayout(art: Array<string | null>, count: number): string {
+  if (art.length <= 1) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="122" height="122" viewBox="0 0 512 512" fill="none">
-      ${kindImage(kind)}
+      ${artImage(art[0] ?? null)}
     </svg>`
   }
 
   // Multi-file stack (2 or 3 items offset naturally without any bounding card container)
-  const displayKinds = kinds.slice(0, 3)
-  const stackSvg = displayKinds
-    .map((k, i) => ({ kind: k, index: i }))
+  const stackSvg = art
+    .map((href, i) => ({ href, index: i }))
     .reverse()
-    .map(({ kind, index }) => {
+    .map(({ href, index }) => {
       const spread = 28
-      const rot = index * 5 - ((displayKinds.length - 1) * 2.5)
-      const tx = index * spread - ((displayKinds.length - 1) * spread) / 2
+      const rot = index * 5 - ((art.length - 1) * 2.5)
+      const tx = index * spread - ((art.length - 1) * spread) / 2
       const ty = index * 10
       const scale = 1 - index * 0.04
       return `
         <g transform="translate(${tx}, ${ty}) rotate(${rot} 256 256) scale(${scale})">
-          ${kindImage(kind)}
+          ${artImage(href)}
         </g>
       `
     })

@@ -33,6 +33,11 @@ export const PATHS = {
   stagedTempRegistryFile: () => join(root(), 'temp-staged.json'),
   /** Scratch dir for temp files handed to native drag-out. */
   tempDir: () => join(root(), 'temp'),
+  /**
+   * File-kind art for drag ghosts, rasterized once (see drag.ts). Not under
+   * "cache": on Windows that is Chromium's own Cache folder, which it clears.
+   */
+  dragArtDir: () => join(root(), 'drag-art'),
   /** App icon (used by window + native drag image). */
   icon: () => join(app.getAppPath(), 'resources', 'icon.png'),
   /** Tray icon (pure white logo without background for dark taskbar). */

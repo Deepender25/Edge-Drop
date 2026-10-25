@@ -37,6 +37,8 @@ describe('drag ghost art loading', () => {
   it('the drag code never rasterizes or caches a ghost without art', async () => {
     const { readFileSync } = await import('node:fs')
     const drag = readFileSync(join(process.cwd(), 'electron', 'main', 'drag.ts'), 'utf8')
-    expect(drag).toMatch(/const svg = buildFileDragSvg\(kinds, count\)\s+[\s\S]{0,200}if \(!dragSvgHasArt\(svg\)\) return getFileDragIcon\(\)\s+try \{\s+const resvg = new Resvg/)
+    expect(drag).toMatch(/const svg = buildDragSvgFromArt\(kinds\.map\(\(kind\) => pngUri\(kindArtPng\(kind\)\)\), count\)\s+[\s\S]{0,200}if \(!dragSvgHasArt\(svg\)\) return getFileDragIcon\(\)\s+try \{\s+const resvg = new Resvg/)
+    // a kind's art is only rasterized (and cached) when it has art
+    expect(drag).toMatch(/const svg = buildFileDragSvg\(\[kind\], 1\)\s+if \(!dragSvgHasArt\(svg\)\) return null/)
   })
 })

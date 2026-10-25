@@ -144,6 +144,11 @@ export function noteUiMotion(durationMs = MOTION_QUIET_MS): void {
   motionQuietUntil = Math.max(motionQuietUntil, Date.now() + durationMs)
 }
 
+/** Milliseconds until the current panel/flyout motion is over (0 when none). */
+export function uiMotionLeftMs(): number {
+  return Math.max(0, motionQuietUntil - Date.now())
+}
+
 function pump(): void {
   if (pumping) return
   pumping = true

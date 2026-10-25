@@ -11,7 +11,7 @@
 import { app, BrowserWindow, protocol, session } from 'electron'
 import { APP_CONFIG, runtime } from './config'
 import { ensureDirs, PATHS } from '../store/paths'
-import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener } from './window'
+import { createWindow, getMainWindow, setInteractive, setVisible, startCursorPoll, stopCursorPoll, stopHeartbeat, setHotZoneWidth, registerTaskbarCreatedListener, isInteractive } from './window'
 import { createTray, registerIncognitoApplier, refreshTray } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
 import { reconcileLaunchAtLoginOnStartup } from './loginItems'
@@ -120,7 +120,7 @@ app.whenReady().then(() => {
   registerIpc()
   registerSendListeners()
   initState()
-  prewarmDragIcons()
+  prewarmDragIcons(isInteractive)
 
   // Reflect settings immediately.
   let settings = loadSettings()

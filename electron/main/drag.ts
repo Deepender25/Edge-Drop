@@ -15,13 +15,15 @@
  */
 import { app, nativeImage, type WebContents } from 'electron'
 import { Resvg } from '@resvg/resvg-js'
-import { copyFileSync, mkdirSync, writeFileSync, existsSync, statSync } from 'node:fs'
+import { copyFileSync, mkdirSync, writeFileSync, existsSync, statSync, readFileSync, writeFile, readdir, unlink } from 'node:fs'
 import { join, extname } from 'node:path'
-import { getUnpackagedTempDir, toUnpackagedFilePaths } from '../store/paths'
+import { createHash } from 'node:crypto'
+import { PATHS, getUnpackagedTempDir, toUnpackagedFilePaths } from '../store/paths'
 import type { DragRequest, ItemData } from '../../shared/types'
 import { getStore } from './state'
-import { fileKindOf } from '../../src/lib/fileKind'
+import { fileKindOf, type FileKind } from '../../src/lib/fileKind'
 import { recordStagedFiles } from './stagedTemp'
+import { uiMotionLeftMs } from './thumbnailCache'
 
 function stampForFilename(capturedAt?: number): string {
   const d = capturedAt ? new Date(capturedAt) : new Date()
@@ -157,8 +159,41 @@ function getStagedCacheKey(data: ItemData, capturedAt?: number): string {
   }
 }
 
+/**
+ * How long the pointer must rest on a card before its drag is prepared.
+ * Hover sends a request for every card the pointer crosses, also while the
+ * list scrolls under a still pointer; preparing each one (file copies, ghost
+ * art) on the main thread stalled the scroll, since every frame of this
+ * window passes through the main thread. Only the card the pointer settles on
+ * is prepared, and never while the panel is still opening or closing; a drag
+ * that starts sooner prepares itself in startDragOut.
+ */
+const PRESTAGE_REST_MS = 150
+let prestageTimer: ReturnType<typeof setTimeout> | null = null
+let prestageReq: DragRequest | null = null
+
 /** Pre-stage a drag request in the background so drag initiation is 0ms. */
 export function prestageDrag(req: DragRequest): void {
+  prestageReq = req
+  schedulePrestage(PRESTAGE_REST_MS)
+}
+
+function schedulePrestage(ms: number): void {
+  if (prestageTimer !== null) clearTimeout(prestageTimer)
+  prestageTimer = setTimeout(() => {
+    prestageTimer = null
+    const motion = uiMotionLeftMs()
+    if (motion > 0) {
+      schedulePrestage(motion)
+      return
+    }
+    const next = prestageReq
+    prestageReq = null
+    if (next) prestageNow(next)
+  }, ms)
+}
+
+function prestageNow(req: DragRequest): void {
   try {
     const resolved = resolveDragData(req)
     if (!resolved) return
@@ -374,7 +409,97 @@ function dragIcon(data: ItemData): Electron.NativeImage {
   return getFileDragIcon()
 }
 
-import { buildFileDragSvg, dragSvgHasArt } from './fileSvg'
+import { buildFileDragSvg, buildDragSvgFromArt, dragSvgHasArt } from './fileSvg'
+
+/*
+ * Ghost rasterizing cost, measured: Resvg loads every installed font unless
+ * told otherwise (~150ms per call), and each piece of file art runs blur and
+ * grain filters (~50ms). A stack paid both, plus the art three times: 200-550ms
+ * on the main thread, a frozen shelf. Now no system fonts are loaded (the count
+ * badge gets Segoe UI Bold alone), each kind's art is rasterized once and kept
+ * on disk, and ghosts are composed from those bitmaps (single ~5ms, stack ~18ms).
+ */
+const GHOST_ZOOM = 2
+/** Art bitmap width: one stack slot (512 units of the 142px stack ghost) at GHOST_ZOOM. */
+const ART_PX = 142 * GHOST_ZOOM
+const NO_FONTS = { loadSystemFonts: false }
+
+type GhostFonts = { loadSystemFonts: boolean; fontFiles?: string[]; defaultFontFamily?: string; sansSerifFamily?: string }
+const ghostFonts = new Map<string, GhostFonts>()
+/**
+ * Fonts for ghost text: just the named Segoe UI files from the Windows font
+ * folder (each one parsed per render, so only what the text uses); the full
+ * system scan only if one is missing.
+ */
+function ghostTextFonts(names: string[]): GhostFonts {
+  const key = names.join('|')
+  const hit = ghostFonts.get(key)
+  if (hit) return hit
+  const dir = join(process.env.WINDIR || 'C:\\Windows', 'Fonts')
+  const files = names.map((f) => join(dir, f))
+  const fonts = files.every((f) => existsSync(f))
+    ? { loadSystemFonts: false, fontFiles: files, defaultFontFamily: 'Segoe UI', sansSerifFamily: 'Segoe UI' }
+    : { loadSystemFonts: true }
+  ghostFonts.set(key, fonts)
+  return fonts
+}
+/** The stack count badge: bold only. */
+const BADGE_FONTS = ['segoeuib.ttf']
+/** The text ghost: regular and semibold lines. */
+const TEXT_FONTS = ['segoeui.ttf', 'seguisb.ttf']
+
+/** Rasterized art per kind used this session (~60 KB of PNG each, at most 13). */
+const artPngCache = new Map<string, Buffer>()
+
+/**
+ * One kind's art as a PNG of ART_PX: from memory, else from the disk cache,
+ * else rendered once (and saved, so later sessions skip it). Null when no art
+ * can be read at all. `remember: false` only makes sure it is on disk.
+ */
+function kindArtPng(kind: FileKind, remember = true): Buffer | null {
+  const svg = buildFileDragSvg([kind], 1)
+  if (!dragSvgHasArt(svg)) return null
+  const name = `${kind}-${createHash('sha1').update(svg).digest('hex').slice(0, 12)}-${ART_PX}.png`
+  const hit = artPngCache.get(name)
+  if (hit) return hit
+  const dir = PATHS.dragArtDir()
+  let png: Buffer
+  if (existsSync(join(dir, name))) {
+    if (!remember) return null
+    try {
+      png = readFileSync(join(dir, name))
+    } catch {
+      return null
+    }
+  } else {
+    try {
+      png = new Resvg(svg, { fitTo: { mode: 'width', value: ART_PX }, font: NO_FONTS }).render().asPng()
+    } catch {
+      return null
+    }
+    saveArt(dir, name, kind, png)
+  }
+  if (remember) artPngCache.set(name, png)
+  return png
+}
+
+/** Write a kind's art to the disk cache (off the main thread) and drop its older versions. */
+function saveArt(dir: string, name: string, kind: string, png: Buffer): void {
+  try {
+    mkdirSync(dir, { recursive: true })
+  } catch {
+    return
+  }
+  writeFile(join(dir, name), png, () => {})
+  readdir(dir, (err, names) => {
+    if (err) return
+    for (const n of names) {
+      if (n.startsWith(`${kind}-`) && n !== name) unlink(join(dir, n), () => {})
+    }
+  })
+}
+
+const pngUri = (png: Buffer | null): string | null => (png ? `data:image/png;base64,${png.toString('base64')}` : null)
 
 /** Generate a custom standalone SVG PNG icon representing file kinds with count badge. */
 function createFileStackDragIcon(paths: string[], entries?: Array<{ isDirectory?: boolean }>): Electron.NativeImage {
@@ -398,15 +523,15 @@ function createFileStackDragIcon(paths: string[], entries?: Array<{ isDirectory?
     return cached
   }
 
-  const svg = buildFileDragSvg(kinds, count)
+  const svg = buildDragSvgFromArt(kinds.map((kind) => pngUri(kindArtPng(kind))), count)
   // No art could be read: an invisible ghost must not be rasterized, and
   // above all must not be cached for the rest of the session.
   if (!dragSvgHasArt(svg)) return getFileDragIcon()
 
   try {
-    const resvg = new Resvg(svg, { fitTo: { mode: 'zoom', value: 2 } })
+    const resvg = new Resvg(svg, { fitTo: { mode: 'zoom', value: GHOST_ZOOM }, font: count > 1 ? ghostTextFonts(BADGE_FONTS) : NO_FONTS })
     const pngData = resvg.render().asPng()
-    const img = nativeImage.createFromBuffer(pngData, { scaleFactor: 2 })
+    const img = nativeImage.createFromBuffer(pngData, { scaleFactor: GHOST_ZOOM })
     if (!img.isEmpty()) {
       iconCache.set(cacheKey, img)
       if (iconCache.size > ICON_CACHE_MAX) {
@@ -480,28 +605,36 @@ function createTextDragIcon(text: string): Electron.NativeImage {
   </svg>`
 
   try {
-    const resvg = new Resvg(svg, { fitTo: { mode: 'zoom', value: 2 } })
+    const resvg = new Resvg(svg, { fitTo: { mode: 'zoom', value: GHOST_ZOOM }, font: ghostTextFonts(TEXT_FONTS) })
     const pngData = resvg.render().asPng()
-    const img = nativeImage.createFromBuffer(pngData, { scaleFactor: 2 })
+    const img = nativeImage.createFromBuffer(pngData, { scaleFactor: GHOST_ZOOM })
     if (!img.isEmpty()) return img
   } catch {}
   return getFileDragIcon()
 }
 
-/** Pre-warm common drag icons asynchronously in background so first drag is instant. */
-export function prewarmDragIcons(): void {
-  setTimeout(() => {
+const ART_KINDS: FileKind[] = [
+  'pdf', 'word', 'excel', 'powerpoint', 'archive', 'text', 'code',
+  'audio', 'video', 'image', 'executable', 'folder', 'file'
+]
+
+/**
+ * Put every kind's art in the disk cache so no hover or drag ever renders it.
+ * Usually nothing to do (it is already there); otherwise one kind per idle
+ * moment, only while the shelf is closed, nothing kept in memory.
+ */
+export function prewarmDragIcons(isBusy: () => boolean): void {
+  const pending = [...ART_KINDS]
+  const next = (): void => {
+    if (pending.length === 0) return
+    if (isBusy() || uiMotionLeftMs() > 0) {
+      setTimeout(next, 2000)
+      return
+    }
     try {
-      const commonKinds = [
-        'pdf', 'word', 'excel', 'powerpoint', 'archive',
-        'text', 'code', 'audio', 'video', 'image',
-        'executable', 'folder', 'file'
-      ]
-      for (const k of commonKinds) {
-        createFileStackDragIcon([`dummy.${k}`])
-      }
-      createFileStackDragIcon(['dummy.image', 'dummy.image'])
-      createFileStackDragIcon(['dummy.image', 'dummy.image', 'dummy.image'])
-    } catch {}
-  }, 400)
+      kindArtPng(pending.shift()!, false)
+    } catch { /* the next drag of this kind renders it */ }
+    setTimeout(next, 300)
+  }
+  setTimeout(next, 8000)
 }
