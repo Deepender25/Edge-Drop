@@ -21,8 +21,8 @@ import { applyReduceMotion } from './lib/theme'
 import { useTranslation } from './i18n'
 import { DEFAULT_SETTINGS, type Settings, type StickPosition } from '../shared/types'
 import { PEN_PATH, PEN_TRANSFORM, PEN_WIDTH, GLASS_BOX, SHADOW_BOX, BLUR_BOX, penProgress } from './onboarding/lettering'
-import { DEMOS, Run, STOP, itemsFor, playLooped, resetDemoState, watchActivity, type Stage } from './onboarding/tour'
-import { laptopBar, tourBar, shelfTransform, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
+import { DEMOS, PREVIEW_PAN, Run, STOP, itemsFor, playLooped, resetDemoState, watchActivity, type Stage } from './onboarding/tour'
+import { laptopBar, tourBar, shelfTransform, topBarLength, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
 import { PAGE_LINES, STACK_FILES } from './onboarding/demoItems'
 import { Autoplay, readingMs } from './onboarding/autoplay'
 import { fileIconUrl, fileKindOf } from './lib/fileKind'
@@ -100,6 +100,7 @@ export function Onboarding() {
   const notesImageRef = useRef<HTMLDivElement>(null)
   const browserRef = useRef<HTMLDivElement>(null)
   const explorerRef = useRef<HTMLDivElement>(null)
+  const lensRef = useRef<HTMLDivElement>(null)
   const penRef = useRef<SVGPathElement>(null)
   const lettersRef = useRef<HTMLDivElement>(null)
   const shadowRef = useRef<SVGImageElement>(null)
@@ -140,6 +141,7 @@ export function Onboarding() {
     notesImage: notesImageRef.current!,
     browser: browserRef.current!,
     explorer: explorerRef.current!,
+    lens: lensRef.current!,
     showShelf: (on) => {
       setShelf(on)
       setBarShown(!on)
@@ -163,6 +165,7 @@ export function Onboarding() {
     const unwatch = watchActivity()
     document.body.style.setProperty('--ob-shelf-scale', String(SHELF_SCALE))
     document.body.style.setProperty('--ob-shelf-top', `${TOUR_SCREEN_TOP}px`)
+    document.body.style.setProperty('--ob-preview-pan', `${-PREVIEW_PAN}px`)
     void edge.loadState().then(async ({ settings }) => {
       if (cancelled) return
       setReal(settings)
@@ -193,6 +196,7 @@ export function Onboarding() {
       document.body.classList.remove('ob-tour')
       document.body.style.removeProperty('--ob-shelf-scale')
       document.body.style.removeProperty('--ob-shelf-top')
+      document.body.style.removeProperty('--ob-preview-pan')
       runRef.current?.cancel()
       timers.current.forEach(clearTimeout)
     }
@@ -286,6 +290,13 @@ export function Onboarding() {
   atRef.current = at
   goRef.current = go
 
+  // The preview step fades the flyout's last stretch out above the text (see .ob-preview-step).
+  useEffect(() => {
+    document.body.classList.toggle('ob-preview-step', steps[at].key === 'preview')
+    return () => document.body.classList.remove('ob-preview-step')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [at])
+
   // Autoplay's clock for a step starts when its text is up: after the intro, then on each step change.
   useEffect(() => {
     if (intro !== 'done') return
@@ -307,6 +318,7 @@ export function Onboarding() {
   const locked = intro !== 'done'
   // The tour's shelf is docked at the top; the settings frame shows the user's real choice.
   const demo = useStore((st) => st.settings)
+  const shelfOpen = useStore((st) => st.open)
   const showReal = at === last && realEdge && !!real
   const edgeNow: StickPosition = showReal ? barPos : 'top'
   const barStyle = showReal && real ? laptopBar(edgeNow, real) : tourBar(demo)
@@ -320,119 +332,125 @@ export function Onboarding() {
     <div className={`ob${intro === 'writing' ? '' : ' ob-focus'}${intro === 'done' ? ' ob-done' : ''}`}>
       <div className="ob-stage" ref={stageRef}>
         <div className="ob-scene">
-          {/* The cloud wallpaper: one pixel per 2px dither cell, drawn crisp (it never moves). */}
+          {/* The cloud wallpaper: one pixel per 2px dither cell, drawn crisp (it never moves, not even with the camera). */}
           <img className="ob-sky" src={skyUrl} alt="" />
 
-          {/* A web page, for the copy demo: a sentence, the address and the photo get copied. */}
-          <div className="ob-win ob-browser" ref={browserRef}>
-            <div className="ob-win-bar">
-              <span className="ob-tab"><i>W</i>Sea of clouds - Wikipedia</span>
-              <Caption />
-            </div>
-            <div className="ob-address">
-              <span className="ob-url"><i className="ob-hl" />en.wikipedia.org/wiki/Sea_of_clouds</span>
-            </div>
-            <div className="ob-page">
-              <div className="ob-article">
-                <b>Sea of clouds</b>
-                {PAGE_LINES.map((line) => <span key={line} className="ob-line"><i className="ob-hl" />{line}</span>)}
-                <span className="ob-rest">It is most often seen on cold, clear mornings.</span>
+          {/* The camera: the laptop, what is on its screen and the pointer, pushed in on the action (lens.ts). */}
+          <div className="ob-lens" ref={lensRef}>
+
+            {/* A web page, for the copy demo: a sentence, the address and the photo get copied. */}
+            <div className="ob-win ob-browser" ref={browserRef}>
+              <div className="ob-win-bar">
+                <span className="ob-tab"><i>W</i>Sea of clouds - Wikipedia</span>
+                <Caption />
               </div>
-              <div className="ob-photo" />
-            </div>
-            <div className="ob-menu">
-              <span>Open image in new tab</span>
-              <span>Save image as…</span>
-              <span className="is-copy">Copy image</span>
-              <span>Copy image link</span>
-            </div>
-          </div>
-
-          {/* File Explorer, for the drag-in demo. */}
-          <div className="ob-win ob-explorer" ref={explorerRef}>
-            <div className="ob-win-bar">
-              <span className="ob-notes-title"><i className="ob-folder" />Documents</span>
-              <Caption />
-            </div>
-            <div className="ob-files">
-              <div className="ob-files-head"><span>Name</span><span>Size</span></div>
-              <i className="ob-band" />
-              {FOLDER.map(([name, size]) => (
-                <div key={name} className={`ob-file${name.endsWith('.pdf') ? ' is-pdf' : ''}`}>
-                  <img src={fileIconUrl(fileKindOf(name))} alt="" />
-                  <span>{name}</span>
-                  <em>{Math.round(size / 1024).toLocaleString('en-US')} KB</em>
+              <div className="ob-address">
+                <span className="ob-url"><i className="ob-hl" />en.wikipedia.org/wiki/Sea_of_clouds</span>
+              </div>
+              <div className="ob-page">
+                <div className="ob-article">
+                  <b>Sea of clouds</b>
+                  {PAGE_LINES.map((line) => <span key={line} className="ob-line"><i className="ob-hl" />{line}</span>)}
+                  <span className="ob-rest">It is most often seen on cold, clear mornings.</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Another app, for the drag demo. */}
-          <div className="ob-notes" ref={notesRef}>
-            <div className="ob-notes-bar">
-              <span className="ob-notes-title"><i />Trip plan</span>
-              <Caption />
-            </div>
-            <div className="ob-notes-body">
-              <b>Weekend at the summit</b>
-              <p>Sat · Trailhead 6:30, top by noon</p>
-              <p>Sun · Ridge walk above the clouds</p>
-              <div className="ob-notes-image" ref={notesImageRef} />
-            </div>
-          </div>
-
-          {/* The real shelf, inert: the tour drives it. */}
-          {ready && (
-            <div
-              className={`ob-shelf${shelf ? '' : ' is-hidden'}`}
-              style={{ transform: shelfTransform(cam) }}
-              aria-hidden
-            >
-              <Panel />
-            </div>
-          )}
-
-          {/* The welcome and settings frames dim only below the laptop, so its screen stays the lit object. */}
-          <div className={`ob-below${cam === 'frame' ? '' : ' is-off'}`} aria-hidden />
-
-          {/* The camera on the laptop: the whole laptop; the tour's push-in on its top edge; or (settings) a
-              close-up framed on the user's edge. The bar is inside, so it stays attached to the screen edge. */}
-          <div className={`ob-cam${cam === 'tour' ? ' is-tour' : ''}${closeUp ? ` is-close is-${edgeNow}` : ''}`} aria-hidden>
-            <div className="ob-laptop">
-              <div className="ob-bezel" />
-              <div className="ob-base" />
-              {/* The screen's taskbar: up whenever the whole laptop is in view (welcome, settings). */}
-              <div className={`ob-taskbar${cam === 'frame' ? ' is-on' : ''}`}>
-                <div className="ob-task-apps"><i className="ob-start" /><i className="ob-search" /><i /><i /><i /></div>
-                <div className="ob-task-tray">
-                  <svg width="9" height="7" viewBox="0 0 9 7"><path d="M.5 2.6a5.6 5.6 0 0 1 8 0M2 4.1a3.4 3.4 0 0 1 5 0M3.5 5.6a1.3 1.3 0 0 1 2 0" fill="none" stroke="#fff" strokeWidth=".9" strokeLinecap="round" /></svg>
-                  <svg width="11" height="6" viewBox="0 0 11 6"><rect x=".5" y=".5" width="9" height="5" rx="1.2" fill="none" stroke="#fff" strokeWidth=".8" /><rect x="1.6" y="1.6" width="6" height="2.8" rx=".5" fill="#fff" /><rect x="9.8" y="2" width=".8" height="2" rx=".3" fill="#fff" /></svg>
-                  <span><b>12:01</b><b>27-10-2026</b></span>
-                </div>
+                <div className="ob-photo" />
+              </div>
+              <div className="ob-menu">
+                <span>Open image in new tab</span>
+                <span>Save image as…</span>
+                <span className="is-copy">Copy image</span>
+                <span>Copy image link</span>
               </div>
             </div>
-            {/* Keyed by edge: moving to another edge fades in there instead of morphing across the screen. */}
-            <div key={edgeNow} className={`ob-bar${barShown ? '' : ' is-hidden'}`} style={barStyle} />
+
+            {/* File Explorer, for the drag-in demo. */}
+            <div className="ob-win ob-explorer" ref={explorerRef}>
+              <div className="ob-win-bar">
+                <span className="ob-notes-title"><i className="ob-folder" />Documents</span>
+                <Caption />
+              </div>
+              <div className="ob-files">
+                <div className="ob-files-head"><span>Name</span><span>Size</span></div>
+                <i className="ob-band" />
+                {FOLDER.map(([name, size]) => (
+                  <div key={name} className={`ob-file${name.endsWith('.pdf') ? ' is-pdf' : ''}`}>
+                    <img src={fileIconUrl(fileKindOf(name))} alt="" />
+                    <span>{name}</span>
+                    <em>{Math.round(size / 1024).toLocaleString('en-US')} KB</em>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Another app, for the drag demo. */}
+            <div className="ob-notes" ref={notesRef}>
+              <div className="ob-notes-bar">
+                <span className="ob-notes-title"><i />Trip plan</span>
+                <Caption />
+              </div>
+              <div className="ob-notes-body">
+                <b>Weekend at the summit</b>
+                <p>Sat · Trailhead 6:30, top by noon</p>
+                <p>Sun · Ridge walk above the clouds</p>
+                <div className="ob-notes-image" ref={notesImageRef} />
+              </div>
+            </div>
+
+            {/* The real shelf, inert: the tour drives it. */}
+            {ready && (
+              <div
+                className={`ob-shelf${shelf ? '' : ' is-hidden'}${shelfOpen ? ' is-open' : ''}`}
+                style={{ transform: shelfTransform(cam), '--ob-bar-w': `${topBarLength(demo.hotZoneHeight)}px` } as React.CSSProperties}
+                aria-hidden
+              >
+                <Panel />
+              </div>
+            )}
+
+            {/* The welcome and settings frames dim only below the laptop, so its screen stays the lit object. */}
+            <div className={`ob-below${cam === 'frame' ? '' : ' is-off'}`} aria-hidden />
+
+            {/* The camera on the laptop: the whole laptop; the tour's push-in on its top edge; or (settings) a
+                close-up framed on the user's edge. The bar is inside, so it stays attached to the screen edge. */}
+            <div className={`ob-cam${cam === 'tour' ? ' is-tour' : ''}${closeUp ? ` is-close is-${edgeNow}` : ''}`} aria-hidden>
+              <div className="ob-laptop">
+                <div className="ob-bezel" />
+                <div className="ob-base" />
+                {/* The screen's taskbar: up whenever the whole laptop is in view (welcome, settings). */}
+                <div className={`ob-taskbar${cam === 'frame' ? ' is-on' : ''}`}>
+                  <div className="ob-task-apps"><i className="ob-start" /><i className="ob-search" /><i /><i /><i /></div>
+                  <div className="ob-task-tray">
+                    <svg width="9" height="7" viewBox="0 0 9 7"><path d="M.5 2.6a5.6 5.6 0 0 1 8 0M2 4.1a3.4 3.4 0 0 1 5 0M3.5 5.6a1.3 1.3 0 0 1 2 0" fill="none" stroke="#fff" strokeWidth=".9" strokeLinecap="round" /></svg>
+                    <svg width="11" height="6" viewBox="0 0 11 6"><rect x=".5" y=".5" width="9" height="5" rx="1.2" fill="none" stroke="#fff" strokeWidth=".8" /><rect x="1.6" y="1.6" width="6" height="2.8" rx=".5" fill="#fff" /><rect x="9.8" y="2" width=".8" height="2" rx=".3" fill="#fff" /></svg>
+                    <span><b>12:01</b><b>27-10-2026</b></span>
+                  </div>
+                </div>
+              </div>
+              {/* Keyed by edge: moving to another edge fades in there instead of morphing across the screen. */}
+              <div key={edgeNow} className={`ob-bar${barShown ? '' : ' is-hidden'}`} style={barStyle} />
+            </div>
+
+            <div className="ob-cursor" ref={cursorRef} aria-hidden>
+              {/* Dark-mode pointer: a black arrowhead (no stem, softly rounded) with a hairline light edge. */}
+              <svg width="16" height="18" viewBox="0 0 16 18">
+                <path
+                  d="M2.9 2.1C2.3 1.6 1.7 1.9 1.7 2.7v11.6c0 .9.9 1.3 1.6.7l2.9-2.7c.3-.3.7-.4 1.1-.4l4.4-.1c.9 0 1.3-1.1.6-1.7z"
+                  fill="#000"
+                  stroke="#fff"
+                  strokeWidth="0.6"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           </div>
 
+          {/* Ctrl+C, outside the camera: placed beside a window as it is framed on screen (tour.ts keys). */}
           <div className="ob-keys" ref={keysRef} aria-hidden>
             <div><kbd>Ctrl</kbd><b>+</b><kbd>C</kbd></div>
             <span ref={keysLabelRef} />
           </div>
-          <div className="ob-cursor" ref={cursorRef} aria-hidden>
-            {/* Dark-mode pointer: a black arrowhead (no stem, softly rounded) with a hairline light edge. */}
-            <svg width="16" height="18" viewBox="0 0 16 18">
-              <path
-                d="M2.9 2.1C2.3 1.6 1.7 1.9 1.7 2.7v11.6c0 .9.9 1.3 1.6.7l2.9-2.7c.3-.3.7-.4 1.1-.4l4.4-.1c.9 0 1.3-1.1.6-1.7z"
-                fill="#000"
-                stroke="#fff"
-                strokeWidth="0.6"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
 
-          <div className={`ob-ui${locked ? ' is-locked' : ''}${s.key === 'preview' ? ' is-side' : ''}${s.key === 'settings' ? ' is-low' : ''}`}>
+          <div className={`ob-ui${locked ? ' is-locked' : ''}${s.key === 'settings' ? ' is-low' : ''}`}>
             <div className="ob-progress">
               {/* The active dash fills as the step plays and rests (autoplay); the last one is simply full. */}
               <div className="ob-dots">

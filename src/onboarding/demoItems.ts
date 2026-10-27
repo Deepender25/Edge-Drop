@@ -71,11 +71,18 @@ export function demoPdf(at: number): ClipboardItemDto {
   return files('demo-pdf', [['Itinerary.pdf', 412_000]], at)
 }
 
-/** Three files of different kinds, selected in File Explorer and copied at once: they arrive as one stack. */
+/**
+ * Five files of different kinds, selected in File Explorer and copied at once: they arrive as one stack.
+ * The first is the one pulled out and then combined with the (blue) photo: the slides' orange folder
+ * stands in front of it, where Word's blue would blend in. The four left are the stack the preview
+ * opens.
+ */
 export const STACK_FILES: Array<[string, number]> = [
-  ['Packing list.docx', 96_426],
+  ['Trip slides.pptx', 2_318_400],
   ['Budget.xlsx', 144_639],
-  ['Trip slides.pptx', 2_318_400]
+  ['Packing list.docx', 96_426],
+  ['Summit photos.zip', 18_874_368],
+  ['Checklist.txt', 2_150]
 ]
 
 export function demoStack(at: number, names = STACK_FILES): ClipboardItemDto {
@@ -87,7 +94,7 @@ export function demoSingle(at: number, name: [string, number]): ClipboardItemDto
   return files('demo-single', [name], at)
 }
 
-/** The image dropped onto the single file: one stack holding both. */
+/** The image dropped onto the single file: one stack holding both, the file first (main: the target's files, then the dropped one's). */
 export function demoMerged(at: number, name: [string, number]): ClipboardItemDto {
   return {
     id: 'demo-single',
@@ -96,8 +103,8 @@ export function demoMerged(at: number, name: [string, number]): ClipboardItemDto
     pinned: false,
     data: {
       kind: 'files',
-      paths: [DIR + 'Summit.png', DIR + name[0]],
-      entries: [file('Summit.png', 1_284_600), file(name[0], name[1])]
+      paths: [DIR + name[0], DIR + 'Summit.png'],
+      entries: [file(name[0], name[1]), file('Summit.png', 1_284_600)]
     }
   }
 }

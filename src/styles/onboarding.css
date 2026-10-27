@@ -27,6 +27,22 @@
   transform: none;
   transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
+/* The camera over the scene (lens.ts sets its transform and transition per move, and CSS zoom while it
+   holds). A fixed size, not inset: under zoom the scene inside must keep its 800 x 640 layout. No
+   will-change: it would keep the layer drawn at its unzoomed size and stretch it. */
+.ob-lens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 800px;
+  height: 640px;
+  transform-origin: 0 0;
+}
+[data-motion='reduce'] .ob-lens {
+  transform: none !important;
+  transition: none !important;
+  zoom: 1 !important;
+}
 .ob-sky {
   position: absolute;
   left: 0;
@@ -49,8 +65,53 @@
   transform-origin: 50% 0;
   transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1);
   /* The layer stands for the screen: what Panel draws past its edges (the copy tab's part behind the
-     edge) is off-screen in the app, so it must not show above the laptop's screen here. */
+     edge) is off-screen in the app, so it must not show above the laptop's screen here. The margin lets
+     the backing below (and that part of the tab) reach behind the bezel, which covers it. */
   overflow: clip;
+  overflow-clip-margin: 6px;
+}
+/* The bezel and the shelf are separate layers: wherever the camera, or a fractional display scale,
+   leaves the screen's top edge between pixels, each covers only part of that row of pixels, and the
+   wallpaper behind showed through as a blue line between them. So both get a dark backing at the edge:
+   the shelf's black carries on a little way up behind the bezel (::before), and under the shelf's own
+   first rows, the width of the bar or of the open shelf (::after; black on black, never seen), so the
+   row blends with black, never with sky. */
+.ob-shelf::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -6px;
+  height: 6px;
+  background: #000;
+}
+.ob-shelf::after {
+  content: '';
+  position: absolute;
+  /* across the edge, overlapping ::before: no soft edge of either falls on the edge's row */
+  top: -2px;
+  left: 50%;
+  width: var(--ob-bar-w);
+  height: 4px;
+  transform: translateX(-50%);
+  background: #000;
+}
+/* the open shelf: the dock's width (Panel: the window's width less 60px) */
+.ob-shelf.is-open::after {
+  width: calc(100% - 60px);
+}
+/* The cards' pictures (file icons, the folders and photos of a stack, the grain) are each kept on a
+   pre-drawn layer in the app, sharp there because the shelf is shown 1:1 (item.css). Here the shelf is
+   shown scaled (0.72, and the camera zooms it), so those layers were resampled and the glass folders read
+   as a milky smear; in the tour they are drawn at the size they are shown. */
+.ob-shelf .single-file-hero svg,
+.ob-shelf .single-file-hero img.file-kind-img,
+.ob-shelf .file-kind-opening > .fko-plain,
+.ob-shelf .fko-layers > .fil,
+.ob-shelf .image-folder-stack-item,
+.ob-shelf .file-stack-folder,
+.ob-shelf .is-textured::before {
+  will-change: auto !important;
 }
 .ob-shelf .root {
   position: absolute;
@@ -63,6 +124,24 @@
   zoom: var(--ob-shelf-scale);
   margin-left: calc(400px * (1 - var(--ob-shelf-scale)) / var(--ob-shelf-scale));
   margin-top: calc(var(--ob-shelf-top) / var(--ob-shelf-scale));
+}
+/* Preview step: the flyout can reach nearly to the window's bottom (the app's 460px), where the step's
+   text is. The text keeps its place, as on every step (top 444); the flyout's last stretch (its file list
+   carries on below, as in a scrolled list) fades out just above it instead of running under it: gone by
+   y 434 even at the flyout's full height. The fade is a gradient sized to 77% of the flyout (nothing shows
+   past it), so it can give way smoothly: while the camera pans
+   the screen up (.ob-preview-pan, PREVIEW_PAN in tour.ts) the flyout moves up with it (translate: in its
+   own zoomed pixels, hence / scale) and the fade's size grows past the bottom, so all of it is in view. */
+.ob-tour.ob-preview-step > .pf-wrap {
+  mask-image: linear-gradient(to bottom, #000 86%, transparent);
+  mask-size: 100% 77%;
+  mask-repeat: no-repeat;
+  translate: 0 0;
+  transition: mask-size 0.75s cubic-bezier(0.5, 0, 0.25, 1), translate 0.75s cubic-bezier(0.5, 0, 0.25, 1);
+}
+.ob-tour.ob-preview-step.ob-preview-pan > .pf-wrap {
+  mask-size: 100% 130%;
+  translate: 0 calc(var(--ob-preview-pan) / var(--ob-shelf-scale));
 }
 /* Hidden with opacity, not visibility: parts of Panel set visibility inline, which would show through. */
 .ob-shelf.is-hidden {
@@ -115,6 +194,17 @@
 }
 .ob-cam.is-tour .ob-base {
   opacity: 0;
+}
+/* Welcome: the camera pushes in on the bar, and the laptop's lower half (bezel, taskbar, base) fades as
+   it would run down under the step's text. */
+.ob-cam.is-push .ob-bezel {
+  mask-size: 100% 420px;
+  box-shadow: none;
+}
+.ob-cam.is-push .ob-base,
+.ob-cam.is-push .ob-taskbar.is-on {
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 .ob-cam.is-close.is-top {
   transform-origin: 400px 10px;
@@ -476,9 +566,9 @@
 }
 .ob-explorer {
   left: 196px;
-  top: 172px;
+  top: 166px;
   width: 330px;
-  height: 222px;
+  height: 260px;
 }
 .ob-explorer .ob-win-bar {
   padding-left: 12px;
@@ -519,7 +609,7 @@
 }
 .ob-file {
   grid-template-columns: 22px 1fr 64px;
-  height: 30px;
+  height: 27px;
   border-radius: 5px;
   transition: background 0.2s;
 }
@@ -536,6 +626,23 @@
 }
 .ob-file.is-on {
   background: rgba(51, 144, 255, 0.28);
+}
+
+/* The other apps' windows: up (is-up, tour.ts showWindow) with a short rise, gone with a fade. */
+.ob-win,
+.ob-notes {
+  transition: opacity 0.26s ease;
+}
+.ob-win.is-up,
+.ob-notes.is-up {
+  opacity: 1;
+  animation: ob-win-rise 0.42s cubic-bezier(0.3, 0.8, 0.2, 1);
+}
+@keyframes ob-win-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
 }
 
 .ob-keys {
@@ -582,7 +689,7 @@
   display: block;
 }
 .ob-ghost {
-  position: fixed;
+  position: absolute;
   left: 0;
   top: 0;
   z-index: 25;
@@ -636,30 +743,6 @@
 .ob-ui.is-low {
   top: auto;
   bottom: 16px;
-}
-/* Preview step: the flyout opens under the shelf on the left, so the text moves to the right. */
-.ob-ui.is-side {
-  left: 500px;
-  right: 40px;
-  top: 300px;
-}
-/* The side text sits over the brightest clouds: a soft deep-blue pool behind it, the same tint as under
-   the centred text (a gradient, no blur). */
-.ob-ui.is-side {
-  isolation: isolate;
-}
-.ob-ui.is-side::before {
-  content: '';
-  position: absolute;
-  inset: -70px -60px -70px -80px;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(closest-side, rgba(6, 16, 110, 0.62), rgba(6, 16, 110, 0.38) 55%, rgba(6, 16, 110, 0));
-}
-.ob-ui.is-side .ob-copy,
-.ob-ui.is-side .ob-copy p {
-  align-items: flex-start;
-  text-align: left;
 }
 .ob-dots {
   display: flex;

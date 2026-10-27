@@ -45,7 +45,7 @@ export const shelfTransform = (cam: 'frame' | 'tour') =>
     : `translateY(${LAPTOP_SCREEN.top}px) scale(${SHELF_SCALE / TOUR.scale})`
 
 /** Length of the top dock's bar (Panel: triggerWidthPx). */
-function topBarLength(hotZoneHeight: number): number {
+export function topBarLength(hotZoneHeight: number): number {
   return hotZoneHeight >= 0.55 ? 575 : hotZoneHeight >= 0.35 ? 400 : 275
 }
 

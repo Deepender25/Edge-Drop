@@ -1454,6 +1454,21 @@ html[data-motion='reduce'] .file-stack-folder {
    the group keeps its top margin. */
 /* ...and in any file stack its hover swing lifts 4px less, so its corner
    stays clear of the card's top edge. */
+/* A photo in a file stack takes its place in the stack's order like the folders do: the photo cards'
+   own z-indexes (2 and 1 in a pair) sat below the folders' (4 down to 1), so a dimmed back folder was
+   drawn over the front photo. */
+.image-folder-stack-deck.is-file-deck .image-folder-stack-item.pos-0 {
+  z-index: 4;
+}
+.image-folder-stack-deck.is-file-deck .image-folder-stack-item.pos-1 {
+  z-index: 3;
+}
+.image-folder-stack-deck.is-file-deck .image-folder-stack-item.pos-2 {
+  z-index: 2;
+}
+.image-folder-stack-deck.is-file-deck .image-folder-stack-item.pos-3 {
+  z-index: 1;
+}
 .image-folder-stack-deck.is-file-deck .image-folder-stack-item {
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), translate 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, opacity 0.28s ease;
 }
