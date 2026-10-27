@@ -108,17 +108,9 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(pkg.devDependencies['emoji-datasource-twitter']).toBeTruthy()
   })
 
-  it('keeps onboarding videos in public/ and README images out of the pack', () => {
-    const publicFiles = readdirSync(join(root, 'public'))
-    expect(publicFiles.sort()).toEqual([
-      'copy.webm',
-      'drag.webm',
-      'merge.webm',
-      'preview.webm',
-      'stack.webm',
-      'ungroup.webm',
-      'welcome.webm'
-    ])
+  it('ships no onboarding videos (the tour plays the real app) and keeps README images out of the pack', () => {
+    const publicFiles = existsSync(join(root, 'public')) ? readdirSync(join(root, 'public')) : []
+    expect(publicFiles.filter((name) => name.endsWith('.webm'))).toEqual([])
     const readmeDir = join(root, '.github/readme')
     for (const name of [
       'Logo.gif',

@@ -816,7 +816,12 @@ export function registerIpc(): void {
     setInteractive(value)
   })
 
-  handle('window:set-preview-mode', (active) => {
+  // Only the panel's own renderer sizes the panel window. The onboarding tour
+  // runs the same components in its window, and their preview/close calls
+  // must not resize the user's real panel.
+  ipcMain.handle('window:set-preview-mode', (e, active: boolean) => {
+    const onboarding = getOnboardingWindow()
+    if (onboarding && !onboarding.isDestroyed() && e.sender === onboarding.webContents) return
     import('./window').then(m => m.setPreviewMode(active))
   })
 

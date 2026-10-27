@@ -1,0 +1,673 @@
+/**
+ * Onboarding window (800x640, opaque). Layers, bottom to top: the sky canvas,
+ * the other-app window for the drag demo, the real shelf, the laptop frame,
+ * the pointer and keys, the text, the intro fog, then the glass lettering.
+ * Everything that moves is transform/opacity (or the sky canvas while the
+ * camera glides), so the software compositor has little to repaint.
+ */
+.ob {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #1430d8;
+  color: #fff;
+  font-family: var(--font-ui);
+  user-select: none;
+}
+.ob-stage,
+.ob-scene {
+  position: absolute;
+  inset: 0;
+}
+.ob-scene {
+  transform: scale(1.06);
+  transform-origin: 50% 46%;
+}
+.ob-focus .ob-scene {
+  transform: none;
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ob-sky {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 800px;
+  height: 640px;
+  max-width: none;
+  image-rendering: pixelated;
+}
+
+/* ---------- the real shelf (inert) ---------- */
+.ob-shelf,
+.ob-shelf * {
+  pointer-events: none !important;
+}
+.ob-shelf {
+  position: absolute;
+  inset: 0;
+  /* scaled from the middle of the top edge (scale set inline: SHELF_SCALE) */
+  transform-origin: 50% 0;
+  /* The layer stands for the screen: what Panel draws past its edges (the copy tab's part behind the
+     edge) is off-screen in the app, so it must not show above the laptop's screen here. */
+  overflow: clip;
+}
+.ob-shelf .root {
+  position: absolute;
+}
+/* The preview flyout is portaled to <body>, outside the scaled shelf. Same scale around the same point
+   (the middle of the top edge) and the same drop to the screen's top edge: zoom scales its own left/top
+   too, so the margins add back 400px * (1 - scale) and the shelf's top, in zoomed pixels (/ scale).
+   The variables are set from SHELF_SCALE and TOUR_SCREEN_TOP (Onboarding). */
+.ob-tour > .pf-wrap {
+  zoom: var(--ob-shelf-scale);
+  margin-left: calc(400px * (1 - var(--ob-shelf-scale)) / var(--ob-shelf-scale));
+  margin-top: calc(var(--ob-shelf-top) / var(--ob-shelf-scale));
+}
+/* Hidden with opacity, not visibility: parts of Panel set visibility inline, which would show through. */
+.ob-shelf.is-hidden {
+  opacity: 0;
+}
+
+/* ---------- the laptop frame ---------- */
+/* Welcome and settings: dim only below the laptop, so its screen stays the lit object. */
+.ob-below {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 420px;
+  bottom: 0;
+  pointer-events: none;
+  background: linear-gradient(rgba(4, 8, 40, 0), rgba(4, 8, 40, 0.5) 40%, rgba(4, 8, 40, 0.62));
+  transition: opacity 0.5s ease;
+}
+.ob-below.is-off {
+  opacity: 0;
+}
+/* The camera on the laptop. Settings: a close-up framed on the edge the bar is on (that corner of the
+   bezel in view, the far side out of frame, the taskbar readable), gliding to another edge when the user
+   picks one, and drifting in slowly while it rests (on `translate`, apart from the framing). */
+.ob-cam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform-origin: 400px 10px;
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1), transform-origin 0.9s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+/* The tour: pushed in on the top edge. The top of the laptop stays in view with the bar on it; the
+   bezel's sides fade out a little way down and the bottom and base go (TOUR in edgeBar.ts must match). */
+.ob-cam.is-tour {
+  transform-origin: 400px 10px;
+  transform: scale(1.125);
+}
+.ob-bezel {
+  mask-image: linear-gradient(#000 30%, transparent 62%);
+  mask-repeat: no-repeat;
+  mask-size: 100% 2000px;
+  transition: mask-size 0.9s cubic-bezier(0.3, 0.7, 0.2, 1), box-shadow 0.5s ease;
+}
+.ob-base {
+  transition: opacity 0.5s ease;
+}
+.ob-cam.is-tour .ob-bezel {
+  mask-size: 100% 420px;
+  box-shadow: none;
+}
+.ob-cam.is-tour .ob-base {
+  opacity: 0;
+}
+.ob-cam.is-close.is-top {
+  transform-origin: 400px 10px;
+  transform: scale(1.04);
+}
+/* Each framing keeps the whole laptop (its taskbar and base) above the step's text, which starts at
+   about y = 473: the base ends at y = 460 or less. */
+.ob-cam.is-close.is-left {
+  transform-origin: 40px 345px;
+  transform: scale(1.3);
+}
+.ob-cam.is-close.is-right {
+  transform-origin: 760px 345px;
+  transform: scale(1.3);
+}
+.ob-cam.is-close {
+  animation: ob-drift 8s cubic-bezier(0.25, 0.6, 0.3, 1) 0.9s both;
+}
+@keyframes ob-drift {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 6px;
+  }
+}
+.ob-taskbar {
+  position: absolute;
+  left: 48px;
+  top: 386px;
+  width: 704px;
+  height: 22px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(14, 16, 34, 0.72);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  transition: opacity 0.5s ease 0.3s;
+}
+.ob-taskbar.is-on {
+  opacity: 1;
+}
+.ob-task-apps {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ob-task-apps i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.22);
+}
+.ob-task-apps .ob-start {
+  background:
+    linear-gradient(#5ab2ff, #2f7dff) 0 0 / 5.5px 5.5px no-repeat,
+    linear-gradient(#5ab2ff, #2f7dff) 6.5px 0 / 5.5px 5.5px no-repeat,
+    linear-gradient(#5ab2ff, #2f7dff) 0 6.5px / 5.5px 5.5px no-repeat,
+    linear-gradient(#5ab2ff, #2f7dff) 6.5px 6.5px / 5.5px 5.5px no-repeat;
+}
+.ob-task-apps .ob-search {
+  width: 46px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.ob-task-tray {
+  position: absolute;
+  right: 8px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ob-task-tray span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 5.6px;
+  line-height: 7px;
+  color: #fff;
+}
+.ob-task-tray b {
+  font-weight: 500;
+}
+.ob-laptop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ob-bezel {
+  position: absolute;
+  left: 40px;
+  top: 10px;
+  width: 720px;
+  height: 412px;
+  box-sizing: border-box;
+  border: solid #07080b;
+  border-width: 8px 8px 14px;
+  border-radius: 14px 14px 6px 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 30, 0.35);
+}
+.ob-bezel::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -5.5px;
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+  border-radius: 50%;
+  background: #1a1d26;
+}
+.ob-base {
+  position: absolute;
+  left: 30px;
+  top: 422px;
+  width: 740px;
+  height: 7px;
+  border-radius: 0 0 7px 7px;
+  background: linear-gradient(#2b2f3a, #16181f);
+  box-shadow: 0 6px 14px rgba(0, 0, 30, 0.4);
+}
+.ob-bar {
+  position: absolute;
+  background: #000;
+  pointer-events: none;
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1), top 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.6s cubic-bezier(0.4, 0, 0.2, 1), height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: ob-bar-in 0.3s ease-out;
+}
+@keyframes ob-bar-in {
+  from {
+    opacity: 0;
+  }
+}
+.ob-bar.is-hidden {
+  visibility: hidden;
+  transition: none;
+}
+
+/* ---------- drawn helpers: another app, keys, pointer, drag image ---------- */
+.ob-notes {
+  position: absolute;
+  left: 230px;
+  top: 222px;
+  width: 340px;
+  height: 188px;
+  border-radius: 10px;
+  overflow: hidden;
+  opacity: 0;
+  /* a dark Windows 11 window, in the shelf's own greys */
+  background: #1d1e22;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 56px rgba(0, 4, 60, 0.5);
+  color: #ececef;
+  font-size: 11px;
+}
+.ob-notes-bar {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 12px;
+  color: #b8bac2;
+  background: #17181b;
+}
+.ob-notes-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+}
+/* the app's icon: a small notepad */
+.ob-notes-title i {
+  width: 11px;
+  height: 12px;
+  border-radius: 2.5px;
+  background: linear-gradient(#8fb4ff, #4f7bff);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+.ob-notes-body {
+  padding: 13px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.ob-notes-body b {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.ob-notes-body p {
+  margin: 0 0 3px;
+  color: #a4a7b1;
+  font-size: 10.5px;
+}
+.ob-notes-image {
+  margin-top: 8px;
+  width: 112px;
+  height: 70px;
+  border-radius: 6px;
+  opacity: 0;
+  background: url('../assets/onboarding/summit.png') center / cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.ob-keys {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 282px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  font-size: 12px;
+}
+.ob-keys > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ob-keys kbd {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #fff;
+  color: #111;
+  display: grid;
+  place-items: center;
+  font: 600 13px var(--font-ui);
+  box-shadow: 0 3px 0 rgba(0, 0, 40, 0.35), 0 10px 24px rgba(0, 0, 40, 0.3);
+}
+.ob-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 30;
+  filter: drop-shadow(0 1.5px 2.5px rgba(0, 0, 0, 0.45));
+}
+.ob-cursor svg {
+  display: block;
+}
+.ob-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 25;
+  pointer-events: none;
+}
+.ob-ghost svg {
+  display: block;
+}
+
+/* ---------- text ---------- */
+.ob-ui {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 444px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ob-ui.is-locked {
+  pointer-events: none;
+}
+/* Settings: the close-up brings the screen's bottom edge lower, and this step carries the most (the
+   options and the last button), so its text sits on the window's bottom edge instead, level with the
+   corner buttons: however long the description runs in a language, the button stays in the window. */
+.ob-ui.is-low {
+  top: auto;
+  bottom: 16px;
+}
+/* Preview step: the flyout opens under the shelf on the left, so the text moves to the right. */
+.ob-ui.is-side {
+  left: 500px;
+  right: 40px;
+  top: 300px;
+}
+/* The side text sits over the brightest clouds: a soft deep-blue pool behind it, the same tint as under
+   the centred text (a gradient, no blur). */
+.ob-ui.is-side {
+  isolation: isolate;
+}
+.ob-ui.is-side::before {
+  content: '';
+  position: absolute;
+  inset: -70px -60px -70px -80px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(6, 16, 110, 0.62), rgba(6, 16, 110, 0.38) 55%, rgba(6, 16, 110, 0));
+}
+.ob-ui.is-side .ob-copy,
+.ob-ui.is-side .ob-copy p {
+  align-items: flex-start;
+  text-align: left;
+}
+.ob-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  height: 14px;
+}
+.ob-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.45);
+  transition: width 0.3s, background 0.3s;
+}
+.ob-dots i.on {
+  width: 18px;
+  background: #fff;
+}
+.ob-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: ob-copy-in 0.36s cubic-bezier(0.3, 0.8, 0.2, 1);
+}
+/* New text comes into focus in place (a short blur on a small block, only while it changes). */
+@keyframes ob-copy-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+.ob-copy h1 {
+  margin: 10px 0 0;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.ob-copy p {
+  margin: 8px 0 0;
+  max-width: 470px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #d6dcf0;
+  text-align: center;
+}
+.ob-primary {
+  margin-top: 16px;
+  min-width: 156px;
+  height: 34px;
+  padding: 0 20px;
+  border-radius: 17px;
+  border: 0;
+  background: #0a84ff;
+  color: #fff;
+  font: 600 13px var(--font-ui);
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.2s;
+}
+.ob-primary:hover {
+  filter: brightness(1.1);
+}
+.ob-primary:active {
+  transform: scale(0.97);
+}
+.ob-skip {
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: #bec4d2;
+  font: 13px var(--font-ui);
+  cursor: pointer;
+}
+.ob-skip:hover {
+  color: #fff;
+}
+.ob-controls {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-size: 12px;
+  color: #d6dcf0;
+}
+/* The last step's button ends the options row (see Onboarding), sized to its label, so the row clears
+   the corner buttons in every language (widest, Spanish: 76px from each side). */
+.ob-controls .ob-primary {
+  margin: 0 0 0 4px;
+  min-width: 0;
+  padding: 0 24px;
+}
+.ob-seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.ob-seg button {
+  border: 0;
+  background: transparent;
+  color: #d6dcf0;
+  font: 600 11.5px var(--font-ui);
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.ob-seg button[aria-pressed='true'] {
+  background: #fff;
+  color: #000;
+}
+.ob-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #d6dcf0;
+  font: 12px var(--font-ui);
+  cursor: pointer;
+}
+.ob-toggle i {
+  width: 30px;
+  height: 18px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.2);
+  position: relative;
+  transition: background 0.2s;
+}
+.ob-toggle i::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: #fff;
+  transition: transform 0.2s;
+}
+.ob-toggle[aria-pressed='true'] i {
+  background: #0a84ff;
+}
+.ob-toggle[aria-pressed='true'] i::after {
+  transform: translateX(12px);
+}
+.ob-back,
+.ob-close {
+  position: absolute;
+  bottom: 16px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 40;
+  -webkit-app-region: no-drag;
+}
+.ob-back {
+  left: 16px;
+}
+.ob-close {
+  right: 16px;
+}
+.ob-back:hover,
+.ob-close:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+.ob button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ---------- the intro: fog over the scene, the glass word and its out-of-focus copy ---------- */
+.ob-fog {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 800px;
+  height: 640px;
+  max-width: none;
+  pointer-events: none;
+}
+.ob-focus .ob-fog-heavy {
+  opacity: 0;
+  transition: opacity 0.55s ease-out;
+}
+.ob-focus .ob-fog-mid {
+  opacity: 0;
+  transition: opacity 0.8s ease-out 0.18s;
+}
+.ob-done .ob-fog {
+  visibility: hidden;
+}
+.ob-letters {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 800px;
+  height: 640px;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+  z-index: 50;
+}
+.ob-letters svg {
+  display: block;
+}
+.ob-focus .ob-letters {
+  opacity: 0 !important;
+  transition: opacity 0.3s ease-in !important;
+}
+.ob-done .ob-letters,
+.ob-done .ob-letters-blur {
+  visibility: hidden;
+}
+.ob-letters-blur {
+  position: absolute;
+  max-width: none;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+.ob-focus .ob-letters-blur {
+  animation: ob-defocus 0.9s ease-out forwards;
+}
+@keyframes ob-defocus {
+  0% {
+    opacity: 0;
+    transform: none;
+  }
+  25% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-copy {
+    animation: none;
+  }
+}

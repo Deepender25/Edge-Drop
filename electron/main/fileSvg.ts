@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { app } from 'electron'
 import type { FileKind } from '../../src/lib/fileKind'
+import { dragGhostSvg as dragSvgLayout } from '../../shared/dragGhost'
 
 /**
  * Drag-ghost artwork from the file-kind SVG set (resources/file-icons, one
@@ -13,8 +14,6 @@ import type { FileKind } from '../../src/lib/fileKind'
  * so there is a single copy of the art. The files are square and already
  * cropped to the folder (their viewBox), so each one fills the 512 slot.
  */
-
-const ART_SIZE = 512
 
 let iconDirOverride: string | null = null
 
@@ -69,11 +68,6 @@ function kindArtDataUri(kind: FileKind): string | null {
 }
 
 /** One folder icon filling the 512 viewBox. */
-function artImage(href: string | null): string {
-  if (!href) return ''
-  return `<image href="${href}" x="0" y="0" width="${ART_SIZE}" height="${ART_SIZE}"/>`
-}
-
 /** True when a built drag SVG carries at least one piece of art. */
 export function dragSvgHasArt(svg: string): boolean {
   return svg.includes('<image ')
@@ -97,42 +91,4 @@ export function buildFileDragSvg(kinds: FileKind[], count: number): string {
  */
 export function buildDragSvgFromArt(art: Array<string | null>, count: number): string {
   return dragSvgLayout(count <= 1 ? art.slice(0, 1) : art.slice(0, 3), count)
-}
-
-function dragSvgLayout(art: Array<string | null>, count: number): string {
-  if (art.length <= 1) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="122" height="122" viewBox="0 0 512 512" fill="none">
-      ${artImage(art[0] ?? null)}
-    </svg>`
-  }
-
-  // Multi-file stack (2 or 3 items offset naturally without any bounding card container)
-  const stackSvg = art
-    .map((href, i) => ({ href, index: i }))
-    .reverse()
-    .map(({ href, index }) => {
-      const spread = 28
-      const rot = index * 5 - ((art.length - 1) * 2.5)
-      const tx = index * spread - ((art.length - 1) * spread) / 2
-      const ty = index * 10
-      const scale = 1 - index * 0.04
-      return `
-        <g transform="translate(${tx}, ${ty}) rotate(${rot} 256 256) scale(${scale})">
-          ${artImage(href)}
-        </g>
-      `
-    })
-    .join('')
-
-  const badgeSvg = count > 1 ? `
-    <g transform="translate(380, 110)">
-      <circle cx="0" cy="0" r="42" fill="#18181B" stroke="#FFFFFF" stroke-width="6" />
-      <text x="0" y="14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="700" fill="#FFFFFF" text-anchor="middle">+${count}</text>
-    </g>
-  ` : ''
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="142" height="142" viewBox="0 0 512 512" fill="none">
-    ${stackSvg}
-    ${badgeSvg}
-  </svg>`
 }
