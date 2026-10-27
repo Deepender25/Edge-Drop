@@ -23,6 +23,9 @@ import { DEFAULT_SETTINGS, type Settings, type StickPosition } from '../shared/t
 import { PEN_PATH, PEN_TRANSFORM, PEN_WIDTH, GLASS_BOX, SHADOW_BOX, BLUR_BOX, penProgress } from './onboarding/lettering'
 import { DEMOS, Run, STOP, itemsFor, playLooped, resetDemoState, watchActivity, type Stage } from './onboarding/tour'
 import { laptopBar, tourBar, shelfTransform, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
+import { PAGE_LINES, STACK_FILES } from './onboarding/demoItems'
+import { Autoplay, readingMs } from './onboarding/autoplay'
+import { fileIconUrl, fileKindOf } from './lib/fileKind'
 import skyUrl from './assets/onboarding/sky.png'
 import glassUrl from './assets/onboarding/glass.png'
 import glassShadowUrl from './assets/onboarding/glass-shadow.png'
@@ -45,13 +48,26 @@ const TOUCH_MS = 450
 const WRITE_MS = 3200
 const HOLD_MS = 600
 
+/** File Explorer in the drag-in demo: the PDF it drags in, and the files the stack demos copy later. */
+const FOLDER: Array<[string, number]> = [['Itinerary.pdf', 412_000], ...STACK_FILES]
+
+/** A Windows 11 window's caption buttons: minimize, maximize, close. */
+const Caption = () => (
+  <svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="currentColor" strokeWidth="1">
+    <path d="M2 5.5h9" />
+    <rect x="33.5" y="1.5" width="8" height="8" rx="1.5" />
+    <path d="M65 1.5l7 7M72 1.5l-7 7" />
+  </svg>
+)
+
 export function Onboarding() {
   const { t } = useTranslation()
   const steps: Step[] = [
     { key: 'welcome', view: 'frame', open: false, title: t('onboarding.welcomeTitle'), body: t('onboarding.welcomeDesc') },
     { key: 'collect', view: 'full', open: false, title: t('onboarding.collectTitle'), body: t('onboarding.collectDesc') },
-    { key: 'drag', view: 'full', open: true, title: t('onboarding.dragTitle'), body: t('onboarding.dragDesc') },
+    { key: 'dropin', view: 'full', open: false, title: t('onboarding.dropInTitle'), body: t('onboarding.dropInDesc') },
     { key: 'stacks', view: 'full', open: true, title: t('onboarding.stacksTitle'), body: t('onboarding.stacksDesc') },
+    { key: 'drag', view: 'full', open: true, title: t('onboarding.dragTitle'), body: t('onboarding.dragDesc') },
     { key: 'ungroup', view: 'full', open: true, title: t('onboarding.ungroupTitle'), body: t('onboarding.ungroupDesc') },
     { key: 'merge', view: 'full', open: true, title: t('onboarding.mergeTitle'), body: t('onboarding.mergeDesc') },
     { key: 'preview', view: 'full', open: true, title: t('onboarding.previewTitle'), body: t('onboarding.previewDesc') },
@@ -70,9 +86,11 @@ export function Onboarding() {
   const [barShown, setBarShown] = useState(true)
   /** Settings frame: the bar moves to the user's real edge once the frame is back in place. */
   const [realEdge, setRealEdge] = useState(false)
-  /** Settings frame: the camera moves in on the screen (with its taskbar), as on the user's own desktop. */
+  /** Settings frame: the camera moves in on the screen, as on the user's own desktop. */
   const [closeUp, setCloseUp] = useState(false)
   const [real, setReal] = useState<Settings | null>(null)
+  /** Autoplay: on unless the user asked for reduced motion; the button by the progress dots toggles it. */
+  const [playing, setPlaying] = useState(true)
 
   const stageRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
@@ -80,6 +98,8 @@ export function Onboarding() {
   const keysLabelRef = useRef<HTMLSpanElement>(null)
   const notesRef = useRef<HTMLDivElement>(null)
   const notesImageRef = useRef<HTMLDivElement>(null)
+  const browserRef = useRef<HTMLDivElement>(null)
+  const explorerRef = useRef<HTMLDivElement>(null)
   const penRef = useRef<SVGPathElement>(null)
   const lettersRef = useRef<HTMLDivElement>(null)
   const shadowRef = useRef<SVGImageElement>(null)
@@ -88,6 +108,29 @@ export function Onboarding() {
 
   const later = (ms: number, fn: () => void) => timers.current.push(window.setTimeout(fn, ms))
 
+  // Autoplay moves on from whichever step is up, with the latest go (see below).
+  const atRef = useRef(0)
+  const goRef = useRef<(i: number) => void>(() => {})
+  const autoplay = useRef<Autoplay | null>(null)
+  if (!autoplay.current) {
+    autoplay.current = new Autoplay(() => {
+      const i = atRef.current
+      // it never ends the tour: the last step (the user's own choices) waits for Get Started
+      if (i < last) goRef.current(i + 1)
+    }, true)
+  }
+  const attachFill = useCallback((el: HTMLElement | null) => autoplay.current!.attach(el), [])
+  useEffect(() => autoplay.current!.setPlaying(playing), [playing])
+  useEffect(() => {
+    const vis = () => autoplay.current!.setHidden(document.visibilityState === 'hidden')
+    vis()
+    document.addEventListener('visibilitychange', vis)
+    return () => {
+      document.removeEventListener('visibilitychange', vis)
+      autoplay.current!.stop()
+    }
+  }, [])
+
   const stage = (): Stage => ({
     root: stageRef.current!,
     cursor: cursorRef.current!,
@@ -95,6 +138,8 @@ export function Onboarding() {
     keysLabel: keysLabelRef.current!,
     notes: notesRef.current!,
     notesImage: notesImageRef.current!,
+    browser: browserRef.current!,
+    explorer: explorerRef.current!,
     showShelf: (on) => {
       setShelf(on)
       setBarShown(!on)
@@ -106,7 +151,7 @@ export function Onboarding() {
     const s = steps[i]
     const demo = DEMOS[s.key]
     if (!demo) return
-    run.sleep(delay).then(() => playLooped(run, stage(), s.key, s.open, demo)).catch((e) => { if (e !== STOP) console.error(e) })
+    run.sleep(delay).then(() => playLooped(run, stage(), s.key, s.open, demo, () => autoplay.current!.played())).catch((e) => { if (e !== STOP) console.error(e) })
   }
 
   // The tour's own store: the user's settings (language, motion, accent), the
@@ -136,6 +181,7 @@ export function Onboarding() {
         open: false
       })
       applyReduceMotion(settings.reduceMotion)
+      if (settings.reduceMotion) setPlaying(false)
       // Start once every image is decoded, so the first frame is already the blurred scene.
       const decode = (src: string) => { const im = new Image(); im.src = src; return im.decode().catch(() => {}) }
       await Promise.all([skyUrl, glassUrl, glassShadowUrl, glassBlurUrl, fogHeavyUrl, fogMidUrl].map(decode))
@@ -197,7 +243,7 @@ export function Onboarding() {
     const s = steps[i]
     const prev = steps[at]
     runRef.current?.cancel()
-    resetDemoState(stage())
+    resetDemoState(stage(), s.key)
     const run = new Run()
     runRef.current = run
     setAt(i)
@@ -237,6 +283,16 @@ export function Onboarding() {
     window.close()
   }
 
+  atRef.current = at
+  goRef.current = go
+
+  // Autoplay's clock for a step starts when its text is up: after the intro, then on each step change.
+  useEffect(() => {
+    if (intro !== 'done') return
+    autoplay.current!.shown(steps[at].key, readingMs(steps[at].title, steps[at].body))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [at, intro])
+
   const next = () => (at < last ? go(at + 1) : void finish())
 
   // Settings the user picks on the last step are saved for real.
@@ -267,16 +323,55 @@ export function Onboarding() {
           {/* The cloud wallpaper: one pixel per 2px dither cell, drawn crisp (it never moves). */}
           <img className="ob-sky" src={skyUrl} alt="" />
 
+          {/* A web page, for the copy demo: a sentence, the address and the photo get copied. */}
+          <div className="ob-win ob-browser" ref={browserRef}>
+            <div className="ob-win-bar">
+              <span className="ob-tab"><i>W</i>Sea of clouds - Wikipedia</span>
+              <Caption />
+            </div>
+            <div className="ob-address">
+              <span className="ob-url"><i className="ob-hl" />en.wikipedia.org/wiki/Sea_of_clouds</span>
+            </div>
+            <div className="ob-page">
+              <div className="ob-article">
+                <b>Sea of clouds</b>
+                {PAGE_LINES.map((line) => <span key={line} className="ob-line"><i className="ob-hl" />{line}</span>)}
+                <span className="ob-rest">It is most often seen on cold, clear mornings.</span>
+              </div>
+              <div className="ob-photo" />
+            </div>
+            <div className="ob-menu">
+              <span>Open image in new tab</span>
+              <span>Save image as…</span>
+              <span className="is-copy">Copy image</span>
+              <span>Copy image link</span>
+            </div>
+          </div>
+
+          {/* File Explorer, for the drag-in demo. */}
+          <div className="ob-win ob-explorer" ref={explorerRef}>
+            <div className="ob-win-bar">
+              <span className="ob-notes-title"><i className="ob-folder" />Documents</span>
+              <Caption />
+            </div>
+            <div className="ob-files">
+              <div className="ob-files-head"><span>Name</span><span>Size</span></div>
+              <i className="ob-band" />
+              {FOLDER.map(([name, size]) => (
+                <div key={name} className={`ob-file${name.endsWith('.pdf') ? ' is-pdf' : ''}`}>
+                  <img src={fileIconUrl(fileKindOf(name))} alt="" />
+                  <span>{name}</span>
+                  <em>{Math.round(size / 1024).toLocaleString('en-US')} KB</em>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Another app, for the drag demo. */}
           <div className="ob-notes" ref={notesRef}>
             <div className="ob-notes-bar">
               <span className="ob-notes-title"><i />Trip plan</span>
-              {/* Windows caption buttons: minimize, maximize, close */}
-              <svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="currentColor" strokeWidth="1">
-                <path d="M2 5.5h9" />
-                <rect x="33.5" y="1.5" width="8" height="8" rx="1.5" />
-                <path d="M65 1.5l7 7M72 1.5l-7 7" />
-              </svg>
+              <Caption />
             </div>
             <div className="ob-notes-body">
               <b>Weekend at the summit</b>
@@ -306,7 +401,8 @@ export function Onboarding() {
             <div className="ob-laptop">
               <div className="ob-bezel" />
               <div className="ob-base" />
-              <div className={`ob-taskbar${closeUp ? ' is-on' : ''}`}>
+              {/* The screen's taskbar: up whenever the whole laptop is in view (welcome, settings). */}
+              <div className={`ob-taskbar${cam === 'frame' ? ' is-on' : ''}`}>
                 <div className="ob-task-apps"><i className="ob-start" /><i className="ob-search" /><i /><i /><i /></div>
                 <div className="ob-task-tray">
                   <svg width="9" height="7" viewBox="0 0 9 7"><path d="M.5 2.6a5.6 5.6 0 0 1 8 0M2 4.1a3.4 3.4 0 0 1 5 0M3.5 5.6a1.3 1.3 0 0 1 2 0" fill="none" stroke="#fff" strokeWidth=".9" strokeLinecap="round" /></svg>
@@ -337,7 +433,31 @@ export function Onboarding() {
           </div>
 
           <div className={`ob-ui${locked ? ' is-locked' : ''}${s.key === 'preview' ? ' is-side' : ''}${s.key === 'settings' ? ' is-low' : ''}`}>
-            <div className="ob-dots">{steps.map((st, i) => <i key={st.key} className={i === at ? 'on' : ''} />)}</div>
+            <div className="ob-progress">
+              {/* The active dash fills as the step plays and rests (autoplay); the last one is simply full. */}
+              <div className="ob-dots">
+                {steps.map((st, i) => (
+                  <i key={st.key} className={i === at ? 'on' : ''}>
+                    {i === at && <b ref={i === last ? undefined : attachFill} className={i === last ? 'is-full' : ''} />}
+                  </i>
+                ))}
+              </div>
+              {at < last && (
+                <button
+                  type="button"
+                  className="ob-play"
+                  aria-pressed={playing}
+                  aria-label={playing ? t('onboarding.pause') : t('onboarding.play')}
+                  onClick={() => setPlaying((p) => !p)}
+                >
+                  {playing ? (
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><rect x="1" y="0.5" width="2.2" height="7" rx="0.6" /><rect x="4.8" y="0.5" width="2.2" height="7" rx="0.6" /></svg>
+                  ) : (
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><path d="M1.6 1.1v5.8c0 .5.5.8.9.5l4.4-2.9c.4-.2.4-.8 0-1L2.5.6c-.4-.3-.9 0-.9.5z" /></svg>
+                  )}
+                </button>
+              )}
+            </div>
             <div className="ob-copy" key={s.key}>
               <h1>{s.title}</h1>
               <p>{s.body}</p>

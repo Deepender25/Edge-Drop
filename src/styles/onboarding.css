@@ -159,6 +159,10 @@
 .ob-taskbar.is-on {
   opacity: 1;
 }
+/* Into the tour it goes at once, before the push-in brings it under the step's text. */
+.ob-taskbar:not(.is-on) {
+  transition: opacity 0.2s ease;
+}
 .ob-task-apps {
   display: flex;
   gap: 6px;
@@ -323,6 +327,217 @@
   background: url('../assets/onboarding/summit.png') center / cover;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
+/* The browser (copy demo) and File Explorer (drag-in demo): the same dark Windows 11 windows as the notes app. */
+.ob-win {
+  position: absolute;
+  border-radius: 10px;
+  overflow: hidden;
+  opacity: 0;
+  background: #1d1e22;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 56px rgba(0, 4, 60, 0.5);
+  color: #ececef;
+  font-size: 11px;
+}
+.ob-win-bar {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 8px;
+  color: #b8bac2;
+  background: #17181b;
+}
+.ob-browser {
+  left: 168px;
+  top: 104px;
+  width: 430px;
+  height: 208px;
+}
+.ob-tab {
+  height: 22px;
+  margin-top: 8px;
+  padding: 0 12px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 7px 7px 0 0;
+  background: #1d1e22;
+  color: #dfe0e5;
+  font-size: 10.5px;
+}
+.ob-tab i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eceef2;
+  color: #222;
+  font: 700 8px Georgia, serif;
+  font-style: normal;
+}
+.ob-address {
+  margin: 6px 10px 0;
+  height: 24px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  background: #2a2c31;
+  color: #c9cbd2;
+  font-size: 10.5px;
+}
+.ob-url {
+  position: relative;
+  white-space: nowrap;
+}
+/* A text selection: Windows' selection blue behind the text, grown from the left as the pointer drags. */
+.ob-hl {
+  position: absolute;
+  inset: -1px -1px;
+  z-index: -1;
+  border-radius: 2px;
+  background: rgba(51, 144, 255, 0.55);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.ob-url,
+.ob-line {
+  isolation: isolate;
+}
+.ob-page {
+  display: flex;
+  gap: 16px;
+  padding: 14px 18px 0;
+}
+.ob-article {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.ob-article b {
+  font: 400 17px/1.2 Georgia, 'Times New Roman', serif;
+  color: #f1f2f5;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  align-self: stretch;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.ob-line,
+.ob-rest {
+  position: relative;
+  white-space: nowrap;
+  line-height: 17px;
+  font-size: 10.5px;
+  color: #c9cbd2;
+}
+.ob-rest {
+  margin-top: 3px;
+  color: #8e919b;
+}
+.ob-photo {
+  flex: none;
+  width: 124px;
+  height: 84px;
+  margin-top: 30px;
+  border-radius: 6px;
+  background: url('../assets/onboarding/summit.png') center / cover;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+/* The browser's context menu on the photo. */
+.ob-menu {
+  position: absolute;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: #2b2d33;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 28px rgba(0, 0, 30, 0.5);
+  font-size: 10px;
+  color: #dfe0e5;
+  opacity: 0;
+  transform: scale(0.96);
+  transform-origin: 0 0;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.ob-menu.is-open {
+  opacity: 1;
+  transform: none;
+}
+.ob-menu span {
+  padding: 5px 26px 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.ob-menu span.is-hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.ob-explorer {
+  left: 196px;
+  top: 172px;
+  width: 330px;
+  height: 222px;
+}
+.ob-explorer .ob-win-bar {
+  padding-left: 12px;
+}
+/* File Explorer's folder icon */
+.ob-folder {
+  background: linear-gradient(#ffd66b, #f0b429) !important;
+  border-radius: 2px 2px 2.5px 2.5px !important;
+  height: 10px !important;
+  width: 13px !important;
+}
+.ob-files {
+  position: relative;
+  padding: 8px 10px;
+}
+/* Explorer's selection box, drawn from empty space across the files (left/top/size animated). */
+.ob-band {
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  border: 1px solid rgba(76, 160, 255, 0.9);
+  background: rgba(51, 144, 255, 0.2);
+}
+.ob-files-head,
+.ob-file {
+  display: grid;
+  grid-template-columns: 1fr 64px;
+  align-items: center;
+  padding: 0 8px;
+}
+.ob-files-head {
+  height: 22px;
+  color: #8e919b;
+  font-size: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 4px;
+}
+.ob-file {
+  grid-template-columns: 22px 1fr 64px;
+  height: 30px;
+  border-radius: 5px;
+  transition: background 0.2s;
+}
+.ob-files-head span:last-child,
+.ob-file em {
+  text-align: right;
+  font-style: normal;
+  color: #8e919b;
+}
+.ob-file img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+.ob-file.is-on {
+  background: rgba(51, 144, 255, 0.28);
+}
+
 .ob-keys {
   position: absolute;
   left: 0;
@@ -376,6 +591,31 @@
 .ob-ghost svg {
   display: block;
 }
+/* A file dragged out of File Explorer: its icon, see-through, and "+ Copy" once over a drop target. */
+.ob-file-ghost img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  opacity: 0.78;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 30, 0.35));
+}
+.ob-file-ghost span {
+  position: absolute;
+  left: 30px;
+  top: 50px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 10px;
+  color: #ececef;
+  background: #2b2d33;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 30, 0.4);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.ob-file-ghost.is-copy span {
+  opacity: 1;
+}
 
 /* ---------- text ---------- */
 .ob-ui {
@@ -428,6 +668,8 @@
   height: 14px;
 }
 .ob-dots i {
+  position: relative;
+  overflow: hidden;
   width: 4px;
   height: 4px;
   border-radius: 2px;
@@ -436,7 +678,50 @@
 }
 .ob-dots i.on {
   width: 18px;
+  background: rgba(255, 255, 255, 0.36);
+}
+/* The active dash's fill: the step's progress under autoplay (scaleX set by Autoplay). */
+.ob-dots i b {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: #fff;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.ob-dots i b.is-full {
+  transform: none;
+}
+/* The dots stay centred; the play/pause button hangs off their right end. */
+.ob-progress {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.ob-play {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ob-play:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+.ob-play:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
 }
 .ob-copy {
   display: flex;

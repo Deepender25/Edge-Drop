@@ -8,13 +8,12 @@
  */
 import type { ClipboardItemDto, FileEntry } from '../../shared/types'
 import summitUrl from '../assets/onboarding/summit.png'
-import ridgeUrl from '../assets/onboarding/ridge.png'
 
 export const DEMO_DIR = 'C:\\Users\\You\\Documents\\'
 const DIR = DEMO_DIR
 
 /** Pictures carry their own thumbnail (the app would make one from the file, which does not exist here). */
-const PICTURES: Record<string, string> = { 'Summit.png': summitUrl, 'Ridge.png': ridgeUrl }
+const PICTURES: Record<string, string> = { 'Summit.png': summitUrl }
 
 function file(name: string, size: number): FileEntry {
   const preview = PICTURES[name]
@@ -31,13 +30,20 @@ function files(id: string, names: Array<[string, number]>, at: number): Clipboar
   }
 }
 
+/** The sentence selected on the web page in the copy demo, line by line as the page lays it out. */
+export const PAGE_LINES = [
+  'A sea of clouds forms when cloud fills the',
+  'valleys below a summit, and the peaks stand',
+  'above it like islands.'
+]
+
 export function demoText(at: number): ClipboardItemDto {
   return {
     id: 'demo-text',
     capturedAt: at,
     hitCount: 1,
     pinned: false,
-    data: { kind: 'text', isUrl: false, text: 'Trailhead at 6:30 on Saturday. Pack layers, it is 4°C at the summit.' }
+    data: { kind: 'text', isUrl: false, text: PAGE_LINES.join(' ') }
   }
 }
 
@@ -65,11 +71,11 @@ export function demoPdf(at: number): ClipboardItemDto {
   return files('demo-pdf', [['Itinerary.pdf', 412_000]], at)
 }
 
-/** Three files copied at once: they arrive as one stack. */
+/** Three files of different kinds, selected in File Explorer and copied at once: they arrive as one stack. */
 export const STACK_FILES: Array<[string, number]> = [
   ['Packing list.docx', 96_426],
   ['Budget.xlsx', 144_639],
-  ['Ridge.png', 1_158_210]
+  ['Trip slides.pptx', 2_318_400]
 ]
 
 export function demoStack(at: number, names = STACK_FILES): ClipboardItemDto {

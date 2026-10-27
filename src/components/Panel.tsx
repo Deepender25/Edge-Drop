@@ -121,8 +121,15 @@ export function Panel() {
   const [beaconFrame, setBeaconFrame] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   useLayoutEffect(() => {
     if (!(showEdgeBeacon || showDragCue) || !containerRef.current) return
+    // In .root's own pixels: the viewport in the app; in the onboarding tour the
+    // shelf is scaled and moved (.ob-shelf), and viewport pixels would land twice transformed.
     const r = containerRef.current.getBoundingClientRect()
-    setBeaconFrame({ left: r.left, top: r.top, width: r.width, height: r.height })
+    const host = containerRef.current.closest<HTMLElement>('.root')
+    const h = host?.getBoundingClientRect()
+    const k = host && h && host.offsetWidth ? h.width / host.offsetWidth : 1
+    const ox = h?.left ?? 0
+    const oy = h?.top ?? 0
+    setBeaconFrame({ left: (r.left - ox) / k, top: (r.top - oy) / k, width: r.width / k, height: r.height / k })
   }, [
     showEdgeBeacon,
     showDragCue,
