@@ -13,7 +13,7 @@ import { useStore } from '../store/appStore'
 import type { ClipboardItemDto } from '../../shared/types'
 import { dragGhostSvg } from '../../shared/dragGhost'
 import { fileIconUrl, fileKindOf, type FileKind } from '../lib/fileKind'
-import { SHELF_SCALE, TOUR_SCREEN_TOP, toShelfLayer } from './edgeBar'
+import { LAPTOP_SCREEN, SHELF_SCALE, TOUR_SCREEN_TOP, toShelfLayer } from './edgeBar'
 import {
   demoText, demoLink, demoImage, demoPdf, demoStack, demoSingle, demoMerged, STACK_FILES, DEMO_DIR
 } from './demoItems'
@@ -56,6 +56,8 @@ export interface Stage {
   keysLabel: HTMLElement
   notes: HTMLElement
   notesImage: HTMLElement
+  /** Welcome: the real shelf in place of the drawn bar on the laptop (the closed bars match exactly). */
+  showShelf: (on: boolean) => void
 }
 
 const MOVE = 'cubic-bezier(.45,0,.25,1)'
@@ -66,6 +68,7 @@ export function itemsFor(step: string, now = Date.now()): ClipboardItemDto[] {
   const four = [demoText(now - 4000), demoImage(now - 9000), demoLink(now - 14000), demoPdf(now - 19000)]
   const split = [demoSingle(now - 2000, STACK_FILES[0]), demoStack(now - 3000, STACK_FILES.slice(1))]
   switch (step) {
+    case 'welcome': return four
     case 'collect': return []
     case 'drag': return four
     case 'stacks': return four
@@ -87,6 +90,7 @@ export function resetDemoState(stage: Stage): void {
   stage.keys.getAnimations().forEach((a) => a.cancel())
   stage.notes.getAnimations().forEach((a) => a.cancel())
   stage.notesImage.getAnimations().forEach((a) => a.cancel())
+  stage.root.querySelector('.ob-shelf')?.getAnimations().forEach((a) => a.cancel())
 }
 
 // ---------- helpers ----------
@@ -185,10 +189,24 @@ function capture(item: ClipboardItemDto) {
 
 // ---------- the demos ----------
 
+/** Welcome: the pointer goes to the bar on the edge and the shelf opens; it moves away and the shelf hides. */
+export async function demoWelcome(run: Run, stage: Stage) {
+  const p = new Pointer(run, stage.cursor)
+  set({ items: itemsFor('welcome'), open: false })
+  stage.showShelf(true)
+  await p.show(540, 250)
+  await p.move(400, LAPTOP_SCREEN.top + 3, 800)
+  set({ open: true })
+  await run.sleep(1200)
+  await p.move(520, 330, 650)
+  set({ open: false })
+  await run.sleep(400)
+  await p.hide()
+}
+
 /** Copy four things while the shelf is closed, then open it: everything is there. */
 export async function demoCollect(run: Run, stage: Stage) {
   const p = new Pointer(run, stage.cursor)
-  await run.sleep(250)
   const now = Date.now()
   for (const [item, label] of [
     [demoPdf(now), 'Itinerary.pdf'],
@@ -199,9 +217,8 @@ export async function demoCollect(run: Run, stage: Stage) {
     await keys(run, stage, label)
     capture(item)
     copyFlare(run)
-    await run.sleep(650)
+    await run.sleep(500)
   }
-  await run.sleep(300)
   await p.show(560, 300)
   await p.move(400, TOUR_SCREEN_TOP + 5, 700)
   set({ open: true })
@@ -213,8 +230,10 @@ export async function demoCollect(run: Run, stage: Stage) {
 /** Drag the image card out of the shelf into another app. */
 export async function demoDrag(run: Run, stage: Stage) {
   const p = new Pointer(run, stage.cursor)
-  run.animate(stage.notes, [{ opacity: 0, transform: 'translateY(14px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 420 }).catch(() => {})
-  await run.sleep(300)
+  // the other app opens once; a replay finds it already there
+  if (!stage.notes.getAnimations().length) {
+    run.animate(stage.notes, [{ opacity: 0, transform: 'translateY(14px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 420 }).catch(() => {})
+  }
   await p.show(600, 400)
   const src = card(stage, 'demo-image')
   const c = centre(src)
@@ -235,7 +254,6 @@ export async function demoDrag(run: Run, stage: Stage) {
 
 /** Copy three files at once: they arrive as one stack. */
 export async function demoStacks(run: Run, stage: Stage) {
-  await run.sleep(300)
   await keys(run, stage, '3 files')
   capture(demoStack(Date.now()))
   copyFlare(run)
@@ -250,7 +268,7 @@ export async function demoUngroup(run: Run, stage: Stage) {
   await p.move(c.x, c.y, 650)
   await p.press()
   set({ expandedStackId: 'demo-stack' })
-  await run.sleep(700)
+  await run.sleep(550)
   // The expanded stack's first file row (StackItems).
   const tile = stage.root.querySelector<HTMLElement>('.item-main[data-id="demo-stack"] .stack-row')
   if (!tile) throw STOP
@@ -322,10 +340,78 @@ export async function demoPreview(run: Run, stage: Stage) {
 }
 
 export const DEMOS: Record<string, ((run: Run, stage: Stage) => Promise<void>) | undefined> = {
+  welcome: demoWelcome,
   collect: demoCollect,
   drag: demoDrag,
   stacks: demoStacks,
   ungroup: demoUngroup,
   merge: demoMerge,
   preview: demoPreview
+}
+
+// ---------- replays ----------
+
+/** How long the viewer has to be idle on a finished demo before it plays again. */
+const REPLAY_IDLE = 4000
+
+let lastActive = 0
+
+/** Tracks the viewer's activity (pointer, wheel, keys), so a replay waits while they are busy. */
+export function watchActivity(): () => void {
+  const mark = () => { lastActive = performance.now() }
+  const events = ['pointermove', 'pointerdown', 'wheel', 'keydown'] as const
+  events.forEach((e) => window.addEventListener(e, mark, { passive: true }))
+  return () => events.forEach((e) => window.removeEventListener(e, mark))
+}
+
+/** Resolves once the viewer has been idle for `ms` since `from` (activity restarts the count). */
+async function idleFor(run: Run, ms: number) {
+  const from = performance.now()
+  while (performance.now() - Math.max(from, lastActive) < ms) await run.sleep(200)
+}
+
+const shelfLayer = (stage: Stage) => stage.root.querySelector<HTMLElement>('.ob-shelf')
+
+/**
+ * Back to the step's start for a replay, gently: the preview closes, the dropped picture fades from the
+ * other app, and when the cards differ the shelf fades out, takes the step's cards back and fades in
+ * (a step that starts closed folds its shelf into the bar instead, its own start).
+ */
+async function rewind(run: Run, stage: Stage, step: string, open: boolean) {
+  const st = useStore.getState()
+  set({ previewItemId: null, previewItemRect: null, expandedStackId: null })
+  if (stage.notesImage.getAnimations().length) {
+    stage.notesImage.getAnimations().forEach((a) => a.cancel())
+    await run.animate(stage.notesImage, [{ opacity: 1 }, { opacity: 0 }], { duration: 400, easing: 'ease' })
+  }
+  const start = itemsFor(step)
+  const same = start.length === st.items.length && start.every((it, i) => it.id === st.items[i].id)
+  if (same) {
+    await run.sleep(400)
+  } else if (!open) {
+    set({ open: false })
+    await run.sleep(600)
+    set({ items: start })
+  } else {
+    const layer = shelfLayer(stage)
+    if (layer) await run.animate(layer, [{ opacity: 1 }, { opacity: 0 }], { duration: 380, easing: 'ease-in' })
+    set({ items: start, open: true })
+    await run.sleep(120)
+    // fill 'none': once faded in, the layer's own class (is-hidden) decides again
+    layer?.getAnimations().forEach((a) => a.cancel())
+    if (layer) await run.animate(layer, [{ opacity: 0 }, { opacity: 1 }], { duration: 480, easing: 'ease-out', fill: 'none' })
+  }
+  await run.sleep(700)
+}
+
+/**
+ * A step's demo plays once and rests on its result; after the viewer has been idle a while it rewinds
+ * gently and plays again, for as long as the step is up. Next moves on at any moment.
+ */
+export async function playLooped(run: Run, stage: Stage, step: string, open: boolean, demo: (run: Run, stage: Stage) => Promise<void>) {
+  for (;;) {
+    await demo(run, stage)
+    await idleFor(run, REPLAY_IDLE)
+    await rewind(run, stage, step, open)
+  }
 }

@@ -34,6 +34,16 @@ const TOUR = { scale: 1.125, ox: 400, oy: 10, ty: 0 }
 /** Where the screen's top edge lands in the window in the tour (the shelf hangs from it). */
 export const TOUR_SCREEN_TOP = TOUR.oy + (LAPTOP_SCREEN.top - TOUR.oy) * TOUR.scale + TOUR.ty
 
+/**
+ * The shelf layer's transform: hung from the screen's top edge in the tour, or (welcome) on the whole
+ * laptop, smaller by the camera's push-in. Both are linear in the camera's progress, so with the same
+ * transition as .ob-cam the shelf rides the push-in fixed to the screen edge.
+ */
+export const shelfTransform = (cam: 'frame' | 'tour') =>
+  cam === 'tour'
+    ? `translateY(${TOUR_SCREEN_TOP}px) scale(${SHELF_SCALE})`
+    : `translateY(${LAPTOP_SCREEN.top}px) scale(${SHELF_SCALE / TOUR.scale})`
+
 /** Length of the top dock's bar (Panel: triggerWidthPx). */
 function topBarLength(hotZoneHeight: number): number {
   return hotZoneHeight >= 0.55 ? 575 : hotZoneHeight >= 0.35 ? 400 : 275

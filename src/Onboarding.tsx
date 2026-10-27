@@ -21,8 +21,8 @@ import { applyReduceMotion } from './lib/theme'
 import { useTranslation } from './i18n'
 import { DEFAULT_SETTINGS, type Settings, type StickPosition } from '../shared/types'
 import { PEN_PATH, PEN_TRANSFORM, PEN_WIDTH, GLASS_BOX, SHADOW_BOX, BLUR_BOX, penProgress } from './onboarding/lettering'
-import { DEMOS, Run, STOP, itemsFor, resetDemoState, type Stage } from './onboarding/tour'
-import { laptopBar, tourBar, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
+import { DEMOS, Run, STOP, itemsFor, playLooped, resetDemoState, watchActivity, type Stage } from './onboarding/tour'
+import { laptopBar, tourBar, shelfTransform, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
 import skyUrl from './assets/onboarding/sky.png'
 import glassUrl from './assets/onboarding/glass.png'
 import glassShadowUrl from './assets/onboarding/glass-shadow.png'
@@ -43,7 +43,7 @@ interface Step {
 // The intro's timing: the pen touches down, writes, the word holds, then the focus pull.
 const TOUCH_MS = 450
 const WRITE_MS = 3200
-const HOLD_MS = 1200
+const HOLD_MS = 600
 
 export function Onboarding() {
   const { t } = useTranslation()
@@ -94,8 +94,20 @@ export function Onboarding() {
     keys: keysRef.current!,
     keysLabel: keysLabelRef.current!,
     notes: notesRef.current!,
-    notesImage: notesImageRef.current!
+    notesImage: notesImageRef.current!,
+    showShelf: (on) => {
+      setShelf(on)
+      setBarShown(!on)
+    }
   })
+
+  /** Plays step i's demo after `delay` ms, again and again while the step is up. */
+  const play = (run: Run, i: number, delay: number) => {
+    const s = steps[i]
+    const demo = DEMOS[s.key]
+    if (!demo) return
+    run.sleep(delay).then(() => playLooped(run, stage(), s.key, s.open, demo)).catch((e) => { if (e !== STOP) console.error(e) })
+  }
 
   // The tour's own store: the user's settings (language, motion, accent), the
   // shelf docked at the top for the demo, and no items of the user's.
@@ -103,6 +115,7 @@ export function Onboarding() {
     let cancelled = false
     // Marks the page for shelf parts portaled outside the tour's scaled layer (see .ob-tour).
     document.body.classList.add('ob-tour')
+    const unwatch = watchActivity()
     document.body.style.setProperty('--ob-shelf-scale', String(SHELF_SCALE))
     document.body.style.setProperty('--ob-shelf-top', `${TOUR_SCREEN_TOP}px`)
     void edge.loadState().then(async ({ settings }) => {
@@ -130,6 +143,7 @@ export function Onboarding() {
     })
     return () => {
       cancelled = true
+      unwatch()
       document.body.classList.remove('ob-tour')
       document.body.style.removeProperty('--ob-shelf-scale')
       document.body.style.removeProperty('--ob-shelf-top')
@@ -151,6 +165,10 @@ export function Onboarding() {
     const focus = () => {
       setIntro('focus')
       later(900, () => setIntro('done'))
+      // The welcome's demo follows the focus pull without a pause.
+      const run = new Run()
+      runRef.current = run
+      play(run, 0, 1200)
     }
     if (useStore.getState().settings.reduceMotion) {
       draw(1)
@@ -208,10 +226,8 @@ export function Onboarding() {
     } else if (s.view === 'full') {
       useStore.setState({ items: itemsFor(s.key), open: s.open })
     }
-    const demo = DEMOS[s.key]
-    if (demo) {
-      run.sleep(flying ? 1200 : 650).then(() => demo(run, stage())).catch((e) => { if (e !== STOP) console.error(e) })
-    }
+    // The next demo starts as the camera lands, or straight away: each step's cards are where the last one left them.
+    play(run, i, flying ? 700 : 250)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [at, steps.length])
 
@@ -274,7 +290,7 @@ export function Onboarding() {
           {ready && (
             <div
               className={`ob-shelf${shelf ? '' : ' is-hidden'}`}
-              style={{ transform: `translateY(${TOUR_SCREEN_TOP}px) scale(${SHELF_SCALE})` }}
+              style={{ transform: shelfTransform(cam) }}
               aria-hidden
             >
               <Panel />

@@ -45,8 +45,9 @@
 .ob-shelf {
   position: absolute;
   inset: 0;
-  /* scaled from the middle of the top edge (scale set inline: SHELF_SCALE) */
+  /* scaled from the middle of the top edge (set inline: shelfTransform), moving with the camera */
   transform-origin: 50% 0;
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1);
   /* The layer stands for the screen: what Panel draws past its edges (the copy tab's part behind the
      edge) is off-screen in the app, so it must not show above the laptop's screen here. */
   overflow: clip;
