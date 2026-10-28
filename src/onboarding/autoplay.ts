@@ -26,7 +26,9 @@ const DEMO_MS: Record<string, number> = {
   drag: 3850,
   ungroup: 4900,
   merge: 3650,
-  preview: 3600
+  preview: 3750,
+  note: 9650,
+  search: 3400
 }
 
 /** Han, kana and Hangul: one character carries about a word. */
@@ -62,6 +64,11 @@ export class Autoplay {
 
   private get running() {
     return this.on && !this.hidden
+  }
+
+  /** Whether the tour is moving on by itself (playing, and the window in view). */
+  get advancing() {
+    return this.running
   }
 
   /** The active dash's fill: a new element for each step, which starts the step over. */

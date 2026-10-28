@@ -12,9 +12,12 @@
  * What is not the app itself is drawn here: the pointer, the Ctrl+C keys and
  * the other apps (a browser to copy from, File Explorer to drag a file out of,
  * a notes app to drop a card into). The drag image is the app's own drag
- * ghost (shared/dragGhost).
+ * ghost (shared/dragGhost). The right-click menu, its note editor and the
+ * search box are the app's own too; the store's `demo` keeps them from
+ * borrowing the keyboard or saving anything to main.
  */
 import { useStore } from '../store/appStore'
+import { t } from '../i18n'
 import { setEdgeDragPull } from '../lib/edgeDrag'
 import type { ClipboardItemDto } from '../../shared/types'
 import { dragGhostSvg } from '../../shared/dragGhost'
@@ -22,7 +25,7 @@ import { fileIconUrl, fileKindOf, type FileKind } from '../lib/fileKind'
 import { LAPTOP_SCREEN, SHELF_SCALE, TOUR_SCREEN_TOP, toShelfLayer } from './edgeBar'
 import { aim, REST, toLocal, toScreen, zoomRest, zoomTo, type Rect, type View } from './lens'
 import {
-  demoText, demoLink, demoImage, demoPdf, demoStack, demoSingle, demoMerged, STACK_FILES, DEMO_DIR
+  demoText, demoLink, demoImage, demoPdf, demoStack, demoSingle, demoMerged, STACK_FILES, DEMO_DIR, DEMO_NOTE, DEMO_QUERY
 } from './demoItems'
 
 export const STOP = Symbol('stop')
@@ -90,6 +93,10 @@ export function itemsFor(step: string, now = Date.now()): ClipboardItemDto[] {
   // Dragged out into another app, the image counts as used and moves to the front (as in the app).
   const used = [demoImage(now - 500), ...four.filter((it) => it.id !== 'demo-image')]
   const split = [demoSingle(now - 2000, STACK_FILES[0]), demoStack(now - 3000, STACK_FILES.slice(1))]
+  // the shelf the preview leaves: the slides and the photo in one stack, the four files in another
+  const kept = (note?: string) => [
+    demoMerged(now - 2000, STACK_FILES[0]), split[1], demoPdf(now - 4000, note), ...three.filter((it) => it.id !== 'demo-image')
+  ]
   switch (step) {
     case 'welcome': return four
     case 'collect': return []
@@ -99,8 +106,11 @@ export function itemsFor(step: string, now = Date.now()): ClipboardItemDto[] {
     case 'ungroup': return [used[0], demoStack(now - 1000), ...used.slice(1)]
     case 'merge': return [...split, ...used]
     case 'preview':
+    case 'note':
+      return kept()
+    case 'search':
     case 'settings':
-      return [demoMerged(now - 2000, STACK_FILES[0]), split[1], ...four.filter((it) => it.id !== 'demo-image')]
+      return kept(DEMO_NOTE)
     default: return []
   }
 }
@@ -117,9 +127,11 @@ const WINDOW_OF: Record<string, (stage: Stage) => HTMLElement> = {
 export function resetDemoState(stage: Stage, next?: string): void {
   stage.root.querySelectorAll('.ob-ghost').forEach((el) => el.remove())
   stage.root.querySelectorAll('.force-actions').forEach((el) => el.classList.remove('force-actions'))
+  document.querySelectorAll('.ob-cursor-top').forEach((el) => el.remove())
+  leaveField()
   set({
     internalDragReq: null, dropTargetId: null, expandedStackId: null, previewItemId: null, previewItemRect: null,
-    copyFlareActive: false, externalDrag: false, dragActive: false
+    copyFlareActive: false, externalDrag: false, dragActive: false, cardMenu: null, cardMenuRect: null, query: ''
   })
   setEdgeDragPull(0)
   stage.cursor.getAnimations().forEach((a) => a.cancel())
@@ -201,10 +213,21 @@ function clearMarks(stage: Stage) {
 
 class Pointer {
   private at = { x: 560, y: 380 }
-  constructor(private run: Run, private el: HTMLElement) {}
+  /** `k`: drawn at that scale, for a pointer outside the camera standing in for the one under it. */
+  constructor(private run: Run, readonly el: HTMLElement, private k = 1) {}
   private tf(p: { x: number; y: number }, extra = '') {
     // The arrow's tip (see .ob-cursor) is the hotspot.
-    return `translate(${p.x - 2}px, ${p.y - 2}px) ${extra}`
+    const k = this.k
+    return `translate(${p.x - 2 * k}px, ${p.y - 2 * k}px)${k === 1 ? '' : ` scale(${k})`} ${extra}`
+  }
+  get pos() {
+    return { ...this.at }
+  }
+  /** Shown (or gone) at once, for handing over between the pointer under the camera and its twin above it. */
+  set(x: number, y: number, shown: boolean) {
+    this.at = { x, y }
+    const o = shown ? 1 : 0
+    return this.run.animate(this.el, [{ opacity: o, transform: this.tf(this.at) }, { opacity: o, transform: this.tf(this.at) }], { duration: 1 })
   }
   show(x: number, y: number) {
     this.at = { x, y }
@@ -712,9 +735,121 @@ export async function demoPreview(run: Run, stage: Stage) {
   // (a replay or the next step brings it back)
   if (document.documentElement.dataset.motion !== 'reduce') {
     document.body.classList.add('ob-preview-pan')
-    zoomTo(stage.lens, { k: 1, x: 0, y: -PREVIEW_PAN }, 750)
-    await run.sleep(800)
+    zoomTo(stage.lens, { k: 1, x: 0, y: -PREVIEW_PAN }, 900)
+    await run.sleep(950)
   }
+}
+
+/** Types into one of the app's fields the way a keyboard does: its own input events, a character at a time. */
+async function typeInto(run: Run, input: HTMLInputElement, text: string) {
+  const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+  for (let i = 1; i <= text.length; i++) {
+    setValue.call(input, text.slice(0, i))
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    // an even rhythm, a beat longer after a word
+    await run.sleep(text[i - 1] === ' ' ? 150 : 85)
+  }
+}
+
+/** A field the tour typed in lets go of the caret (on a step change or a replay). */
+function leaveField() {
+  const el = document.activeElement
+  if (el instanceof HTMLInputElement && el.closest('.ob-shelf, .card-menu')) el.blur()
+}
+
+/**
+ * The menu is portaled to <body> like the preview, outside the camera and drawn above the whole scene, so
+ * a twin of the pointer, above it, takes over while it is open (at the scale of the camera's framing `v`).
+ */
+function twinPointer(run: Run, stage: Stage, v: View): Pointer {
+  const el = stage.cursor.cloneNode(true) as HTMLElement
+  el.classList.add('ob-cursor-top')
+  document.body.append(el)
+  return new Pointer(run, el, v.k)
+}
+
+/** A row of the open menu (or a button of the editor) under the twin pointer: hover, then press. */
+async function pick(run: Run, top: Pointer, el: HTMLElement, ms: number) {
+  const r = el.getBoundingClientRect()
+  await top.move(r.left + Math.min(36, r.width * 0.4), r.top + r.height / 2, ms)
+  el.classList.add('is-hover')
+  await run.sleep(220)
+  await top.press()
+}
+
+/**
+ * Right-click a card: the app's own menu opens at the pointer. Add note… turns it into the note editor; a
+ * note is typed and saved, and it shows on the card in place of its file name.
+ */
+export async function demoNote(run: Run, stage: Stage) {
+  const p = new Pointer(run, stage.cursor)
+  await p.show(600, 400)
+  const target = card(stage, 'demo-pdf')
+  const r = rect(stage, target)
+  // the card's upper half, right of its middle: the shelf ends not far to the right, so the menu (which
+  // stays within the shelf's width in the top dock) opens to the pointer's left, and so does the note
+  // editor it turns into, both from the same corner; the card itself stays in view beside them, and both
+  // end well above the step's text
+  const at = { x: r.left + r.width * 0.62, y: r.top + r.height * 0.3 }
+  zoomTo(stage.lens, withEdge(PUSH, at.x), 900)
+  await p.move(at.x, at.y, 900)
+  await run.sleep(80)
+  await p.press()
+  // the menu at the pointer, at the camera's scale (at rest under reduced motion); the twin pointer takes
+  // over above it
+  const v = document.documentElement.dataset.motion === 'reduce' ? REST : withEdge(PUSH, at.x)
+  const s = toScreen(stage.lens, at)
+  document.body.style.setProperty('--ob-menu-scale', String(SHELF_SCALE * v.k))
+  const top = twinPointer(run, stage, v)
+  await Promise.all([top.set(s.x, s.y, true), p.set(at.x, at.y, false)])
+  useStore.getState().openCardMenu('demo-pdf', s.x, s.y)
+  await run.sleep(500)
+  const label = t('menu.addNote')
+  const row = [...document.querySelectorAll<HTMLElement>('.card-menu .card-menu-row')].find((el) => el.textContent === label)
+  if (!row) throw STOP
+  await pick(run, top, row, 520)
+  useStore.getState().editCardMeta()
+  await run.sleep(420)
+  const input = document.querySelector<HTMLInputElement>('.card-menu .card-meta-input')
+  if (!input) throw STOP
+  await typeInto(run, input, DEMO_NOTE)
+  await run.sleep(350)
+  const save = document.querySelector<HTMLElement>('.card-menu .card-meta-btn.is-primary')
+  if (!save) throw STOP
+  await pick(run, top, save, 480)
+  // the editor's own Save: the note goes onto the card (in the tour's store only) and the editor closes
+  save.closest('form')?.requestSubmit()
+  await run.sleep(80)
+  // back under the camera
+  const back = top.pos
+  await Promise.all([p.set((back.x - v.x) / v.k, (back.y - v.y) / v.k, true), top.set(back.x, back.y, false)])
+  top.el.remove()
+  await run.sleep(900)
+  zoomRest(stage.lens, 900)
+  await p.move(600, 400, 900)
+  await p.hide()
+}
+
+/**
+ * Click into the search box and type: the shelf narrows with every letter, down to the card the note
+ * was added to (a word only its note has).
+ */
+export async function demoSearch(run: Run, stage: Stage) {
+  const p = new Pointer(run, stage.cursor)
+  await p.show(600, 400)
+  const input = stage.root.querySelector<HTMLInputElement>('.ob-shelf .search input')
+  if (!input) throw STOP
+  const c = centre(stage, input)
+  zoomTo(stage.lens, SHELF_CLOSE, 900)
+  await p.move(c.x - 40, c.y, 900)
+  await p.press()
+  input.focus({ preventScroll: true })
+  await run.sleep(350)
+  // the pointer moves off the field, out of the way of what is typed
+  p.move(c.x + 70, c.y + 60, 500).catch(() => {})
+  await typeInto(run, input, DEMO_QUERY)
+  await run.sleep(700)
+  await p.hide()
 }
 
 export const DEMOS: Record<string, ((run: Run, stage: Stage) => Promise<void>) | undefined> = {
@@ -725,7 +860,9 @@ export const DEMOS: Record<string, ((run: Run, stage: Stage) => Promise<void>) |
   stacks: demoStacks,
   ungroup: demoUngroup,
   merge: demoMerge,
-  preview: demoPreview
+  preview: demoPreview,
+  note: demoNote,
+  search: demoSearch
 }
 
 // ---------- replays ----------
@@ -758,11 +895,17 @@ const shelfLayer = (stage: Stage) => stage.root.querySelector<HTMLElement>('.ob-
  */
 async function rewind(run: Run, stage: Stage, step: string, open: boolean) {
   const st = useStore.getState()
-  set({ previewItemId: null, previewItemRect: null, expandedStackId: null })
+  set({ previewItemId: null, previewItemRect: null, expandedStackId: null, cardMenu: null, cardMenuRect: null })
+  // a search empties (the shelf fills back up) and lets go of the caret
+  if (st.query) {
+    leaveField()
+    set({ query: '' })
+    await run.sleep(500)
+  }
   // a preview's pan comes back down as the preview closes
   if (document.body.classList.contains('ob-preview-pan')) {
     document.body.classList.remove('ob-preview-pan')
-    zoomRest(stage.lens, 750)
+    zoomRest(stage.lens, 900)
   }
   for (const m of marks(stage)) {
     if (!m.getAnimations().length) continue
@@ -780,7 +923,7 @@ async function rewind(run: Run, stage: Stage, step: string, open: boolean) {
     await run.animate(stage.notesImage, [{ opacity: 1 }, { opacity: 0 }], { duration: 400, easing: 'ease' })
   }
   const start = itemsFor(step)
-  const same = start.length === st.items.length && start.every((it, i) => it.id === st.items[i].id)
+  const same = start.length === st.items.length && start.every((it, i) => it.id === st.items[i].id && it.note === st.items[i].note)
   if (same) {
     await run.sleep(400)
   } else if (!open) {
@@ -803,12 +946,24 @@ async function rewind(run: Run, stage: Stage, step: string, open: boolean) {
  * A step's demo plays once and rests on its result; after the viewer has been idle a while it rewinds
  * gently and plays again, for as long as the step is up. Next moves on at any moment. `played` is told
  * each time the demo reaches its end (autoplay times the step on it).
+ *
+ * While autoplay is moving the tour on (`advancing`) the demo does not replay: the step is about to
+ * change, and a replay begun just before it (the camera pushing in, the shelf fading) was cut off half
+ * way by the next step's own moves, a jolt. Paused, it replays as before.
  */
-export async function playLooped(run: Run, stage: Stage, step: string, open: boolean, demo: (run: Run, stage: Stage) => Promise<void>, played?: () => void) {
+export async function playLooped(
+  run: Run, stage: Stage, step: string, open: boolean, demo: (run: Run, stage: Stage) => Promise<void>,
+  played?: () => void, advancing: () => boolean = () => false
+) {
   for (;;) {
     await demo(run, stage)
     if (!run.dead) played?.()
     await idleFor(run, REPLAY_IDLE)
+    if (advancing()) {
+      // held until autoplay is paused, then the usual idle wait from there
+      while (advancing()) await run.sleep(200)
+      await idleFor(run, REPLAY_IDLE)
+    }
     await rewind(run, stage, step, open)
   }
 }

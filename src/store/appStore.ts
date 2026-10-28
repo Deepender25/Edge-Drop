@@ -85,6 +85,13 @@ interface AppState {
   hydrated: boolean
   /** Free-text search filter (UI-only state). */
   query: string
+  /**
+   * The onboarding tour's shelf: example items only, played by the tour. Its
+   * note editor and search never borrow the keyboard (that acts on the real
+   * panel window and pauses the global hotkey) and a note stays in this
+   * store, never reaching main.
+   */
+  demo: boolean
   typeFilter: import('../../shared/types').TypeFilter
   setTypeFilter: (filter: import('../../shared/types').TypeFilter) => void
   /** Whether the panel blade is expanded. */
@@ -239,6 +246,7 @@ export const useStore = create<AppState>((set, get) => ({
   settings: { ...DEFAULT_SETTINGS },
   hydrated: false,
   query: '',
+  demo: false,
   typeFilter: 'all',
   setTypeFilter: (typeFilter) => {
     if (get().typeFilter === typeFilter && !get().emojiOpen) return
@@ -732,6 +740,7 @@ export const useStore = create<AppState>((set, get) => ({
         return next
       })
     })
+    if (get().demo) return
     try {
       const items = await edge.setItemMeta(id, patch)
       set({ items })

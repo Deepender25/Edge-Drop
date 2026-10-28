@@ -267,6 +267,18 @@ describe('store: card menu and note saving', () => {
     expect('note' in useStore.getState().items[0]).toBe(false)
   })
 
+  it("the onboarding tour's shelf keeps a note in its own store, never sending it to main", async () => {
+    useStore.setState({ demo: true })
+    try {
+      await useStore.getState().setItemMeta('a', { note: ' Train  tickets ' })
+      expect(useStore.getState().items[0].note).toBe('Train tickets')
+      expect(setItemMeta).not.toHaveBeenCalled()
+      expect(useStore.getState().toasts).toHaveLength(0)
+    } finally {
+      useStore.setState({ demo: false })
+    }
+  })
+
   it('rolls back and reports when saving fails', async () => {
     setItemMeta.mockRejectedValueOnce(new Error('down'))
     await useStore.getState().setItemMeta('b', { note: 'X' })

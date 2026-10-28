@@ -54,6 +54,7 @@ const moving = (v: View) => (atRest(v) ? 'none' : `translate(${v.x}px, ${v.y}px)
 
 /** Arrived: hold `v` with CSS zoom (the move's translate is in zoomed pixels there, hence / k). */
 function hold(lens: HTMLElement, v: View) {
+  lens.classList.remove('is-moving')
   lens.style.transition = 'none'
   lens.style.zoom = atRest(v) ? '' : String(v.k)
   lens.style.transform = atRest(v) ? 'none' : `translate(${v.x / v.k}px, ${v.y / v.k}px)`
@@ -89,6 +90,9 @@ export function zoomTo(lens: HTMLElement, v: View, ms: number, easing = CAM): vo
     hold(lens, v)
     return
   }
+  // while it moves, the cards' pictures stay on their pre-drawn layers (cheap to move; see .ob-shelf in
+  // onboarding.css); once it holds they are drawn again at the size they are shown
+  lens.classList.add('is-moving')
   lens.style.transition = `transform ${ms}ms ${easing}`
   lens.style.transform = moving(v)
   holding.set(lens, window.setTimeout(() => {

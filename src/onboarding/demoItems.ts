@@ -67,9 +67,17 @@ export function demoImage(at: number): ClipboardItemDto {
   }
 }
 
-export function demoPdf(at: number): ClipboardItemDto {
-  return files('demo-pdf', [['Itinerary.pdf', 412_000]], at)
+export function demoPdf(at: number, note?: string): ClipboardItemDto {
+  const it = files('demo-pdf', [['Itinerary.pdf', 412_000]], at)
+  return note ? { ...it, note } : it
 }
+
+/**
+ * The note the tour adds to the itinerary from its right-click menu, and what it then types in search to
+ * find it: a word only the note has, so the shelf narrows to that card as it is typed.
+ */
+export const DEMO_NOTE = 'Train tickets, Friday 6 pm'
+export const DEMO_QUERY = 'train'
 
 /**
  * Five files of different kinds, selected in File Explorer and copied at once: they arrive as one stack.

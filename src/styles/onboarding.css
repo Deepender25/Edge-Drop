@@ -103,14 +103,16 @@
 /* The cards' pictures (file icons, the folders and photos of a stack, the grain) are each kept on a
    pre-drawn layer in the app, sharp there because the shelf is shown 1:1 (item.css). Here the shelf is
    shown scaled (0.72, and the camera zooms it), so those layers were resampled and the glass folders read
-   as a milky smear; in the tour they are drawn at the size they are shown. */
-.ob-shelf .single-file-hero svg,
-.ob-shelf .single-file-hero img.file-kind-img,
-.ob-shelf .file-kind-opening > .fko-plain,
-.ob-shelf .fko-layers > .fil,
-.ob-shelf .image-folder-stack-item,
-.ob-shelf .file-stack-folder,
-.ob-shelf .is-textured::before {
+   as a milky smear; in the tour they are drawn at the size they are shown. Except while the camera moves
+   (.is-moving, lens.ts): redrawing the folders' blur and grain filters on every frame of a move dropped
+   frames, so for the move they stay on their layers and are drawn again, sharp, once it holds. */
+.ob-lens:not(.is-moving) .ob-shelf .single-file-hero svg,
+.ob-lens:not(.is-moving) .ob-shelf .single-file-hero img.file-kind-img,
+.ob-lens:not(.is-moving) .ob-shelf .file-kind-opening > .fko-plain,
+.ob-lens:not(.is-moving) .ob-shelf .fko-layers > .fil,
+.ob-lens:not(.is-moving) .ob-shelf .image-folder-stack-item,
+.ob-lens:not(.is-moving) .ob-shelf .file-stack-folder,
+.ob-lens:not(.is-moving) .ob-shelf .is-textured::before {
   will-change: auto !important;
 }
 .ob-shelf .root {
@@ -125,23 +127,53 @@
   margin-left: calc(400px * (1 - var(--ob-shelf-scale)) / var(--ob-shelf-scale));
   margin-top: calc(var(--ob-shelf-top) / var(--ob-shelf-scale));
 }
-/* Preview step: the flyout can reach nearly to the window's bottom (the app's 460px), where the step's
-   text is. The text keeps its place, as on every step (top 444); the flyout's last stretch (its file list
+/* The flyout (only the preview step opens it) can reach nearly to the window's bottom (the app's 460px),
+   where the step's text is. The text keeps its place, as on every step (top 444); the flyout's last stretch (its file list
    carries on below, as in a scrolled list) fades out just above it instead of running under it: gone by
    y 434 even at the flyout's full height. The fade is a gradient sized to 77% of the flyout (nothing shows
    past it), so it can give way smoothly: while the camera pans
    the screen up (.ob-preview-pan, PREVIEW_PAN in tour.ts) the flyout moves up with it (translate: in its
-   own zoomed pixels, hence / scale) and the fade's size grows past the bottom, so all of it is in view. */
-.ob-tour.ob-preview-step > .pf-wrap {
+   own zoomed pixels, hence / scale) and the fade's size grows past the bottom, so all of it is in view.
+   These belong to the flyout itself, not to the step: when the step ends while panned, the flyout glides
+   back down with the camera as it closes, instead of jumping. The pan's 0.9s matches the camera's. */
+.ob-tour > .pf-wrap {
   mask-image: linear-gradient(to bottom, #000 86%, transparent);
   mask-size: 100% 77%;
   mask-repeat: no-repeat;
   translate: 0 0;
-  transition: mask-size 0.75s cubic-bezier(0.5, 0, 0.25, 1), translate 0.75s cubic-bezier(0.5, 0, 0.25, 1);
+  transition: mask-size 0.9s cubic-bezier(0.5, 0, 0.25, 1), translate 0.9s cubic-bezier(0.5, 0, 0.25, 1);
 }
-.ob-tour.ob-preview-step.ob-preview-pan > .pf-wrap {
+.ob-tour.ob-preview-pan > .pf-wrap {
   mask-size: 100% 130%;
   translate: 0 calc(var(--ob-preview-pan) / var(--ob-shelf-scale));
+}
+/* The card's right-click menu (and the note editor it turns into) is portaled to <body> too. It opens at
+   the pointer (in window pixels) and grows from that corner (its inline transform-origin), so it is scaled
+   there to the shelf as the camera shows it: the shelf's scale times the camera's (--ob-menu-scale, set
+   by the tour as it opens it). Inert like the shelf: the tour plays it. */
+.ob-tour > .card-menu {
+  scale: var(--ob-menu-scale, var(--ob-shelf-scale));
+}
+.ob-tour > .card-menu,
+.ob-tour > .card-menu * {
+  pointer-events: none !important;
+}
+/* What the pointer is over (the tour's pointer has no real hover). */
+.ob-tour > .card-menu .card-menu-row.is-hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+.ob-tour > .card-menu .card-menu-row.is-hover .card-menu-icon {
+  color: #ffffff;
+}
+.ob-tour > .card-menu .card-meta-btn.is-primary.is-hover {
+  background: #e6e6e6;
+}
+/* The pointer's twin above the menu, which is drawn above the whole scene (tour.ts twinPointer). */
+.ob-cursor.ob-cursor-top {
+  position: fixed;
+  z-index: 2147483000;
+  transform-origin: 0 0;
 }
 /* Hidden with opacity, not visibility: parts of Panel set visibility inline, which would show through. */
 .ob-shelf.is-hidden {
@@ -265,11 +297,9 @@
   background: rgba(255, 255, 255, 0.22);
 }
 .ob-task-apps .ob-start {
-  background:
-    linear-gradient(#5ab2ff, #2f7dff) 0 0 / 5.5px 5.5px no-repeat,
-    linear-gradient(#5ab2ff, #2f7dff) 6.5px 0 / 5.5px 5.5px no-repeat,
-    linear-gradient(#5ab2ff, #2f7dff) 0 6.5px / 5.5px 5.5px no-repeat,
-    linear-gradient(#5ab2ff, #2f7dff) 6.5px 6.5px / 5.5px 5.5px no-repeat;
+  display: block;
+  flex: none;
+  filter: drop-shadow(0 0 2px rgba(80, 170, 255, 0.35));
 }
 .ob-task-apps .ob-search {
   width: 46px;

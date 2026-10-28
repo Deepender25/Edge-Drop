@@ -71,6 +71,8 @@ export function Onboarding() {
     { key: 'ungroup', view: 'full', open: true, title: t('onboarding.ungroupTitle'), body: t('onboarding.ungroupDesc') },
     { key: 'merge', view: 'full', open: true, title: t('onboarding.mergeTitle'), body: t('onboarding.mergeDesc') },
     { key: 'preview', view: 'full', open: true, title: t('onboarding.previewTitle'), body: t('onboarding.previewDesc') },
+    { key: 'note', view: 'full', open: true, title: t('onboarding.noteTitle'), body: t('onboarding.noteDesc') },
+    { key: 'search', view: 'full', open: true, title: t('onboarding.searchTitle'), body: t('onboarding.searchDesc') },
     { key: 'settings', view: 'frame', open: false, title: t('onboarding.configTitle'), body: t('onboarding.configDesc') }
   ]
   const last = steps.length - 1
@@ -153,7 +155,9 @@ export function Onboarding() {
     const s = steps[i]
     const demo = DEMOS[s.key]
     if (!demo) return
-    run.sleep(delay).then(() => playLooped(run, stage(), s.key, s.open, demo, () => autoplay.current!.played())).catch((e) => { if (e !== STOP) console.error(e) })
+    run.sleep(delay)
+      .then(() => playLooped(run, stage(), s.key, s.open, demo, () => autoplay.current!.played(), () => autoplay.current!.advancing))
+      .catch((e) => { if (e !== STOP) console.error(e) })
   }
 
   // The tour's own store: the user's settings (language, motion, accent), the
@@ -181,7 +185,8 @@ export function Onboarding() {
         },
         items: [],
         hydrated: true,
-        open: false
+        open: false,
+        demo: true
       })
       applyReduceMotion(settings.reduceMotion)
       if (settings.reduceMotion) setPlaying(false)
@@ -197,6 +202,7 @@ export function Onboarding() {
       document.body.style.removeProperty('--ob-shelf-scale')
       document.body.style.removeProperty('--ob-shelf-top')
       document.body.style.removeProperty('--ob-preview-pan')
+      document.body.style.removeProperty('--ob-menu-scale')
       runRef.current?.cancel()
       timers.current.forEach(clearTimeout)
     }
@@ -289,13 +295,6 @@ export function Onboarding() {
 
   atRef.current = at
   goRef.current = go
-
-  // The preview step fades the flyout's last stretch out above the text (see .ob-preview-step).
-  useEffect(() => {
-    document.body.classList.toggle('ob-preview-step', steps[at].key === 'preview')
-    return () => document.body.classList.remove('ob-preview-step')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [at])
 
   // Autoplay's clock for a step starts when its text is up: after the intro, then on each step change.
   useEffect(() => {
@@ -418,7 +417,25 @@ export function Onboarding() {
                 <div className="ob-base" />
                 {/* The screen's taskbar: up whenever the whole laptop is in view (welcome, settings). */}
                 <div className={`ob-taskbar${cam === 'frame' ? ' is-on' : ''}`}>
-                  <div className="ob-task-apps"><i className="ob-start" /><i className="ob-search" /><i /><i /><i /></div>
+                  <div className="ob-task-apps">
+                    {/* Start: the Windows 11 logo, four tiles under one gradient (a vector, crisp at any zoom) */}
+                    <svg className="ob-start" width="12" height="12" viewBox="0 0 24 24">
+                      <defs>
+                        <linearGradient id="ob-start-blue" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                          <stop offset="0" stopColor="#7dd6ff" />
+                          <stop offset="0.5" stopColor="#2f9bff" />
+                          <stop offset="1" stopColor="#0b5fd8" />
+                        </linearGradient>
+                      </defs>
+                      <g fill="url(#ob-start-blue)">
+                        <rect x="0" y="0" width="11.2" height="11.2" rx="1.2" />
+                        <rect x="12.8" y="0" width="11.2" height="11.2" rx="1.2" />
+                        <rect x="0" y="12.8" width="11.2" height="11.2" rx="1.2" />
+                        <rect x="12.8" y="12.8" width="11.2" height="11.2" rx="1.2" />
+                      </g>
+                    </svg>
+                    <i className="ob-search" /><i /><i /><i />
+                  </div>
                   <div className="ob-task-tray">
                     <svg width="9" height="7" viewBox="0 0 9 7"><path d="M.5 2.6a5.6 5.6 0 0 1 8 0M2 4.1a3.4 3.4 0 0 1 5 0M3.5 5.6a1.3 1.3 0 0 1 2 0" fill="none" stroke="#fff" strokeWidth=".9" strokeLinecap="round" /></svg>
                     <svg width="11" height="6" viewBox="0 0 11 6"><rect x=".5" y=".5" width="9" height="5" rx="1.2" fill="none" stroke="#fff" strokeWidth=".8" /><rect x="1.6" y="1.6" width="6" height="2.8" rx=".5" fill="#fff" /><rect x="9.8" y="2" width=".8" height="2" rx=".3" fill="#fff" /></svg>

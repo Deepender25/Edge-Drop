@@ -33,7 +33,8 @@ export function ShelfSearch() {
   // Engage BEFORE focus can happen: pointer-down always fires, focus may not.
   // Idempotent — the focus-event backup below reuses it safely.
   const engage = useCallback(() => {
-    if (engagedRef.current) return
+    // The onboarding tour types here itself; the keyboard is never borrowed.
+    if (engagedRef.current || useStore.getState().demo) return
     engagedRef.current = true
     void acquireKeyboard('search').then(() => {
       try { inputRef.current?.focus() } catch { /* ignore */ }

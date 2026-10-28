@@ -259,7 +259,7 @@ export function CardMenu() {
     // hand-over must not close the editor.
     let blurTimer: number | undefined
     const onBlur = () => {
-      if (useStore.getState().cardMenu?.mode !== 'edit') return
+      if (useStore.getState().cardMenu?.mode !== 'edit' || useStore.getState().demo) return
       window.clearTimeout(blurTimer)
       blurTimer = window.setTimeout(() => {
         if (!document.hasFocus() && useStore.getState().cardMenu?.mode === 'edit') dismiss(true)
@@ -558,6 +558,12 @@ function MetaEditor({
   // Hold the keyboard while the editor is open (acquired on the menu row's
   // pointer-down already; this is a no-op then) and put the caret in.
   useEffect(() => {
+    // The onboarding tour plays the editor: the caret goes in, the keyboard is never borrowed.
+    if (useStore.getState().demo) {
+      inputRef.current?.focus({ preventScroll: true })
+      inputRef.current?.select()
+      return
+    }
     let alive = true
     void acquireKeyboard(EDITOR_FOCUS_OWNER).then(() => {
       if (!alive) return
