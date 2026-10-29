@@ -112,6 +112,8 @@ interface AppState {
    */
   externalDrag: boolean
   setExternalDrag: (active: boolean) => void
+  /** The last pin or unpin, for its light along the shelf's edge (Panel's PinGlow); `at` replays it. */
+  pinGlow: { kind: 'pin' | 'unpin'; at: number } | null
   /** In-app drag: the card a drop would stack the dragged card into. */
   dropTargetId: string | null
   setDropTargetId: (id: string | null) => void
@@ -295,6 +297,7 @@ export const useStore = create<AppState>((set, get) => ({
   setExternalDrag: (externalDrag) => {
     if (get().externalDrag !== externalDrag) set({ externalDrag })
   },
+  pinGlow: null,
   dropTargetId: null,
   setDropTargetId: (dropTargetId) => {
     if (get().dropTargetId !== dropTargetId) set({ dropTargetId })
@@ -617,7 +620,8 @@ export const useStore = create<AppState>((set, get) => ({
   async togglePin(id, pinned) {
     // Optimistic: flip locally, then let the pushed list confirm.
     set({
-      items: get().items.map((it) => (it.id === id ? { ...it, pinned } : it))
+      items: get().items.map((it) => (it.id === id ? { ...it, pinned } : it)),
+      pinGlow: { kind: pinned ? 'pin' : 'unpin', at: Date.now() }
     })
     const items = await edge.setPinned(id, pinned)
     const current = get().items

@@ -3106,6 +3106,23 @@ html[data-motion='reduce'] .file-stack-folder {
     transform: scale(1.04);
   }
 }
+/* the drop zone's blue light, rising from the bottom of the card it would stack into */
+.drop-target-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 45% at 50% 100%,
+    rgba(10, 132, 255, 0.36) 0%,
+    rgba(10, 132, 255, 0.24) 28%,
+    rgba(10, 132, 255, 0.12) 52%,
+    rgba(10, 132, 255, 0.05) 72%,
+    rgba(10, 132, 255, 0.014) 88%,
+    rgba(10, 132, 255, 0) 100%
+  );
+}
 .item.is-drag-source::after {
   content: '';
   position: absolute;

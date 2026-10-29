@@ -205,7 +205,10 @@ describe('drag looks', () => {
     expect(well).not.toMatch(/background|border:/)
     const icon = panelCss.match(/\.drop-icon \{([^}]*)\}/)![1]
     expect(icon).not.toMatch(/background|box-shadow|border/)
-    expect(panelCss).toContain('.drop-overlay.is-over .drop-well {\n  --dash-color: rgba(255, 255, 255, 0.7);\n  transform: scale(1);\n}')
+    // over the shelf the dashes brighten softly, with no change of size from the zone at the edge (a pop)
+    expect(panelCss).toContain('.drop-overlay.is-over .drop-well {\n  --dash-color: rgba(255, 255, 255, 0.78);\n}')
+    expect(well).toContain('--dash-color: rgba(255, 255, 255, 0.55);')
+    expect(well).not.toMatch(/transform: scale/)
     expect(panelCss).toMatch(/\.drop-overlay\.is-accepted \.drop-well \{[^}]*transform: scale\(0\.97\);/)
     expect(panelCss).toContain('.drop-overlay.is-horizontal .drop-well {\n  flex-direction: row;')
     // shown as soon as a drag from another app is on, not only once it is over the window

@@ -679,6 +679,7 @@ export function Panel() {
               )}
             </AnimatePresence>
           </div>
+          <PinGlow isHorizontal={isHorizontal} />
           <DropOverlay isHorizontal={isHorizontal} />
           <SplitDropZone
             stickPosition={settings.stickPosition || (isRight ? 'right' : 'left')}
@@ -757,6 +758,18 @@ function TrayArrowIcon() {
  * over the shelf, and on a drop it takes the item in (the well tightens, the
  * arrow sinks into the tray) before handing over to the new card.
  */
+/**
+ * A pin or unpin lights the shelf from the side the card goes to: pinned cards lead the list (its left
+ * in the top dock, its top in the side docks), an unpinned one goes back the other way. Once per change.
+ */
+function PinGlow({ isHorizontal }: { isHorizontal: boolean }) {
+  const glow = useStore((s) => s.pinGlow)
+  if (!glow) return null
+  const pin = glow.kind === 'pin'
+  const from = isHorizontal ? (pin ? 'left' : 'right') : (pin ? 'top' : 'bottom')
+  return <div key={glow.at} className={`pin-glow from-${from}`} aria-hidden="true" />
+}
+
 function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
   const { t } = useTranslation()
   const open = useStore((s) => s.open)

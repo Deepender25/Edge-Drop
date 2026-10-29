@@ -296,8 +296,10 @@ rect.dashed-outline-shape {
 
 /* Drop zone for drags from other apps (DropOverlay): solid black over the
    whole shelf (nothing shows through), a dashed well, and the tray icon on its
-   own. The well's dashes light up once the drag is over the shelf, and it
-   tightens as it takes the drop. */
+   own. The well comes in at its size as the shelf opens; once the drag is over
+   the shelf its dashes brighten softly (no change of size: a step from the edge
+   into the shelf, where the zone turns over, read as a pop), and it tightens as
+   it takes the drop. */
 .drop-overlay {
   position: absolute;
   inset: 0;
@@ -310,6 +312,30 @@ rect.dashed-outline-shape {
 .drop-overlay.is-horizontal {
   padding: 10px 12px 12px;
 }
+/* A soft blue light rising from the bottom of the drop zone, in the edge light's blue, gone before 30% of
+   the zone's height; the shelf is otherwise unchanged. An ellipse wider than the shelf, so its sides fall
+   off softly too, with an eased falloff (no visible gradient band). It comes up with the zone and grows a
+   little brighter once the drag is over the shelf. Behind the well (painted first). */
+.drop-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 75% 30% at 50% 100%,
+    rgba(10, 132, 255, 0.34) 0%,
+    rgba(10, 132, 255, 0.24) 28%,
+    rgba(10, 132, 255, 0.13) 52%,
+    rgba(10, 132, 255, 0.06) 72%,
+    rgba(10, 132, 255, 0.016) 88%,
+    rgba(10, 132, 255, 0) 100%
+  );
+  opacity: 0.7;
+  transition: opacity 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drop-overlay.is-over::before {
+  opacity: 1;
+}
 .drop-well {
   flex: 1;
   min-width: 0;
@@ -321,11 +347,14 @@ rect.dashed-outline-shape {
   padding: 16px;
   position: relative;
   border-radius: 16px;
-  --dash-color: rgba(255, 255, 255, 0.38);
+  --dash-color: rgba(255, 255, 255, 0.55);
   text-align: center;
-  transform: scale(0.98);
   transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
   animation: drop-well-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* the well's dashes brighten over a longer, even ease than other dashed outlines */
+.drop-well .dashed-outline-shape {
+  transition: stroke 360ms cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 .drop-overlay.is-horizontal .drop-well {
   flex-direction: row;
@@ -338,8 +367,7 @@ rect.dashed-outline-shape {
   }
 }
 .drop-overlay.is-over .drop-well {
-  --dash-color: rgba(255, 255, 255, 0.7);
-  transform: scale(1);
+  --dash-color: rgba(255, 255, 255, 0.78);
 }
 .drop-overlay.is-accepted .drop-well {
   --dash-color: rgba(255, 255, 255, 0.9);
@@ -357,6 +385,7 @@ rect.dashed-outline-shape {
 }
 .drop-overlay.is-over .drop-icon .drop-arrow {
   transform: translateY(1.5px);
+  transition-duration: 360ms;
 }
 .drop-overlay.is-accepted .drop-icon .drop-arrow {
   transform: translateY(4px);
@@ -380,6 +409,140 @@ rect.dashed-outline-shape {
   color: rgba(255, 255, 255, 0.5);
 }
 [data-motion='reduce'] .dashed-outline-shape,
+/* Pin / unpin (PinGlow): the shelf's edge light (the split zone's: a bright hairline with a short blue
+   falloff, faded at its ends) along the inside edge the card went to. It switches on from the middle out
+   and fades, once, and keeps off the cards. */
+.pin-glow {
+  position: absolute;
+  z-index: 310;
+  pointer-events: none;
+  opacity: 0;
+}
+.pin-glow.from-top,
+.pin-glow.from-bottom {
+  left: 0;
+  right: 0;
+  height: 48px;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
+  animation: pin-glow-across 820ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pin-glow.from-left,
+.pin-glow.from-right {
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
+  animation: pin-glow-along 820ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pin-glow.from-top {
+  top: 0;
+  transform-origin: center top;
+  background: linear-gradient(
+    to bottom,
+    rgba(222, 240, 255, 1) 0,
+    rgba(222, 240, 255, 0.95) 1.5px,
+    rgba(10, 132, 255, 0.85) 3px,
+    rgba(10, 132, 255, 0.55) 6px,
+    rgba(10, 132, 255, 0.32) 11px,
+    rgba(10, 132, 255, 0.17) 18px,
+    rgba(10, 132, 255, 0.08) 27px,
+    rgba(10, 132, 255, 0.03) 37px,
+    rgba(10, 132, 255, 0) 48px
+  );
+}
+.pin-glow.from-bottom {
+  bottom: 0;
+  transform-origin: center bottom;
+  background: linear-gradient(
+    to top,
+    rgba(222, 240, 255, 1) 0,
+    rgba(222, 240, 255, 0.95) 1.5px,
+    rgba(10, 132, 255, 0.85) 3px,
+    rgba(10, 132, 255, 0.55) 6px,
+    rgba(10, 132, 255, 0.32) 11px,
+    rgba(10, 132, 255, 0.17) 18px,
+    rgba(10, 132, 255, 0.08) 27px,
+    rgba(10, 132, 255, 0.03) 37px,
+    rgba(10, 132, 255, 0) 48px
+  );
+}
+.pin-glow.from-left {
+  left: 0;
+  transform-origin: left center;
+  background: linear-gradient(
+    to right,
+    rgba(222, 240, 255, 1) 0,
+    rgba(222, 240, 255, 0.95) 1.5px,
+    rgba(10, 132, 255, 0.85) 3px,
+    rgba(10, 132, 255, 0.55) 6px,
+    rgba(10, 132, 255, 0.32) 11px,
+    rgba(10, 132, 255, 0.17) 18px,
+    rgba(10, 132, 255, 0.08) 27px,
+    rgba(10, 132, 255, 0.03) 37px,
+    rgba(10, 132, 255, 0) 48px
+  );
+}
+.pin-glow.from-right {
+  right: 0;
+  transform-origin: right center;
+  background: linear-gradient(
+    to left,
+    rgba(222, 240, 255, 1) 0,
+    rgba(222, 240, 255, 0.95) 1.5px,
+    rgba(10, 132, 255, 0.85) 3px,
+    rgba(10, 132, 255, 0.55) 6px,
+    rgba(10, 132, 255, 0.32) 11px,
+    rgba(10, 132, 255, 0.17) 18px,
+    rgba(10, 132, 255, 0.08) 27px,
+    rgba(10, 132, 255, 0.03) 37px,
+    rgba(10, 132, 255, 0) 48px
+  );
+}
+/* from the middle out, then the falloff draws in as it fades */
+@keyframes pin-glow-across {
+  0% {
+    opacity: 0;
+    transform: scale(0.35, 0.7);
+  }
+  30% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1, 0.75);
+  }
+}
+@keyframes pin-glow-along {
+  0% {
+    opacity: 0;
+    transform: scale(0.7, 0.35);
+  }
+  30% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.75, 1);
+  }
+}
+@keyframes pin-glow-plain {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+[data-motion='reduce'] .pin-glow {
+  animation-name: pin-glow-plain;
+}
+
+[data-motion='reduce'] .drop-overlay::before,
 [data-motion='reduce'] .drop-well,
 [data-motion='reduce'] .drop-icon,
 [data-motion='reduce'] .drop-icon .drop-arrow {
