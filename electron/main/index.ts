@@ -16,7 +16,8 @@ import { createTray, registerIncognitoApplier, refreshTray } from './tray'
 import { registerIpc, registerSendListeners } from './ipc'
 import { reconcileLaunchAtLoginOnStartup } from './loginItems'
 import { isStoreBuild, shouldStartHidden } from './config'
-import { prewarmDragIcons } from './drag'
+import { prewarmDragIcons, setFileNameWords } from './drag'
+import { mainT } from './i18n'
 import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
 import { initAutoUpdater } from './updater'
 import { createOnboardingWindow } from './onboardingWindow'
@@ -138,6 +139,13 @@ app.whenReady().then(() => {
     }, 2000)
   }
   setHotZoneWidth(settings.hotZoneWidth || 3)
+  // files the app writes (drag-out, paste into Explorer, Save to Downloads) are named in the user's language
+  setFileNameWords(() => ({
+    screenshotName: mainT('files.screenshotName'),
+    imageName: mainT('files.imageName'),
+    image: mainT('files.image'),
+    snippet: mainT('files.snippet')
+  }))
 
   void reconcileLaunchAtLoginOnStartup().then((reconciled) => {
     pushState.settings(reconciled)

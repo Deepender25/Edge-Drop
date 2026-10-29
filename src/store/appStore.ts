@@ -154,7 +154,8 @@ interface AppState {
   manualCheckState: {
     status: 'idle' | 'checking' | 'up-to-date' | 'available' | 'downloading' | 'error'
     version?: string
-    error?: string
+    /** What failed (the message itself is logged, not shown: it is English). */
+    error?: 'check' | 'download'
   }
   startManualCheck: () => Promise<void>
   startManualDownload: () => Promise<void>
@@ -403,14 +404,16 @@ export const useStore = create<AppState>((set, get) => ({
           manualUpdateActive: false
         })
       } else {
+        console.warn('[Update] check failed:', res.error)
         set({
-          manualCheckState: { status: 'error', error: res.error || 'Check failed' },
+          manualCheckState: { status: 'error', error: 'check' },
           manualUpdateActive: false
         })
       }
     } catch (err: any) {
+      console.warn('[Update] check failed:', err?.message)
       set({
-        manualCheckState: { status: 'error', error: err?.message || 'Check failed' },
+        manualCheckState: { status: 'error', error: 'check' },
         manualUpdateActive: false
       })
     }
@@ -420,8 +423,9 @@ export const useStore = create<AppState>((set, get) => ({
     set({ manualCheckState: { status: 'downloading' }, manualUpdateActive: true })
     try {
       await edge.startUpdateDownload()
-    } catch {
-      set({ manualCheckState: { status: 'error', error: 'Download failed' } })
+    } catch (err: any) {
+      console.warn('[Update] download failed:', err?.message)
+      set({ manualCheckState: { status: 'error', error: 'download' } })
     }
   },
 

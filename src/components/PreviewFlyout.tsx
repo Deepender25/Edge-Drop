@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { useStore } from '../store/appStore'
 import { formatBytes, formatImageDisplayName, relativeTime } from '../lib/format'
-import { getFileKind } from '../lib/fileType'
+import { getFileKind, kindBadge } from '../lib/fileType'
 import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon, TypeIcon, ImageIcon, PaletteIcon, FilesIcon } from './icons'
 import { cleanLink, externalHref, parseUrlPreview } from '../lib/urlPreview'
+import { localizeLinkInfo } from '../lib/linkLabels'
 import { colorFormats, parseColor } from '../lib/colorUtils'
 import { fitPreviewImage, type PreviewImageFit } from '../lib/previewImageFit'
 import { detectCode } from '../lib/codeDetect'
@@ -420,7 +421,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
             <div className={`pf-batch${batch.leaving ? ' is-leaving' : ''}`}>
               <div className="pf-batch-group">
                 <div className="flyout-chip">
-                  {t('flyout.selectedCount').replace('{count}', String(selCount))}
+                  {t('count.selected', { count: selCount })}
                 </div>
                 <button type="button" className="flyout-text-btn" onClick={handleSelectAllToggle}>
                   {selectedKeys.size === allItemKeys.length ? t('flyout.deselectAll') : t('flyout.selectAll')}
@@ -687,7 +688,7 @@ function PreviewContent({
     const isUrl = item.data.isUrl
 
     if (isUrl) {
-      const info = parseUrlPreview(activeText)
+      const info = localizeLinkInfo(parseUrlPreview(activeText))
       // the page title copied with the link, else what the link itself tells
       const linkTitle = (item.data.linkTitle || info.title || '').trim()
       return frame(
@@ -754,7 +755,7 @@ function PreviewContent({
     const codeInfo = detectCode(activeText)
     if (codeInfo.isCode) {
       return frame(
-        <FlyoutHead icon={<TypeIcon />} title={codeInfo.displayName} time={time}>
+        <FlyoutHead icon={<TypeIcon />} title={codeInfo.displayName === 'Code' ? t('fileKinds.code') : codeInfo.displayName} time={time}>
           {copyButton(t('flyout.copyText'))}
         </FlyoutHead>,
         <div
@@ -819,7 +820,7 @@ function PreviewContent({
           <img
             className="pf-image"
             src={`edgelocal://${item.data.imageId}`}
-            alt="preview"
+            alt={t('menu.preview')}
             draggable={false}
             decoding="async"
             // exact size up front: no reflow when it loads, no stretching
@@ -834,7 +835,7 @@ function PreviewContent({
     return frame(
       <FlyoutHead
         icon={<ImageIcon />}
-        title={`${item.data.images.length} ${t('filters.images').toLowerCase()}`}
+        title={t('count.images', { count: item.data.images.length })}
         time={time}
       />,
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1021,7 +1022,7 @@ function PreviewContent({
               </div>
               <div className="item-footer" style={{ padding: '8px 18px 12px 18px' }}>
                 <span className="kind-badge" style={{ color: info.color, fontSize: 12 }}>
-                  {info.label.toLowerCase()}
+                  {kindBadge(info.kind)}
                 </span>
                 {!entry?.isDirectory && entry?.size ? (
                   <span className="meta-size" style={{ fontSize: 12 }}>{formatBytes(entry.size)}</span>
@@ -1054,7 +1055,7 @@ function PreviewContent({
     return frame(
       <FlyoutHead
         icon={<FilesIcon />}
-        title={`${item.data.paths.length} ${t('filters.files').toLowerCase()}`}
+        title={t('count.files', { count: item.data.paths.length })}
         time={time}
       />,
       <div style={{ display: useSingleColumn ? 'flex' : 'grid', flexDirection: useSingleColumn ? 'column' : undefined, gridTemplateColumns: useSingleColumn ? undefined : 'repeat(2, minmax(0, 1fr))', gap: 10, width: '100%', boxSizing: 'border-box' }}>
@@ -1111,7 +1112,7 @@ function PreviewContent({
                       </div>
                     </div>
                     <div className="item-footer">
-                      <span className="kind-badge">{t('filters.images').toLowerCase().slice(0, -1)}</span>
+                      <span className="kind-badge">{t('badge.image')}</span>
                       {entry?.size ? <span className="meta-size">{formatBytes(entry.size)}</span> : null}
                     </div>
                   </div>
@@ -1182,7 +1183,7 @@ function PreviewContent({
                   </div>
                   <div className="item-footer">
                     <span className="kind-badge" style={{ color: info.color }}>
-                      {info.label.toLowerCase()}
+                      {kindBadge(info.kind)}
                     </span>
                     {!entry?.isDirectory && entry?.size ? (
                       <span className="meta-size">{formatBytes(entry.size)}</span>

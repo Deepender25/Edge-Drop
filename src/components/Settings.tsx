@@ -31,8 +31,45 @@ import { HotkeyRecorder } from './HotkeyRecorder'
 import { SlideCommit } from './SlideCommit'
 import { WakeSlider } from './WakeSlider'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
-import { useTranslation } from '../i18n'
+import { languageLabel, useTranslation } from '../i18n'
 import '../styles/settings.css'
+
+/** Widest a top-dock settings column grows to (settings.css .set-col max-width). */
+const SET_COL_MAX = 420
+
+/** Text cut short: an ellipsis, or lines past its clamp. */
+function isCut(el: HTMLElement): boolean {
+  return el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1
+}
+
+/** Each column at the narrowest width (in 8px steps) at which nothing in it is cut, up to SET_COL_MAX. */
+function fitSettingsColumns(track: HTMLElement): void {
+  const cols = [...track.querySelectorAll<HTMLElement>('.set-col')]
+  // a width that transitions would still read as the old one while it is measured
+  for (const col of cols) {
+    col.style.transition = 'none'
+    col.style.width = ''
+  }
+  const parts = (col: HTMLElement) => [...col.querySelectorAll<HTMLElement>('.set-row-title, .set-row-desc, .setting-pills .pill')]
+  // measure every column once, then widen only the ones that need it
+  const cut = cols.filter((col) => parts(col).some(isCut))
+  for (const col of cut) {
+    const fits = (w: number) => {
+      col.style.width = `${w}px`
+      return !parts(col).some(isCut)
+    }
+    let lo = col.offsetWidth
+    let hi = SET_COL_MAX
+    if (!fits(hi)) continue
+    while (hi - lo > 8) {
+      const mid = Math.round((lo + hi) / 2)
+      if (fits(mid)) hi = mid
+      else lo = mid
+    }
+    col.style.width = `${hi}px`
+  }
+  for (const col of cols) col.style.transition = ''
+}
 
 type SettingsTab = 'behaviour' | 'position' | 'appearance'
 
@@ -43,7 +80,7 @@ export function Settings({
   inlineIndicatorStyle?: boolean
   isHorizontal?: boolean
 }) {
-  const { t, language, languages } = useTranslation()
+  const { t, language, languages, resolvedLang } = useTranslation()
   const settings = useStore((s) => s.settings)
   const isHorizontal = propIsHorizontal ?? (settings.stickPosition === 'top')
 
@@ -65,8 +102,7 @@ export function Settings({
   const edgeTransition = useStore((s) => s.edgeTransition)
   const startEdgeTransition = useStore((s) => s.startEdgeTransition)
 
-  const getLangLabel = (l: { code: string; name: string; nativeName: string }) =>
-    l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
+  const getLangLabel = (l: { code: string; name: string; nativeName: string }) => languageLabel(l, resolvedLang)
   const selectedLang = languages.find((l) => l.code === (language || 'system')) || languages[0]
 
   const horizontalTab = useStore((s) => s.settingsTab)
@@ -94,6 +130,18 @@ export function Settings({
       }
     }
   }, [isHorizontal])
+
+  // Top dock: a column whose title, description or choices would be cut grows until they show
+  // whole (long translations need the room; the track scrolls, so width is free). Before paint,
+  // and again once the UI font is in, since it changes the measure.
+  useLayoutEffect(() => {
+    const track = shelfTrackRef.current
+    if (!isHorizontal || !track) return
+    fitSettingsColumns(track)
+    let alive = true
+    void document.fonts?.ready.then(() => { if (alive) fitSettingsColumns(track) })
+    return () => { alive = false }
+  }, [isHorizontal, horizontalTab, resolvedLang, settings.fontSizeScale])
 
   // Restore target section's independent horizontal scroll position when tab changes
   useLayoutEffect(() => {
@@ -141,7 +189,7 @@ export function Settings({
   const hoverOn = settings.hoverActivation ?? true
   const hoverDelay = normalizeHoverOpenDelay(settings.hoverOpenDelay)
   const formatHoverDelay = (ms: number) =>
-    ms === 0 ? (t('behaviour.hoverDelayInstant') || 'Instant') : `${ms} ms`
+    ms === 0 ? (t('behaviour.hoverDelayInstant') || 'Instant') : t('units.ms', { n: ms.toLocaleString(resolvedLang, { useGrouping: false }) })
 
   const handleHoverDelayInput = (rawVal: number) => {
     const next = normalizeHoverOpenDelay(rawVal)
@@ -497,7 +545,7 @@ export function Settings({
           <div className="shelf-card-bottom">
             <div className="shelf-update-progress-wrap">
               <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
-              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
+              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : t('behaviour.connecting')}</span>
             </div>
           </div>
         </div>
@@ -643,7 +691,7 @@ export function Settings({
           <div className="shelf-card-bottom">
             <div className="shelf-update-progress-wrap">
               <div className="shelf-progress-bar" style={{ width: `${downloadPercent}%` }} />
-              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : 'Connecting...'}</span>
+              <span className="shelf-progress-text">{downloadPercent > 0 ? `${downloadPercent}%` : t('behaviour.connecting')}</span>
             </div>
           </div>
         </div>
@@ -741,7 +789,7 @@ export function Settings({
                 </>
               )
             : status === 'error'
-              ? (checkState.error || t('behaviour.updateCheckFailed'))
+              ? t(checkState.error === 'download' ? 'behaviour.updateDownloadFailed' : 'behaviour.updateCheckFailed')
               : version,
       descError: status === 'error',
       trailing: (
@@ -1101,9 +1149,9 @@ export function Settings({
                   />
                   <div className="setting-slider-labels">
                     {[
-                      { label: offsetIsHorizontal ? 'Left' : '0%', val: 0 },
-                      { label: 'Center', val: 0.5 },
-                      { label: offsetIsHorizontal ? 'Right' : '100%', val: 1.0 }
+                      { label: offsetIsHorizontal ? t('position.left') : '0%', val: 0 },
+                      { label: t('position.center'), val: 0.5 },
+                      { label: offsetIsHorizontal ? t('position.right') : '100%', val: 1.0 }
                     ].map((pos) => {
                       const active = Math.abs(offsetVal - pos.val) < 0.04
                       return (
@@ -1249,9 +1297,9 @@ export function Settings({
                   />
                   <div className="setting-slider-labels">
                     {[
-                      { label: 'Min', val: 1 },
-                      { label: 'Mid', val: 4 },
-                      { label: 'Max', val: 7 }
+                      { label: t('position.thicknessMin'), val: 1 },
+                      { label: t('position.thicknessMid'), val: 4 },
+                      { label: t('position.thicknessMax'), val: 7 }
                     ].map((preset) => (
                       <button
                         key={preset.val}
@@ -1592,14 +1640,13 @@ function Toggle({
 }
 
 function LanguageDropdown({ direction = 'down', compact = false }: { direction?: 'up' | 'down'; compact?: boolean } = {}) {
-  const { language, languages } = useTranslation()
+  const { language, languages, resolvedLang } = useTranslation()
   const patch = useStore((s) => s.patchSettings)
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
 
-  const getLangLabel = (l: { code: string; name: string; nativeName: string }) =>
-    l.code === 'system' || l.nativeName.includes('(') ? l.nativeName : `${l.nativeName} (${l.name})`
+  const getLangLabel = (l: { code: string; name: string; nativeName: string }) => languageLabel(l, resolvedLang)
 
   const selectedLang = languages.find((l) => l.code === (language || 'system')) || languages[0]
 

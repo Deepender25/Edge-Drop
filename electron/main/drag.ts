@@ -36,8 +36,32 @@ function stampForFilename(capturedAt?: number): string {
   return `${year}-${month}-${day} ${hours}.${minutes}.${seconds}`
 }
 
+/** The words in the names of files the app writes; main supplies them in the user's language. */
+export interface FileNameWords {
+  /** "Screenshot {stamp}" */
+  screenshotName: string
+  /** "Image {stamp}" */
+  imageName: string
+  /** a picture with no better name */
+  image: string
+  /** start of a dragged-out text's file name ("Snippet_k3x9.txt") */
+  snippet: string
+}
+
+const ENGLISH_NAMES: FileNameWords = { screenshotName: 'Screenshot {stamp}', imageName: 'Image {stamp}', image: 'Image', snippet: 'Snippet' }
+let fileNameWords: () => FileNameWords = () => ENGLISH_NAMES
+
+/** Where the words for file names come from (index.ts: the user's language; English until then). */
+export function setFileNameWords(source: () => FileNameWords): void {
+  fileNameWords = source
+}
+
+function cleanName(name: string): string {
+  return name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').replace(/^\.+/, '').trim()
+}
+
 function sanitizeFileName(name: string): string {
-  return name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').replace(/^\.+/, '').trim() || 'Image'
+  return cleanName(name) || cleanName(fileNameWords().image) || 'Image'
 }
 
 /**
@@ -58,8 +82,11 @@ export function formatClipboardImageFilename(
     const givenExt = (safe.match(/\.([a-z0-9]+)$/i)?.[1] || cleanExt).toLowerCase()
     return `${base}${suffix}.${givenExt}`
   }
-  const prefix = opts?.source === 'image' ? 'Image' : 'Screenshot'
-  return `${prefix} ${stampForFilename(capturedAt)}${suffix}.${cleanExt}`
+  const words = fileNameWords()
+  const pattern = opts?.source === 'image' ? words.imageName : words.screenshotName
+  const stamp = stampForFilename(capturedAt)
+  const base = cleanName(pattern.includes('{stamp}') ? pattern.replace('{stamp}', () => stamp) : `${pattern} ${stamp}`)
+  return `${base || stamp}${suffix}.${cleanExt}`
 }
 
 /** @deprecated use formatClipboardImageFilename */
@@ -147,15 +174,17 @@ const stagedCache = new Map<string, Staged>()
 const STAGED_CACHE_MAX = 64
 
 function getStagedCacheKey(data: ItemData, capturedAt?: number): string {
+  // the staged files' names are in the user's language: another language stages them again
+  const words = fileNameWords()
   switch (data.kind) {
     case 'files':
       return `files:${data.paths.join('|')}`
     case 'image':
-      return `img:${data.imageId}:${data.ext || 'png'}:${capturedAt || 0}`
+      return `img:${data.imageId}:${data.ext || 'png'}:${capturedAt || 0}:${words.screenshotName}:${words.imageName}`
     case 'image-collection':
-      return `imgs:${data.images.map((i) => i.imageId).join('|')}:${capturedAt || 0}`
+      return `imgs:${data.images.map((i) => i.imageId).join('|')}:${capturedAt || 0}:${words.screenshotName}:${words.imageName}`
     case 'text':
-      return `text:${data.text.slice(0, 100)}`
+      return `text:${data.text.slice(0, 100)}:${words.snippet}`
   }
 }
 
@@ -304,7 +333,7 @@ export function stageDragFile(
     }
     case 'text': {
       const id = `${Date.now().toString(36)}`
-      const dest = join(temp, `Snippet_${id}.txt`)
+      const dest = join(temp, `${cleanName(fileNameWords().snippet) || 'Snippet'}_${id}.txt`)
       try {
         writeFileSync(dest, data.text, 'utf8')
       } catch {

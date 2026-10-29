@@ -7,6 +7,7 @@ import {
   useReducedMotion,
   useTransform
 } from 'framer-motion'
+import { t } from '../i18n'
 
 const PAD = 3
 const SQUASH_MAX = 0.08
@@ -428,7 +429,7 @@ export function SlideCommit({
           </motion.div>
         </motion.div>
         <span className="slide-commit__sr" aria-live="polite">
-          {phase === 'pending' ? 'Working' : phase === 'done' ? doneLabel : phase === 'error' ? errorLabel : ''}
+          {phase === 'pending' ? t('behaviour.working') : phase === 'done' ? doneLabel : phase === 'error' ? errorLabel : ''}
         </span>
       </motion.div>
     </div>

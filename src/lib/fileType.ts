@@ -34,6 +34,11 @@ function translateKind(key: string, fallback: string): string {
   return val
 }
 
+/** The small lower-case tag a card of this kind shows ("pdf", "slides"), in the user's language. */
+export function kindBadge(kind: FileKind): string {
+  return t(`badge.${kind}`)
+}
+
 /** Resolve a file path to its display metadata (kind / label / color). */
 export function getFileKind(path: string, isDirectory?: boolean): FileKindInfo {
   if (isDirectory) {

@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react'
 import { parseUrlPreview, type UrlPreviewInfo } from '../lib/urlPreview'
+import { localizeLinkInfo } from '../lib/linkLabels'
+import { useTranslation } from '../i18n'
 import { LinkIcon } from './icons'
 
 interface LinkPreviewCardProps {
@@ -23,7 +25,8 @@ export const LinkPreviewCard: React.FC<LinkPreviewCardProps> = ({
   compact = false,
   onClick
 }) => {
-  const info: UrlPreviewInfo = useMemo(() => parseUrlPreview(url), [url])
+  const { resolvedLang } = useTranslation()
+  const info: UrlPreviewInfo = useMemo(() => localizeLinkInfo(parseUrlPreview(url)), [url, resolvedLang])
 
   const top = info.subtitle ? `${info.serviceName} · ${info.subtitle}` : info.serviceName
   const link = info.displayUrl || info.url

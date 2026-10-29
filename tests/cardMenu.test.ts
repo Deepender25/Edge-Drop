@@ -346,7 +346,7 @@ describe('wiring', () => {
     const src = read('src/i18n/translations.ts')
     const dictionaries = src.match(/export const \w+: TranslationKeys = \{/g)?.length ?? 0
     expect(dictionaries).toBe(31)
-    for (const key of ['title', 'paste', 'pastePlain', 'addNote', 'editNote', 'openLink', 'copyCleanLink', 'copyAs', 'showInFolder', 'copyPath', 'copyPaths', 'saveToDownloads', 'preview', 'closePreview', 'note', 'notePlaceholder', 'noteHint', 'removeNote', 'cancel', 'save', 'noteFailed', 'savedToDownloads', 'savedManyToDownloads', 'saveImagesFailed']) {
+    for (const key of ['title', 'paste', 'pastePlain', 'addNote', 'editNote', 'openLink', 'copyCleanLink', 'copyAs', 'showInFolder', 'copyPath', 'copyPaths', 'saveToDownloads', 'preview', 'closePreview', 'note', 'notePlaceholder', 'noteHint', 'removeNote', 'cancel', 'save', 'noteFailed', 'savedToDownloads', 'saveImagesFailed']) {
       expect(src.split(`"${key}":`).length - 1, key).toBeGreaterThanOrEqual(dictionaries)
     }
     expect(src.split('"menu": {').length - 1).toBe(dictionaries)
@@ -357,7 +357,14 @@ describe('wiring', () => {
     // placeholders survive translation
     expect(src.split('"savedToDownloads": "').length - 1).toBe(dictionaries)
     for (const m of src.matchAll(/"savedToDownloads": "([^"]*)"/g)) expect(m[1]).toContain('{name}')
-    for (const m of src.matchAll(/"savedManyToDownloads": "([^"]*)"/g)) expect(m[1]).toContain('{count}')
+    // several pictures: a plural group in every language, each form with the number in it
+    const many = [...src.matchAll(/"savedToDownloads": \{([\s\S]*?)\n\s*\}/g)]
+    expect(many.length).toBe(dictionaries)
+    for (const m of many) {
+      const forms = [...m[1].matchAll(/"\w+": "([^"]*)"/g)]
+      expect(forms.length).toBeGreaterThan(0)
+      for (const f of forms) expect(f[1]).toContain('{count}')
+    }
   })
 })
 

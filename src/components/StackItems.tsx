@@ -15,12 +15,14 @@ import { memo, useState } from 'react'
 import type { ClipboardItemDto, DragRequest } from '../../shared/types'
 import { useStore } from '../store/appStore'
 import { basename, formatBytes, formatImageDisplayName } from '../lib/format'
-import { extOf, getFileKind } from '../lib/fileType'
+import { extOf, getFileKind, kindBadge } from '../lib/fileType'
 import { playButtonClickSound, playDeleteSound, playToggleSound, playCardExpandSound } from '../lib/soundEffects'
 import { tryPaste } from '../lib/tryPaste'
 import { useTranslation } from '../i18n'
 import { CopyIcon, FileKindIcon, MinusIcon, PinIcon, PinFillIcon, TrashIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon } from './icons'
 import '../styles/stack.css'
+
+type Translate = (key: string, params?: Record<string, string | number>) => string
 
 /** Same accent the shelf uses for image badges. */
 const IMAGE_COLOR = '#06B6D4'
@@ -45,10 +47,10 @@ function fileUrl(filePath: string): string {
 const join = (...parts: Array<string | false | undefined>): string => parts.filter(Boolean).join(' · ')
 
 /** Entries of a files stack (files, folders and image files, in order). */
-export function fileStackEntries(item: ClipboardItemDto, t: (k: string) => string): StackEntry[] {
+export function fileStackEntries(item: ClipboardItemDto, t: Translate): StackEntry[] {
   if (item.data.kind !== 'files') return []
   const { paths, entries } = item.data
-  const imageWord = t('filters.images').toLowerCase().slice(0, -1) || 'image'
+  const imageWord = t('badge.image')
   return paths.map((p, i) => {
     const e = entries?.[i]
     const info = getFileKind(p, e?.isDirectory)
@@ -59,7 +61,7 @@ export function fileStackEntries(item: ClipboardItemDto, t: (k: string) => strin
       key: `${p}-${i}`,
       req: { id: item.id, paths: [p] },
       name: formatImageDisplayName(e?.name ?? p, item.capturedAt) || basename(p),
-      kindLabel: ext || (isImage ? imageWord : info.label.toLowerCase()),
+      kindLabel: ext || (isImage ? imageWord : kindBadge(info.kind)),
       kindColor: isImage ? IMAGE_COLOR : info.color,
       detail: !e?.isDirectory && e?.size ? formatBytes(e.size) : '',
       thumb: isImage ? { src: e?.preview || fileUrl(p), fallbackSrc: fileUrl(p) } : undefined,
@@ -70,15 +72,15 @@ export function fileStackEntries(item: ClipboardItemDto, t: (k: string) => strin
 }
 
 /** Entries of a clipboard image collection. */
-export function imageCollectionEntries(item: ClipboardItemDto, t: (k: string) => string): StackEntry[] {
+export function imageCollectionEntries(item: ClipboardItemDto, t: Translate): StackEntry[] {
   if (item.data.kind !== 'image-collection') return []
-  const imageWord = t('filters.images').toLowerCase().slice(0, -1) || 'image'
+  const imageWord = t('badge.image')
   return item.data.images.map((img, i) => {
     const dims = img.width && img.height ? `${img.width}×${img.height}` : ''
     return {
       key: img.imageId || `${item.id}-${i}`,
       req: { id: item.id, imageId: img.imageId || `${item.id}-${i}` },
-      name: img.fileName || dims || `${imageWord} ${i + 1}`,
+      name: img.fileName || dims || t('item.imageN', { n: i + 1 }),
       kindLabel: imageWord,
       kindColor: IMAGE_COLOR,
       detail: join(img.fileName ? dims : '', img.bytes ? formatBytes(img.bytes) : ''),

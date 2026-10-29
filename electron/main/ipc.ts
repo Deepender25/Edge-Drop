@@ -18,6 +18,7 @@ import { resyncHover, sendToMainWindow, setInteractive, setHeartbeatPaused, setH
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
+import { mainT } from './i18n'
 import { startDragOut, resolveDragData, prestageDrag, stageDragFile, formatClipboardImageFilename } from './drag'
 import { setOwnDragActive } from './externalDrag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
@@ -284,6 +285,7 @@ export function registerIpc(): void {
     try {
       saved = saveItemImages(item, {
         destDir: app.getPath('downloads'),
+        fallbackName: mainT('files.image'),
         resolveSource: (imageId, ext) => getStore().resolveStoredImagePath(imageId, ext),
         defaultName: (capturedAt, ext, img, index) =>
           formatClipboardImageFilename(capturedAt, ext, {
@@ -297,7 +299,7 @@ export function registerIpc(): void {
     }
     if (saved.length === 0) toast('toast.saveImagesFailed', 'error')
     else if (saved.length === 1) toast('toast.savedToDownloads', 'info', { name: basename(saved[0]) })
-    else toast('toast.savedManyToDownloads', 'info', { count: saved.length })
+    else toast('count.savedToDownloads', 'info', { count: saved.length })
     return saved.map((p) => basename(p))
   })
 
@@ -642,7 +644,7 @@ export function registerIpc(): void {
     // If a large drop was split into several stacks, let the user know why
     // they suddenly see multiple items instead of one bundle.
     if (result.stacksCreated > 1) {
-      toast('toast.splitStacks', 'info', { count: result.stacksCreated })
+      toast('count.splitStacks', 'info', { count: result.stacksCreated })
     }
     return getStore().toDto()
   })
@@ -653,7 +655,7 @@ export function registerIpc(): void {
     if (data.kind === 'files' && data.paths && data.paths.length > 0) {
       const result = addFiles(data.paths)
       if (result.stacksCreated > 1) {
-        toast('toast.splitStacks', 'info', { count: result.stacksCreated })
+        toast('count.splitStacks', 'info', { count: result.stacksCreated })
       }
       return getStore().toDto()
     }

@@ -12,13 +12,14 @@
  *
  * NOTE: this module must NOT import from state.ts to avoid circular dependencies.
  */
-import { BrowserWindow, screen, shell, powerMonitor, app } from 'electron'
+import { BrowserWindow, screen, shell, powerMonitor } from 'electron'
 import { join } from 'node:path'
 import koffi from 'koffi'
 import { APP_CONFIG } from './config'
 import { runtime } from './config'
 import { PATHS } from '../store/paths'
 import { TRANSLATIONS, en } from '../../src/i18n/translations'
+import { mainT, resolveLang } from './i18n'
 import { computeStickBounds } from './geometry'
 import { isSafeExternalUrl } from './externalUrl'
 import { WorkAreaCache } from './workAreaCache'
@@ -1026,22 +1027,7 @@ export function getDisplayListOptions(): Array<{
   const primary = screen.getPrimaryDisplay()
   const activeId = getActiveDisplayId(all)
 
-  const settings = loadSettings()
-  let langCode = settings.language || 'system'
-  if (langCode === 'system') {
-    const sysLangs = app.getPreferredSystemLanguages()
-    const first = (sysLangs[0] || '').toLowerCase()
-    if (first.startsWith('zh-tw') || first.startsWith('zh-hk')) langCode = 'zh-TW'
-    else if (first.startsWith('zh')) langCode = 'zh-CN'
-    else if (first.startsWith('es')) langCode = 'es'
-    else if (first.startsWith('fr')) langCode = 'fr'
-    else if (first.startsWith('de')) langCode = 'de'
-    else if (first.startsWith('hi')) langCode = 'hi'
-    else if (first.startsWith('fa')) langCode = 'fa'
-    else if (first.startsWith('ja')) langCode = 'ja'
-    else if (first.startsWith('ru')) langCode = 'ru'
-    else langCode = 'en'
-  }
+  const langCode = resolveLang(loadSettings().language)
   const dict = TRANSLATIONS[langCode]
   const primaryText = dict?.position?.primaryDisplay || en.position.primaryDisplay
   // Localized side tags reuse the fully translated tray words; vertical
@@ -1052,7 +1038,7 @@ export function getDisplayListOptions(): Array<{
   return all.map((d, index) => {
     const isPrimary = d.id === primary.id
     const rawName = (d as any).label || (d as any).name || ''
-    const fallbackName = isPrimary ? primaryText : `Display ${index + 1}`
+    const fallbackName = isPrimary ? primaryText : mainT('position.displayN', { n: index + 1 }, langCode)
     const baseName = rawName.trim() ? rawName.trim() : fallbackName
     const name = isPrimary
       ? (baseName.toLowerCase().includes('primary') || baseName === primaryText ? baseName : `${baseName} (${primaryText})`)

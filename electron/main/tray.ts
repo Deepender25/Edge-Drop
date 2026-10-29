@@ -14,7 +14,8 @@ import { loadSettings, saveSettings } from '../store/settings'
 import { getMainWindow, setVisible, repositionWindow, getDisplayListOptions, registerWindowRepositionListener, popUpAndRetract } from './window'
 import type { StickPosition } from '../../shared/types'
 import { pushState } from './state'
-import { TRANSLATIONS, en } from '../../src/i18n/translations'
+import { en } from '../../src/i18n/translations'
+import { mainT, resolveLang } from './i18n'
 
 let tray: Tray | null = null
 let themeListenerRegistered = false
@@ -166,44 +167,7 @@ export function createTray(): Tray {
   }
 
 function getTrayText(settingsLang: string | undefined, key: keyof typeof en['tray']): string {
-  let langCode = settingsLang || 'system'
-  if (langCode === 'system') {
-    const sysLangs = app.getPreferredSystemLanguages()
-    const first = (sysLangs[0] || '').toLowerCase()
-    if (first.startsWith('zh-tw') || first.startsWith('zh-hk')) langCode = 'zh-TW'
-    else if (first.startsWith('zh')) langCode = 'zh-CN'
-    else if (first.startsWith('es')) langCode = 'es'
-    else if (first.startsWith('fr')) langCode = 'fr'
-    else if (first.startsWith('de')) langCode = 'de'
-    else if (first.startsWith('hi')) langCode = 'hi'
-    else if (first.startsWith('ja')) langCode = 'ja'
-    else if (first.startsWith('ru')) langCode = 'ru'
-    else if (first.startsWith('it')) langCode = 'it'
-    else if (first.startsWith('pt')) langCode = 'pt'
-    else if (first.startsWith('ko')) langCode = 'ko'
-    else if (first.startsWith('ar')) langCode = 'ar'
-    else if (first.startsWith('fa')) langCode = 'fa'
-    else if (first.startsWith('bn')) langCode = 'bn'
-    else if (first.startsWith('tr')) langCode = 'tr'
-    else if (first.startsWith('vi')) langCode = 'vi'
-    else if (first.startsWith('pl')) langCode = 'pl'
-    else if (first.startsWith('nl')) langCode = 'nl'
-    else if (first.startsWith('sv')) langCode = 'sv'
-    else if (first.startsWith('id')) langCode = 'id'
-    else if (first.startsWith('uk')) langCode = 'uk'
-    else if (first.startsWith('el')) langCode = 'el'
-    else if (first.startsWith('cs')) langCode = 'cs'
-    else if (first.startsWith('ro')) langCode = 'ro'
-    else if (first.startsWith('hu')) langCode = 'hu'
-    else if (first.startsWith('da')) langCode = 'da'
-    else if (first.startsWith('fi')) langCode = 'fi'
-    else if (first.startsWith('th')) langCode = 'th'
-    else if (first.startsWith('he')) langCode = 'he'
-    else if (first.startsWith('no') || first.startsWith('nb') || first.startsWith('nn')) langCode = 'no'
-    else langCode = 'en'
-  }
-  const dict = TRANSLATIONS[langCode]
-  return (dict?.tray?.[key]) || en.tray[key] || key
+  return mainT(`tray.${key}`, undefined, resolveLang(settingsLang))
 }
 
   const rebuild = () => {

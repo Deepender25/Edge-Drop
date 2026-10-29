@@ -11,7 +11,7 @@ import { CloseIcon } from './icons'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { createPortal } from 'react-dom'
 import { useAdaptiveSpring } from '../hooks/useAdaptiveSpring'
-import { useTranslation } from '../i18n'
+import { languageSubName, useTranslation } from '../i18n'
 
 const flyoutEaseOpen = [0.16, 1, 0.3, 1] as const
 const flyoutEaseClose = [0.3, 0, 0.2, 1] as const
@@ -52,7 +52,7 @@ const flyoutVariants = {
 }
 
 export function LanguageFlyout({ isRight }: { isRight: boolean }) {
-  const { t, language, languages } = useTranslation()
+  const { t, language, languages, resolvedLang } = useTranslation()
   const languageFlyoutOpen = useStore((s) => s.languageFlyoutOpen)
   const setLanguageFlyoutOpen = useStore((s) => s.setLanguageFlyoutOpen)
   const settingsOpen = useStore((s) => s.settingsOpen)
@@ -240,7 +240,7 @@ export function LanguageFlyout({ isRight }: { isRight: boolean }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px 8px 4px', borderBottom: 'none' }}>
               <div>
                 <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255, 255, 255, 0.42)', marginBottom: 2 }}>
-                  LANGUAGE
+                  {t('groups.language')}
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff', letterSpacing: '-0.01em' }}>
                   {t('behaviour.languageTitle')}
@@ -322,11 +322,11 @@ export function LanguageFlyout({ isRight }: { isRight: boolean }) {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
                       <span style={{ fontWeight: active ? 600 : 500, color: active ? '#ffffff' : 'rgba(255, 255, 255, 0.9)', fontSize: 12, whiteSpace: 'nowrap' }}>
-                        {lang.nativeName}
+                        {lang.code === 'system' ? t('behaviour.systemDefault') : lang.nativeName}
                       </span>
-                      {lang.code !== 'system' && !lang.nativeName.includes('(') && lang.nativeName !== lang.name && (
+                      {languageSubName(lang, resolvedLang) && (
                         <span style={{ fontSize: 10.5, color: 'rgba(255, 255, 255, 0.42)', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          ({lang.name})
+                          ({languageSubName(lang, resolvedLang)})
                         </span>
                       )}
                     </div>

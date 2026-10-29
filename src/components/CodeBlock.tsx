@@ -2,6 +2,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Highlight, type PrismTheme } from 'prism-react-renderer'
 import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { CopyIcon, CheckIcon } from './icons'
+import { t } from '../i18n'
 
 const TAP_SPRING = { type: 'spring', stiffness: 500, damping: 30 } as const
 const SWAP_SPRING = { type: 'spring', duration: 0.3, bounce: 0 } as const
@@ -215,7 +216,7 @@ function CopyButton({ code, floating }: { code: string; floating?: boolean }) {
   return (
     <motion.button
       type="button"
-      aria-label={copied ? 'Copied' : 'Copy code'}
+      aria-label={copied ? t('flyout.copied') : t('flyout.copyCode')}
       onClick={copy}
       whileTap={reduceMotion ? undefined : { scale: 0.9 }}
       transition={TAP_SPRING}
@@ -425,7 +426,7 @@ export function CodeBlock({
 
       <div
         role="region"
-        aria-label={filename ?? `${safeLanguage} code`}
+        aria-label={filename ?? t('flyout.codeLabel', { language: safeLanguage })}
         tabIndex={0}
         style={{
           minHeight: 0,

@@ -1,5 +1,5 @@
 import { useStore } from '../store/appStore'
-import { LANGUAGES, TRANSLATIONS, en } from './translations'
+import { LANGUAGES, TRANSLATIONS, en, type LanguageMeta } from './translations'
 
 /**
  * Resolves the active language code.
@@ -48,16 +48,37 @@ export function getResolvedLanguage(settingLang?: string): string {
 }
 
 /**
- * Retrieves a nested string property safely from a translation dictionary.
+ * Retrieves a nested string property safely from a translation dictionary. A plural group
+ * (`{ one, few, many, other }`) gives the form for `count` in that language (Intl.PluralRules).
  */
-function getNestedProp(obj: any, path: string): string | undefined {
+function getNestedProp(obj: any, path: string, lang?: string, count?: number): string | undefined {
   const parts = path.split('.')
   let curr = obj
   for (const part of parts) {
     if (!curr || typeof curr !== 'object') return undefined
     curr = curr[part]
   }
+  if (curr && typeof curr === 'object' && typeof curr.other === 'string') {
+    if (typeof count !== 'number') return curr.other
+    return curr[pluralCategory(lang || 'en', count)] ?? curr.other
+  }
   return typeof curr === 'string' ? curr : undefined
+}
+
+const pluralRules = new Map<string, Intl.PluralRules>()
+
+/** The plural category of `count` in `lang` ('one', 'few', 'other', …). */
+function pluralCategory(lang: string, count: number): string {
+  let rules = pluralRules.get(lang)
+  if (!rules) {
+    try {
+      rules = new Intl.PluralRules(lang)
+    } catch {
+      rules = new Intl.PluralRules('en')
+    }
+    pluralRules.set(lang, rules)
+  }
+  return rules.select(count)
 }
 
 /**
@@ -70,9 +91,10 @@ export function t(path: string, params?: Record<string, string | number>): strin
   const langCode = getResolvedLanguage(settingsLang)
   const dict = TRANSLATIONS[langCode]
 
-  let val = dict ? getNestedProp(dict, path) : undefined
+  const count = typeof params?.count === 'number' ? params.count : undefined
+  let val = dict ? getNestedProp(dict, path, langCode, count) : undefined
   if (!val) {
-    val = getNestedProp(en, path) || path
+    val = getNestedProp(en, path, 'en', count) || path
   }
 
   if (params) {
@@ -84,6 +106,41 @@ export function t(path: string, params?: Record<string, string | number>): strin
   }
 
   return val
+}
+
+const languageNames = new Map<string, Intl.DisplayNames | null>()
+
+/** Codes Intl knows a language's name by, where the app's code is a region variant. */
+const NAME_CODES: Record<string, string> = { 'zh-CN': 'zh-Hans', 'zh-TW': 'zh-Hant' }
+
+/**
+ * The second name of a language in the picker, in the interface's language: "German" in English,
+ * "немецкий" in Russian (from the browser's own language names). Empty when it would only repeat
+ * the native name, and for "System default".
+ */
+export function languageSubName(l: LanguageMeta, uiLang: string): string {
+  if (l.code === 'system' || l.nativeName.includes('(')) return ''
+  let name = l.name
+  if (uiLang !== 'en') {
+    let names = languageNames.get(uiLang)
+    if (names === undefined) {
+      try {
+        names = new Intl.DisplayNames([uiLang], { type: 'language' })
+      } catch {
+        names = null
+      }
+      languageNames.set(uiLang, names)
+    }
+    name = names?.of(NAME_CODES[l.code] || l.code) || l.name
+  }
+  return name.toLocaleLowerCase(uiLang) === l.nativeName.toLocaleLowerCase(uiLang) ? '' : name
+}
+
+/** A language as the picker shows it: "Deutsch (German)", "System default" in the interface's language. */
+export function languageLabel(l: LanguageMeta, uiLang: string): string {
+  if (l.code === 'system') return t('behaviour.systemDefault')
+  const sub = languageSubName(l, uiLang)
+  return sub ? `${l.nativeName} (${sub})` : l.nativeName
 }
 
 /**

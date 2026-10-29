@@ -1,6 +1,8 @@
 import { useStore } from '../store/appStore'
 import { useTranslation } from '../i18n'
 
+const FILTER_KIND: Record<string, string> = { text: 'Text', links: 'Links', images: 'Images', files: 'Files', colors: 'Colors' }
+
 export function EmptyState({ filtered }: { filtered: boolean }) {
   const { t } = useTranslation()
   const typeFilter = useStore((s) => s.typeFilter)
@@ -8,20 +10,11 @@ export function EmptyState({ filtered }: { filtered: boolean }) {
   let title = filtered ? t('emptyState.noResultsFound') : t('emptyState.shelfEmpty')
   let hint = filtered ? t('emptyState.noResultsHint') : t('emptyState.shelfEmptyHint')
 
-  if (typeFilter !== 'all') {
-    const labelKey =
-      typeFilter === 'text'
-        ? 'emptyState.textClips'
-        : typeFilter === 'links'
-          ? 'emptyState.links'
-          : typeFilter === 'images'
-            ? 'emptyState.images'
-            : typeFilter === 'colors'
-              ? 'filters.colors'
-              : 'emptyState.files'
-    const label = (t(labelKey) || 'colors').toLowerCase()
-    title = t('emptyState.noClipsFound', { type: label })
-    hint = t('emptyState.copyTypeHint', { type: label })
+  // a whole sentence per filter: the word for the kind must agree with the rest of it
+  const kind = FILTER_KIND[typeFilter]
+  if (kind) {
+    title = t(`emptyState.none${kind}`)
+    hint = t(`emptyState.hint${kind}`)
   }
 
   return (

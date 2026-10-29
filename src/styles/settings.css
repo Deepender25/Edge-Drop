@@ -1806,7 +1806,11 @@ html[data-motion='reduce'] .set-row-icon-btn.is-busy svg {
 .set-col {
   position: relative;
   flex: none;
-  width: 252px;
+  /* one width while the titles and choices fit it; a longer translation widens its column
+     (the track scrolls) rather than cutting them. Descriptions wrap to whatever width it is. */
+  width: max-content;
+  min-width: 252px;
+  max-width: 420px;
   min-height: 0;
   padding: 0 16px;
   box-sizing: border-box;
@@ -1855,6 +1859,7 @@ html[data-motion='reduce'] .set-row-icon-btn.is-busy svg {
   text-overflow: ellipsis;
 }
 .set-group.is-h .set-row-desc {
+  contain: inline-size;
   margin-top: 3px;
   font-size: calc(11.5px * var(--font-scale, 1));
   line-height: 1.4;

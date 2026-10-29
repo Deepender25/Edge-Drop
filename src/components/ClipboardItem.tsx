@@ -23,12 +23,13 @@ import { useStore } from '../store/appStore'
 import { useDragOut } from '../hooks/useDragOut'
 import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
-import { getFileKind } from '../lib/fileType'
+import { getFileKind, kindBadge } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
 import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { DashedOutline } from './DashedOutline'
 import { LinkPreviewCard } from './LinkPreviewCard'
 import { parseUrlPreview } from '../lib/urlPreview'
+import { localizeLinkInfo } from '../lib/linkLabels'
 import { CodeBlock } from './CodeBlock'
 import { StackHeader, StackItems, fileStackEntries, imageCollectionEntries, stackOpenWidth } from './StackItems'
 import { detectCode } from '../lib/codeDetect'
@@ -433,7 +434,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
                   {item.hitCount > 1 && (
                     <>
                       <span>·</span>
-                      <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                      <span className="meta-hit-count" title={t('count.copiedTimes', { count: item.hitCount })}>
                         ×{item.hitCount}
                       </span>
                     </>
@@ -984,7 +985,7 @@ function BundleFluidPreview({
                 )
               })}
             </div>
-            {more > 0 && <div className="bundle-more-label">{t('item.moreImages', { count: more })}</div>}
+            {more > 0 && <div className="bundle-more-label">{t('count.moreImages', { count: more })}</div>}
           </>
         }
         list={
@@ -1093,7 +1094,7 @@ function BundleFluidPreview({
               })}
             </div>
             {count > 1 ? (
-              <div className="bundle-more-label">{t('item.moreFiles', { count: count - 1 })}</div>
+              <div className="bundle-more-label">{t('count.moreFiles', { count: count - 1 })}</div>
             ) : (
               <div className="bundle-more-label">{t('item.singleFile')}</div>
             )}
@@ -1250,13 +1251,13 @@ function ImageFolderCard({
   let metaDetail = ''
 
   if (!isStack) {
-    badgeText = t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()
+    badgeText = t('badge.image')
     const sourceName = images[0].name
     if (sourceName && sourceName !== 'clipboard' && sourceName !== 'image') {
       metaDetail = sourceName
     }
   } else {
-    badgeText = `${count} ${t('filters.images').toLowerCase()}`
+    badgeText = t('count.images', { count })
     const firstNonGeneric = images.find((img) => img.name && img.name !== 'clipboard' && !img.name.startsWith('image-'))?.name
     if (firstNonGeneric) {
       metaDetail = firstNonGeneric
@@ -1316,7 +1317,7 @@ function ImageFolderCard({
           <div className="image-folder-expanded-content">
             <StackHeader
               item={item}
-              title={`${count} ${t('filters.images').toLowerCase()}`}
+              title={t('count.images', { count })}
               isHorizontal={isHorizontal}
               onCollapse={onCollapse}
               onCopy={onCopy}
@@ -1363,7 +1364,7 @@ function ImageFolderCard({
                   </span>
                 )}
                 {item.hitCount > 1 && (
-                  <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                  <span className="meta-hit-count" title={t('count.copiedTimes', { count: item.hitCount })}>
                     {(item.note || metaDetail) ? ' · ×' : '×'}{item.hitCount}
                   </span>
                 )}
@@ -1458,7 +1459,7 @@ function FileFolderCard({
   const rawName = formatImageDisplayName(entry?.name ?? first, item.capturedAt) || basename(first)
   const info = getFileKind(first, entry?.isDirectory)
 
-  const label = isStack ? `${count} ${t('filters.files').toLowerCase()}` : info.label.toLowerCase()
+  const label = isStack ? t('count.files', { count }) : kindBadge(info.kind)
   const badgeColor = isStack ? undefined : info.color
 
   return (
@@ -1532,7 +1533,7 @@ function FileFolderCard({
           <div className="image-folder-expanded-content">
             <StackHeader
               item={item}
-              title={`${count} ${t('filters.files').toLowerCase()}`}
+              title={t('count.files', { count })}
               isHorizontal={isHorizontal}
               onCollapse={onCollapse}
               onCopy={onCopy}
@@ -1579,7 +1580,7 @@ function FileFolderCard({
                   </span>
                 )}
                 {item.hitCount > 1 && (
-                  <span className="meta-hit-count" title={t('item.copiedTimes', { count: item.hitCount })}>
+                  <span className="meta-hit-count" title={t('count.copiedTimes', { count: item.hitCount })}>
                     · ×{item.hitCount}
                   </span>
                 )}
@@ -1713,20 +1714,20 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
   switch (item.data.kind) {
     case 'text':
       if (item.data.isUrl)
-        return <span className="kind-badge url">{t('filters.links').toLowerCase()}</span>
+        return <span className="kind-badge url">{t('badge.links')}</span>
       if (item.data.isColor || parseColor(item.data.text))
-        return <span className="kind-badge color">color</span>
-      return <span className="kind-badge">{t('filters.text').toLowerCase()}</span>
+        return <span className="kind-badge color">{t('badge.color')}</span>
+      return <span className="kind-badge">{t('badge.text')}</span>
     case 'image':
       return (
         <span className="kind-badge">
-          {t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}
+          {t('badge.image')}
         </span>
       )
     case 'image-collection':
       return (
         <span className="kind-badge">
-          {item.data.images.length} {t('filters.images').toLowerCase()}
+          {t('count.images', { count: item.data.images.length })}
         </span>
       )
     case 'files': {
@@ -1738,11 +1739,11 @@ function KindBadge({ item }: { item: ClipboardItemDto }) {
       if (isImage) {
         return (
           <span className="kind-badge">
-            {t('filters.images').toLowerCase().slice(0, -1) || t('filters.images').toLowerCase()}
+            {t('badge.image')}
           </span>
         )
       }
-      const label = count > 1 ? `${count} ${t('filters.files').toLowerCase()}` : info.label.toLowerCase()
+      const label = count > 1 ? t('count.files', { count }) : kindBadge(info.kind)
       return (
         <span className="kind-badge" style={{ color: count > 1 ? undefined : info.color }}>
           {label}
@@ -1757,7 +1758,7 @@ function ItemDetails({ item }: { item: ClipboardItemDto }) {
     case 'text': {
       if (item.data.isUrl) {
         // same readable host as the card (cached parse, international names decoded)
-        const domain = parseUrlPreview(item.data.text).domain
+        const domain = localizeLinkInfo(parseUrlPreview(item.data.text)).domain
         if (domain) {
           return <span className="meta-detail">· {domain}</span>
         }

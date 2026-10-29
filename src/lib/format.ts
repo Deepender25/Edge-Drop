@@ -12,11 +12,24 @@ export function previewText(text: string, max = 160): string {
   return single.slice(0, max - 1) + '…'
 }
 
-/** Human-readable byte size. */
+const sizeFormats = new Map<string, Intl.NumberFormat>()
+
+/** One decimal, in the language's own number style ("402.3", "402,3"). */
+function sizeNumber(lang: string, n: number): string {
+  let f = sizeFormats.get(lang)
+  if (!f) {
+    f = new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+    sizeFormats.set(lang, f)
+  }
+  return f.format(n)
+}
+
+/** Human-readable byte size, with the unit the language's File Explorer uses ("402.3 KB", "402,3 Ko"). */
 export function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes < 1024) return t('units.bytes', { n: bytes })
+  const lang = getResolvedLanguage()
+  if (bytes < 1024 * 1024) return t('units.kb', { n: sizeNumber(lang, bytes / 1024) })
+  return t('units.mb', { n: sizeNumber(lang, bytes / (1024 * 1024)) })
 }
 
 // Every card shows a relative time, so the list formats hundreds at once.
@@ -107,9 +120,10 @@ export function formatImageDisplayName(
     const label = source === 'image' ? t('item.imageItem') : t('item.screenshot')
     if (capturedAt) {
       const d = new Date(capturedAt)
-      const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-      const timeStr = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-      return `${label} ${dateStr}, ${timeStr}`
+      const lang = getResolvedLanguage()
+      const date = d.toLocaleDateString(lang, { month: 'short', day: 'numeric' })
+      const time = d.toLocaleTimeString(lang, { hour: 'numeric', minute: '2-digit' })
+      return t('item.imageNameAt', { label, date, time })
     }
     return label
   }

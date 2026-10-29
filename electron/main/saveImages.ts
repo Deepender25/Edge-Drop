@@ -16,12 +16,14 @@ export interface SaveImagesDeps {
   resolveSource: (imageId: string, ext?: string) => string | null
   /** Default name when the item has no note (same names drag-out uses). */
   defaultName: (capturedAt: number, ext: string, img: ClipboardImageFields, index: number) => string
+  /** Name when a note leaves nothing usable (the word for "Image" in the user's language). */
+  fallbackName?: string
 }
 
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
 
 /** A note as a Windows-safe file name base (no extension). */
-export function fileBaseFromNote(note: string): string {
+export function fileBaseFromNote(note: string, fallback = 'Image'): string {
   let base = note
     .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
     .replace(/\s+/g, ' ')
@@ -30,7 +32,7 @@ export function fileBaseFromNote(note: string): string {
     .replace(/^\.+/, '')
   if (Array.from(base).length > 120) base = Array.from(base).slice(0, 120).join('').trim()
   if (RESERVED.test(base)) base = `${base}_`
-  return base || 'Image'
+  return base || fallback
 }
 
 /** `dir/base.ext`, or `dir/base (2).ext`, `(3)`... when that name is taken. */
@@ -54,7 +56,7 @@ export function saveItemImages(item: ClipboardItem, deps: SaveImagesDeps): strin
   if (images.length === 0) return []
   mkdirSync(deps.destDir, { recursive: true })
 
-  const noteBase = item.note ? fileBaseFromNote(item.note) : null
+  const noteBase = item.note ? fileBaseFromNote(item.note, deps.fallbackName) : null
   const saved: string[] = []
   images.forEach((img, i) => {
     const src = deps.resolveSource(img.imageId, img.ext)

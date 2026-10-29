@@ -19,6 +19,21 @@ import { useStore } from '../store/appStore'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { useTranslation } from '../i18n'
 import { EmojiCategoryBar } from './EmojiCategoryBar'
+
+const TONE_NAMES: Record<string, string> = {
+  '1F3FB': 'emoji.toneLight',
+  '1F3FC': 'emoji.toneMediumLight',
+  '1F3FD': 'emoji.toneMedium',
+  '1F3FE': 'emoji.toneMediumDark',
+  '1F3FF': 'emoji.toneDark'
+}
+
+/** A skin-tone choice's name for screen readers (two names for a pair of people with two tones). */
+function toneLabel(unified: string, t: (key: string) => string): string {
+  const tones = unified.split('-').filter((cp) => TONE_NAMES[cp.toUpperCase()])
+  if (!tones.length) return t('emoji.toneDefault')
+  return [...new Set(tones.map((cp) => t(TONE_NAMES[cp.toUpperCase()])))].join(', ')
+}
 import { TrashIcon } from './icons'
 
 const COLS = 7
@@ -385,7 +400,7 @@ export function EmojiPicker({
               type="button"
               tabIndex={-1}
               className="emoji-tone-choice"
-              aria-label={choice.unified}
+              aria-label={toneLabel(choice.unified, t)}
               onClick={(e) => {
                 e.currentTarget.blur()
                 onPaste(choice.unified)
