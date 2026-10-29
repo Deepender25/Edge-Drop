@@ -43,6 +43,12 @@
   transition: none !important;
   zoom: 1 !important;
 }
+/* ...except the last step's pull-back for its choice (CHOICE_VIEW in tour.ts), which makes room for the
+   options: there at once. */
+[data-motion='reduce'] .ob-choosing .ob-lens {
+  transform: var(--ob-choice-move) !important;
+  zoom: var(--ob-choice-zoom) !important;
+}
 .ob-sky {
   position: absolute;
   left: 0;
@@ -99,6 +105,40 @@
 /* the open shelf: the dock's width (Panel: the window's width less 60px) */
 .ob-shelf.is-open::after {
   width: calc(100% - 60px);
+}
+/* The last step: the shelf laid out as a 1920 x 1080 monitor at 100% and drawn on the laptop's screen
+   (realScreenTransform), so on every edge it is the size it really is on such a screen. Panel sizes a few
+   things from the window, which here is not that monitor: the top blade's width (100vw), a side blade's
+   height (panelHeight in vh) and its middle (from the window's height); they get the monitor's here
+   (realSidePanel, --ob-real-*). The screen's edges land on whole pixels: no backing strips. */
+.ob-shelf.is-real {
+  right: auto;
+  bottom: auto;
+  width: 1920px;
+  height: 1080px;
+}
+.ob-shelf.is-real::before,
+.ob-shelf.is-real::after {
+  display: none;
+}
+.ob-shelf.is-real .blade-container.blade-top .blade {
+  width: 1080px !important;
+}
+.ob-shelf.is-real .blade-container:not(.blade-top) {
+  top: var(--ob-real-mid) !important;
+}
+.ob-shelf.is-real .blade-container:not(.blade-top) .blade {
+  height: var(--ob-real-h) !important;
+}
+/* A side edge's reverse curves sit just above and below the blade, edge to edge with it (the top edge's
+   overlap it): drawn this small, that edge falls between pixels and the wallpaper showed through as a
+   line between the curve and the body. Tucked 3px behind the blade (they are under it), the blade's
+   edge lies over their black. */
+.ob-shelf.is-real .blade-container .flare-top {
+  top: -27px;
+}
+.ob-shelf.is-real .blade-container .flare-bottom {
+  bottom: -27px;
 }
 /* The cards' pictures (file icons, the folders and photos of a stack, the grain) are each kept on a
    pre-drawn layer in the app, sharp there because the shelf is shown 1:1 (item.css). Here the shelf is
@@ -184,12 +224,14 @@
 /* Welcome and settings: dim only below the laptop, so its screen stays the lit object. */
 .ob-below {
   position: absolute;
-  left: 0;
-  right: 0;
+  /* past the window's sides and bottom: the last step's camera pulls back (lens.ts), and it must still
+     reach the window's edges */
+  left: -200px;
+  right: -200px;
   top: 420px;
-  bottom: 0;
+  bottom: -200px;
   pointer-events: none;
-  background: linear-gradient(rgba(4, 8, 40, 0), rgba(4, 8, 40, 0.5) 40%, rgba(4, 8, 40, 0.62));
+  background: linear-gradient(rgba(4, 8, 40, 0), rgba(4, 8, 40, 0.5) 88px, rgba(4, 8, 40, 0.62) 220px);
   transition: opacity 0.5s ease;
 }
 .ob-below.is-off {
@@ -238,37 +280,18 @@
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-.ob-cam.is-close.is-top {
-  transform-origin: 400px 10px;
-  transform: scale(1.04);
-}
-/* Each framing keeps the whole laptop (its taskbar and base) above the step's text, which starts at
-   about y = 473: the base ends at y = 460 or less. */
-.ob-cam.is-close.is-left {
-  transform-origin: 40px 345px;
-  transform: scale(1.3);
-}
-.ob-cam.is-close.is-right {
-  transform-origin: 760px 345px;
-  transform: scale(1.3);
-}
-.ob-cam.is-close {
-  animation: ob-drift 8s cubic-bezier(0.25, 0.6, 0.3, 1) 0.9s both;
-}
-@keyframes ob-drift {
-  from {
-    translate: 0 0;
-  }
-  to {
-    translate: 0 6px;
-  }
-}
+/* The screen's taskbar runs 4px past the screen's sides and bottom, under the bezel (painted above it,
+   .ob-laptop), so its edges never meet the bezel's edge to edge: wherever that edge fell between pixels
+   (the last step's pulled-back camera, a display scale like 125%) the wallpaper showed through the
+   see-through bar as a line. What shows is the same 704 x 22 bar: its contents keep their places
+   (the extra bottom 4px is padding; the tray sits 4px further in). */
 .ob-taskbar {
   position: absolute;
-  left: 48px;
+  left: 44px;
   top: 386px;
-  width: 704px;
-  height: 22px;
+  width: 712px;
+  height: 26px;
+  padding-bottom: 4px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -308,9 +331,9 @@
 }
 .ob-task-tray {
   position: absolute;
-  right: 8px;
+  right: 12px;
   top: 0;
-  bottom: 0;
+  bottom: 4px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -330,9 +353,11 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  isolation: isolate;
 }
 .ob-bezel {
   position: absolute;
+  z-index: 1;
   left: 40px;
   top: 10px;
   width: 720px;
@@ -446,6 +471,14 @@
   opacity: 0;
   background: url('../assets/onboarding/summit.png') center / cover;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transform: scale(0.8);
+  transition: opacity 0.3s cubic-bezier(0.3, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.3, 0.8, 0.2, 1);
+}
+/* The card's picture, dropped into the document (tour.ts demoDrag): a class, so a step change leaves it to
+   fade out with its window. */
+.ob-notes-image.is-in {
+  opacity: 1;
+  transform: none;
 }
 /* The browser (copy demo) and File Explorer (drag-in demo): the same dark Windows 11 windows as the notes app. */
 .ob-win {
@@ -508,8 +541,12 @@
   font-size: 10.5px;
 }
 .ob-url {
-  position: relative;
   white-space: nowrap;
+}
+.ob-site {
+  flex: none;
+  margin-right: 8px;
+  color: #c9cbd2;
 }
 /* A text selection: Windows' selection blue behind the text, grown from the left as the pointer drags. */
 .ob-hl {
@@ -521,7 +558,6 @@
   transform: scaleX(0);
   transform-origin: 0 50%;
 }
-.ob-url,
 .ob-line {
   isolation: isolate;
 }
@@ -728,13 +764,32 @@
 .ob-ghost svg {
   display: block;
 }
-/* A file dragged out of File Explorer: its icon, see-through, and "+ Copy" once over a drop target. */
+/* Files dragged out of File Explorer: their icons, see-through (several: a pile, each a step up and to the
+   right behind the first, with their count), and "+ Copy" once over a drop target. */
 .ob-file-ghost img {
-  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 40px;
   height: 40px;
+  translate: calc(var(--i, 0) * 5px) calc(var(--i, 0) * -5px);
   opacity: 0.78;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 30, 0.35));
+}
+.ob-file-ghost b {
+  position: absolute;
+  left: 30px;
+  top: -9px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: #0067c0;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+  color: #fff;
+  font: 600 10px/17px var(--font-ui);
+  text-align: center;
 }
 .ob-file-ghost span {
   position: absolute;
@@ -752,6 +807,46 @@
 }
 .ob-file-ghost.is-copy span {
   opacity: 1;
+}
+/* A link dragged out of the browser's address bar: the page's icon, title and address. */
+.ob-link-ghost {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px 6px 7px;
+  border-radius: 7px;
+  white-space: nowrap;
+  background: rgba(43, 45, 51, 0.88);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 6px 16px rgba(0, 0, 30, 0.35);
+}
+.ob-link-ghost i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eceef2;
+  color: #222;
+  font: 700 9px Georgia, serif;
+  font-style: normal;
+}
+.ob-link-ghost div {
+  display: flex;
+  flex-direction: column;
+  line-height: 12px;
+}
+.ob-link-ghost strong {
+  font-size: 10px;
+  font-weight: 600;
+  color: #ececef;
+}
+.ob-link-ghost em {
+  font-size: 9px;
+  font-style: normal;
+  color: #a4a7b0;
 }
 
 /* ---------- text ---------- */
@@ -849,6 +944,19 @@
     filter: blur(6px);
   }
 }
+.ob-text {
+  display: grid;
+  justify-items: center;
+}
+.ob-text > div {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ob-text > .is-ghost {
+  visibility: hidden;
+}
 .ob-copy h1 {
   margin: 10px 0 0;
   font-size: 23px;
@@ -896,7 +1004,7 @@
   color: #fff;
 }
 .ob-controls {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -912,25 +1020,115 @@
   min-width: 0;
   padding: 0 24px;
 }
-.ob-seg {
+/* The last step's choice opens out under the text once the shelf has shown every edge (a row that grows
+   from nothing, so the text above glides up as the camera pulls back to make room). */
+.ob-choose {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 0.9s cubic-bezier(0.5, 0, 0.25, 1), opacity 0.25s ease, visibility 0s linear 0.9s;
+}
+.ob-choose.is-up {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition: grid-template-rows 0.9s cubic-bezier(0.5, 0, 0.25, 1), opacity 0.5s ease 0.4s, visibility 0s;
+}
+.ob-choose > div {
+  min-height: 0;
+  /* clipped while it grows; the padding keeps the focus rings and the picked outline inside */
+  overflow: hidden;
+  padding: 0 6px 4px;
+}
+.ob-edges {
   display: flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
+  /* the edges in the order they are on the screen, in every language (right-to-left ones too) */
+  direction: ltr;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 3px;
 }
-.ob-seg button {
+/* An edge: a small screen in the wallpaper's blue with the bar on that edge, and its name. */
+.ob-edge {
+  width: 104px;
+  padding: 11px 0 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   border: 0;
-  background: transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
   color: #d6dcf0;
-  font: 600 11.5px var(--font-ui);
-  padding: 5px 12px;
-  border-radius: 999px;
+  font: 600 12px var(--font-ui);
   cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s, transform 0.1s;
 }
-.ob-seg button[aria-pressed='true'] {
-  background: #fff;
-  color: #000;
+.ob-edge:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.ob-edge:active {
+  transform: scale(0.97);
+}
+.ob-edge:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+.ob-edge[aria-checked='true'] {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 0 2px #fff;
+  color: #fff;
+}
+.ob-edge-screen {
+  position: relative;
+  width: 64px;
+  height: 40px;
+  border-radius: 4px;
+  background: linear-gradient(160deg, #4a6cff, #1f3bd6);
+  box-shadow: 0 0 0 2px #07080b;
+  overflow: hidden;
+}
+.ob-edge-screen i {
+  position: absolute;
+  background: #000;
+  transition: transform 0.25s ease;
+}
+.ob-edge-screen.is-left i,
+.ob-edge-screen.is-right i {
+  top: 10px;
+  width: 3px;
+  height: 20px;
+}
+.ob-edge-screen.is-left i {
+  left: 0;
+  border-radius: 0 3px 3px 0;
+}
+.ob-edge-screen.is-right i {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+.ob-edge-screen.is-top i {
+  top: 0;
+  left: 20px;
+  width: 24px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+}
+/* the picked edge's bar stands out a little more */
+.ob-edge[aria-checked='true'] .ob-edge-screen.is-left i {
+  transform: scaleX(1.5);
+  transform-origin: 0 50%;
+}
+.ob-edge[aria-checked='true'] .ob-edge-screen.is-right i {
+  transform: scaleX(1.5);
+  transform-origin: 100% 50%;
+}
+.ob-edge[aria-checked='true'] .ob-edge-screen.is-top i {
+  transform: scaleY(1.5);
+  transform-origin: 50% 0;
 }
 .ob-toggle {
   display: flex;

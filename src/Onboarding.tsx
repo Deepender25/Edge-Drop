@@ -6,7 +6,8 @@
  * across the whole window with a laptop frame laid over it; "Take the tour"
  * flies the frame out past the window edges, and each step then plays the
  * real shelf (Panel, cards, stacks, edge light, preview) on example items.
- * The last step brings the frame back for the few settings that matter.
+ * The last step brings the frame back: the real shelf plays on each edge of
+ * the laptop, then the user picks theirs (and the few settings that matter).
  *
  * The example items live only in this window's store. The user's history is
  * never loaded here, and the shelf is inert (no clicks reach it), so nothing
@@ -21,9 +22,9 @@ import { applyReduceMotion } from './lib/theme'
 import { useTranslation } from './i18n'
 import { DEFAULT_SETTINGS, type Settings, type StickPosition } from '../shared/types'
 import { PEN_PATH, PEN_TRANSFORM, PEN_WIDTH, GLASS_BOX, SHADOW_BOX, BLUR_BOX, penProgress } from './onboarding/lettering'
-import { DEMOS, PREVIEW_PAN, Run, STOP, itemsFor, playLooped, resetDemoState, watchActivity, type Stage } from './onboarding/tour'
-import { laptopBar, tourBar, shelfTransform, topBarLength, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
-import { PAGE_LINES, STACK_FILES } from './onboarding/demoItems'
+import { CHOICE_VIEW, DEMOS, PREVIEW_PAN, Run, STOP, demoEdges, itemsFor, playLooped, resetDemoState, showEdge, watchActivity, type Stage } from './onboarding/tour'
+import { realScreenTransform, realSidePanel, tourBar, shelfTransform, topBarLength, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
+import { otherFiles, pageLines, pageTitle, stackFiles } from './onboarding/demoItems'
 import { Autoplay, readingMs } from './onboarding/autoplay'
 import { fileIconUrl, fileKindOf } from './lib/fileKind'
 import skyUrl from './assets/onboarding/sky.png'
@@ -48,8 +49,12 @@ const TOUCH_MS = 450
 const WRITE_MS = 3200
 const HOLD_MS = 600
 
-/** File Explorer in the drag-in demo: the PDF it drags in, and the files the stack demos copy later. */
-const FOLDER: Array<[string, number]> = [['Itinerary.pdf', 412_000], ...STACK_FILES]
+/** The demo taskbar's clock: a fixed moment, written the way the language writes it (24-hour, as it fits). */
+const taskbarClock = (lang: string): [string, string] => {
+  if (lang === 'en') return ['12:01', '27-10-2026']
+  const at = new Date(2026, 9, 27, 12, 1)
+  return [at.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }), at.toLocaleDateString(lang)]
+}
 
 /** A Windows 11 window's caption buttons: minimize, maximize, close. */
 const Caption = () => (
@@ -61,18 +66,15 @@ const Caption = () => (
 )
 
 export function Onboarding() {
-  const { t } = useTranslation()
+  const { t, resolvedLang } = useTranslation()
   const steps: Step[] = [
     { key: 'welcome', view: 'frame', open: false, title: t('onboarding.welcomeTitle'), body: t('onboarding.welcomeDesc') },
     { key: 'collect', view: 'full', open: false, title: t('onboarding.collectTitle'), body: t('onboarding.collectDesc') },
     { key: 'dropin', view: 'full', open: false, title: t('onboarding.dropInTitle'), body: t('onboarding.dropInDesc') },
-    { key: 'stacks', view: 'full', open: true, title: t('onboarding.stacksTitle'), body: t('onboarding.stacksDesc') },
     { key: 'drag', view: 'full', open: true, title: t('onboarding.dragTitle'), body: t('onboarding.dragDesc') },
-    { key: 'ungroup', view: 'full', open: true, title: t('onboarding.ungroupTitle'), body: t('onboarding.ungroupDesc') },
-    { key: 'merge', view: 'full', open: true, title: t('onboarding.mergeTitle'), body: t('onboarding.mergeDesc') },
+    { key: 'stacks', view: 'full', open: true, title: t('onboarding.stacksTitle'), body: t('onboarding.stacksDesc') },
     { key: 'preview', view: 'full', open: true, title: t('onboarding.previewTitle'), body: t('onboarding.previewDesc') },
-    { key: 'note', view: 'full', open: true, title: t('onboarding.noteTitle'), body: t('onboarding.noteDesc') },
-    { key: 'search', view: 'full', open: true, title: t('onboarding.searchTitle'), body: t('onboarding.searchDesc') },
+    { key: 'find', view: 'full', open: true, title: t('onboarding.findTitle'), body: t('onboarding.findDesc') },
     { key: 'settings', view: 'frame', open: false, title: t('onboarding.configTitle'), body: t('onboarding.configDesc') }
   ]
   const last = steps.length - 1
@@ -86,10 +88,8 @@ export function Onboarding() {
   const [shelf, setShelf] = useState(false)
   /** The drawn edge bar on the laptop's top edge; hidden while the real shelf's bar is in its place. */
   const [barShown, setBarShown] = useState(true)
-  /** Settings frame: the bar moves to the user's real edge once the frame is back in place. */
-  const [realEdge, setRealEdge] = useState(false)
-  /** Settings frame: the camera moves in on the screen, as on the user's own desktop. */
-  const [closeUp, setCloseUp] = useState(false)
+  /** The last step: the shelf has shown every edge, and the choice is up. */
+  const [asking, setAsking] = useState(false)
   const [real, setReal] = useState<Settings | null>(null)
   /** Autoplay: on unless the user asked for reduced motion; the button by the progress dots toggles it. */
   const [playing, setPlaying] = useState(true)
@@ -107,6 +107,10 @@ export function Onboarding() {
   const lettersRef = useRef<HTMLDivElement>(null)
   const shadowRef = useRef<SVGImageElement>(null)
   const runRef = useRef<Run | null>(null)
+  /** The last step: the shelf showing the edge just picked. */
+  const pickRunRef = useRef<Run | null>(null)
+  /** The user's settings, for the demos (which outlive a render). */
+  const realRef = useRef<Settings | null>(null)
   const timers = useRef<number[]>([])
 
   const later = (ms: number, fn: () => void) => timers.current.push(window.setTimeout(fn, ms))
@@ -130,7 +134,9 @@ export function Onboarding() {
     document.addEventListener('visibilitychange', vis)
     return () => {
       document.removeEventListener('visibilitychange', vis)
-      autoplay.current!.stop()
+      // held, not torn down: in development React runs this and then the effect again on the same
+      // elements (the step's fill is attached once, by its ref), and autoplay must carry on from there
+      autoplay.current!.setHidden(true)
     }
   }, [])
 
@@ -153,6 +159,14 @@ export function Onboarding() {
   /** Plays step i's demo after `delay` ms, again and again while the step is up. */
   const play = (run: Run, i: number, delay: number) => {
     const s = steps[i]
+    if (s.key === 'settings') {
+      // once: every edge, then the choice stays up
+      run.sleep(delay)
+        .then(() => demoEdges(run, stage(), realRef.current?.stickPosition ?? 'left'))
+        .then(() => { if (!run.dead) setAsking(true) })
+        .catch((e) => { if (e !== STOP) console.error(e) })
+      return
+    }
     const demo = DEMOS[s.key]
     if (!demo) return
     run.sleep(delay)
@@ -170,6 +184,8 @@ export function Onboarding() {
     document.body.style.setProperty('--ob-shelf-scale', String(SHELF_SCALE))
     document.body.style.setProperty('--ob-shelf-top', `${TOUR_SCREEN_TOP}px`)
     document.body.style.setProperty('--ob-preview-pan', `${-PREVIEW_PAN}px`)
+    document.body.style.setProperty('--ob-choice-zoom', String(CHOICE_VIEW.k))
+    document.body.style.setProperty('--ob-choice-move', `translate(${CHOICE_VIEW.x / CHOICE_VIEW.k}px, ${CHOICE_VIEW.y / CHOICE_VIEW.k}px)`)
     void edge.loadState().then(async ({ settings }) => {
       if (cancelled) return
       setReal(settings)
@@ -203,6 +219,8 @@ export function Onboarding() {
       document.body.style.removeProperty('--ob-shelf-top')
       document.body.style.removeProperty('--ob-preview-pan')
       document.body.style.removeProperty('--ob-menu-scale')
+      document.body.style.removeProperty('--ob-choice-zoom')
+      document.body.style.removeProperty('--ob-choice-move')
       runRef.current?.cancel()
       timers.current.forEach(clearTimeout)
     }
@@ -253,18 +271,32 @@ export function Onboarding() {
     const s = steps[i]
     const prev = steps[at]
     runRef.current?.cancel()
+    pickRunRef.current?.cancel()
     resetDemoState(stage(), s.key)
     const run = new Run()
     runRef.current = run
     setAt(i)
-    setRealEdge(false)
-    setCloseUp(false)
+    setAsking(false)
     const flying = prev.view !== s.view
 
     if (s.view === 'full' && prev.view === 'frame') {
       // Into the screen: the camera pushes in on the laptop's top edge with the
       // bar attached to it (the wallpaper stays still); once there, the real
       // shelf's closed bar is exactly where the drawn one is and takes over.
+      // (Back from the last step: the shelf, laid out on the monitor there, gives
+      // way to the drawn bar first and is docked at the top again out of sight.)
+      if (prev.key === 'settings') {
+        setShelf(false)
+        setBarShown(true)
+        useStore.setState({
+          settings: {
+            ...useStore.getState().settings,
+            stickPosition: 'top',
+            hotZoneHeight: DEFAULT_SETTINGS.hotZoneHeight,
+            hotZoneWidth: realRef.current?.hotZoneWidth ?? DEFAULT_SETTINGS.hotZoneWidth
+          }
+        })
+      }
       setCam('tour')
       useStore.setState({ items: itemsFor(s.key), open: false })
       later(900, () => { setShelf(true); setBarShown(false) })
@@ -277,8 +309,10 @@ export function Onboarding() {
         setBarShown(true)
         setShelf(false)
         setCam('frame')
+        // out of sight now: a search empties (resetDemoState leaves it while the shelf folds), and the
+        // cards the last step's shelf shows (the welcome's demo sets its own)
+        if (!run.dead) useStore.setState({ query: '', items: itemsFor(s.key) })
       })
-      if (s.key === 'settings') later(1250, () => { if (!run.dead) { setCloseUp(true); setRealEdge(true) } })
     } else if (s.view === 'full') {
       useStore.setState({ items: itemsFor(s.key), open: s.open })
     }
@@ -312,15 +346,27 @@ export function Onboarding() {
     setReal(saved)
   }
 
+  /** The user's edge: saved, and the shelf on the laptop goes there and opens once to show it. */
+  const choose = (pos: StickPosition) => {
+    void pick({ stickPosition: pos })
+    pickRunRef.current?.cancel()
+    const run = new Run()
+    pickRunRef.current = run
+    showEdge(run, stage(), pos).catch((e) => { if (e !== STOP) console.error(e) })
+  }
+
   const s = steps[at]
   const barPos: StickPosition = real?.stickPosition ?? 'left'
   const locked = intro !== 'done'
-  // The tour's shelf is docked at the top; the settings frame shows the user's real choice.
+  // The tour's shelf: docked at the top, except on the last step, where it plays every edge of the laptop.
   const demo = useStore((st) => st.settings)
   const shelfOpen = useStore((st) => st.open)
-  const showReal = at === last && realEdge && !!real
-  const edgeNow: StickPosition = showReal ? barPos : 'top'
-  const barStyle = showReal && real ? laptopBar(edgeNow, real) : tourBar(demo)
+  const dock: StickPosition = demo.stickPosition ?? 'top'
+  // The last step lays the shelf out on a real monitor drawn on the laptop (edgeBar REAL_SCREEN).
+  const onMonitor = at === last && cam === 'frame'
+  const side = realSidePanel(demo.panelHeight || 0.6, demo.verticalOffset ?? 0.5)
+  const barStyle = tourBar(demo)
+  realRef.current = real
   const primary = (
     <button type="button" className="ob-primary" onClick={next}>
       {at === last ? t('onboarding.getStarted') : t('onboarding.next')}
@@ -328,7 +374,7 @@ export function Onboarding() {
   )
 
   return (
-    <div className={`ob${intro === 'writing' ? '' : ' ob-focus'}${intro === 'done' ? ' ob-done' : ''}`}>
+    <div className={`ob${intro === 'writing' ? '' : ' ob-focus'}${intro === 'done' ? ' ob-done' : ''}${asking ? ' ob-choosing' : ''}`}>
       <div className="ob-stage" ref={stageRef}>
         <div className="ob-scene">
           {/* The cloud wallpaper: one pixel per 2px dither cell, drawn crisp (it never moves, not even with the camera). */}
@@ -337,45 +383,52 @@ export function Onboarding() {
           {/* The camera: the laptop, what is on its screen and the pointer, pushed in on the action (lens.ts). */}
           <div className="ob-lens" ref={lensRef}>
 
-            {/* A web page, for the copy demo: a sentence, the address and the photo get copied. */}
+            {/* A web page, for the copy demo: a sentence and the photo get copied. */}
             <div className="ob-win ob-browser" ref={browserRef}>
               <div className="ob-win-bar">
-                <span className="ob-tab"><i>W</i>Sea of clouds - Wikipedia</span>
+                <span className="ob-tab"><i>W</i>{pageTitle()} - Wikipedia</span>
                 <Caption />
               </div>
               <div className="ob-address">
-                <span className="ob-url"><i className="ob-hl" />en.wikipedia.org/wiki/Sea_of_clouds</span>
+                {/* the site's icon: links are dragged out of the address bar by it */}
+                <svg className="ob-site" width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
+                  <path d="M1.5 3.5h5M8.5 3.5h1M1.5 7.5h1M4.5 7.5h5" />
+                  <circle cx="7.5" cy="3.5" r="1.2" />
+                  <circle cx="3.5" cy="7.5" r="1.2" />
+                </svg>
+                <span className="ob-url">en.wikipedia.org/wiki/Sea_of_clouds</span>
               </div>
               <div className="ob-page">
                 <div className="ob-article">
-                  <b>Sea of clouds</b>
-                  {PAGE_LINES.map((line) => <span key={line} className="ob-line"><i className="ob-hl" />{line}</span>)}
-                  <span className="ob-rest">It is most often seen on cold, clear mornings.</span>
+                  <b>{pageTitle()}</b>
+                  {pageLines().map((line, i) => <span key={i} className="ob-line"><i className="ob-hl" />{line}</span>)}
+                  <span className="ob-rest">{t('tour.pageMore')}</span>
                 </div>
                 <div className="ob-photo" />
               </div>
               <div className="ob-menu">
-                <span>Open image in new tab</span>
-                <span>Save image as…</span>
-                <span className="is-copy">Copy image</span>
-                <span>Copy image link</span>
+                <span>{t('tour.menuOpenTab')}</span>
+                <span>{t('tour.menuSaveImage')}</span>
+                <span className="is-copy">{t('tour.menuCopyImage')}</span>
+                <span>{t('tour.menuCopyLink')}</span>
               </div>
             </div>
 
             {/* File Explorer, for the drag-in demo. */}
             <div className="ob-win ob-explorer" ref={explorerRef}>
               <div className="ob-win-bar">
-                <span className="ob-notes-title"><i className="ob-folder" />Documents</span>
+                <span className="ob-notes-title"><i className="ob-folder" />{t('tour.folder')}</span>
                 <Caption />
               </div>
               <div className="ob-files">
-                <div className="ob-files-head"><span>Name</span><span>Size</span></div>
+                <div className="ob-files-head"><span>{t('tour.colName')}</span><span>{t('tour.colSize')}</span></div>
                 <i className="ob-band" />
-                {FOLDER.map(([name, size]) => (
-                  <div key={name} className={`ob-file${name.endsWith('.pdf') ? ' is-pdf' : ''}`}>
+                {/* the rest of the folder, then the three files it selects and drags in */}
+                {[...otherFiles(), ...stackFiles()].map(([name, size], i) => (
+                  <div key={i} className={`ob-file${i >= 3 ? ' is-pick' : ''}`}>
                     <img src={fileIconUrl(fileKindOf(name))} alt="" />
                     <span>{name}</span>
-                    <em>{Math.round(size / 1024).toLocaleString('en-US')} KB</em>
+                    <em>{t('units.kb', { n: Math.round(size / 1024).toLocaleString(resolvedLang) })}</em>
                   </div>
                 ))}
               </div>
@@ -384,13 +437,13 @@ export function Onboarding() {
             {/* Another app, for the drag demo. */}
             <div className="ob-notes" ref={notesRef}>
               <div className="ob-notes-bar">
-                <span className="ob-notes-title"><i />Trip plan</span>
+                <span className="ob-notes-title"><i />{t('tour.notesApp')}</span>
                 <Caption />
               </div>
               <div className="ob-notes-body">
-                <b>Weekend at the summit</b>
-                <p>Sat · Trailhead 6:30, top by noon</p>
-                <p>Sun · Ridge walk above the clouds</p>
+                <b>{t('tour.notesHeading')}</b>
+                <p>{t('tour.notesLine1')}</p>
+                <p>{t('tour.notesLine2')}</p>
                 <div className="ob-notes-image" ref={notesImageRef} />
               </div>
             </div>
@@ -398,8 +451,15 @@ export function Onboarding() {
             {/* The real shelf, inert: the tour drives it. */}
             {ready && (
               <div
-                className={`ob-shelf${shelf ? '' : ' is-hidden'}${shelfOpen ? ' is-open' : ''}`}
-                style={{ transform: shelfTransform(cam), '--ob-bar-w': `${topBarLength(demo.hotZoneHeight)}px` } as React.CSSProperties}
+                className={`ob-shelf${shelf ? '' : ' is-hidden'}${shelfOpen ? ' is-open' : ''}${onMonitor ? ' is-real' : ''}`}
+                style={{
+                  transform: onMonitor ? realScreenTransform(dock) : shelfTransform(cam),
+                  // the last step moves it between edges while it is out of sight: at once, not gliding
+                  transition: onMonitor ? 'none' : undefined,
+                  '--ob-bar-w': `${topBarLength(demo.hotZoneHeight)}px`,
+                  '--ob-real-h': `${side.height}px`,
+                  '--ob-real-mid': `${side.middle}px`
+                } as React.CSSProperties}
                 aria-hidden
               >
                 <Panel />
@@ -409,9 +469,9 @@ export function Onboarding() {
             {/* The welcome and settings frames dim only below the laptop, so its screen stays the lit object. */}
             <div className={`ob-below${cam === 'frame' ? '' : ' is-off'}`} aria-hidden />
 
-            {/* The camera on the laptop: the whole laptop; the tour's push-in on its top edge; or (settings) a
-                close-up framed on the user's edge. The bar is inside, so it stays attached to the screen edge. */}
-            <div className={`ob-cam${cam === 'tour' ? ' is-tour' : ''}${closeUp ? ` is-close is-${edgeNow}` : ''}`} aria-hidden>
+            {/* The camera on the laptop: the whole laptop, or the tour's push-in on its top edge. The bar is
+                inside, so it stays attached to the screen edge. */}
+            <div className={`ob-cam${cam === 'tour' ? ' is-tour' : ''}`} aria-hidden>
               <div className="ob-laptop">
                 <div className="ob-bezel" />
                 <div className="ob-base" />
@@ -439,12 +499,11 @@ export function Onboarding() {
                   <div className="ob-task-tray">
                     <svg width="9" height="7" viewBox="0 0 9 7"><path d="M.5 2.6a5.6 5.6 0 0 1 8 0M2 4.1a3.4 3.4 0 0 1 5 0M3.5 5.6a1.3 1.3 0 0 1 2 0" fill="none" stroke="#fff" strokeWidth=".9" strokeLinecap="round" /></svg>
                     <svg width="11" height="6" viewBox="0 0 11 6"><rect x=".5" y=".5" width="9" height="5" rx="1.2" fill="none" stroke="#fff" strokeWidth=".8" /><rect x="1.6" y="1.6" width="6" height="2.8" rx=".5" fill="#fff" /><rect x="9.8" y="2" width=".8" height="2" rx=".3" fill="#fff" /></svg>
-                    <span><b>12:01</b><b>27-10-2026</b></span>
+                    <span>{taskbarClock(resolvedLang).map((s, i) => <b key={i}>{s}</b>)}</span>
                   </div>
                 </div>
               </div>
-              {/* Keyed by edge: moving to another edge fades in there instead of morphing across the screen. */}
-              <div key={edgeNow} className={`ob-bar${barShown ? '' : ' is-hidden'}`} style={barStyle} />
+              <div className={`ob-bar${barShown ? '' : ' is-hidden'}`} style={barStyle} />
             </div>
 
             <div className="ob-cursor" ref={cursorRef} aria-hidden>
@@ -463,7 +522,7 @@ export function Onboarding() {
 
           {/* Ctrl+C, outside the camera: placed beside a window as it is framed on screen (tour.ts keys). */}
           <div className="ob-keys" ref={keysRef} aria-hidden>
-            <div><kbd>Ctrl</kbd><b>+</b><kbd>C</kbd></div>
+            <div><kbd>{t('tour.ctrl')}</kbd><b>+</b><kbd>C</kbd></div>
             <span ref={keysLabelRef} />
           </div>
 
@@ -494,26 +553,56 @@ export function Onboarding() {
               )}
             </div>
             <div className="ob-copy" key={s.key}>
-              <h1>{s.title}</h1>
-              <p>{s.body}</p>
-              {/* Settings carries the options too: its button sits at the end of their row, so the step
-                  stays short enough to clear the laptop above it. */}
+              {s.key === 'settings' ? (
+                <>
+                  <h1>{s.title}</h1>
+                  <p>{s.body}</p>
+                </>
+              ) : (
+                // Every step's text in the same place, only this step's shown: the box is as tall as the
+                // longest in this language, so the button under it stays put from step to step. (This
+                // step's first, for anything that reads the heading.)
+                <div className="ob-text">
+                  {[s, ...steps.slice(0, last).filter((st) => st.key !== s.key)].map((st) => (
+                    <div key={st.key} className={st.key === s.key ? undefined : 'is-ghost'} aria-hidden={st.key === s.key ? undefined : true}>
+                      <h1>{st.title}</h1>
+                      <p>{st.body}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* The last step: once the shelf has shown every edge, the choice opens out under the text (the
+                  camera pulls back to make room): the three edges, each a small screen with its bar, then
+                  the two settings that matter and Get Started. */}
               {s.key === 'settings' && real ? (
-                <div className="ob-controls">
-                  <div className="ob-seg" role="group" aria-label={t('onboarding.configTitle')}>
-                    {(['left', 'top', 'right'] as const).map((pos) => (
-                      <button key={pos} type="button" aria-pressed={barPos === pos} onClick={() => void pick({ stickPosition: pos })}>
-                        {t(`position.${pos}`)}
+                <div className={`ob-choose${asking ? ' is-up' : ''}`} aria-hidden={!asking}>
+                  <div>
+                    <div className="ob-edges" role="radiogroup" aria-label={s.title}>
+                      {(['left', 'top', 'right'] as const).map((pos) => (
+                        <button
+                          key={pos}
+                          type="button"
+                          role="radio"
+                          aria-checked={barPos === pos}
+                          tabIndex={asking ? 0 : -1}
+                          className="ob-edge"
+                          onClick={() => choose(pos)}
+                        >
+                          <span className={`ob-edge-screen is-${pos}`}><i /></span>
+                          {t(`position.${pos}`)}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="ob-controls">
+                      <button type="button" className="ob-toggle" tabIndex={asking ? 0 : -1} aria-pressed={real.soundEffects !== false} onClick={() => void pick({ soundEffects: real.soundEffects === false })}>
+                        <i />{t('behaviour.soundEffectsTitle')}
                       </button>
-                    ))}
+                      <button type="button" className="ob-toggle" tabIndex={asking ? 0 : -1} aria-pressed={real.launchAtLogin} onClick={() => void pick({ launchAtLogin: !real.launchAtLogin })}>
+                        <i />{t('behaviour.launchAtLoginTitle')}
+                      </button>
+                      {primary}
+                    </div>
                   </div>
-                  <button type="button" className="ob-toggle" aria-pressed={real.soundEffects !== false} onClick={() => void pick({ soundEffects: real.soundEffects === false })}>
-                    <i />{t('behaviour.soundEffectsTitle')}
-                  </button>
-                  <button type="button" className="ob-toggle" aria-pressed={real.launchAtLogin} onClick={() => void pick({ launchAtLogin: !real.launchAtLogin })}>
-                    <i />{t('behaviour.launchAtLoginTitle')}
-                  </button>
-                  {primary}
                 </div>
               ) : primary}
               {at === 0 && <button type="button" className="ob-skip" onClick={() => void finish()}>{t('onboarding.skip')}</button>}

@@ -19,16 +19,13 @@ const MAX_REST = 6000
 
 /** How long each step's demo runs, from the step appearing to its end (measured), for pacing the fill. */
 const DEMO_MS: Record<string, number> = {
-  welcome: 4200,
-  collect: 11600,
-  dropin: 5750,
-  stacks: 5150,
-  drag: 3850,
-  ungroup: 4900,
-  merge: 3650,
-  preview: 3750,
-  note: 9650,
-  search: 3400
+  welcome: 4100,
+  collect: 8950,
+  dropin: 10850,
+  drag: 3750,
+  stacks: 7500,
+  preview: 6000,
+  find: 9200
 }
 
 /** Han, kana and Hangul: one character carries about a word. */

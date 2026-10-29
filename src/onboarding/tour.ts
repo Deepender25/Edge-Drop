@@ -1,7 +1,7 @@
 /**
  * The tour's demos: each step plays the real shelf (Panel and its cards) on
  * example items, by writing the same store state the app itself sets while a
- * user copies, drags, stacks, splits, merges and previews. Store actions that
+ * user copies, drags in and out, splits, combines, previews, notes and searches. Store actions that
  * talk to main are never called (they would act on the user's real panel
  * window); state is written with useStore.setState directly.
  *
@@ -19,13 +19,14 @@
 import { useStore } from '../store/appStore'
 import { t } from '../i18n'
 import { setEdgeDragPull } from '../lib/edgeDrag'
-import type { ClipboardItemDto } from '../../shared/types'
+import type { ClipboardItemDto, StickPosition } from '../../shared/types'
 import { dragGhostSvg } from '../../shared/dragGhost'
 import { fileIconUrl, fileKindOf, type FileKind } from '../lib/fileKind'
-import { LAPTOP_SCREEN, SHELF_SCALE, TOUR_SCREEN_TOP, toShelfLayer } from './edgeBar'
+import { LAPTOP_SCREEN, SHELF_SCALE, TOUR_SCREEN_TOP, realHotZoneWidth, realSideHotZone, toShelfLayer } from './edgeBar'
+import { DEFAULT_SETTINGS } from '../../shared/types'
 import { aim, REST, toLocal, toScreen, zoomRest, zoomTo, type Rect, type View } from './lens'
 import {
-  demoText, demoLink, demoImage, demoPdf, demoStack, demoSingle, demoMerged, STACK_FILES, DEMO_DIR, DEMO_NOTE, DEMO_QUERY
+  demoText, demoLink, demoImage, demoPdf, demoStack, demoStackWithPhoto, stackFiles, pageTitle, DEMO_DIR, demoNote, demoQuery
 } from './demoItems'
 
 export const STOP = Symbol('stop')
@@ -85,32 +86,29 @@ export interface Stage {
 const MOVE = 'cubic-bezier(.45,0,.25,1)'
 const set = useStore.setState
 
-/** Item states each step starts from, so Back and Continue land on a consistent shelf. */
+/**
+ * Item states each step starts from, so Back and Continue land on a consistent shelf: each is where the
+ * step before leaves it, in the order main keeps (a new card at the front, a split's card where its stack
+ * was, a combined stack in its place).
+ */
 export function itemsFor(step: string, now = Date.now()): ClipboardItemDto[] {
-  // Copied from the page (text, link, image), then the PDF dragged in from File Explorer.
-  const three = [demoImage(now - 9000), demoLink(now - 14000), demoText(now - 19000)]
-  const four = [demoPdf(now - 4000), ...three]
-  // Dragged out into another app, the image counts as used and moves to the front (as in the app).
-  const used = [demoImage(now - 500), ...four.filter((it) => it.id !== 'demo-image')]
-  const split = [demoSingle(now - 2000, STACK_FILES[0]), demoStack(now - 3000, STACK_FILES.slice(1))]
-  // the shelf the preview leaves: the slides and the photo in one stack, the four files in another
-  const kept = (note?: string) => [
-    demoMerged(now - 2000, STACK_FILES[0]), split[1], demoPdf(now - 4000, note), ...three.filter((it) => it.id !== 'demo-image')
-  ]
+  // copied from the web page: the sentence, then the photo
+  const copied = [demoImage(now - 9000), demoText(now - 14000)]
+  // then dragged in: the page's link from the browser, and three files from File Explorer as one stack
+  const dropped = [demoStack(now - 4000), demoLink(now - 6000), ...copied]
+  // the itinerary pulled out of the stack, the photo dropped into it
+  const sorted = (note?: string) => [demoPdf(now - 3000, note), demoStackWithPhoto(now - 2000), demoLink(now - 6000), demoText(now - 14000)]
   switch (step) {
-    case 'welcome': return four
+    case 'welcome': return dropped
     case 'collect': return []
-    case 'dropin': return three
-    case 'stacks': return four
-    case 'drag': return [demoStack(now - 1000), ...four]
-    case 'ungroup': return [used[0], demoStack(now - 1000), ...used.slice(1)]
-    case 'merge': return [...split, ...used]
+    case 'dropin': return copied
+    case 'drag': return dropped
+    // dragged out into another app, the photo counts as used and moves to the front (main: movePastedToTop)
+    case 'stacks': return [demoImage(now - 500), demoStack(now - 4000), demoLink(now - 6000), demoText(now - 14000)]
     case 'preview':
-    case 'note':
-      return kept()
-    case 'search':
-    case 'settings':
-      return kept(DEMO_NOTE)
+    case 'find':
+      return sorted()
+    case 'settings': return sorted(demoNote())
     default: return []
   }
 }
@@ -118,8 +116,7 @@ export function itemsFor(step: string, now = Date.now()): ClipboardItemDto[] {
 /** The other app each step plays in; a step that follows in the same app keeps it up. */
 const WINDOW_OF: Record<string, (stage: Stage) => HTMLElement> = {
   collect: (s) => s.browser,
-  dropin: (s) => s.explorer,
-  stacks: (s) => s.explorer,
+  dropin: (s) => s.browser,
   drag: (s) => s.notes
 }
 
@@ -131,18 +128,28 @@ export function resetDemoState(stage: Stage, next?: string): void {
   leaveField()
   set({
     internalDragReq: null, dropTargetId: null, expandedStackId: null, previewItemId: null, previewItemRect: null,
-    copyFlareActive: false, externalDrag: false, dragActive: false, cardMenu: null, cardMenuRect: null, query: ''
+    copyFlareActive: false, externalDrag: false, dragActive: false, cardMenu: null, cardMenuRect: null,
+    edgeTransition: null
   })
+  // a search empties at once, except when the shelf is folding away for a step on the laptop (the welcome,
+  // the last step): there the shelf would fill back up as it closes, so Onboarding empties it once the
+  // shelf is out of sight
+  if (next !== 'welcome' && next !== 'settings') set({ query: '' })
   setEdgeDragPull(0)
   stage.cursor.getAnimations().forEach((a) => a.cancel())
   document.body.classList.remove('ob-preview-pan')
   stage.keys.getAnimations().forEach((a) => a.cancel())
-  stage.notesImage.getAnimations().forEach((a) => a.cancel())
   clearMarks(stage)
   stage.root.querySelector('.ob-cam')?.classList.remove('is-push')
   const view = openingView(next)
   if (view) zoomTo(stage.lens, view, 900)
   const keep = next ? WINDOW_OF[next]?.(stage) : undefined
+  // the picture dropped into the notes app (a class, .is-in, not one of the run's animations, which a step
+  // change stops at once) goes with its window: at once if the window stays, or once the window has faded
+  // out (.ob-notes, 0.26s), instead of vanishing from it as it fades
+  const picture = stage.notesImage
+  if (keep === stage.notes) picture.classList.remove('is-in')
+  else window.setTimeout(() => { if (!stage.notes.classList.contains('is-up')) picture.classList.remove('is-in') }, 300)
   for (const w of [stage.notes, stage.browser, stage.explorer]) if (w !== keep) hideWindow(w)
   stage.root.querySelector('.ob-shelf')?.getAnimations().forEach((a) => a.cancel())
 }
@@ -183,7 +190,7 @@ const onWindow = (box: Rect): View => aim(PUSH, { x: box.left + box.width / 2, y
  * pulls back as its pointer comes in (its flyout opens outside the camera, at rest).
  */
 function openingView(step?: string): View | null {
-  if (step === 'ungroup' || step === 'merge') return SHELF_CLOSE
+  if (step === 'stacks') return SHELF_CLOSE
   if (step === 'preview') return null
   return REST
 }
@@ -287,15 +294,16 @@ class DragImage {
 }
 
 /**
- * What Windows shows while a file is dragged out of File Explorer: the file's icon, see-through, riding
- * just above the pointer, and a "+ Copy" label once it is over a place that takes it.
+ * What Windows shows while something is dragged out of another app, riding just above the pointer: files'
+ * icons, see-through (several: a small pile with their count), or a link's page; and a "+ Copy" label
+ * once over a place that takes it.
  */
-class FileGhost {
+class AppGhost {
   readonly el: HTMLDivElement
-  constructor(private run: Run, stage: Stage, kind: FileKind, private at: { x: number; y: number }) {
+  constructor(private run: Run, stage: Stage, html: string, private at: { x: number; y: number }) {
     this.el = document.createElement('div')
     this.el.className = 'ob-ghost ob-file-ghost'
-    this.el.innerHTML = `<img src="${fileIconUrl(kind)}" alt=""><span>+ Copy</span>`
+    this.el.innerHTML = `${html}<span>+ ${esc(t('tour.dragCopy'))}</span>`
     this.el.style.transform = this.tf(at)
     stage.lens.append(this.el)
     run.animate(this.el, [{ opacity: 0 }, { opacity: 1 }], { duration: 140, fill: 'none' }).catch(() => {})
@@ -314,6 +322,53 @@ class FileGhost {
   drop() {
     this.el.remove()
   }
+}
+
+/** Files from File Explorer: the first in front (last drawn), the others a step behind it each. */
+function filesGhost(kinds: FileKind[]): string {
+  const pile = kinds.slice(0, 3).map((k, i) => `<img src="${fileIconUrl(k)}" alt="" style="--i:${i}">`).reverse().join('')
+  return `${pile}${kinds.length > 1 ? `<b>${kinds.length}</b>` : ''}`
+}
+
+/** A link from the browser's address bar: the page's icon, title and address, as the browser draws it. */
+const linkGhost = () =>
+  `<div class="ob-link-ghost"><i>W</i><div><strong>${esc(pageTitle())} - Wikipedia</strong><em>en.wikipedia.org</em></div></div>`
+
+/** Text for innerHTML. */
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string)
+
+/**
+ * Something dragged in from another app, from `from` to the edge: as it nears the edge the bar swells (the
+ * app's own pull, in steps), at the bar the shelf opens into its drop zone, over the shelf the zone
+ * lights, and it is dropped. `pace` scales the glide (a short trip from near the edge is quicker).
+ */
+async function dropAtEdge(run: Run, p: Pointer, g: AppGhost, from: { x: number; y: number }, pace = 1) {
+  const bar = { x: 400, y: TOUR_SCREEN_TOP + 6 }
+  const legs: Array<[number, number, string, number]> = [
+    [0.4, 420, 'cubic-bezier(.45,0,1,1)', 0.3],
+    [0.75, 300, 'linear', 0.6],
+    [1, 360, 'cubic-bezier(0,0,.3,1)', 0.9]
+  ]
+  for (const [t, ms, easing, pull] of legs) {
+    const x = from.x + (bar.x - from.x) * t
+    const y = from.y + (bar.y - from.y) * t
+    await Promise.all([p.move(x, y, ms * pace, easing), g.move(x, y, ms * pace, easing)])
+    setEdgeDragPull(pull)
+  }
+  // at the bar: the shelf opens straight into its drop zone
+  set({ open: true })
+  await run.sleep(400)
+  const over = { x: 400, y: TOUR_SCREEN_TOP + 62 }
+  await Promise.all([p.move(over.x, over.y, 360), g.move(over.x, over.y, 360)])
+  set({ dragActive: true })
+  g.copying(true)
+  await run.sleep(400)
+  // the drop: the zone takes it in (DropOverlay listens for the drop), then the card is there
+  g.drop()
+  document.dispatchEvent(new Event('drop'))
+  set({ externalDrag: false, dragActive: false })
+  setEdgeDragPull(0)
+  await run.sleep(260)
 }
 
 /**
@@ -418,9 +473,9 @@ function deselect(run: Run, el: HTMLElement) {
 }
 
 /**
- * Copy from a web page the way people do, with the shelf closed: select a sentence and press Ctrl+C,
- * click the address and press Ctrl+C, right-click the photo and choose Copy image. Each copy lights the
- * edge; then the pointer opens the shelf and all three are there.
+ * Copy from a web page the way people do, with the shelf closed: select a sentence and press Ctrl+C, then
+ * right-click the photo and choose Copy image. Each copy lights the edge; then the pointer opens the
+ * shelf and both are there.
  */
 export async function demoCollect(run: Run, stage: Stage) {
   const p = new Pointer(run, stage.cursor)
@@ -452,26 +507,13 @@ export async function demoCollect(run: Run, stage: Stage) {
   copyFlare(run)
   await run.sleep(450)
 
-  // 2. the link: a click in the address bar selects it all
-  const url = page.querySelector<HTMLElement>('.ob-url')!
-  const u = rect(stage, url)
-  await p.move(u.left + u.width * 0.6, u.top + u.height / 2, 600)
-  await p.press()
-  // a click elsewhere ends the page's selection; the address selects all at once
-  lines.forEach((l) => deselect(run, hl(l)))
-  run.animate(hl(url), [{ transform: 'scaleX(0)', opacity: 0 }, { transform: 'scaleX(1)', opacity: 1 }], { duration: 140 }).catch(() => {})
-  await run.sleep(250)
-  await keys(run, stage, '', box)
-  capture(demoLink(now))
-  copyFlare(run)
-  await run.sleep(450)
-
-  // 3. the photo: right-click, Copy image
+  // 2. the photo: right-click, Copy image
   const photo = page.querySelector<HTMLElement>('.ob-photo')!
   const ph = rect(stage, photo)
-  await p.move(ph.left + ph.width * 0.45, ph.top + ph.height * 0.55, 600)
+  await p.move(ph.left + ph.width * 0.45, ph.top + ph.height * 0.55, 650)
   await p.press()
-  deselect(run, hl(url))
+  // a click elsewhere ends the page's selection
+  lines.forEach((l) => deselect(run, hl(l)))
   const menu = page.querySelector<HTMLElement>('.ob-menu')!
   // at the pointer, flipped to the other side where it would not fit in the window (as real menus do)
   const mx = ph.left + ph.width * 0.45 - box.left
@@ -493,132 +535,64 @@ export async function demoCollect(run: Run, stage: Stage) {
   item.classList.remove('is-hover')
   capture(demoImage(now))
   copyFlare(run)
-  await run.sleep(700)
+  await run.sleep(500)
 
   // all of it is on the shelf: the camera pulls back as the pointer rides up, so the shelf opens in full view
   zoomRest(stage.lens, 750, MOVE)
   await p.move(400, TOUR_SCREEN_TOP + 5, 750)
   set({ open: true })
-  await run.sleep(900)
-  await p.move(560, 380, 600)
+  await run.sleep(750)
+  await p.move(560, 380, 500)
   await p.hide()
 }
 
 /**
- * Drag a file in from File Explorer: as it nears the edge the bar swells (the app's own pull, in steps),
- * at the bar the shelf opens into its drop zone, over the shelf the zone lights, and the drop lands as a card.
+ * Drag things in from other apps. First the page's link, by the icon in the browser's address bar: it
+ * lands as a card. Then, as the pointer heads to File Explorer, the shelf folds away; three files are
+ * selected there (a selection box drawn across them, as on the desktop) and dragged in at once: they land
+ * as one stack.
  */
 export async function demoDropIn(run: Run, stage: Stage) {
   const p = new Pointer(run, stage.cursor)
+  const page = stage.browser
   const win = stage.explorer
   clearMarks(stage)
-  showWindow(win)
+  hideWindow(win)
+  showWindow(page)
   await run.sleep(250)
-  const row = win.querySelector<HTMLElement>('.ob-file.is-pdf')!
-  const icon = row.querySelector('img')!
-  const c = centre(stage, icon)
-  const box = rect(stage, win)
-  zoomTo(stage.lens, onWindow(box), 1000)
-  await p.show(560, 380)
-  await p.move(c.x, c.y, 650)
-  row.classList.add('is-on')
+
+  // 1. the link
+  const site = centre(stage, page.querySelector('.ob-site')!)
+  // the camera pushes in on the address bar, the screen's edge in frame
+  zoomTo(stage.lens, withEdge(PUSH, site.x + 110), 900)
+  await p.show(site.x + 150, site.y + 80)
+  await p.move(site.x, site.y, 600)
   await p.press()
-  await p.move(c.x + 6, c.y + 8, 120)
+  await p.move(site.x + 6, site.y + 8, 120)
   set({ externalDrag: true })
-  const g = new FileGhost(run, stage, 'pdf', { x: c.x + 6, y: c.y + 8 })
-  // toward the bar: one smooth glide in three legs, the swell growing at each
-  const from = { x: c.x + 6, y: c.y + 8 }
-  const bar = { x: 400, y: TOUR_SCREEN_TOP + 6 }
-  const legs: Array<[number, number, string, number]> = [
-    [0.4, 420, 'cubic-bezier(.45,0,1,1)', 0.3],
-    [0.75, 300, 'linear', 0.6],
-    [1, 360, 'cubic-bezier(0,0,.3,1)', 0.9]
-  ]
-  // the camera pulls back as the file rides up, so the bar swelling and the shelf opening are in full view
-  zoomRest(stage.lens, 1080, MOVE)
-  for (const [t, ms, easing, pull] of legs) {
-    const x = from.x + (bar.x - from.x) * t
-    const y = from.y + (bar.y - from.y) * t
-    await Promise.all([p.move(x, y, ms, easing), g.move(x, y, ms, easing)])
-    setEdgeDragPull(pull)
-  }
-  // at the bar: the shelf opens straight into its drop zone
-  set({ open: true })
-  await run.sleep(420)
-  const over = { x: 400, y: TOUR_SCREEN_TOP + 62 }
-  await Promise.all([p.move(over.x, over.y, 380), g.move(over.x, over.y, 380)])
-  set({ dragActive: true })
-  g.copying(true)
-  await run.sleep(420)
-  // the drop: the zone takes it in (DropOverlay listens for the drop), then the card is there
-  g.drop()
-  document.dispatchEvent(new Event('drop'))
-  set({ externalDrag: false, dragActive: false })
-  setEdgeDragPull(0)
-  await run.sleep(260)
-  capture(demoPdf(Date.now()))
-  await run.sleep(500)
-  row.classList.remove('is-on')
-  await p.move(560, 380, 600)
-  await p.hide()
-}
-
-/** Drag the image card out of the shelf into another app. */
-export async function demoDrag(run: Run, stage: Stage) {
-  const p = new Pointer(run, stage.cursor)
-  showWindow(stage.notes)
-  await p.show(600, 400)
-  const src = card(stage, 'demo-image')
-  const c = centre(stage, src)
-  zoomTo(stage.lens, withEdge(PUSH, c.x, c.x), 900)
-  await p.move(c.x, c.y, 700)
-  await p.press()
-  set({ internalDragReq: { id: 'demo-image' } })
-  await p.move(c.x + 6, c.y + 8, 120)
-  const g = new DragImage(run, stage, ['image'], 1, { x: c.x + 6, y: c.y + 8 })
-  // drop where the picture lands in the document, the camera following the drag down to it
-  const { x: tx, y: ty } = centre(stage, stage.notesImage)
-  const notes = rect(stage, stage.notes)
-  const nx = notes.left + notes.width / 2
-  zoomTo(stage.lens, aim(PUSH, { x: nx, y: notes.bottom }, { x: nx, y: 430 }), 850, MOVE)
-  await Promise.all([p.move(tx, ty, 850), g.move(tx, ty, 850)])
-  g.drop()
-  set({ internalDragReq: null })
-  await run.animate(stage.notesImage, [{ opacity: 0, transform: 'scale(.8)' }, { opacity: 1, transform: 'none' }], { duration: 300 })
-  // a card dragged out into another app counts as used: it moves to the front (main: movePastedToTop)
-  const items = useStore.getState().items
-  set({ items: [...items.filter((it) => it.id === 'demo-image').map((it) => ({ ...it, capturedAt: Date.now() })), ...items.filter((it) => it.id !== 'demo-image')] })
-  zoomRest(stage.lens, 1000)
-  await run.sleep(300)
-  await p.hide()
+  const link = new AppGhost(run, stage, linkGhost(), { x: site.x + 6, y: site.y + 8 })
+  await dropAtEdge(run, p, link, { x: site.x + 6, y: site.y + 8 }, 0.75)
+  capture(demoLink(Date.now()))
   await run.sleep(450)
-}
 
-/**
- * Select three files in File Explorer (a selection box drawn across them, as on the desktop) and press
- * Ctrl+C: they land on the shelf as one stack.
- */
-export async function demoStacks(run: Run, stage: Stage) {
-  const p = new Pointer(run, stage.cursor)
-  const win = stage.explorer
-  clearMarks(stage)
+  // 2. the files: off to File Explorer (the shelf folds away as the pointer leaves it)
+  set({ open: false })
+  hideWindow(page)
   showWindow(win)
-  await run.sleep(250)
   const list = win.querySelector<HTMLElement>('.ob-files')!
   const band = list.querySelector<HTMLElement>('.ob-band')!
-  const rows = [...list.querySelectorAll<HTMLElement>('.ob-file:not(.is-pdf)')]
+  const rows = [...list.querySelectorAll<HTMLElement>('.ob-file.is-pick')]
   const lb = rect(stage, list)
   const box = rect(stage, win)
-  const top = rect(stage, rows[0])
-  const bottom = rect(stage, rows[rows.length - 1])
-  // from the empty space under the list, up and to the left across the three files
-  const from = { x: lb.right - 24, y: bottom.bottom + 14 }
-  const to = { x: top.left + top.width * 0.42, y: top.top + top.height * 0.5 }
-  zoomTo(stage.lens, onWindow(box), 1000)
-  await p.show(box.right - 40, box.bottom + 30)
-  await p.move(from.x, from.y, 600)
+  const first = rect(stage, rows[0])
+  const last = rect(stage, rows[rows.length - 1])
+  // the box: from the empty space under the list, up and to the left across the three files
+  const from = { x: lb.right - 24, y: last.bottom + 14 }
+  const to = { x: first.left + first.width * 0.42, y: first.top + first.height * 0.5 }
+  zoomTo(stage.lens, onWindow(box), 900)
+  await p.move(from.x, from.y, 900)
   await p.press()
-  const T = 900
+  const T = 700
   const bandAt = (x: number, y: number) => ({ left: `${x - lb.left}px`, top: `${y - lb.top}px` })
   run.animate(band, [
     { ...bandAt(from.x, from.y), width: '0px', height: '0px', opacity: 1 },
@@ -632,71 +606,111 @@ export async function demoStacks(run: Run, stage: Stage) {
   await p.move(to.x, to.y, T, 'linear')
   // let go: the box goes, the three stay selected
   run.animate(band, [{ opacity: 1 }, { opacity: 0 }], { duration: 160 }).catch(() => {})
-  await run.sleep(300)
-  await keys(run, stage, '', box)
+  await run.sleep(200)
+  // press on the selection and drag all three out
+  const c = centre(stage, rows[0].querySelector('img')!)
+  await p.move(c.x, c.y, 280)
+  await p.press()
+  await p.move(c.x + 6, c.y + 8, 120)
+  set({ externalDrag: true })
+  const g = new AppGhost(run, stage, filesGhost(stackFiles().map(([name]) => fileKindOf(name))), { x: c.x + 6, y: c.y + 8 })
+  // the camera pulls back as the files ride up, so the bar swelling and the shelf opening are in full view
+  zoomRest(stage.lens, 1080, MOVE)
+  await dropAtEdge(run, p, g, { x: c.x + 6, y: c.y + 8 })
   capture(demoStack(Date.now()))
-  copyFlare(run)
-  // the stack lands at the front of the shelf: the camera pulls back to show it there
-  zoomRest(stage.lens, 900)
-  await run.sleep(900)
-  await p.move(box.right - 40, box.bottom + 30, 600)
-  await p.hide()
-}
-
-/** Open the stack, drag one file to the edge light, and it becomes its own card. */
-export async function demoUngroup(run: Run, stage: Stage) {
-  const p = new Pointer(run, stage.cursor)
-  await p.show(560, 380)
-  const stackCard = card(stage, 'demo-stack')
-  const c = centre(stage, stackCard)
-  await p.move(c.x, c.y, 650)
-  await p.press()
-  set({ expandedStackId: 'demo-stack' })
-  await run.sleep(550)
-  // The expanded stack's first file row (StackItems).
-  const tile = stage.root.querySelector<HTMLElement>('.item-main[data-id="demo-stack"] .stack-row')
-  if (!tile) throw STOP
-  const t = centre(stage, tile)
-  await p.move(t.x, t.y, 500)
-  await p.press()
-  const path = DEMO_DIR + STACK_FILES[0][0]
-  set({ internalDragReq: { id: 'demo-stack', paths: [path] } })
-  await p.move(t.x + 6, t.y + 8, 120)
-  const g = new DragImage(run, stage, [fileKindOf(path)], 1, { x: t.x + 6, y: t.y + 8 })
-  // up to the light on the edge (in frame: the close-up keeps the screen's edge)
-  const ex = 400, ey = TOUR_SCREEN_TOP + 5
-  await Promise.all([p.move(ex, ey, 900), g.move(ex, ey, 900)])
-  await run.sleep(500) // the edge light answers the drag
-  g.drop()
-  set({ internalDragReq: null, expandedStackId: null })
-  const now = Date.now()
-  set({ items: [demoSingle(now, STACK_FILES[0]), demoStack(now - 1000, STACK_FILES.slice(1)), ...useStore.getState().items.filter((it) => it.id !== 'demo-stack')] })
   await run.sleep(400)
+  rows.forEach((row) => row.classList.remove('is-on'))
+  await p.move(560, 380, 500)
   await p.hide()
 }
 
-/** Drop the image onto the single file: they become one stack. */
-export async function demoMerge(run: Run, stage: Stage) {
+/** Drag the image card out of the shelf into another app. */
+export async function demoDrag(run: Run, stage: Stage) {
   const p = new Pointer(run, stage.cursor)
-  await p.show(600, 380)
+  showWindow(stage.notes)
+  await p.show(600, 400)
   const src = card(stage, 'demo-image')
   const c = centre(stage, src)
-  await p.move(c.x, c.y, 650)
+  const notes = rect(stage, stage.notes)
+  // in on the card, but not so far that the document below slides under the step's text
+  zoomTo(stage.lens, withEdge(Math.min(PUSH, (430 + 15) / notes.bottom), c.x, c.x), 900)
+  await p.move(c.x, c.y, 700)
   await p.press()
   set({ internalDragReq: { id: 'demo-image' } })
   await p.move(c.x + 6, c.y + 8, 120)
   const g = new DragImage(run, stage, ['image'], 1, { x: c.x + 6, y: c.y + 8 })
-  const target = card(stage, 'demo-single')
-  const tc = centre(stage, target)
-  await Promise.all([p.move(tc.x, tc.y, 950), g.move(tc.x, tc.y, 950)])
-  set({ dropTargetId: 'demo-single' })
-  await run.sleep(450)
+  // drop where the picture lands in the document, the camera following the drag down to it
+  const { x: tx, y: ty } = centre(stage, stage.notesImage)
+  const nx = notes.left + notes.width / 2
+  zoomTo(stage.lens, aim(PUSH, { x: nx, y: notes.bottom }, { x: nx, y: 430 }), 850, MOVE)
+  await Promise.all([p.move(tx, ty, 850), g.move(tx, ty, 850)])
   g.drop()
+  set({ internalDragReq: null })
+  stage.notesImage.classList.add('is-in')
+  await run.sleep(300)
+  // a card dragged out into another app counts as used: it moves to the front (main: movePastedToTop)
+  const items = useStore.getState().items
+  set({ items: [...items.filter((it) => it.id === 'demo-image').map((it) => ({ ...it, capturedAt: Date.now() })), ...items.filter((it) => it.id !== 'demo-image')] })
+  zoomRest(stage.lens, 1000)
+  await run.sleep(300)
+  await p.hide()
+  await run.sleep(450)
+}
+
+/**
+ * Split and combine: open the stack and drag the itinerary to the light on the edge, and it becomes a card
+ * of its own (main puts it where the stack was); then drop the photo onto the stack, and it joins it.
+ */
+export async function demoStacks(run: Run, stage: Stage) {
+  const p = new Pointer(run, stage.cursor)
+  await p.show(560, 380)
+  const stack = card(stage, 'demo-stack')
+  const c = centre(stage, stack)
+  await p.move(c.x, c.y, 650)
+  await p.press()
+  set({ expandedStackId: 'demo-stack' })
+  await run.sleep(550)
+  // the expanded stack's first file row (StackItems): the itinerary
+  const tile = stage.root.querySelector<HTMLElement>('.item-main[data-id="demo-stack"] .stack-row')
+  if (!tile) throw STOP
+  const f = centre(stage, tile)
+  await p.move(f.x, f.y, 450)
+  await p.press()
+  const path = DEMO_DIR + stackFiles()[0][0]
+  set({ internalDragReq: { id: 'demo-stack', paths: [path] } })
+  await p.move(f.x + 6, f.y + 8, 120)
+  const g = new DragImage(run, stage, [fileKindOf(path)], 1, { x: f.x + 6, y: f.y + 8 })
+  // up to the light on the edge (in frame: the close-up keeps the screen's edge)
+  const ex = 400, ey = TOUR_SCREEN_TOP + 5
+  await Promise.all([p.move(ex, ey, 850), g.move(ex, ey, 850)])
+  await run.sleep(450) // the edge light answers the drag
+  g.drop()
+  set({ internalDragReq: null, expandedStackId: null })
+  // main's split: the file becomes a card where its stack was, the stack keeps the rest
   const now = Date.now()
+  set({
+    items: useStore.getState().items.flatMap((it) => (it.id === 'demo-stack' ? [demoPdf(now), demoStack(now - 1000, stackFiles().slice(1))] : [it]))
+  })
+  await run.sleep(550)
+
+  // combine: the photo onto the stack
+  const src = card(stage, 'demo-image')
+  const s = centre(stage, src)
+  await p.move(s.x, s.y, 600)
+  await p.press()
+  set({ internalDragReq: { id: 'demo-image' } })
+  await p.move(s.x + 6, s.y + 8, 120)
+  const g2 = new DragImage(run, stage, ['image'], 1, { x: s.x + 6, y: s.y + 8 })
+  const tc = centre(stage, card(stage, 'demo-stack'))
+  await Promise.all([p.move(tc.x, tc.y, 850), g2.move(tc.x, tc.y, 850)])
+  set({ dropTargetId: 'demo-stack' })
+  await run.sleep(420)
+  g2.drop()
+  // main's merge: the stack stays where it is with the photo added, the photo's card goes
   set({
     internalDragReq: null,
     dropTargetId: null,
-    items: [demoMerged(now, STACK_FILES[0]), ...useStore.getState().items.filter((it) => it.id !== 'demo-single' && it.id !== 'demo-image')]
+    items: useStore.getState().items.flatMap((it) => (it.id === 'demo-image' ? [] : it.id === 'demo-stack' ? [demoStackWithPhoto(Date.now())] : [it]))
   })
   await run.sleep(400)
   await p.hide()
@@ -728,16 +742,61 @@ export async function demoPreview(run: Run, stage: Stage) {
   await p.press()
   const r = target.getBoundingClientRect()
   set({ previewItemId: 'demo-stack', previewItemRect: toShelfLayer(r) })
-  await run.sleep(450)
+  await run.sleep(80)
+  // the photo further down is drawn lazily (once scrolled near); here it is fetched as the preview opens,
+  // so the scroll down to it finds it there at its size
+  const photos = [...document.querySelectorAll<HTMLImageElement>('.pf-wrap img.thumb')]
+  photos.forEach((img) => { img.loading = 'eager' })
+  await run.sleep(370)
   target.classList.remove('force-actions')
   await p.hide()
   // the camera pans the screen up so the whole preview is in view, and stays there while the step is up
   // (a replay or the next step brings it back)
-  if (document.documentElement.dataset.motion !== 'reduce') {
+  const moving = document.documentElement.dataset.motion !== 'reduce'
+  const panned: View = moving ? { k: 1, x: 0, y: -PREVIEW_PAN } : REST
+  if (moving) {
     document.body.classList.add('ob-preview-pan')
-    zoomTo(stage.lens, { k: 1, x: 0, y: -PREVIEW_PAN }, 900)
+    zoomTo(stage.lens, panned, 900)
     await run.sleep(950)
   }
+  // the photo comes after the files: the pointer comes onto the list and scrolls down to it (the preview
+  // is drawn above the whole scene, so the pointer's twin above it does this)
+  const list = document.querySelector<HTMLElement>('.pf-wrap .pf-scroll')
+  if (!list) return
+  await loaded(run, photos, 1500)
+  if (list.scrollHeight <= list.clientHeight + 4) return
+  const top = twinPointer(run, stage, panned)
+  const box = list.getBoundingClientRect()
+  const at = { x: box.left + box.width * 0.64, y: box.top + box.height * 0.62 }
+  await top.show(at.x + 30, at.y + 40)
+  await top.move(at.x, at.y, 450)
+  await scrollTo(run, list, list.scrollHeight - list.clientHeight, 1100)
+  await run.sleep(250)
+  await top.hide()
+  top.el.remove()
+}
+
+/** Resolves once every image has its picture (a failed source falls back to the item's own preview), or after `ms`. */
+async function loaded(run: Run, imgs: HTMLImageElement[], ms: number) {
+  const t0 = performance.now()
+  while (imgs.some((img) => !(img.complete && img.naturalWidth > 0)) && performance.now() - t0 < ms) await run.sleep(50)
+}
+
+/** Scrolls `el` to `top` over `ms`, easing in and out (a wheel's smooth scroll). */
+function scrollTo(run: Run, el: HTMLElement, top: number, ms: number): Promise<void> {
+  const from = el.scrollTop
+  const t0 = performance.now()
+  return new Promise((resolve, reject) => {
+    const step = (now: number) => {
+      if (run.dead) return reject(STOP)
+      const k = Math.min(1, (now - t0) / ms)
+      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2
+      el.scrollTop = from + (top - from) * e
+      if (k < 1) requestAnimationFrame(step)
+      else resolve()
+    }
+    requestAnimationFrame(step)
+  })
 }
 
 /** Types into one of the app's fields the way a keyboard does: its own input events, a character at a time. */
@@ -777,46 +836,75 @@ async function pick(run: Run, top: Pointer, el: HTMLElement, ms: number) {
   await top.press()
 }
 
+/** The card menu's sizes (cardMenu.css: the menu's narrowest, the note editor's width) and gaps (CardMenu). */
+const MENU_MIN_W = 212
+const EDITOR_W = 252
+const MENU_EDGE = 8
+const MENU_POINTER = 2
+
 /**
- * Right-click a card: the app's own menu opens at the pointer. Add note… turns it into the note editor; a
- * note is typed and saved, and it shows on the card in place of its file name.
+ * Where on a card to right-click (its x, in scene pixels, near `x`) so that the menu and the note editor it
+ * turns into open on the same side of the pointer: in the top dock both stay within the shelf's width
+ * (CardMenu placeMenu and menuRegion, with their unscaled sizes against window pixels), and the editor is
+ * wider, so near the shelf's end the menu could open to the right and the editor then jump to the left.
+ * `v`: the camera's framing while the menu is open.
  */
-export async function demoNote(run: Run, stage: Stage) {
+function sameSide(stage: Stage, v: View, card: Rect, x: number): number {
+  const blade = stage.root.querySelector('.ob-shelf .blade')
+  if (!blade) return x
+  const b = rect(stage, blade)
+  const toWin = (sx: number) => sx * v.k + v.x
+  const toScene = (wx: number) => (wx - v.x) / v.k
+  const lo = Math.max(MENU_EDGE, toWin(b.left) + MENU_EDGE)
+  const hi = Math.min(800 - MENU_EDGE, toWin(b.right) - MENU_EDGE)
+  const from = card.left + card.width * 0.15
+  const to = card.right - card.width * 0.15
+  // both to the right: the editor fits between the pointer and the shelf's end
+  const rightMost = toScene(hi - MENU_POINTER - EDITOR_W)
+  if (rightMost >= from) return Math.min(Math.max(x, from), rightMost)
+  // both to the left: not even the narrowest menu fits on the right, and the editor fits on the left
+  const leftLeast = Math.max(toScene(hi - MENU_POINTER - MENU_MIN_W) + 1, toScene(lo + MENU_POINTER + EDITOR_W))
+  return leftLeast <= to ? Math.max(x, leftLeast) : x
+}
+
+/**
+ * Find it again: right-click the itinerary, and the app's own menu opens at the pointer; Add note… turns it
+ * into the note editor, a note is typed and saved, and it shows on the card in place of its file name. Then
+ * into search: a word only the note has, and the shelf narrows to that card as it is typed.
+ */
+export async function demoFind(run: Run, stage: Stage) {
   const p = new Pointer(run, stage.cursor)
   await p.show(600, 400)
   const target = card(stage, 'demo-pdf')
   const r = rect(stage, target)
-  // the card's upper half, right of its middle: the shelf ends not far to the right, so the menu (which
-  // stays within the shelf's width in the top dock) opens to the pointer's left, and so does the note
-  // editor it turns into, both from the same corner; the card itself stays in view beside them, and both
-  // end well above the step's text
-  const at = { x: r.left + r.width * 0.62, y: r.top + r.height * 0.3 }
+  const at = { x: r.left + r.width * 0.5, y: r.top + r.height * 0.3 }
   zoomTo(stage.lens, withEdge(PUSH, at.x), 900)
+  // the camera's framing while the menu is open (at rest under reduced motion)
+  const v = document.documentElement.dataset.motion === 'reduce' ? REST : withEdge(PUSH, at.x)
+  at.x = sameSide(stage, v, r, at.x)
   await p.move(at.x, at.y, 900)
   await run.sleep(80)
   await p.press()
-  // the menu at the pointer, at the camera's scale (at rest under reduced motion); the twin pointer takes
-  // over above it
-  const v = document.documentElement.dataset.motion === 'reduce' ? REST : withEdge(PUSH, at.x)
+  // the menu at the pointer, at the camera's scale; the twin pointer takes over above it
   const s = toScreen(stage.lens, at)
   document.body.style.setProperty('--ob-menu-scale', String(SHELF_SCALE * v.k))
   const top = twinPointer(run, stage, v)
   await Promise.all([top.set(s.x, s.y, true), p.set(at.x, at.y, false)])
   useStore.getState().openCardMenu('demo-pdf', s.x, s.y)
-  await run.sleep(500)
+  await run.sleep(400)
   const label = t('menu.addNote')
   const row = [...document.querySelectorAll<HTMLElement>('.card-menu .card-menu-row')].find((el) => el.textContent === label)
   if (!row) throw STOP
-  await pick(run, top, row, 520)
+  await pick(run, top, row, 450)
   useStore.getState().editCardMeta()
-  await run.sleep(420)
-  const input = document.querySelector<HTMLInputElement>('.card-menu .card-meta-input')
-  if (!input) throw STOP
-  await typeInto(run, input, DEMO_NOTE)
   await run.sleep(350)
+  const field = document.querySelector<HTMLInputElement>('.card-menu .card-meta-input')
+  if (!field) throw STOP
+  await typeInto(run, field, demoNote())
+  await run.sleep(250)
   const save = document.querySelector<HTMLElement>('.card-menu .card-meta-btn.is-primary')
   if (!save) throw STOP
-  await pick(run, top, save, 480)
+  await pick(run, top, save, 420)
   // the editor's own Save: the note goes onto the card (in the tour's store only) and the editor closes
   save.closest('form')?.requestSubmit()
   await run.sleep(80)
@@ -824,32 +912,109 @@ export async function demoNote(run: Run, stage: Stage) {
   const back = top.pos
   await Promise.all([p.set((back.x - v.x) / v.k, (back.y - v.y) / v.k, true), top.set(back.x, back.y, false)])
   top.el.remove()
-  await run.sleep(900)
-  zoomRest(stage.lens, 900)
-  await p.move(600, 400, 900)
-  await p.hide()
-}
+  await run.sleep(600)
 
-/**
- * Click into the search box and type: the shelf narrows with every letter, down to the card the note
- * was added to (a word only its note has).
- */
-export async function demoSearch(run: Run, stage: Stage) {
-  const p = new Pointer(run, stage.cursor)
-  await p.show(600, 400)
+  // search: the camera takes in the row of cards as the pointer goes to the box
   const input = stage.root.querySelector<HTMLInputElement>('.ob-shelf .search input')
   if (!input) throw STOP
   const c = centre(stage, input)
-  zoomTo(stage.lens, SHELF_CLOSE, 900)
-  await p.move(c.x - 40, c.y, 900)
+  zoomTo(stage.lens, SHELF_CLOSE, 850)
+  await p.move(c.x - 40, c.y, 850)
   await p.press()
   input.focus({ preventScroll: true })
-  await run.sleep(350)
+  await run.sleep(300)
   // the pointer moves off the field, out of the way of what is typed
   p.move(c.x + 70, c.y + 60, 500).catch(() => {})
-  await typeInto(run, input, DEMO_QUERY)
+  await typeInto(run, input, demoQuery())
   await run.sleep(700)
   await p.hide()
+}
+
+// ---------- the last step: the shelf on each edge, then the user's own ----------
+
+/**
+ * Pulled back a little for the choice, so the whole laptop clears the options below it. (Under reduced
+ * motion the camera does not move, so .ob-choosing puts it there at once: --ob-choice-*, Onboarding.)
+ * The screen's edges land on whole pixels there (48k + x = 114, 752k + x = 686, 18k + y = 19), so the
+ * bezel and the shelf docked against it meet exactly, with no line of wallpaper between them; at rest
+ * (the edges shown at 100%) they do already.
+ */
+export const CHOICE_VIEW: View = { k: 0.8125, x: 75, y: 4.375 }
+
+/**
+ * The tour's shelf on an edge of the last step's monitor (edgeBar REAL_SCREEN): a side edge's trigger
+ * zone is the share of the monitor's height it is in the app, not of the window's, and the closed bar
+ * carries on under the bezel (realHotZoneWidth).
+ */
+function dockAt(pos: StickPosition) {
+  const hz = DEFAULT_SETTINGS.hotZoneHeight
+  set({
+    settings: {
+      ...useStore.getState().settings,
+      stickPosition: pos,
+      hotZoneHeight: pos === 'top' ? hz : realSideHotZone(hz, window.innerHeight),
+      hotZoneWidth: realHotZoneWidth(DEFAULT_SETTINGS.hotZoneWidth)
+    }
+  })
+}
+
+/**
+ * The shelf's bar moves to another edge the way the app moves it (Panel's edge change: the bar fades
+ * out, the shelf is laid out on the new edge, the bar fades in there), folding the shelf first if it is
+ * open. Only the tour's store changes: nothing is saved.
+ */
+async function moveBar(run: Run, to: StickPosition) {
+  if (useStore.getState().open) {
+    set({ open: false })
+    await run.sleep(420)
+  }
+  const from = useStore.getState().settings.stickPosition
+  if (from === to) return
+  set({ edgeTransition: { active: true, from, to, stage: 'bar_fade_out' } })
+  await run.sleep(120)
+  dockAt(to)
+  await run.sleep(40)
+  set({ edgeTransition: { active: true, from, to, stage: 'bar_fade_in' } })
+  await run.sleep(140)
+  set({ edgeTransition: null })
+}
+
+/** The shelf on one edge: its bar there, closed a moment, then it opens, holds, and folds back. */
+async function playEdge(run: Run, to: StickPosition, hold: number) {
+  await moveBar(run, to)
+  await run.sleep(500)
+  set({ open: true })
+  await run.sleep(hold)
+  set({ open: false })
+  await run.sleep(450)
+}
+
+/**
+ * Make it yours: the shelf plays on the left edge, then the top, then the right, on the whole laptop at
+ * 100% (the camera still: only the shelf moves), and settles on the user's own edge as the camera pulls
+ * back for the choice. The real shelf, on the laptop (the frame view lays it out on whichever edge the
+ * tour's store says).
+ */
+export async function demoEdges(run: Run, stage: Stage, mine: StickPosition) {
+  zoomRest(stage.lens, 600)
+  // the drawn bar (the tour's) goes; the shelf, laid out on the monitor now, comes in on the left edge
+  set({ edgeTransition: { active: true, from: 'top', to: 'left', stage: 'bar_fade_out' } })
+  dockAt('left')
+  stage.showShelf(true)
+  await run.sleep(250)
+  set({ edgeTransition: { active: true, from: 'top', to: 'left', stage: 'bar_fade_in' } })
+  await run.sleep(140)
+  set({ edgeTransition: null })
+  for (const pos of ['left', 'top', 'right'] as const) await playEdge(run, pos, 1300)
+  zoomTo(stage.lens, CHOICE_VIEW, 900)
+  await moveBar(run, mine)
+  await run.sleep(300)
+}
+
+/** The user picked an edge: the shelf goes there and opens once, to show it. */
+export async function showEdge(run: Run, stage: Stage, to: StickPosition) {
+  zoomTo(stage.lens, CHOICE_VIEW, 600)
+  await playEdge(run, to, 1100)
 }
 
 export const DEMOS: Record<string, ((run: Run, stage: Stage) => Promise<void>) | undefined> = {
@@ -858,11 +1023,8 @@ export const DEMOS: Record<string, ((run: Run, stage: Stage) => Promise<void>) |
   dropin: demoDropIn,
   drag: demoDrag,
   stacks: demoStacks,
-  ungroup: demoUngroup,
-  merge: demoMerge,
   preview: demoPreview,
-  note: demoNote,
-  search: demoSearch
+  find: demoFind
 }
 
 // ---------- replays ----------
@@ -918,9 +1080,9 @@ async function rewind(run: Run, stage: Stage, step: string, open: boolean) {
     run.animate(m, [{ transform: t, opacity: o }, { transform: t, opacity: 0 }], { duration: 400, easing: 'ease' }).catch(() => {})
   }
   stage.root.querySelectorAll('.ob-file.is-on').forEach((el) => el.classList.remove('is-on'))
-  if (stage.notesImage.getAnimations().length) {
-    stage.notesImage.getAnimations().forEach((a) => a.cancel())
-    await run.animate(stage.notesImage, [{ opacity: 1 }, { opacity: 0 }], { duration: 400, easing: 'ease' })
+  if (stage.notesImage.classList.contains('is-in')) {
+    stage.notesImage.classList.remove('is-in')
+    await run.sleep(400)
   }
   const start = itemsFor(step)
   const same = start.length === st.items.length && start.every((it, i) => it.id === st.items[i].id && it.note === st.items[i].note)

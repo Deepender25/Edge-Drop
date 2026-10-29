@@ -44,18 +44,72 @@ export const shelfTransform = (cam: 'frame' | 'tour') =>
     ? `translateY(${TOUR_SCREEN_TOP}px) scale(${SHELF_SCALE})`
     : `translateY(${LAPTOP_SCREEN.top}px) scale(${SHELF_SCALE / TOUR.scale})`
 
+/**
+ * The screen the last step shows the shelf on, on each edge: a 1920 x 1080 monitor at 100% display
+ * scale, drawn on the laptop's screen. The shelf is laid out as on that monitor (.ob-shelf.is-real), so
+ * on every edge it is the size it really is there, in proportion to the screen.
+ */
+export const REAL_SCREEN = { width: 1920, height: 1080 }
+
+/** The laptop screen's height is that monitor's: everything on it at this scale. */
+const REAL_SCALE = LAPTOP_SCREEN.height / REAL_SCREEN.height
+
+/**
+ * How far (window pixels) the shelf is tucked under the bezel on the edge it is docked to. Edge to edge,
+ * the bezel's and the shelf's edges each cover part of the same row of pixels wherever that falls between
+ * pixels (any display scale but 100% and 200%, or mid camera move), and the wallpaper behind showed
+ * through between them as a line. Tucked under, the bezel's edge always lies over the shelf's black.
+ * The closed bar is that much thicker (realHotZoneWidth), so what shows of it is its real thickness.
+ */
+const TUCK = 1
+
+/**
+ * The shelf layer, laid out as that monitor, on the laptop's screen: its top on the screen's top, and its
+ * side on the screen's side for a side edge (the monitor is a touch narrower than the laptop's wide
+ * screen), its middle on the screen's middle for the top; tucked under the bezel on its edge (TUCK). It
+ * scales from the middle of its top edge (see .ob-shelf).
+ */
+export function realScreenTransform(dock: StickPosition): string {
+  const k = REAL_SCALE
+  const half = REAL_SCREEN.width / 2
+  const x =
+    dock === 'left'
+      ? LAPTOP_SCREEN.left - TUCK - half * (1 - k)
+      : dock === 'right'
+        ? LAPTOP_SCREEN.left + LAPTOP_SCREEN.width + TUCK - half * (1 + k)
+        : LAPTOP_SCREEN.left + LAPTOP_SCREEN.width / 2 - half
+  const y = LAPTOP_SCREEN.top - (dock === 'top' ? TUCK : 0)
+  return `translate(${x}px, ${y}px) scale(${k})`
+}
+
+/** The closed bar's thickness laid out on that monitor, with the part tucked under the bezel added. */
+export const realHotZoneWidth = (hotZoneWidth: number) => hotZoneWidth + TUCK / REAL_SCALE
+
+/**
+ * Where a side edge's shelf sits on that monitor (Panel lays it out from the window's height: its height
+ * and its middle, from panelHeight and verticalOffset, are given to .ob-shelf.is-real here instead).
+ */
+export function realSidePanel(panelHeight: number, verticalOffset: number): { height: number; middle: number } {
+  const height = panelHeight * REAL_SCREEN.height
+  return { height, middle: height / 2 + verticalOffset * (REAL_SCREEN.height - height) }
+}
+
+/**
+ * The tour's trigger zone length for a side edge laid out as that monitor: Panel takes it as a share of
+ * the window's height, the window being shorter than the monitor (`windowHeight`).
+ */
+export const realSideHotZone = (hotZoneHeight: number, windowHeight: number) =>
+  Math.min(1, (hotZoneHeight * REAL_SCREEN.height) / windowHeight)
+
 /** Length of the top dock's bar (Panel: triggerWidthPx). */
 export function topBarLength(hotZoneHeight: number): number {
   return hotZoneHeight >= 0.55 ? 575 : hotZoneHeight >= 0.35 ? 400 : 275
 }
 
-function radius(pos: StickPosition, corner: number): string {
-  if (pos === 'top') return `0 0 ${corner}px ${corner}px / 0 0 100% 100%`
-  if (pos === 'left') return `0 100% 100% 0 / 0 ${corner}px ${corner}px 0`
-  return `100% 0 0 100% / ${corner}px 0 0 ${corner}px`
-}
+/** The top bar's tapered ends (Panel's closed blade clip). */
+const topRadius = (corner: number) => `0 0 ${corner}px ${corner}px / 0 0 100% 100%`
 
-type BarSettings = Pick<Settings, 'hotZoneHeight' | 'hotZoneWidth'> & Partial<Pick<Settings, 'panelHeight' | 'verticalOffset'>>
+type BarSettings = Pick<Settings, 'hotZoneHeight' | 'hotZoneWidth'>
 
 /**
  * The bar on the laptop's top edge in the welcome frame, sized so that after
@@ -71,7 +125,7 @@ export function tourBar(s: BarSettings): CSSProperties {
     top: LAPTOP_SCREEN.top,
     width: length,
     height: (s.hotZoneWidth || 3) * k,
-    borderRadius: radius('top', 24 * k)
+    borderRadius: topRadius(24 * k)
   }
 }
 
@@ -83,36 +137,5 @@ export function toShelfLayer(r: { left: number; top: number; width: number; heig
     y: (r.top - TOUR_SCREEN_TOP) / SHELF_SCALE,
     width: r.width / SHELF_SCALE,
     height: r.height / SHELF_SCALE
-  }
-}
-
-/** The bar on the laptop's screen: the user's screen scaled down to the frame. */
-export function laptopBar(pos: StickPosition, s: BarSettings): CSSProperties {
-  const screenW = window.screen?.width || 1920
-  const screenH = window.screen?.height || 1080
-  const k = LAPTOP_SCREEN.width / screenW
-  // Scaled 1:1 the bar would be ~1px thick; keep it visible.
-  const thick = Math.max(2, Math.round((s.hotZoneWidth || 3) * k * 1.4))
-  const corner = 24 * k
-  if (pos === 'top') {
-    const length = topBarLength(s.hotZoneHeight) * k
-    return {
-      left: LAPTOP_SCREEN.left + LAPTOP_SCREEN.width / 2 - length / 2,
-      top: LAPTOP_SCREEN.top,
-      width: length,
-      height: thick,
-      borderRadius: radius('top', corner)
-    }
-  }
-  // Side docks: the bar is centred on the shelf's middle, as in Panel.
-  const length = screenH * s.hotZoneHeight * k
-  const panelH = (s.panelHeight || 0.6) * LAPTOP_SCREEN.height
-  const mid = panelH / 2 + (s.verticalOffset ?? 0.5) * (LAPTOP_SCREEN.height - panelH)
-  return {
-    left: pos === 'left' ? LAPTOP_SCREEN.left : LAPTOP_SCREEN.left + LAPTOP_SCREEN.width - thick,
-    top: LAPTOP_SCREEN.top + mid - length / 2,
-    width: thick,
-    height: length,
-    borderRadius: radius(pos, corner)
   }
 }
