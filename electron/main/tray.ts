@@ -14,6 +14,7 @@ import { loadSettings, saveSettings } from '../store/settings'
 import { getMainWindow, setVisible, repositionWindow, getDisplayListOptions, registerWindowRepositionListener, popUpAndRetract } from './window'
 import type { StickPosition } from '../../shared/types'
 import { pushState } from './state'
+import { createOnboardingWindow } from './onboardingWindow'
 import { en } from '../../src/i18n/translations'
 import { mainT, resolveLang } from './i18n'
 
@@ -191,6 +192,14 @@ function getTrayText(settingsLang: string | undefined, key: keyof typeof en['tra
           setVisible(true)
           getMainWindow()?.focus()
           pushState.openSettings()
+        }
+      },
+      {
+        label: t('tour'),
+        click: () => {
+          console.log('[Main] Context menu "Replay Welcome Tour" clicked')
+          // the same window as the first run, from the start; it saves only what the user changes in it
+          createOnboardingWindow()
         }
       },
       { type: 'separator' },
