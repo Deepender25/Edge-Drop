@@ -374,6 +374,13 @@ rect.dashed-outline-shape {
   transform: scale(0.97);
   transition-duration: 200ms;
 }
+/* Taken in: the zone fades as the new card comes up under it (Panel unmounts it once faded,
+   ACCEPT_FADE_MS). A CSS transition over framer-motion's inline opacity (hence !important): framer's
+   own fade showed the zone at full opacity for a frame as it finished, a flash after the drop. */
+.drop-overlay.is-accepted {
+  opacity: 0 !important;
+  transition: opacity 280ms cubic-bezier(0.45, 0, 0.25, 1);
+}
 .drop-icon {
   flex-shrink: 0;
   display: grid;
@@ -542,6 +549,7 @@ rect.dashed-outline-shape {
   animation-name: pin-glow-plain;
 }
 
+[data-motion='reduce'] .drop-overlay.is-accepted,
 [data-motion='reduce'] .drop-overlay::before,
 [data-motion='reduce'] .drop-well,
 [data-motion='reduce'] .drop-icon,

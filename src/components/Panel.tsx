@@ -770,6 +770,9 @@ function PinGlow({ isHorizontal }: { isHorizontal: boolean }) {
   return <div key={glow.at} className={`pin-glow from-${from}`} aria-hidden="true" />
 }
 
+/** How long the drop zone takes to fade once something is dropped on it. */
+const ACCEPT_FADE_MS = 280
+
 function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
   const { t } = useTranslation()
   const open = useStore((s) => s.open)
@@ -799,6 +802,13 @@ function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
     return () => window.clearTimeout(timer)
   }, [open, incoming, held, accepted])
   const visible = held || (open && incoming)
+  // A drag that opens the shelf opens it straight into the zone: no fade-in then, or the cards showed
+  // under the fading zone for a moment, a flicker between the two. Onto an open shelf it fades in.
+  const wasOpen = useRef(open)
+  const intoZone = open && !wasOpen.current
+  useEffect(() => {
+    wasOpen.current = open
+  }, [open])
 
   useEffect(() => {
     if (!visible) return
@@ -808,9 +818,12 @@ function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
     document.addEventListener('drop', onDrop, true)
     return () => document.removeEventListener('drop', onDrop, true)
   }, [visible])
+  // The drop: the zone fades at once, taking it in as it goes (is-accepted: the well draws in, the arrow
+  // drops, the zone fades in CSS, panel.css), so the new card comes up under it; it is unmounted only once
+  // it has faded. It used to hold for 240ms first, an empty zone after the drop that then cut to the cards.
   useEffect(() => {
     if (!accepted) return
-    const timer = window.setTimeout(() => setAccepted(false), reduceMotion ? 0 : 240)
+    const timer = window.setTimeout(() => setAccepted(false), reduceMotion ? 0 : ACCEPT_FADE_MS + 40)
     return () => window.clearTimeout(timer)
   }, [accepted, reduceMotion])
 
@@ -820,10 +833,10 @@ function DropOverlay({ isHorizontal }: { isHorizontal: boolean }) {
         <motion.div
           key="drop-overlay"
           className={`drop-overlay${isHorizontal ? ' is-horizontal' : ''}${over ? ' is-over' : ''}${accepted ? ' is-accepted' : ''}`}
-          initial={{ opacity: 0 }}
+          initial={{ opacity: intoZone ? 1 : 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0.01 : accepted ? 0.2 : 0.14, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: reduceMotion ? 0.01 : 0.14, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="drop-well">
             <DashedOutline radius={16} />
