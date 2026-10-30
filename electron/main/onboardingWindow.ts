@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { saveSettings, loadSettings, pushState } from './state'
+import { ONBOARDING_VERSION } from '../../shared/onboarding'
 
 let onboardingWindow: BrowserWindow | null = null
 
@@ -49,10 +50,10 @@ export function createOnboardingWindow(): void {
 
   onboardingWindow.on('closed', () => {
     onboardingWindow = null
-    // If closed, consider tutorial completed
+    // If closed, consider tutorial completed: this tour, so updates don't show it again (shared/onboarding.ts)
     const settings = loadSettings()
-    if (!settings.tutorialCompleted) {
-      const next = saveSettings({ tutorialCompleted: true })
+    if (!settings.tutorialCompleted || (settings.onboardingVersion ?? 0) < ONBOARDING_VERSION) {
+      const next = saveSettings({ tutorialCompleted: true, onboardingVersion: ONBOARDING_VERSION })
       pushState.settings(next)
     }
   })

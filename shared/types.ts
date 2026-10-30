@@ -176,6 +176,8 @@ export interface Settings {
   uiStyle: 'modern' | 'compact'
   /** Flag to track if the onboarding tutorial is completed. */
   tutorialCompleted: boolean
+  /** The welcome tour version the user has finished (shared/onboarding.ts); absent before 0.4.0. */
+  onboardingVersion?: number
   stickPosition: StickPosition
   stickDisplayId?: number
   /**
@@ -253,6 +255,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoDeleteHours: 0,
   uiStyle: 'modern',
   tutorialCompleted: false,
+  onboardingVersion: undefined,
   stickPosition: 'left',
   stickDisplayId: undefined,
   stickDisplayWorkArea: undefined,

@@ -21,6 +21,7 @@ import { edge } from './lib/edge'
 import { applyReduceMotion } from './lib/theme'
 import { useTranslation } from './i18n'
 import { DEFAULT_SETTINGS, type Settings, type StickPosition } from '../shared/types'
+import { ONBOARDING_VERSION } from '../shared/onboarding'
 import { PEN_PATH, PEN_TRANSFORM, PEN_WIDTH, GLASS_BOX, SHADOW_BOX, BLUR_BOX, penProgress } from './onboarding/lettering'
 import { CHOICE_VIEW, DEMOS, PREVIEW_PAN, Run, STOP, demoEdges, itemsFor, playLooped, resetDemoState, showEdge, watchActivity, type Stage } from './onboarding/tour'
 import { realScreenTransform, realSidePanel, tourBar, shelfTransform, topBarLength, SHELF_SCALE, TOUR_SCREEN_TOP } from './onboarding/edgeBar'
@@ -174,8 +175,9 @@ export function Onboarding() {
       .catch((e) => { if (e !== STOP) console.error(e) })
   }
 
-  // The tour's own store: the user's settings (language, motion, accent), the
-  // shelf docked at the top for the demo, and no items of the user's.
+  // The tour's own store: the user's settings (motion, accent) in the device's own
+  // language, the shelf docked at the top for the demo, and no items of the user's.
+  // The language is the tour's alone: the user's saved choice is never changed by it.
   useEffect(() => {
     let cancelled = false
     // Marks the page for shelf parts portaled outside the tour's scaled layer (see .ob-tour).
@@ -192,6 +194,7 @@ export function Onboarding() {
       useStore.setState({
         settings: {
           ...settings,
+          language: 'system',
           stickPosition: 'top',
           triggerAlignment: 'center',
           horizontalOffset: DEFAULT_SETTINGS.horizontalOffset,
@@ -323,7 +326,7 @@ export function Onboarding() {
 
   const finish = async () => {
     runRef.current?.cancel()
-    await edge.updateSettings({ tutorialCompleted: true })
+    await edge.updateSettings({ tutorialCompleted: true, onboardingVersion: ONBOARDING_VERSION })
     window.close()
   }
 

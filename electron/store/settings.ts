@@ -50,6 +50,8 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
   // persisted skip from older builds is self-healed away on load. This also
   // un-sticks anyone whose prompt went permanently silent.
   out.skippedUpdateVersion = undefined
+  // a hand-edited or odd value never hides the tour or shows it forever
+  if (typeof out.onboardingVersion !== 'number' || !Number.isFinite(out.onboardingVersion)) out.onboardingVersion = undefined
   return out
 }
 

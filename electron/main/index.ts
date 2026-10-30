@@ -18,9 +18,10 @@ import { reconcileLaunchAtLoginOnStartup } from './loginItems'
 import { isStoreBuild, shouldStartHidden } from './config'
 import { prewarmDragIcons, setFileNameWords } from './drag'
 import { mainT } from './i18n'
-import { initState, getWatcher, loadSettings, saveSettings, pushState, stopStateTimers, getStore } from './state'
+import { initState, getWatcher, loadSettings, pushState, stopStateTimers, getStore } from './state'
 import { initAutoUpdater } from './updater'
 import { createOnboardingWindow } from './onboardingWindow'
+import { onboardingDue } from '../../shared/onboarding'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
 import { flushStagedTempRegistry } from './stagedTemp'
 import { extname, join, normalize } from 'node:path'
@@ -47,6 +48,9 @@ app.enableSandbox()
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512 --expose-gc')
 
 // ---- single instance -------------------------------------------------------
+/** After an update, a silent start at login shows the new tour this long after launch (see onboardingDue). */
+const UPDATE_TOUR_DELAY_AT_LOGIN_MS = 15_000
+
 const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) {
   app.quit()
@@ -124,19 +128,23 @@ app.whenReady().then(() => {
   prewarmDragIcons(isInteractive)
 
   // Reflect settings immediately.
-  let settings = loadSettings()
+  const settings = loadSettings()
   const hiddenLaunch = shouldStartHidden()
   if (hiddenLaunch) {
     console.log('[Main] Login launch detected (--hidden / wasOpenedAtLogin) — starting silently in tray')
   }
-  if (!settings.tutorialCompleted && !hiddenLaunch) {
-    // When onboarding is active (initial launch or reset tutorial), reset language to system default so onboarding always begins in System Default
-    if (settings.language !== 'system') {
-      settings = saveSettings({ language: 'system' })
-    }
+  const tour = onboardingDue(settings)
+  // The tour plays in the device's own language (Onboarding.tsx); the saved language is left as it is.
+  if (tour === 'first-run' && !hiddenLaunch) {
     setTimeout(() => {
       createOnboardingWindow()
     }, 2000)
+  } else if (tour === 'update') {
+    // Someone who finished an older tour sees this one once. Also on a silent start at login (many
+    // only ever start Edge-Drop that way), later, once Windows has settled.
+    setTimeout(() => {
+      createOnboardingWindow()
+    }, hiddenLaunch ? UPDATE_TOUR_DELAY_AT_LOGIN_MS : 2000)
   }
   setHotZoneWidth(settings.hotZoneWidth || 3)
   // files the app writes (drag-out, paste into Explorer, Save to Downloads) are named in the user's language
