@@ -932,8 +932,8 @@ export function createWindow(): BrowserWindow {
     applyNoActivateStyle(mainWindow, true)
   })
 
-  mainWindow.webContents.on('console-message', (_event, _level, message, line, sourceId) => {
-    console.log(`[Renderer] ${message} (${sourceId}:${line})`)
+  mainWindow.webContents.on('console-message', ({ message, lineNumber, sourceId }) => {
+    console.log(`[Renderer] ${message} (${sourceId}:${lineNumber})`)
   })
 
   mainWindow.on('close', (e) => {

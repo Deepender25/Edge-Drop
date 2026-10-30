@@ -53,15 +53,16 @@ vi.mock('node:child_process', () => ({
   }
 }))
 
+vi.mock('../electron/clipboard/osClipboard', () => ({
+  availableFormats: () => ['FileNameW', 'CF_HDROP'],
+  readBuffer: (format: string) =>
+    format === 'FileNameW' && win.paths.length ? Buffer.from(`${win.paths[0]}\0`, 'utf16le') : Buffer.alloc(0),
+  readText: () => '',
+  readHTML: () => '',
+  readImage: () => ({ isEmpty: () => true, getSize: () => ({ width: 0, height: 0 }) })
+}))
+
 vi.mock('electron', () => ({
-  clipboard: {
-    availableFormats: () => ['FileNameW', 'CF_HDROP'],
-    readBuffer: (format: string) =>
-      format === 'FileNameW' && win.paths.length ? Buffer.from(`${win.paths[0]}\0`, 'utf16le') : Buffer.alloc(0),
-    readText: () => '',
-    readHTML: () => '',
-    readImage: () => ({ isEmpty: () => true, getSize: () => ({ width: 0, height: 0 }) })
-  },
   app: { isPackaged: false, getAppPath: () => 'C:\\mock', getPath: () => 'C:\\mock' }
 }))
 

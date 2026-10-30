@@ -1,17 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { writeImageToClipboard } from '../electron/main/ipc'
-import { clipboard, nativeImage } from 'electron'
+import { nativeImage } from 'electron'
+import * as clipboard from '../electron/clipboard/osClipboard'
 
-vi.mock('electron', () => {
+vi.mock('../electron/clipboard/osClipboard', () => {
   let mockClipboardImage: any = null
   return {
-    clipboard: {
-      clear: vi.fn(),
-      writeImage: vi.fn((img) => {
-        mockClipboardImage = img
-      }),
-      readImage: vi.fn(() => mockClipboardImage)
-    },
+    clear: vi.fn(),
+    writeImage: vi.fn(async (img) => {
+      mockClipboardImage = img
+    }),
+    readImage: vi.fn(async () => mockClipboardImage)
+  }
+})
+
+vi.mock('electron', () => {
+  return {
     nativeImage: {
       createFromPath: vi.fn((path: string) => {
         if (path.includes('valid.png')) {

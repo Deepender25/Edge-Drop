@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { formatTabularDataForClipboard, readClipboard } from '../electron/clipboard/formats'
-import { clipboard } from 'electron'
+import * as clipboard from '../electron/clipboard/osClipboard'
 
-// Mock Electron clipboard
-vi.mock('electron', () => {
+// Mock the system clipboard
+vi.mock('../electron/clipboard/osClipboard', () => {
   let mockFormats: string[] = []
   let mockText = ''
   let mockHtml = ''
@@ -15,27 +15,25 @@ vi.mock('electron', () => {
   }
 
   return {
-    clipboard: {
-      availableFormats: vi.fn(() => mockFormats),
-      readText: vi.fn(() => mockText),
-      readHTML: vi.fn(() => mockHtml),
-      readImage: vi.fn(() => mockImage),
-      readBuffer: vi.fn(() => Buffer.alloc(0)),
-      __setMockState: (state: {
-        formats?: string[]
-        text?: string
-        html?: string
-        image?: { isEmpty: () => boolean; getSize: () => { width: number; height: number }; toBitmap: () => Buffer; toPNG: () => Buffer }
-      }) => {
-        mockFormats = state.formats ?? []
-        mockText = state.text ?? ''
-        mockHtml = state.html ?? ''
-        mockImage = state.image ?? {
-          isEmpty: () => true,
-          getSize: () => ({ width: 0, height: 0 }),
-          toBitmap: () => Buffer.alloc(0),
-          toPNG: () => Buffer.alloc(0)
-        }
+    availableFormats: vi.fn(() => mockFormats),
+    readText: vi.fn(() => mockText),
+    readHTML: vi.fn(() => mockHtml),
+    readImage: vi.fn(() => mockImage),
+    readBuffer: vi.fn(() => Buffer.alloc(0)),
+    __setMockState: (state: {
+      formats?: string[]
+      text?: string
+      html?: string
+      image?: { isEmpty: () => boolean; getSize: () => { width: number; height: number }; toBitmap: () => Buffer; toPNG: () => Buffer }
+    }) => {
+      mockFormats = state.formats ?? []
+      mockText = state.text ?? ''
+      mockHtml = state.html ?? ''
+      mockImage = state.image ?? {
+        isEmpty: () => true,
+        getSize: () => ({ width: 0, height: 0 }),
+        toBitmap: () => Buffer.alloc(0),
+        toPNG: () => Buffer.alloc(0)
       }
     }
   }

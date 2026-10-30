@@ -16,7 +16,7 @@
  *      later and would otherwise look like a second copy.
  * A slow interval remains as a fallback if the OS message is missed.
  */
-import { clipboard } from 'electron'
+import { readImage } from './osClipboard'
 import { createId } from '../store/ids'
 import {
   readClipboard,
@@ -50,6 +50,8 @@ export class ClipboardWatcher {
   private lastCapturedAt = 0
   private paused = false
   private reading = false
+  /** A content-signature comparison is in flight (only where Windows gives no sequence number). */
+  private signing = false
   private incompleteTries = 0
   private readonly intervalMs: number
   private readonly settleMs: number
@@ -72,10 +74,27 @@ export class ClipboardWatcher {
     this.onHint = onHint ?? null
     // Seed the signature so we don't re-fire for whatever is already on the
     // clipboard at startup (the user didn't "just" copy it).
-    this.lastSeq = getClipboardSequenceNumber()
-    this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
+    this.seed()
 
     this.timer = setInterval(() => this.pollTick(), this.intervalMs)
+  }
+
+  /**
+   * Take the clipboard as it is now as already seen: its sequence number, or,
+   * where Windows gives none, its content signature (read asynchronously).
+   */
+  private seed(): void {
+    this.lastSeq = getClipboardSequenceNumber()
+    if (this.lastSeq > 0) {
+      this.lastSig = `seq:${this.lastSeq}`
+      return
+    }
+    void Promise.resolve(clipboardSignature()).then(
+      (sig) => {
+        this.lastSig = sig
+      },
+      () => {}
+    )
   }
 
   /** Run one poll immediately (WM_CLIPBOARDUPDATE). Safe if not started. */
@@ -125,12 +144,27 @@ export class ClipboardWatcher {
     if (seq > 0) {
       if (seq === this.lastSeq) return
       this.lastSeq = seq
-    } else {
-      const sig = clipboardSignature()
-      if (sig === this.lastSig) return
-      this.lastSig = sig
+      this.changed()
+      return
     }
+    // No sequence number: compare content signatures, one read at a time.
+    if (this.signing) return
+    this.signing = true
+    void Promise.resolve(clipboardSignature()).then(
+      (sig) => {
+        this.signing = false
+        if (sig === this.lastSig || this.paused || !this.onNew || this.reading) return
+        this.lastSig = sig
+        this.changed()
+      },
+      () => {
+        this.signing = false
+      }
+    )
+  }
 
+  /** The clipboard changed: absorb Explorer's late formats, or (re)start the settle window. */
+  private changed(): void {
     const now = Date.now()
     if (this.absorbLateExplorerFormats(now)) {
       this.lastCapturedAt = now
@@ -165,8 +199,7 @@ export class ClipboardWatcher {
     try {
       const data = await readClipboard()
       // Absorb sequence bumps caused by our own OpenClipboard / format requests.
-      this.lastSeq = getClipboardSequenceNumber()
-      this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
+      this.seed()
       if (!data) {
         if (this.incompleteTries < MAX_INCOMPLETE_RETRIES) {
           this.incompleteTries++
@@ -182,7 +215,7 @@ export class ClipboardWatcher {
 
       let png: Buffer | undefined
       if (data.kind === 'image') {
-        const img = clipboard.readImage()
+        const img = await readImage()
         png = img.toPNG()
         data.imageId = createId()
         data.bytes = png.length
@@ -235,10 +268,7 @@ export class ClipboardWatcher {
     }
     // When resuming, refresh the signature so we ignore whatever was copied
     // during the paused state (e.g. self-copies or incognito copies).
-    if (!paused) {
-      this.lastSeq = getClipboardSequenceNumber()
-      this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
-    }
+    if (!paused) this.seed()
   }
 
   /**
@@ -269,8 +299,7 @@ export class ClipboardWatcher {
       this.settleTimer = null
     }
     this.incompleteTries = 0
-    this.lastSeq = getClipboardSequenceNumber()
-    this.lastSig = this.lastSeq > 0 ? `seq:${this.lastSeq}` : clipboardSignature()
+    this.seed()
   }
 
   /**

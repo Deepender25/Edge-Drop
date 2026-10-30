@@ -5,7 +5,7 @@
  * renderer calls them through the typed preload bridge, so a signature mismatch
  * is a compile-time error rather than a runtime one.
  */
-import { app, ipcMain, clipboard, nativeImage, shell, net } from 'electron'
+import { app, ipcMain, nativeImage, shell, net } from 'electron'
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
@@ -22,6 +22,7 @@ import { mainT } from './i18n'
 import { startDragOut, resolveDragData, prestageDrag, stageDragFile, formatClipboardImageFilename } from './drag'
 import { setOwnDragActive } from './externalDrag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
+import * as clipboard from '../clipboard/osClipboard'
 import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
@@ -49,12 +50,12 @@ export const COPY_TEXT_MAX = 100_000
  * clipboard; deleting an old history entry that the user has since replaced
  * must never wipe their current clipboard contents.
  */
-function clipboardMatchesItem(item: ClipboardItem): boolean {
+function clipboardMatchesItem(item: ClipboardItem, sig: string): boolean {
   const fullText =
     item.data.kind === 'text' && item.data.hasFullPayload
       ? getStore().getFullText(item.id)
       : undefined
-  return signatureMatchesItem(clipboardSignature(), item.data, fullText)
+  return signatureMatchesItem(sig, item.data, fullText)
 }
 
 /** Fire a transient toast to the renderer (best-effort; renderer may be closed). Message is a translation key resolved renderer-side; params fill {placeholders}. */
@@ -118,7 +119,7 @@ async function writeFileListToClipboard(rawPaths: string[]): Promise<boolean> {
   }
   // Non-Windows / PowerShell failure fallback: plain text paths (best-effort)
   clipboard.clear()
-  clipboard.writeText(validPaths.join('\r\n'))
+  await clipboard.writeText(validPaths.join('\r\n'))
   return true
 }
 
@@ -135,7 +136,7 @@ export async function writeImageToClipboard(imagePath: string | null): Promise<b
       const img = nativeImage.createFromPath(imagePath)
       if (!img.isEmpty()) {
         clipboard.clear()
-        clipboard.writeImage(img)
+        await clipboard.writeImage(img)
         return true
       }
     } catch (err) {
@@ -255,7 +256,7 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
-  handle('item:copy-text', (text) => {
+  handle('item:copy-text', async (text) => {
     if (typeof text !== 'string' || text.length === 0 || text.length > COPY_TEXT_MAX) return false
     // Same rule as emoji:paste: a derived copy (clean link, color format,
     // file path) is a tool action, not a capture, so it never becomes a new
@@ -265,7 +266,7 @@ export function registerIpc(): void {
     watcher.setPaused(true)
     try {
       clipboard.clear()
-      clipboard.writeText(text)
+      await clipboard.writeText(text)
       return true
     } catch (err) {
       console.error('[IPC] item:copy-text failed:', err)
@@ -303,7 +304,7 @@ export function registerIpc(): void {
     return saved.map((p) => basename(p))
   })
 
-  handle('item:delete', (id) => {
+  handle('item:delete', async (id) => {
     const item = getStore().get(id)
     const watcher = getWatcher()
     // Pause first: an in-flight settle timer from the copy that created this
@@ -316,7 +317,7 @@ export function registerIpc(): void {
       // under a live OS clipboard reference, and (b) resyncSignature() below
       // locks onto an EMPTY clipboard, making an immediate re-copy of the same
       // content a detectable change instead of an invisible no-op.
-      if (item && clipboardMatchesItem(item)) {
+      if (item && clipboardMatchesItem(item, await clipboardSignature())) {
         clipboard.clear()
       }
       getStore().delete(id)
@@ -328,13 +329,14 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
-  handle('item:delete-batch', (ids) => {
+  handle('item:delete-batch', async (ids) => {
     if (!ids || ids.length === 0) return getStore().toDto()
     const items = ids.map((id) => getStore().get(id)).filter((item): item is ClipboardItem => !!item)
     const watcher = getWatcher()
     watcher.setPaused(true)
     try {
-      if (items.some((item) => clipboardMatchesItem(item))) {
+      const sig = items.length ? await clipboardSignature() : ''
+      if (items.some((item) => clipboardMatchesItem(item, sig))) {
         clipboard.clear()
       }
       getStore().deleteBatch(ids)
@@ -619,7 +621,7 @@ export function registerIpc(): void {
       // seen as a new capture when the watcher resumes. A later copy of the
       // same emoji from another app still lands: signatures include the Win32
       // sequence number, so an outside Ctrl+C is a new seq and is recorded.
-      clipboard.writeText(text.trim())
+      await clipboard.writeText(text.trim())
       const emojiSendDelay = await resolvePasteTarget(40)
       if (emojiSendDelay < 0) {
         toast('toast.pasteFallback', 'info')
@@ -961,7 +963,7 @@ export async function writeItemToClipboard(data: ItemData, capturedAt?: number, 
       const formatted = formatTabularDataForClipboard(data.text, data.html)
       clipboard.clear()
       // Plain: the same CRLF text, but no html (fonts, colors, tables).
-      clipboard.write(opts?.plain ? { text: formatted.text } : { text: formatted.text, html: formatted.html })
+      await clipboard.write(opts?.plain ? { text: formatted.text } : { text: formatted.text, html: formatted.html })
       return true
     }
 

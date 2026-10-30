@@ -6,7 +6,8 @@
  * priority is: files > image > html(rich) > text. We also pull a few "rich"
  * variants out of raw Windows formats (copied files arrive as FileNameW).
  */
-import { clipboard } from 'electron'
+import type { NativeImage } from 'electron'
+import * as clipboard from './osClipboard'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { existsSync } from 'node:fs'
@@ -256,7 +257,7 @@ function clipboardAdvertisesFileList(): boolean {
 }
 
 /**
- * Build a `FileNameW` buffer suitable for `clipboard.writeBuffer()`.
+ * Build a `FileNameW` clipboard buffer.
  *
  * This is the reverse of `readFileList()`: UTF-16LE paths separated by NUL
  * chars, terminated with a double NUL. Writing this format lets the Windows
@@ -605,7 +606,7 @@ export async function readClipboard(): Promise<ItemData | null> {
 
   let rawHtml = ''
   if (!heavyTable) {
-    rawHtml = clipboard.readHTML()
+    rawHtml = await clipboard.readHTML()
   }
   const trimmedHtml = rawHtml.trim()
 
@@ -613,9 +614,9 @@ export async function readClipboard(): Promise<ItemData | null> {
   if (localFromHtml) return { kind: 'files', paths: [localFromHtml] }
 
   let hasImage = false
-  let img: ReturnType<typeof clipboard.readImage> | null = null
+  let img: NativeImage | null = null
   if (!skipBitmap) {
-    img = clipboard.readImage()
+    img = await clipboard.readImage()
     hasImage = !img.isEmpty()
   }
 
@@ -682,7 +683,7 @@ export async function readClipboard(): Promise<ItemData | null> {
  *   - Unique: different images with the same resolution produce different pixel
  *             values in practice, so collisions are astronomically unlikely
  */
-export function clipboardSignature(): string {
+export async function clipboardSignature(): Promise<string> {
   const seq = getClipboardSequenceNumber()
   const seqPrefix = seq > 0 ? `seq:${seq}:` : ''
 
@@ -704,10 +705,10 @@ export function clipboardSignature(): string {
     return `${seqPrefix}text:${normalizeClipboardText(rawUntrimmed)}`
   }
 
-  const img = clipboard.readImage()
+  const img = await clipboard.readImage()
   const hasImage = !img.isEmpty()
   const rawText = rawUntrimmed.trim()
-  const rawHtml = clipboard.readHTML().trim()
+  const rawHtml = (await clipboard.readHTML()).trim()
 
   if (isScreenshotOrImageIntent(hasImage, rawText, rawHtml)) {
     const size = img.getSize()
