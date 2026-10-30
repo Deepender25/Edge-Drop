@@ -59,6 +59,12 @@
   content-visibility: auto;
   contain-intrinsic-size: auto 96px;
 }
+/* Cards in or near the list's view (ItemList marks them, measured against
+   the list, not the window) are always drawn, so opening the shelf never
+   shows them empty while its clip is still growing. */
+.list-stack .item[data-near] {
+  content-visibility: visible;
+}
 
 .list-stack .item.is-expanded {
   content-visibility: visible !important;

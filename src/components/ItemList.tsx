@@ -451,6 +451,42 @@ export function ItemList() {
     el.animate([{ opacity: 0.45 }, { opacity: 1 }], { duration: 120, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' })
   }, [filterKey, hasStack])
 
+  // Cards in or near the list's view are marked data-near and always drawn
+  // (item.css); the rest stay culled by content-visibility: auto. Left to
+  // content-visibility alone, the top dock painted its cards as empty boxes
+  // on every open until the open motion (the blade's clip-path growing from
+  // the edge bar) ended, about 5 frames; drawing them fully removes that. This
+  // observer measures against the list itself, which the clip does not touch,
+  // so the cards in view stay drawn while the shelf is closed.
+  useEffect(() => {
+    const list = listRef.current
+    const stack = stackRef.current
+    if (!list || !stack || typeof IntersectionObserver !== 'function') return
+    const near = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) e.target.setAttribute('data-near', '')
+          else e.target.removeAttribute('data-near')
+        }
+      },
+      // one view either side, along the list's own direction
+      { root: list, rootMargin: isHorizontal ? '0px 100% 0px 100%' : '100% 0px 100% 0px' }
+    )
+    const watched = new Set<Element>()
+    const sync = () => {
+      const cards = new Set(stack.querySelectorAll('.item'))
+      for (const card of cards) if (!watched.has(card)) { near.observe(card); watched.add(card) }
+      for (const card of watched) if (!cards.has(card)) { near.unobserve(card); watched.delete(card) }
+    }
+    sync()
+    const added = new MutationObserver(sync)
+    added.observe(stack, { childList: true, subtree: true })
+    return () => {
+      added.disconnect()
+      near.disconnect()
+    }
+  }, [hasStack, isHorizontal])
+
   return (
     <div
       className={`list${isHorizontal ? ' horizontal' : ''}`}
