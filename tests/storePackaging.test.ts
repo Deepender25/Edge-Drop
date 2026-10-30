@@ -116,24 +116,28 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(publicFiles.filter((name) => name.endsWith('.webm'))).toEqual([])
     const readmeDir = join(root, '.github/readme')
     for (const name of [
-      'Logo.gif',
+      'banner.gif',
       'open.gif',
-      'browser-demo.gif',
-      'paste.gif',
-      'file-stacks-demo.gif',
-      'ungroup.gif',
-      'stack.gif',
+      'positions.gif',
+      'copy.gif',
+      'drag-in-out.gif',
+      'stacks.gif',
       'preview.gif',
+      'notes-search.gif',
       'kofi-qr.png',
       'upi-sponsor-qr.png'
     ]) {
       expect(existsSync(join(readmeDir, name))).toBe(true)
     }
     const readme = read('README.md')
-    expect(readme).toContain('.github/readme/Logo.gif')
+    expect(readme).toContain('.github/readme/banner.gif')
     expect(readme).toContain('.github/readme/open.gif')
     expect(readme).toContain('.github/readme/kofi-qr.png')
     expect(readme).toContain('.github/readme/upi-sponsor-qr.png')
+    // every image the README shows from the repo is there
+    const local = [...readme.matchAll(/src="(\.github\/readme\/[^"]+)"/g)].map((m) => m[1])
+    expect(local.length).toBeGreaterThan(10)
+    expect(local.filter((path) => !existsSync(join(root, path)))).toEqual([])
     expect(readme).not.toMatch(/src="public\/[^"]+\.(gif|png)"/)
     expect(readme).not.toContain('/main/public/')
   })
