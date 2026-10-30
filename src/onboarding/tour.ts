@@ -340,9 +340,10 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 /**
  * Something dragged in from another app, from `from` to the edge: as it nears the edge the bar swells (the
  * app's own pull, in steps), at the bar the shelf opens into its drop zone, over the shelf the zone
- * lights, and it is dropped. `pace` scales the glide (a short trip from near the edge is quicker).
+ * lights, and it is dropped: `landed` adds its card then, so it comes up under the zone as the zone fades.
+ * `pace` scales the glide (a short trip from near the edge is quicker).
  */
-async function dropAtEdge(run: Run, p: Pointer, g: AppGhost, from: { x: number; y: number }, pace = 1) {
+async function dropAtEdge(run: Run, p: Pointer, g: AppGhost, from: { x: number; y: number }, landed: () => void, pace = 1) {
   const bar = { x: 400, y: TOUR_SCREEN_TOP + 6 }
   const legs: Array<[number, number, string, number]> = [
     [0.4, 420, 'cubic-bezier(.45,0,1,1)', 0.3],
@@ -367,6 +368,7 @@ async function dropAtEdge(run: Run, p: Pointer, g: AppGhost, from: { x: number; 
   g.drop()
   document.dispatchEvent(new Event('drop'))
   set({ externalDrag: false, dragActive: false })
+  landed()
   setEdgeDragPull(0)
   await run.sleep(260)
 }
@@ -571,8 +573,10 @@ export async function demoDropIn(run: Run, stage: Stage) {
   await p.move(site.x + 6, site.y + 8, 120)
   set({ externalDrag: true })
   const link = new AppGhost(run, stage, linkGhost(), { x: site.x + 6, y: site.y + 8 })
-  await dropAtEdge(run, p, link, { x: site.x + 6, y: site.y + 8 }, 0.75)
-  capture(demoLink(Date.now()))
+  // the camera glides over to the bar with the link, so the shelf opens in the middle of the frame (it was
+  // still on the address bar, off to the left, and the open shelf ran out past the right edge)
+  zoomTo(stage.lens, withEdge(PUSH, 400), 900, MOVE)
+  await dropAtEdge(run, p, link, { x: site.x + 6, y: site.y + 8 }, () => capture(demoLink(Date.now())), 0.75)
   await run.sleep(450)
 
   // 2. the files: off to File Explorer (the shelf folds away as the pointer leaves it)
@@ -616,8 +620,7 @@ export async function demoDropIn(run: Run, stage: Stage) {
   const g = new AppGhost(run, stage, filesGhost(stackFiles().map(([name]) => fileKindOf(name))), { x: c.x + 6, y: c.y + 8 })
   // the camera pulls back as the files ride up, so the bar swelling and the shelf opening are in full view
   zoomRest(stage.lens, 1080, MOVE)
-  await dropAtEdge(run, p, g, { x: c.x + 6, y: c.y + 8 })
-  capture(demoStack(Date.now()))
+  await dropAtEdge(run, p, g, { x: c.x + 6, y: c.y + 8 }, () => capture(demoStack(Date.now())))
   await run.sleep(400)
   rows.forEach((row) => row.classList.remove('is-on'))
   await p.move(560, 380, 500)
