@@ -36,6 +36,10 @@ export default defineConfig({
       // electron-vite leaves the renderer unminified by default; Chromium keeps
       // every loaded script's source in memory, and parses it at startup.
       minify: 'esbuild',
+      // Fonts always ship as files. Vite inlines assets under 4 KB as data: URLs, and the CSP in
+      // index.html (default-src 'self', no data: fonts) refuses those: the small @fontsource subsets
+      // (extended Cyrillic such as Ukrainian Ґ, Vietnamese) never loaded and their letters fell back.
+      assetsInlineLimit: (filePath) => (/\.(woff2?|ttf|otf)$/i.test(filePath) ? false : undefined),
       rollupOptions: {
         input: { index: resolve(__dirname, 'index.html') }
       }
