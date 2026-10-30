@@ -32,6 +32,7 @@
     "files": [
       "out/**/*",
       "!out/renderer/**/*.gif",
+      "!out/ts/**",
       "resources/**/*",
       "!resources/startup/**/*.exe",
       "!resources/startup/**/*.cs",

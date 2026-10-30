@@ -84,6 +84,9 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
   it('does not pack README media, Store tiles, or the full Twemoji npm tree into the asar', () => {
     expect(pkg.build.files).toEqual(expect.arrayContaining([
       '!out/renderer/**/*.gif',
+      // TypeScript writes its own output and caches to out/ts (tsconfig composite outDir); `out/**/*`
+      // shipped that stale copy of the main-process code in every package up to 0.3.3
+      '!out/ts/**',
       '!resources/appx/**',
       '!resources/startup/**/*.cs',
       '!**/node_modules/emoji-datasource-twitter/**',
