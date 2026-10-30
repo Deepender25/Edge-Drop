@@ -10,7 +10,7 @@
  *   - Persist the index to JSON and image bytes to per-item PNG files.
  *   - Convert internal items to the serializable DTO form for the renderer.
  */
-import { existsSync, readFileSync, writeFileSync, rmSync, statSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, rmSync, statSync, readdirSync, openSync, writeSync, fsyncSync, closeSync, renameSync } from 'node:fs'
 import { join, extname, basename as pathBasename } from 'node:path'
 import { nativeImage, safeStorage } from 'electron'
 import { thumbnailUrlForFile, thumbnailUrlForStoredImage } from '../main/imageProtocol'
@@ -36,9 +36,71 @@ function applyNote(it: ClipboardItem, note: string | undefined): void {
   else delete it.note
 }
 
+/**
+ * Replace a file only once its new contents are on disk: written to a side file, flushed, then
+ * swapped in. A crash or power cut mid-save leaves the previous file, never a cut-off or empty one.
+ */
+function writeFileAtomic(file: string, data: string): void {
+  const tmp = `${file}.tmp`
+  const fd = openSync(tmp, 'w')
+  try {
+    writeSync(fd, data, null, 'utf8')
+    fsyncSync(fd)
+  } finally {
+    closeSync(fd)
+  }
+  renameSync(tmp, file)
+}
+
+/** Read a file, retrying briefly while another process (antivirus, backup) holds it. */
+function readFileRetrying(file: string): Buffer {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return readFileSync(file)
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code
+      if (attempt >= 2 || (code !== 'EBUSY' && code !== 'EPERM' && code !== 'EACCES')) throw err
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100)
+    }
+  }
+}
+
 /** Maps a signature -> item id so dedup is O(1). */
 interface Index {
   items: ClipboardItem[]
+}
+
+/**
+ * A saved history file's items: the encrypted (DPAPI) envelope, or the plain JSON of early versions.
+ * `index` is null when the file cannot be read (it will not decrypt, or it is damaged).
+ */
+function readIndex(raw: Buffer): { index: Index | null; encrypted: boolean; plain: boolean } {
+  let parsedJson: any = null
+  try {
+    parsedJson = JSON.parse(raw.toString('utf8').trim())
+  } catch {
+    /* Raw non-JSON payload */
+  }
+  const valid = (index: any): Index | null =>
+    index && Array.isArray(index.items) ? { items: index.items.filter((it: any) => it && it.data && typeof it.id === 'string') } : null
+
+  if (parsedJson && parsedJson.encrypted === true && typeof parsedJson.payload === 'string') {
+    // Encrypted DPAPI Envelope
+    let index: Index | null = null
+    if (safeStorage.isEncryptionAvailable()) {
+      try {
+        index = valid(JSON.parse(safeStorage.decryptString(Buffer.from(parsedJson.payload, 'base64'))))
+      } catch (err) {
+        console.error('[ItemStore] DPAPI decryption failed:', err)
+      }
+    } else {
+      console.warn('[ItemStore] safeStorage unavailable to decrypt items.json')
+    }
+    return { index, encrypted: true, plain: false }
+  }
+  // Plain JSON (Legacy v0.1.1 format from active users)
+  if (parsedJson && Array.isArray(parsedJson.items)) return { index: valid(parsedJson), encrypted: false, plain: true }
+  return { index: null, encrypted: false, plain: false }
 }
 
 /**
@@ -54,6 +116,14 @@ export class ItemStore {
   private sigToId = new Map<string, string>()
   /** Small, bounded thumbnails for renderer DTOs. Original image bytes stay on disk. */
   private previewCache = new Map<string, string>()
+  /**
+   * The saved history could not be read this session and could not be set aside either (the file was
+   * held by another process, or the copy failed). It is never written over: nothing is saved until a
+   * later launch reads it, so a passing failure costs this session's new copies, never the history.
+   */
+  private indexUnreadable = false
+  /** The saved history is encrypted: it is never replaced by a plain copy. */
+  private indexEncrypted = false
 
   constructor(private readonly onRemoved?: ItemsRemovedListener) {}
 
@@ -68,120 +138,161 @@ export class ItemStore {
 
   /** Load persisted state from disk. Called once at startup. */
   load(): void {
+    this.indexUnreadable = false
+    this.indexEncrypted = false
+    this.items = []
+    const file = PATHS.indexFile()
     try {
-      const file = PATHS.indexFile()
-      if (!existsSync(file)) {
-        this.items = []
-        this.rebuildIndex()
-        return
-      }
-
-      const rawBuffer = readFileSync(file)
-      const rawStr = rawBuffer.toString('utf8').trim()
-      let parsedIndex: Index | null = null
-      let needsMigration = false
-
-      let parsedJson: any = null
-      try {
-        parsedJson = JSON.parse(rawStr)
-      } catch {
-        /* Raw non-JSON payload */
-      }
-
-      if (parsedJson && parsedJson.encrypted === true && typeof parsedJson.payload === 'string') {
-        // Encrypted DPAPI Envelope
-        if (safeStorage.isEncryptionAvailable()) {
-          try {
-            const decryptedStr = safeStorage.decryptString(Buffer.from(parsedJson.payload, 'base64'))
-            parsedIndex = JSON.parse(decryptedStr) as Index
-          } catch (err) {
-            console.error('[ItemStore] DPAPI decryption failed:', err)
-          }
-        } else {
-          console.warn('[ItemStore] safeStorage unavailable to decrypt items.json')
-        }
-      } else if (parsedJson && Array.isArray(parsedJson.items)) {
-        // Plain JSON (Legacy v0.1.1 format from active users)
-        parsedIndex = parsedJson as Index
-        needsMigration = true
-      }
-
-      if (parsedIndex && Array.isArray(parsedIndex.items)) {
-        this.items = parsedIndex.items.filter((it) => it && it.data && typeof it.id === 'string')
-
-        // Auto-migrate large text items to disk payload files
-        let migratedAnyPayloads = false
-        for (const it of this.items) {
-          // A hand-edited or damaged file must never feed an odd note to the
-          // renderer: re-run the same cleanup as writes. Items saved with the
-          // old label + tags get them as one note (they were pinned when
-          // named, and stay pinned).
-          const legacy = it as ClipboardItem & { label?: unknown; tags?: unknown }
-          if ('label' in legacy || 'tags' in legacy) {
-            applyNote(it, joinNotes(normalizeNote(it.note), noteFromLegacy(legacy.label, legacy.tags)))
-            delete legacy.label
-            delete legacy.tags
-            migratedAnyPayloads = true
-          } else if ('note' in it) {
-            applyNote(it, normalizeNote(it.note))
-          }
-          if (it.data.kind === 'text') {
-            // links saved before page titles were kept: read it from the saved html once
-            if (it.data.isUrl && it.data.html && !it.data.linkTitle) {
-              const linkTitle = linkTitleFromHtml(it.data.html, it.data.text.trim())
-              if (linkTitle) it.data.linkTitle = linkTitle
-            }
-            if (!it.data.hasFullPayload && it.data.text.length > 300) {
-              this.writeTextPayload(it.id, it.data.text)
-              it.data.hasFullPayload = true
-              it.data.previewText = it.data.text.slice(0, 300)
-              it.data.text = it.data.previewText
-              migratedAnyPayloads = true
-            }
-            if (it.data.html && it.data.html.length > MAX_ITEM_HTML_CHARS) {
-              delete it.data.html
-              migratedAnyPayloads = true
-            }
-          }
-        }
-
-        this.rebuildIndex()
-
-        // Auto-migrate legacy plain JSON: create backup & upgrade to DPAPI encryption
-        if (needsMigration || migratedAnyPayloads) {
-          console.log('[ItemStore] Migrating items.json to DPAPI safeStorage encryption and disk payloads...')
-          try {
-            const backupFile = `${file}.v1.bak`
-            if (!existsSync(backupFile)) {
-              writeFileSync(backupFile, rawBuffer)
-            }
-            this.persist()
-          } catch (err) {
-            console.error('[ItemStore] Auto-migration backup/persist failed:', err)
-          }
-        }
-      } else {
-        console.warn('[ItemStore] Index file could not be parsed; preserving data without wiping')
-        const backupFile = `${file}.corrupted.${Date.now()}`
-        try { writeFileSync(backupFile, rawBuffer) } catch { /* ignore */ }
-      }
+      if (existsSync(file)) this.loadIndex(file)
     } catch (err) {
       console.error('[ItemStore] Failed to load index file:', err)
+      // it could not even be read (held by another process, no access): leave it alone this session
       this.items = []
-      this.sigToId.clear()
+      this.indexUnreadable = existsSync(file)
     }
+    this.rebuildIndex()
+    // a history set aside by an earlier launch comes back as soon as it can be read
+    if (!this.indexUnreadable) this.mergeSetAside(file)
+  }
+
+  private loadIndex(file: string): void {
+    const rawBuffer = readFileRetrying(file)
+    // nothing in it to keep (older builds wrote in place, and a crash mid-save could leave this)
+    if (!rawBuffer.toString('utf8').trim()) return
+    const read = readIndex(rawBuffer)
+    if (read.encrypted) this.indexEncrypted = true
+    if (!read.index) {
+      this.setAsideUnreadable(file, rawBuffer)
+      return
+    }
+    this.items = read.index.items
+    const upgraded = this.upgradeItems(this.items)
+
+    // Auto-migrate legacy plain JSON: create backup & upgrade to DPAPI encryption
+    if (read.plain || upgraded) {
+      console.log('[ItemStore] Migrating items.json to DPAPI safeStorage encryption and disk payloads...')
+      try {
+        const backupFile = `${file}.v1.bak`
+        if (!existsSync(backupFile)) {
+          writeFileSync(backupFile, rawBuffer)
+        }
+        this.persist()
+      } catch (err) {
+        console.error('[ItemStore] Auto-migration backup/persist failed:', err)
+      }
+    }
+  }
+
+  /**
+   * Bring items saved by older versions up to date. Returns true when anything changed, so the
+   * history is saved again in the current shape.
+   */
+  private upgradeItems(items: ClipboardItem[]): boolean {
+    // Auto-migrate large text items to disk payload files
+    let changed = false
+    for (const it of items) {
+      // A hand-edited or damaged file must never feed an odd note to the
+      // renderer: re-run the same cleanup as writes. Items saved with the
+      // old label + tags get them as one note (they were pinned when
+      // named, and stay pinned).
+      const legacy = it as ClipboardItem & { label?: unknown; tags?: unknown }
+      if ('label' in legacy || 'tags' in legacy) {
+        applyNote(it, joinNotes(normalizeNote(it.note), noteFromLegacy(legacy.label, legacy.tags)))
+        delete legacy.label
+        delete legacy.tags
+        changed = true
+      } else if ('note' in it) {
+        applyNote(it, normalizeNote(it.note))
+      }
+      if (it.data.kind === 'text') {
+        // links saved before page titles were kept: read it from the saved html once
+        if (it.data.isUrl && it.data.html && !it.data.linkTitle) {
+          const linkTitle = linkTitleFromHtml(it.data.html, it.data.text.trim())
+          if (linkTitle) it.data.linkTitle = linkTitle
+        }
+        if (!it.data.hasFullPayload && it.data.text.length > 300) {
+          this.writeTextPayload(it.id, it.data.text)
+          it.data.hasFullPayload = true
+          it.data.previewText = it.data.text.slice(0, 300)
+          it.data.text = it.data.previewText
+          changed = true
+        }
+        if (it.data.html && it.data.html.length > MAX_ITEM_HTML_CHARS) {
+          delete it.data.html
+          changed = true
+        }
+      }
+    }
+    return changed
+  }
+
+  /**
+   * The saved history is there but this launch cannot read it (it will not decrypt, or it is damaged).
+   * A byte-for-byte copy is set aside first and checked; a later launch that can read it merges it
+   * back (mergeSetAside). Only once that copy is safe does this session start a new history. If the
+   * copy cannot be made, nothing is saved this session and items.json stays exactly as it is.
+   */
+  private setAsideUnreadable(file: string, raw: Buffer): void {
+    console.warn('[ItemStore] Saved history could not be read; setting it aside to merge back later')
+    const copy = `${file}.unreadable-${Date.now()}.bak`
+    try {
+      writeFileSync(copy, raw)
+      if (!readFileSync(copy).equals(raw)) throw new Error('the copy does not match')
+    } catch (err) {
+      console.error('[ItemStore] Could not set the saved history aside; not saving this session:', err)
+      this.indexUnreadable = true
+    }
+  }
+
+  /**
+   * Merge back histories set aside because a launch could not read them, and the .corrupted copies
+   * older builds made in the same situation: once one reads, its items that are not here already
+   * join the history (newest first). The copy is removed only after the merged history is saved.
+   */
+  private mergeSetAside(file: string): void {
+    const dir = PATHS.root()
+    const base = pathBasename(file)
+    let names: string[] = []
+    try {
+      names = readdirSync(dir)
+        .filter((n) => (n.startsWith(`${base}.unreadable-`) && n.endsWith('.bak')) || n.startsWith(`${base}.corrupted.`))
+        .sort()
+    } catch {
+      return
+    }
+    for (const name of names) {
+      const copy = join(dir, name)
+      let read: ReturnType<typeof readIndex>
+      try {
+        read = readIndex(readFileSync(copy))
+      } catch {
+        continue
+      }
+      if (!read.index) continue // still unreadable: kept for a later launch
+      const here = new Set(this.items.map((it) => it.id))
+      const back = read.index.items.filter((it) => !here.has(it.id))
+      this.upgradeItems(back)
+      const fresh = back.filter((it) => !this.sigToId.has(this.signatureOf(it)))
+      if (fresh.length) {
+        this.items = [...this.items, ...fresh].sort((x, y) => y.capturedAt - x.capturedAt)
+        this.rebuildIndex()
+      }
+      if (!this.persistSync()) break // not saved: keep every copy and try again next launch
+      rmSync(copy, { force: true })
+      console.log(`[ItemStore] Merged ${fresh.length} items back from ${name}`)
+    }
+  }
+
+  /** The signature an item is deduplicated by (long texts by their full text). */
+  private signatureOf(it: ClipboardItem): string {
+    return it.data.kind === 'text' && it.data.hasFullPayload
+      ? contentSignature({ ...it.data, text: this.getFullText(it.id) })
+      : contentSignature(it.data)
   }
 
   private rebuildIndex(): void {
     this.sigToId.clear()
-    for (const it of this.items) {
-      if (it.data.kind === 'text' && it.data.hasFullPayload) {
-        const full = this.getFullText(it.id)
-        this.sigToId.set(contentSignature({ ...it.data, text: full }), it.id)
-      } else {
-        this.sigToId.set(contentSignature(it.data), it.id)
-      }
-    }
+    for (const it of this.items) this.sigToId.set(this.signatureOf(it), it.id)
   }
 
   private persistTimer: ReturnType<typeof setTimeout> | null = null
@@ -197,12 +308,14 @@ export class ItemStore {
     }, 150)
   }
 
-  /** Synchronous disk write (called by debounced timer or on app shutdown). */
-  public persistSync(): void {
+  /** Synchronous disk write (called by debounced timer or on app shutdown). True when written. */
+  public persistSync(): boolean {
     if (this.persistTimer) {
       clearTimeout(this.persistTimer)
       this.persistTimer = null
     }
+    // the saved history could not be read or set aside this session: it is never written over (see load)
+    if (this.indexUnreadable) return false
     try {
       const indexObj: Index = { items: this.items }
       const jsonStr = JSON.stringify(indexObj)
@@ -215,12 +328,19 @@ export class ItemStore {
           encrypted: true,
           payload: encryptedBuf.toString('base64')
         }
-        writeFileSync(file, JSON.stringify(envelope), 'utf8')
-      } else {
-        writeFileSync(file, JSON.stringify(indexObj), 'utf8')
+        writeFileAtomic(file, JSON.stringify(envelope))
+        this.indexEncrypted = true
+        return true
+      } else if (this.indexEncrypted) {
+        // never trade encrypted history for a plain copy; the next save with encryption back writes it
+        console.warn('[ItemStore] Encryption unavailable; not replacing the encrypted history with a plain copy')
+        return false
       }
+      writeFileAtomic(file, JSON.stringify(indexObj))
+      return true
     } catch (err) {
       console.error('[ItemStore] Persistence failed:', err)
+      return false
     }
   }
 
