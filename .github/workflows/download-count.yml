@@ -1,0 +1,42 @@
+# Keeps the README's downloads badge honest: it counts only the installer (.exe) downloads across every
+# GitHub release. GitHub's own total also counts latest.yml, which every installed copy fetches each time it
+# checks for updates, so it runs about eight times higher than real downloads.
+# The count is written to downloads.json on the `stats` branch (replaced each run, so main stays clean), and
+# the badge reads it through shields.io's endpoint badge.
+name: Download count
+
+on:
+  schedule:
+    - cron: '17 3 * * *' # daily
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: download-count
+  cancel-in-progress: true
+
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Count installer downloads and publish the badge data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          read -r n label < <(gh api --paginate "repos/$REPO/releases?per_page=100" \
+            --jq '[.[].assets[] | select(.name | endswith(".exe")) | .download_count] | add // 0' \
+            | awk '{s+=$1} END {n=s+0; if (n>=1e6) m=sprintf("%.1fM",n/1e6); else if (n>=1e3) m=sprintf("%.1fk",n/1e3); else m=n; sub(/\.0([kM])$/,"\\1",m); print n, m}')
+          echo "Installer downloads: $n ($label)"
+          mkdir out && cd out
+          git init -q -b stats
+          printf '{"schemaVersion":1,"label":"downloads","message":"%s","color":"3c5cec","labelColor":"0c1ea8"}\n' "$label" > downloads.json
+          git add downloads.json
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "Installer downloads: $n"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" stats
