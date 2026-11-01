@@ -17,13 +17,13 @@
 </p>
 
 <p align="center">
-  <a href="#download"><img src=".github/readme/art/nav-download.svg" width="104" alt="Download"></a>
-  <a href="#whats-new-in-040"><img src=".github/readme/art/nav-new.svg" width="120" alt="What's new"></a>
-  <a href="#demos"><img src=".github/readme/art/nav-demos.svg" width="80" alt="Demos"></a>
-  <a href="#features"><img src=".github/readme/art/nav-features.svg" width="104" alt="Features"></a>
-  <a href="#privacy--security"><img src=".github/readme/art/nav-privacy.svg" width="96" alt="Privacy"></a>
-  <a href="#build-from-source"><img src=".github/readme/art/nav-build.svg" width="80" alt="Build"></a>
-  <a href="#support--sponsor"><img src=".github/readme/art/nav-sponsor.svg" width="96" alt="Sponsor"></a>
+  <a href="#-download"><img src=".github/readme/art/nav-download.svg" width="104" alt="Download"></a>
+  <a href="#-whats-new-in-040"><img src=".github/readme/art/nav-new.svg" width="120" alt="What's new"></a>
+  <a href="#-demos"><img src=".github/readme/art/nav-demos.svg" width="80" alt="Demos"></a>
+  <a href="#-features"><img src=".github/readme/art/nav-features.svg" width="104" alt="Features"></a>
+  <a href="#-privacy--security"><img src=".github/readme/art/nav-privacy.svg" width="96" alt="Privacy"></a>
+  <a href="#-build-from-source"><img src=".github/readme/art/nav-build.svg" width="80" alt="Build"></a>
+  <a href="#-support--sponsor"><img src=".github/readme/art/nav-sponsor.svg" width="96" alt="Sponsor"></a>
 </p>
 
 <p align="center">
