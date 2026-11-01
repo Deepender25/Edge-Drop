@@ -344,7 +344,7 @@ Edge-Drop handles everything you copy, so it's built to keep that on your PC.
 - **Local only.** Your history stays on your computer. There's no account, no cloud sync, and no telemetry or analytics.
 - **Network use is limited to:** checking GitHub for updates (installer edition, unless updates are set to Off), downloading a web image you drag onto the shelf, and links you choose to open.
 - **Encrypted at rest.** History is encrypted with Windows' own data protection (DPAPI, via Electron `safeStorage`) and is never rewritten as plain text once encrypted.
-- **Respects private copies.** Content marked by the app it came from as not for clipboard history or monitoring (the Windows flags password managers use) is skipped. Incognito pauses capture entirely.
+- **Respects private copies.** Content marked by the app it came from as not for clipboard history or monitoring (the Windows flags password managers use) is skipped. Edge-Drop runs this check on every copy itself, since Windows' clipboard history settings only cover Win+V. Incognito pauses capture entirely.
 - **Never loses history.** Saves are atomic (write, flush, rename). History that can't be read is set aside and merged back later, never overwritten.
 
 | Control | How |
