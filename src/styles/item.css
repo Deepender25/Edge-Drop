@@ -87,6 +87,40 @@
   background: var(--bg-card-hover);
 }
 
+/* Picked for one paste. An outline, because children would cover an inset
+   shadow; the badge is the card's place in the paste order. */
+.item.is-selected {
+  outline: 2px solid #ffffff;
+  outline-offset: -2px;
+}
+
+.item-select-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Images and files cannot join a text paste. On .item-main because the card's
+   own opacity is set inline by its motion wrapper. */
+.item.is-unselectable .item-main {
+  opacity: 0.35;
+  cursor: default;
+}
+
 /* Compact UI Density Mode */
 .list.compact .item {
   margin-bottom: 6px;

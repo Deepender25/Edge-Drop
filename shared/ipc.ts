@@ -50,6 +50,9 @@ export interface InvokeMap {
    */
   'item:paste': { args: [id: string, opts?: { plain?: boolean }]; result: boolean }
 
+  /** Paste several text items at once, joined line by line in the given order. */
+  'item:paste-many': { args: [ids: string[]]; result: boolean }
+
   /**
    * Set or clear an item's note (normalized in main). Returns the updated
    * list.

@@ -26,7 +26,10 @@ import { CopyIndicatorCurve } from './CopyIndicatorCurve'
 import { useFilteredItems } from '../hooks/useFilteredItems'
 import { registerEdgeDragCue } from '../lib/edgeDrag'
 import { DashedOutline } from './DashedOutline'
+import { CloseIcon, PasteIcon } from './icons'
 import { isKept } from '../../shared/itemMeta'
+import { playButtonClickSound } from '../lib/soundEffects'
+import { tryPaste } from '../lib/tryPaste'
 
 import { useTranslation } from '../i18n'
 
@@ -593,6 +596,7 @@ export function Panel() {
           />
 
           <ToastStack />
+          <SelectionBar />
           {!isHorizontal && !emojiOpen && !settingsOpen && <ShelfSearch />}
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
             {/* Main clipboard / emoji view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
@@ -768,6 +772,40 @@ function PinGlow({ isHorizontal }: { isHorizontal: boolean }) {
   const pin = glow.kind === 'pin'
   const from = isHorizontal ? (pin ? 'left' : 'right') : (pin ? 'top' : 'bottom')
   return <div key={glow.at} className={`pin-glow from-${from}`} aria-hidden="true" />
+}
+
+/** Paste / cancel for the cards picked with Ctrl+click, over the list while any are picked. */
+function SelectionBar() {
+  const { t } = useTranslation()
+  const count = useStore((s) => (s.settingsOpen || s.emojiOpen ? 0 : s.selectedIds.length))
+  if (count === 0) return null
+  return (
+    <div className="selection-bar">
+      <button
+        type="button"
+        className="selection-paste"
+        onClick={(e) => {
+          e.currentTarget.blur()
+          tryPaste(() => void useStore.getState().pasteSelected())
+        }}
+      >
+        <PasteIcon width={14} height={14} />
+        {t('menu.paste')} {count}
+      </button>
+      <button
+        type="button"
+        className="selection-cancel"
+        title={t('menu.cancel')}
+        aria-label={t('menu.cancel')}
+        onClick={() => {
+          playButtonClickSound()
+          useStore.getState().clearSelected()
+        }}
+      >
+        <CloseIcon width={13} height={13} />
+      </button>
+    </div>
+  )
 }
 
 /** How long the drop zone takes to fade once something is dropped on it. */
