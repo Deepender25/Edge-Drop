@@ -31,6 +31,7 @@ export interface EdgeApi {
   copyItem: (id: string) => Promise<boolean>
   copySubitem: (req: DragRequest) => Promise<boolean>
   pasteItem: (id: string, opts?: { plain?: boolean }) => Promise<boolean>
+  pasteItems: (ids: string[]) => Promise<boolean>
   setItemMeta: (id: string, meta: import('./itemMeta').ItemMetaPatch) => Promise<import('./types').ClipboardItemDto[]>
   copyText: (text: string) => Promise<boolean>
   saveImages: (id: string) => Promise<string[]>

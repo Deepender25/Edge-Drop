@@ -235,6 +235,12 @@ interface AppState {
   copy: (id: string) => Promise<boolean>
   copySubitem: (req: DragRequest) => Promise<void>
   paste: (id: string, opts?: { plain?: boolean }) => Promise<void>
+  /** Text cards picked for one paste, in the order they were picked. Survives the shelf closing. */
+  selectedIds: string[]
+  toggleSelected: (id: string) => void
+  clearSelected: () => void
+  /** Paste the selection as one text; it is cleared once main accepts the paste. */
+  pasteSelected: () => Promise<void>
   pasteSubitem: (req: DragRequest) => Promise<void>
   pasteEmoji: (text: string) => Promise<void>
   patchSettings: (patch: Partial<Settings>) => Promise<void>
@@ -710,6 +716,26 @@ export const useStore = create<AppState>((set, get) => ({
     setTimeout(() => set({ isInternalCopying: false }), 600)
   },
 
+  selectedIds: [],
+  toggleSelected: (id) => {
+    const ids = get().selectedIds
+    // An open stack's rows paste on click, so none stays open while picking.
+    set({ selectedIds: ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id], expandedStackId: null })
+  },
+  clearSelected: () => set({ selectedIds: [] }),
+  async pasteSelected() {
+    const ids = get().selectedIds
+    if (ids.length === 0) return
+    set({ isInternalCopying: true })
+    try {
+      if (await edge.pasteItems(ids)) set({ selectedIds: [] })
+    } catch {
+      /* selection kept, so the paste can be tried again */
+    } finally {
+      setTimeout(() => set({ isInternalCopying: false }), 600)
+    }
+  },
+
   cardMenu: null,
   cardMenuRect: null,
   openCardMenu: (itemId, x, y) => {
@@ -889,3 +915,12 @@ export const useStore = create<AppState>((set, get) => ({
     get().notifyPositionChanged()
   }
 }))
+
+// A selected card can go in many ways (delete, clear, auto-delete, the history
+// limit); all of them change `items`, so the selection follows from here.
+useStore.subscribe((state, prev) => {
+  if (state.items === prev.items || state.selectedIds.length === 0) return
+  const live = new Set(state.items.map((it) => it.id))
+  const kept = state.selectedIds.filter((id) => live.has(id))
+  if (kept.length !== state.selectedIds.length) useStore.setState({ selectedIds: kept })
+})
