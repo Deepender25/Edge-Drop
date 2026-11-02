@@ -254,6 +254,16 @@ A huge thank you to the sponsors who keep Edge-Drop going:
       <sub><a href="https://elitistreview.com/" target="_blank">Website</a> · <a href="https://x.com/Elitistreview" target="_blank">X</a> · <a href="https://bsky.app/profile/elitistreview.com" target="_blank">Bluesky</a></sub>
     </td>
   </tr>
+  <tr>
+    <td width="72" align="center" valign="middle">
+      <a href="https://boxstorium.com/" target="_blank"><img src=".github/readme/sponsors/boxstorium.png" width="56" height="56" alt="Boxstorium"></a>
+    </td>
+    <td valign="middle">
+      <b><a href="https://boxstorium.com/" target="_blank">Boxstorium</a></b><br/>
+      <i>Handmade custom storage boxes for board and card games, by Viktor Csete.</i><br/>
+      <sub><a href="https://boxstorium.com/" target="_blank">Website</a> · <a href="https://boxstorium.etsy.com/" target="_blank">Etsy</a></sub>
+    </td>
+  </tr>
 </table>
 
 <p align="center">
