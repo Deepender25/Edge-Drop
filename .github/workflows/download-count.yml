@@ -31,7 +31,7 @@ jobs:
           set -euo pipefail
           read -r n label < <(gh api --paginate "repos/$REPO/releases?per_page=100" \
             --jq '[.[].assets[] | select(.name | endswith(".exe")) | .download_count] | add // 0' \
-            | awk '{s+=$1} END {n=s+0; if (n>=1e6) m=sprintf("%.1fM",n/1e6); else if (n>=1e3) m=sprintf("%.1fk",n/1e3); else m=n; sub(/\.0([kM])$/,"\\1",m); print n, m}')
+            | awk '{s+=$1} END {n=s+0; if (n>=1e6) m=sprintf("%.1fM",n/1e6); else if (n>=1e3) m=sprintf("%.1fk",n/1e3); else m=n; sub(/\.0k$/,"k",m); sub(/\.0M$/,"M",m); print n, m}')
           echo "Installer downloads: $n ($label)"
           mkdir out && cd out
           git init -q -b stats
@@ -39,4 +39,10 @@ jobs:
           git add downloads.json
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit -q -m "Installer downloads: $n"
-          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" stats
+          # GitHub sometimes answers a push with a 500; try again before failing the run.
+          for attempt in 1 2 3 4; do
+            git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" stats && exit 0
+            echo "Push failed (attempt $attempt), retrying..."
+            sleep $((attempt * 15))
+          done
+          exit 1
