@@ -9,7 +9,7 @@
   "tabs": {
     "behaviour": "व्यवहार",
     "position": "स्थिति",
-    "appearance": "रूप"
+    "appearance": "दिखावट"
   },
   "header": {
     "searchPlaceholder": "इतिहास खोजें...",
@@ -27,7 +27,7 @@
     "incognitoDesc": "नई क्लिपबोर्ड आइटम रिकॉर्ड करना अस्थायी रूप से रोकें",
     "hoverActivationTitle": "होवर सक्रियण",
     "hoverActivationDescOn": "स्क्रीन किनारे पर कर्सर होवर करने पर शेल्फ़ स्लाइड से खुले",
-    "hoverActivationDescOff": "होवर ट्रिगर रुका हुआ है। खोलने के लिए Alt + C दबाएँ",
+    "hoverActivationDescOff": "होवर ट्रिगर रुका हुआ है। खोलने के लिए {shortcut} दबाएँ",
     "disabledHoverOff": "अक्षम क्योंकि होवर सक्रियण बंद है",
     "fullscreenProtectionTitle": "फुलस्क्रीन सुरक्षा",
     "fullscreenProtectionDesc": "गेम खेलते समय या फुलस्क्रीन वीडियो देखते समय स्वचालित रूप से एज होवर रोकें",
@@ -76,11 +76,13 @@
     "displayTitle": "डिस्प्ले स्क्रीन",
     "displayDesc": "चुनें कि Edge-Drop किस मॉनिटर से जुड़ता है",
     "primaryDisplay": "प्राथमिक डिस्प्ले",
-    "verticalPositionTitle": "वर्टिकल स्थिति",
+    "verticalPositionTitle": "लंबवत स्थिति",
     "verticalPositionDesc": "स्क्रीन किनारे के साथ वर्टिकल संरेखण समायोजित करें",
     "top": "शीर्ष",
     "center": "केंद्र",
-    "bottom": "निचला",
+    "bottom": "नीचे",
+    "left": "बायाँ",
+    "right": "दायाँ",
     "triggerZone": "ट्रिगर ज़ोन",
     "edgeLocationHintTitle": "किनारा स्थान संकेत",
     "edgeLocationHintDesc": "गलत स्थिति पर किनारा छूने पर स्क्रीन किनारे पर संकेतक को हल्के से रोशन करें",
@@ -127,7 +129,7 @@
     "dropToSaveDesc": "कोई भी फ़ाइल, छवि, लिंक या टेक्स्ट",
     "justNow": "अभी",
     "ago": "पहले",
-    "expand": "विस्तारित करें",
+    "expand": "खोलें",
     "textItem": "टेक्स्ट",
     "imageItem": "छवि",
     "fileItem": "फ़ाइल",
@@ -143,7 +145,7 @@
     "moreFiles": "+{count} और फ़ाइलें",
     "singleFile": "1 फ़ाइल",
     "scrollToTop": "शीर्ष पर स्क्रॉल करें",
-    "clearLast1h": "पिछले 1 घंटे को साफ़ करें",
+    "clearLast1h": "पिछले 1 घंटे साफ़ करें",
     "clearLast6h": "पिछले 6 घंटे साफ़ करें",
     "clearLast24h": "पिछले 24 घंटे साफ़ करें",
     "clearAll": "पूरा इतिहास साफ़ करें",
@@ -259,6 +261,6 @@
     "githubPromo": "यदि आपको Edge-Drop पसंद आता है, तो कृपया GitHub पर प्रोजेक्ट को स्टार देने पर विचार करें!",
     "version": "संस्करण",
     "supportPromo": "Edge-Drop 100% मुफ़्त और ओपन-सोर्स है। यदि यह आपके रोज़मर्रा के काम को आसान बनाता है, तो इसे और बेहतर बनाने के लिए विकास का समर्थन करने पर विचार करें!",
-    "supportOnKofi": "Ko-fi पर समर्थन करें"
+    "supportOnKofi": "Ko-fi / UPI पर समर्थन करें"
   }
 }
