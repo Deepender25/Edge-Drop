@@ -1352,6 +1352,69 @@ rect.dashed-outline-shape {
   filter: brightness(1.1);
 }
 
+/* Paste / cancel for the selected cards: where the toasts sit, under them.
+   The top dock has no footer to clear. */
+.selection-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 52px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: #141414;
+  border-radius: 999px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+  z-index: 150;
+}
+
+.horizontal-dock .selection-bar {
+  bottom: 12px;
+}
+
+.selection-paste,
+.selection-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.14s ease, transform 0.1s ease;
+}
+
+.selection-paste {
+  gap: 6px;
+  padding: 0 14px 0 11px;
+  background: #ffffff;
+  color: #000000;
+  font-size: calc(12.5px * var(--font-scale, 1));
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.selection-paste:hover {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.selection-cancel {
+  width: 30px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.selection-cancel:hover {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+.selection-paste:active,
+.selection-cancel:active {
+  transform: scale(0.96);
+}
+
 /* Quick Type Segmented Control (Jelly Radio Physics) */
 .filter-segmented-track {
   background: transparent;

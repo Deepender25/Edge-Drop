@@ -532,6 +532,63 @@ export function registerIpc(): void {
     return true
   })
 
+  handle('item:paste-many', async (ids) => {
+    if (!Array.isArray(ids)) return false
+    const now = Date.now()
+    if (now - _lastPasteTime < PASTE_GUARD_MS) {
+      console.log('[IPC] item:paste-many blocked — too soon after last paste')
+      return false
+    }
+    _lastPasteTime = now
+
+    const textIds = ids.filter((id) => getStore().get(id)?.data.kind === 'text')
+    if (textIds.length === 0) return false
+
+    const watcher = getWatcher()
+    watcher.setPaused(true)
+
+    try {
+      pushState.togglePanel(false)
+
+      // One write and one Ctrl+V, in the order the cards were picked. Plain
+      // text: each card's html is a whole document of its own and cannot be
+      // joined safely. Paused above and resynced below, so the joined text
+      // never comes back as a new card.
+      const text = textIds.map((id) => getStore().getFullText(id)).join('\n')
+      await writeItemToClipboard({ kind: 'text', text, isUrl: false }, undefined, { plain: true })
+
+      const settings = loadSettings()
+      if (settings.movePastedToTop !== false) {
+        // Last to first, so the first card picked ends up on top.
+        for (const id of [...textIds].reverse()) getStore().touch(id)
+      }
+
+      const sendDelay = await resolvePasteTarget(50)
+      if (sendDelay < 0) {
+        toast('toast.pasteFallback', 'info')
+      } else {
+        setTimeout(() => {
+          traceFg('sendKeys')
+          simulatePaste()
+          setTimeout(() => traceFg('sendKeys+400ms'), 400)
+        }, sendDelay)
+      }
+
+      if (settings.movePastedToTop !== false) {
+        setTimeout(() => {
+          pushState.items()
+        }, 250)
+      }
+    } finally {
+      setTimeout(() => {
+        watcher.resyncSignature()
+        watcher.setPaused(loadSettings().incognito)
+      }, 350)
+    }
+
+    return true
+  })
+
   handle('item:paste-subitem', async (req) => {
     const now = Date.now()
     if (now - _lastPasteTime < PASTE_GUARD_MS) {

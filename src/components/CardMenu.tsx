@@ -35,6 +35,7 @@ import { cleanLink, externalHref } from '../lib/urlPreview'
 import { acquireKeyboard, releaseKeyboard } from '../lib/keyboardFocus'
 import { playCardExpandSound, playDeleteSound, playToggleSound } from '../lib/soundEffects'
 import {
+  CheckIcon,
   CopyIcon,
   DownloadIcon,
   ExpandIcon,
@@ -365,6 +366,8 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
   const isLink = isText && d.isUrl
   const colors = isText && !d.isUrl ? colorFormats(text) : null
   const canPastePlain = isText && !colors && (!!d.hasHtml || text.includes('\t'))
+  const isSelected = useStore((s) => s.selectedIds.includes(item.id))
+  const canSelect = isText && !isSelected && !store().demo
   // the real destination of a redirect link, tracking removed, stray punctuation dropped
   const canCleanLink = isLink && (!!d.hasFullPayload || cleanLink(text) !== text.trim())
   const isImage = d.kind === 'image' || d.kind === 'image-collection'
@@ -494,6 +497,17 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
           })
         }}
       />
+      {canSelect && (
+        <MenuRow
+          icon={<CheckIcon />}
+          label={t('menu.select')}
+          onSelect={() => {
+            close()
+            playToggleSound(true)
+            store().toggleSelected(item.id)
+          }}
+        />
+      )}
       <Separator />
       <MenuRow
         icon={<NoteIcon />}

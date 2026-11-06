@@ -3,6 +3,9 @@
  *
  * Interactions:
  *   - Click body            -> paste item (write to clipboard + simulate Ctrl+V)
+ *   - Ctrl+click text card  -> select it for one joined paste; while anything
+ *                              is selected, a plain click selects too
+ *   - Select button (✓)     -> same, with the mouse alone
  *   - Drag the tile         -> native OS drag-out (via useDragOut)
  *   - File bundle: click body -> expand/collapse
  *   - Drag collapsed bundle -> drag all files as one entity
@@ -25,7 +28,7 @@ import { itemRenderKey } from '../lib/itemSignature'
 import { basename, formatBytes, previewText, relativeTime, formatImageDisplayName } from '../lib/format'
 import { getFileKind, kindBadge } from '../lib/fileType'
 import { playButtonClickSound, playToggleSound, playDeleteSound, playCardExpandSound } from '../lib/soundEffects'
-import { CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
+import { CheckIcon, CopyIcon, FileKindIcon, FileStackPhoto, PinIcon, PinFillIcon, TrashIcon, MinusIcon, ChevronUpIcon, ChevronLeftIcon, ExpandIcon, ContractIcon, ExternalLinkIcon } from './icons'
 import { DashedOutline } from './DashedOutline'
 import { LinkPreviewCard } from './LinkPreviewCard'
 import { parseUrlPreview } from '../lib/urlPreview'
@@ -88,6 +91,10 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   const isPreviewing = useStore((s) => s.previewItemId === item.id)
   const isMenuTarget = useStore((s) => s.cardMenu?.itemId === item.id)
+  // 1-based place in the selection (0 = not selected); only text can be picked.
+  const selectedNumber = useStore((s) => s.selectedIds.indexOf(item.id) + 1)
+  const isUnselectable = useStore((s) => s.selectedIds.length > 0 && item.data.kind !== 'text')
+  const canSelect = useStore((s) => item.data.kind === 'text' && !s.demo)
   // In-app drag: the card a drop would merge into, and the whole card being dragged.
   const isDropTarget = useStore((s) => s.dropTargetId === item.id)
   const isDragSource = useStore((s) => s.internalDragReq?.id === item.id && !s.internalDragReq.imageId && !s.internalDragReq.paths?.length)
@@ -293,6 +300,17 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       useStore.getState().setPreviewItemId(null)
     }
 
+    // Never paste one card while picking several: a missed Ctrl only toggles.
+    const s = useStore.getState()
+    if ((e.ctrlKey || s.selectedIds.length > 0) && !s.demo && s.tutorialStep === 0) {
+      e.stopPropagation()
+      if (item.data.kind === 'text') {
+        playToggleSound(!s.selectedIds.includes(item.id))
+        s.toggleSelected(item.id)
+      }
+      return
+    }
+
     if (isBundle && !expanded) {
       onExpand(e)
     } else if (!isBundle) {
@@ -312,7 +330,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
       }}
       initial={false}
       animate={{ opacity: 1 }}
-      className={`item${item.pinned ? ' pinned' : ''}${isMenuTarget ? ' menu-target' : ''}${isDropTarget ? ' is-drop-target' : ''}${isDragSource ? ' is-drag-source' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
+      className={`item${item.pinned ? ' pinned' : ''}${selectedNumber ? ' is-selected' : ''}${isUnselectable ? ' is-unselectable' : ''}${isMenuTarget ? ' menu-target' : ''}${isDropTarget ? ' is-drop-target' : ''}${isDragSource ? ' is-drag-source' : ''}${isBundle ? ' bundle' : ''}${expanded ? ' is-expanded' : ''}${colorInfo ? ` is-color-card ${colorInfo.isLight ? 'is-light-color' : 'is-dark-color'}` : ''}${isImageFolderCard || isFileCard ? ' is-image-folder-card' : ''}`}
       data-expanded-stack={expanded ? 'true' : undefined}
       style={{
         ...(expandedWidth ? { width: expandedWidth, minWidth: expandedWidth, maxWidth: expandedWidth } : {}),
@@ -340,6 +358,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
           }}
         />
       )}
+      {selectedNumber > 0 && <span className="item-select-badge">{selectedNumber}</span>}
       {isDropTarget && (
         <div className="drop-target-ring" aria-hidden="true">
           <DashedOutline radius={14} />
@@ -452,6 +471,23 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); }} 
           style={{ display: isBundle && expanded ? 'none' : undefined }}
         >
+          {canSelect && (
+            <button
+              className={`act${selectedNumber ? ' active' : ''}`}
+              title={t('menu.select')}
+              aria-label={t('menu.select')}
+              aria-pressed={selectedNumber > 0}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                e.currentTarget.blur()
+                playToggleSound(!selectedNumber)
+                useStore.getState().toggleSelected(item.id)
+              }}
+            >
+              <CheckIcon />
+            </button>
+          )}
           <button
             className={`act${item.pinned ? ' active' : ''}`}
             title={item.pinned ? t('item.unpin') : t('item.pin')}

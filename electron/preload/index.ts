@@ -187,6 +187,7 @@ const api = {
   copyItem: (id: string) => invoke('item:copy', id),
   copySubitem: (req: import('../../shared/types').DragRequest) => invoke('item:copy-subitem', req),
   pasteItem: (id: string, opts?: { plain?: boolean }) => invoke('item:paste', id, opts),
+  pasteItems: (ids: string[]) => invoke('item:paste-many', ids),
   setItemMeta: (id: string, meta: import('../../shared/itemMeta').ItemMetaPatch) => invoke('item:set-meta', id, meta),
   copyText: (text: string) => invoke('item:copy-text', text),
   saveImages: (id: string) => invoke('item:save-images', id),

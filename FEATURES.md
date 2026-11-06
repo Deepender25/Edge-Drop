@@ -266,6 +266,7 @@ Edge-Drop is built to strict enterprise desktop security standards:
 | **UI/UX** | Fluid Bundles | Groups multi-file/image copies into expandable 3D card stacks. |
 | **Manipulation** | Granular Sub-Item Actions | Drag out, copy, or split individual files directly from inside a bundle. |
 | **Manipulation** | Interactive Merging | Drag and drop shelf items onto one another to combine them into stacks. |
+| **Manipulation** | Multi-Select Paste | Ctrl+click text cards (or use their ✓ button, or right-click, Select), then paste them all at once, one per line, in the order picked. |
 | **OS Transfer** | OLE Native Drag-Out | Direct OS file handle generation for dragging into Word, Explorer, etc. |
 | **OS Transfer** | Protected Drag-In | Shelf stays locked open when dragging OS files over the target drop zone. |
 | **Configuration** | Pill Selector Settings | Instant, slider-free configuration for capacity, hot zones, and timers. |
