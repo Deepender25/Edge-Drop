@@ -19,6 +19,7 @@ import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { ClearMenu } from './ClearMenu'
 import { PreviewFlyout } from './PreviewFlyout'
+import { EditTextFlyout } from './EditTextFlyout'
 import { IndicatorStyleFlyout } from './IndicatorStyleFlyout'
 import { LanguageFlyout } from './LanguageFlyout'
 import { CardMenu } from './CardMenu'
@@ -688,6 +689,7 @@ export function Panel() {
           />
         </div>
         <PreviewFlyout isRight={isRight} />
+        <EditTextFlyout isRight={isRight} />
         <IndicatorStyleFlyout isRight={isRight} />
         <LanguageFlyout isRight={isRight} />
         <CardMenu />

@@ -172,6 +172,7 @@
   letter-spacing: 0.01em;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* The image is drawn at the size fitPreviewImage() picked (inline width and
@@ -198,6 +199,7 @@
   font-weight: 600;
   line-height: 1.35;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 .pf-link-sub {
   align-self: flex-start;

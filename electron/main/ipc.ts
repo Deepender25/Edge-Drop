@@ -256,6 +256,15 @@ export function registerIpc(): void {
     return getStore().toDto()
   })
 
+  handle('item:update-text', (id, text) => {
+    const success = getStore().updateText(id, text)
+    if (success) {
+      getWatcher().resyncSignature()
+      pushState.items({ reason: 'usage' })
+    }
+    return getStore().toDto()
+  })
+
   handle('item:copy-text', async (text) => {
     if (typeof text !== 'string' || text.length === 0 || text.length > COPY_TEXT_MAX) return false
     // Same rule as emoji:paste: a derived copy (clean link, color format,
