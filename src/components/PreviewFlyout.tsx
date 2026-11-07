@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 're
 import { useStore } from '../store/appStore'
 import { formatBytes, formatImageDisplayName, relativeTime } from '../lib/format'
 import { getFileKind, kindBadge } from '../lib/fileType'
-import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon, TypeIcon, ImageIcon, PaletteIcon, FilesIcon } from './icons'
+import { FileKindIcon, FolderOpenIcon, CopyIcon, CheckIcon, ExternalLinkIcon, CloseIcon, GlobeIcon, TypeIcon, ImageIcon, PaletteIcon, FilesIcon, EditIcon, CodeIcon } from './icons'
 import { cleanLink, externalHref, parseUrlPreview } from '../lib/urlPreview'
 import { localizeLinkInfo } from '../lib/linkLabels'
 import { colorFormats, parseColor } from '../lib/colorUtils'
@@ -67,7 +67,7 @@ export function PreviewFlyout({ isRight }: { isRight: boolean }) {
   const lastItemRef = useRef(liveItem)
   if (liveItem) lastItemRef.current = liveItem
   const presence = usePresence(!!liveItem, PREVIEW_EXIT_MS, () => {
-    if (!useStore.getState().previewItemId) {
+    if (!useStore.getState().previewItemId && !useStore.getState().editTextItemId && !useStore.getState().styleFlyoutOpen) {
       window.edge.setPreviewMode(false)
     }
   })
@@ -679,6 +679,22 @@ function PreviewContent({
       onClick={() => useStore.getState().copy(item.id)}
     />
   )
+  const makeEditButton = (title: string) => (
+    <button
+      type="button"
+      className="act"
+      title={title}
+      onClick={(e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        e.currentTarget.blur()
+        const rect = useStore.getState().previewItemRect ?? undefined
+        useStore.getState().setEditTextItemId(item.id, rect)
+      }}
+    >
+      <EditIcon />
+    </button>
+  )
 
   if (item.data.kind === 'text') {
     const activeText = fullText ?? item.data.text
@@ -698,6 +714,7 @@ function PreviewContent({
             icon={ExternalLinkIcon}
             onClick={() => window.open(externalHref(activeText), '_blank')}
           />
+          {makeEditButton(t('flyout.editLink') || 'Edit link')}
           <QuickActionButton
             title={t('flyout.copyText')}
             icon={CopyIcon}
@@ -730,6 +747,7 @@ function PreviewContent({
       const formats = colorFormats(activeText)
       return frame(
         <FlyoutHead icon={<PaletteIcon />} title={(formats?.source ?? 'hex').toUpperCase()} time={time}>
+          {makeEditButton(t('flyout.editColor') || 'Edit color')}
           {copyButton(t('flyout.copyText'))}
         </FlyoutHead>,
         <>
@@ -755,13 +773,14 @@ function PreviewContent({
     const codeInfo = detectCode(activeText)
     if (codeInfo.isCode) {
       return frame(
-        <FlyoutHead icon={<TypeIcon />} title={codeInfo.displayName === 'Code' ? t('fileKinds.code') : codeInfo.displayName} time={time}>
+        <FlyoutHead icon={<CodeIcon />} title={codeInfo.displayName === 'Code' ? t('fileKinds.code') : codeInfo.displayName} time={time}>
+          {makeEditButton(t('flyout.editCode') || 'Edit code')}
           {copyButton(t('flyout.copyText'))}
         </FlyoutHead>,
         <div
           onClick={pasteOnClick}
           title={t('flyout.clickToPaste')}
-          style={{ position: 'relative', cursor: 'pointer', width: '100%' }}
+          style={{ position: 'relative', cursor: 'pointer', width: '100%', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}
         >
           <CodeBlock
             code={text}
@@ -770,6 +789,7 @@ function PreviewContent({
             showHeader={false}
             showLineNumbers={true}
             showCopyButton={false}
+            wrap={true}
           />
         </div>
       )
@@ -777,6 +797,7 @@ function PreviewContent({
 
     return frame(
       <FlyoutHead icon={<TypeIcon />} title={t('filters.text')} time={time}>
+        {makeEditButton(t('flyout.editText') || 'Edit text')}
         {copyButton(t('flyout.copyText'))}
       </FlyoutHead>,
       <div

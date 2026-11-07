@@ -1,0 +1,363 @@
+/**
+ * Edit text flyout: shell motion, header, editable body, and defensive overflow rules.
+ * Replicates the preview flyout UI/UX with smooth compositor animations, dark glass theme,
+ * and rock-solid defensive text overflow protection.
+ */
+
+.et-wrap {
+  --pf-spring: linear(0, 0.0172, 0.0616, 0.1238, 0.1968, 0.275, 0.3545, 0.4322, 0.5062, 0.5751, 0.6381, 0.6948, 0.7453, 0.7896, 0.828, 0.8611, 0.8892, 0.9128, 0.9326, 0.9488, 0.9621, 0.9728, 0.9813, 0.988, 0.9932, 0.9971, 1, 1.002, 1.0034, 1.0043, 1.0048, 1.005, 1.005, 1.0048, 1.0045, 1.0042, 1.0038, 1.0034, 1.003, 1.0026, 1);
+  --pf-out: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.et-wrap.from-left {
+  animation: pf-fade-in 180ms cubic-bezier(0.2, 0, 0, 1) both, pf-in-left 500ms var(--pf-spring) both;
+}
+.et-wrap.from-right {
+  animation: pf-fade-in 180ms cubic-bezier(0.2, 0, 0, 1) both, pf-in-right 500ms var(--pf-spring) both;
+}
+.et-wrap.from-top {
+  animation: pf-fade-in 180ms cubic-bezier(0.2, 0, 0, 1) both, pf-in-top 500ms var(--pf-spring) both;
+}
+.et-wrap.from-left.is-leaving {
+  animation: pf-out-left 170ms var(--pf-out) both;
+}
+.et-wrap.from-right.is-leaving {
+  animation: pf-out-right 170ms var(--pf-out) both;
+}
+.et-wrap.from-top.is-leaving {
+  animation: pf-out-top 170ms var(--pf-out) both;
+}
+.et-wrap.is-reduced {
+  animation: pf-fade-in 120ms linear both;
+}
+.et-wrap.is-reduced.is-leaving {
+  animation: pf-fade-out 120ms linear both;
+}
+
+/* Panel surface matching the preview flyout */
+.edit-text-flyout {
+  width: 100%;
+  background: #000000;
+  border-radius: 20px;
+  box-shadow: inset 0 0 0 1px var(--edge-light);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.et-swap {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  animation: pf-swap-in 220ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* Header */
+.et-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 14px 14px 0 20px;
+  font-family: var(--font-ui);
+  font-size: calc(12px * var(--font-scale, 1));
+  white-space: nowrap;
+}
+
+.et-head-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.et-head-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.et-head-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+}
+
+.et-head-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.et-head-detail::before {
+  content: '·';
+  margin-inline-end: 8px;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.et-head-spacer {
+  flex: 1 1 0;
+}
+
+.et-head .act-pill {
+  flex-shrink: 0;
+}
+
+/* Unsaved changes dot badge */
+.et-dirty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+}
+
+/* Body container */
+.et-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 20px 16px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Textarea wrapper & textarea with zero overflow */
+.et-textarea-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 180px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.et-textarea {
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 auto;
+  min-height: 180px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #ffffff;
+  font-family: var(--font-ui);
+  font-size: calc(13.5px * var(--font-scale, 1));
+  font-weight: 400;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  resize: none;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.et-textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.et-textarea.is-code {
+  font-family: var(--font-mono);
+  font-size: calc(12.5px * var(--font-scale, 1));
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+/* Code editor with synchronized line numbers */
+.et-code-wrap {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 auto;
+  min-height: 180px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.et-code-wrap:focus-within {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.et-code-gutter {
+  margin: 0;
+  padding: 12px 10px 12px 12px;
+  background: rgba(0, 0, 0, 0.28);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.35);
+  font-family: var(--font-mono);
+  font-size: calc(12.5px * var(--font-scale, 1));
+  line-height: 1.55;
+  text-align: right;
+  user-select: none;
+  pointer-events: none;
+  overflow: hidden;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  box-sizing: border-box;
+  white-space: pre;
+}
+
+.et-code-gutter::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.et-code-wrap .et-textarea.is-code {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 12px 14px 12px 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.et-code-wrap .et-textarea.is-code::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.et-textarea:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.et-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading skeleton */
+.et-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 180px;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-tertiary);
+  font-family: var(--font-ui);
+  font-size: calc(12px * var(--font-scale, 1));
+}
+
+.et-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: et-spin 0.6s linear infinite;
+}
+
+@keyframes et-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Footer toolbar */
+.et-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  font-family: var(--font-ui);
+  font-size: calc(11px * var(--font-scale, 1));
+  color: var(--text-tertiary);
+}
+
+.et-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.et-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Confirmation overlay for unsaved changes */
+.et-confirm-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  z-index: 20;
+  border-radius: 20px;
+  animation: pf-fade-in 140ms ease both;
+}
+
+.et-confirm-title {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: calc(14px * var(--font-scale, 1));
+  margin-bottom: 6px;
+}
+
+.et-confirm-desc {
+  color: var(--text-tertiary);
+  font-size: calc(12px * var(--font-scale, 1));
+  margin-bottom: 16px;
+  max-width: 280px;
+  line-height: 1.45;
+}
+
+.et-confirm-buttons {
+  display: flex;
+  gap: 8px;
+}
+

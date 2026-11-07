@@ -211,6 +211,10 @@ export interface TranslationKeys {
     pastePlain?: string
     addNote?: string
     editNote?: string
+    editText?: string
+    editLink?: string
+    editCode?: string
+    editColor?: string
     openLink?: string
     copyCleanLink?: string
     copyAs?: string
@@ -361,6 +365,16 @@ export interface TranslationKeys {
     current: string
     codeLabel: string
     copyCode: string
+    editText?: string
+    editLink?: string
+    editCode?: string
+    editColor?: string
+    saveChanges?: string
+    discardChanges?: string
+    unsavedChanges?: string
+    discardPrompt?: string
+    textUpdated?: string
+    shortcutHint?: string
   }
   toast: {
     copiedToClipboard: string
@@ -980,6 +994,10 @@ export const en: TranslationKeys = {
     "pastePlain": "Paste as plain text",
     "addNote": "Add note…",
     "editNote": "Edit note…",
+    "editText": "Edit text",
+    "editLink": "Edit link",
+    "editCode": "Edit code",
+    "editColor": "Edit color",
     "openLink": "Open link",
     "copyCleanLink": "Copy clean link",
     "copyAs": "Copy as",
@@ -1129,7 +1147,17 @@ export const en: TranslationKeys = {
     "clickToDeselect": "Click to deselect",
     "current": "Current",
     "codeLabel": "{language} code",
-    "copyCode": "Copy code"
+    "copyCode": "Copy code",
+    "editText": "Edit text",
+    "editLink": "Edit link",
+    "editCode": "Edit code",
+    "editColor": "Edit color",
+    "saveChanges": "Save changes",
+    "discardChanges": "Discard changes",
+    "unsavedChanges": "Unsaved changes",
+    "discardPrompt": "You have unsaved changes. Discard them?",
+    "textUpdated": "Text updated",
+    "shortcutHint": "Ctrl + Enter to save · Esc to cancel"
   },
   "toast": {
     "noteFailed": "Could not save the note. Please try again.",

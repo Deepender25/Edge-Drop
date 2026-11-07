@@ -120,6 +120,28 @@ export const TypeIcon = uiIcon('textT')
 export const FilesIcon = uiIcon('files')
 export const PaletteIcon = uiIcon('palette')
 export const NoteIcon = uiIcon('pencilSimple')
+export const EditIcon = uiIcon('pencilSimple')
+export const CodeIcon = (p: P) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 256 256"
+    width={p.width ?? p.height ?? 16}
+    height={p.height ?? p.width ?? 16}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="24"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    overflow="visible"
+    aria-hidden="true"
+    focusable="false"
+    {...(p as any)}
+  >
+    <polyline points="64 88 16 128 64 168" />
+    <polyline points="192 88 240 128 192 168" />
+    <line x1="160" y1="40" x2="96" y2="216" />
+  </svg>
+)
 export const PasteIcon = uiIcon('clipboardText')
 export const DownloadIcon = uiIcon('downloadSimple')
 

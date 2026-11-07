@@ -83,7 +83,9 @@ svg {
 .preview-flyout,
 .preview-flyout *,
 .language-flyout,
-.language-flyout * {
+.language-flyout *,
+.edit-text-flyout,
+.edit-text-flyout * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
@@ -91,7 +93,9 @@ svg {
 .preview-flyout::-webkit-scrollbar,
 .preview-flyout *::-webkit-scrollbar,
 .language-flyout::-webkit-scrollbar,
-.language-flyout *::-webkit-scrollbar {
+.language-flyout *::-webkit-scrollbar,
+.edit-text-flyout::-webkit-scrollbar,
+.edit-text-flyout *::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;

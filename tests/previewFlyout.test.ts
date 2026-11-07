@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const read = (p: string) => readFileSync(join(__dirname, '..', p), 'utf8')
+const read = (p: string) => readFileSync(join(__dirname, '..', p), 'utf8').replace(/\r\n/g, '\n')
 const flyout = read('src/components/PreviewFlyout.tsx')
 const css = read('src/styles/previewFlyout.css')
 
@@ -68,7 +68,7 @@ describe('preview flyout motion runs on the compositor', () => {
 
 describe('preview flyout keeps its behaviour', () => {
   it('leaves preview mode only after the close finished and nothing reopened', () => {
-    expect(flyout).toMatch(/usePresence\(!!liveItem, PREVIEW_EXIT_MS, \(\) => \{\s+if \(!useStore\.getState\(\)\.previewItemId\) \{\s+window\.edge\.setPreviewMode\(false\)/)
+    expect(flyout).toMatch(/usePresence\(!!liveItem, PREVIEW_EXIT_MS, \(\) => \{\s+if \(!useStore\.getState\(\)\.previewItemId[\s\S]*?\) \{\s+window\.edge\.setPreviewMode\(false\)/)
   })
 
   it('closes where it is: position and grow-point keep the last card rect during the exit', () => {
