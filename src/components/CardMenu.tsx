@@ -32,6 +32,7 @@ import { edge } from '../lib/edge'
 import { tryPaste } from '../lib/tryPaste'
 import { colorFormats, type ColorFormat } from '../lib/colorUtils'
 import { cleanLink, externalHref } from '../lib/urlPreview'
+import { detectCode } from '../lib/codeDetect'
 import { acquireKeyboard, releaseKeyboard } from '../lib/keyboardFocus'
 import { playCardExpandSound, playDeleteSound, playToggleSound } from '../lib/soundEffects'
 import {
@@ -46,9 +47,11 @@ import {
   PasteIcon,
   PinFillIcon,
   NoteIcon,
+  EditIcon,
   PinIcon,
   TrashIcon,
-  TypeIcon
+  TypeIcon,
+  CodeIcon
 } from './icons'
 import '../styles/cardMenu.css'
 
@@ -364,6 +367,17 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
   const text = isText ? d.text : ''
   const isLink = isText && d.isUrl
   const colors = isText && !d.isUrl ? colorFormats(text) : null
+  const isCode = isText && !isLink && !colors && detectCode(text).isCode
+
+  const editLabel = isLink
+    ? t('menu.editLink') || 'Edit link'
+    : colors
+      ? t('menu.editColor') || 'Edit color'
+      : isCode
+        ? t('menu.editCode') || 'Edit code'
+        : t('menu.editText') || 'Edit text'
+
+  const editIcon = isLink ? <LinkIcon /> : colors ? <PaletteIcon /> : isCode ? <CodeIcon /> : <EditIcon />
   const canPastePlain = isText && !colors && (!!d.hasHtml || text.includes('\t'))
   // the real destination of a redirect link, tracking removed, stray punctuation dropped
   const canCleanLink = isLink && (!!d.hasFullPayload || cleanLink(text) !== text.trim())
@@ -495,6 +509,17 @@ function MenuList({ item }: { item: ClipboardItemDto }) {
         }}
       />
       <Separator />
+      {isText && (
+        <MenuRow
+          icon={editIcon}
+          label={editLabel}
+          onPress={() => void acquireKeyboard('edit-text')}
+          onSelect={() => {
+            close()
+            store().setEditTextItemId(item.id, revealRect(item.id))
+          }}
+        />
+      )}
       <MenuRow
         icon={<NoteIcon />}
         label={item.note ? t('menu.editNote') : t('menu.addNote')}

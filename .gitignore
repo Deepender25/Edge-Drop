@@ -24,4 +24,5 @@ scratch/verify-*.cjs
 # Design source material (processed output lives in resources/file-icons)
 new icons/
 Blue_gradient (1).png
+DESKTOP_APP_PROMPT.md
 

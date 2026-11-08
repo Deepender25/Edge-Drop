@@ -14,7 +14,8 @@ import { loadRecents } from '../lib/emoji/prefs'
 import type { ClipboardItemDto, Settings, DragRequest } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../shared/types'
 import { isKept, normalizeNote, type ItemMetaPatch } from '../../shared/itemMeta'
-import { itemMetaKey } from '../lib/itemSignature'
+import { isLinkText } from '../../shared/linkText'
+import { itemRenderKey } from '../lib/itemSignature'
 import { playEdgeRetractSound, playEdgeBeaconAppearSound, playEdgeExpandSound, playButtonClickSound } from '../lib/soundEffects'
 
 let flareTimer: ReturnType<typeof setTimeout> | null = null
@@ -140,6 +141,9 @@ interface AppState {
   /** Item ID currently being previewed in the flyout. */
   previewItemId: string | null
   previewItemRect: { x?: number; y?: number; width?: number; height?: number } | null
+  /** Item ID currently being edited in the Edit Text flyout. */
+  editTextItemId: string | null
+  editTextItemRect: { x?: number; y?: number; width?: number; height?: number } | null
 
   sliderActive: boolean
   sliderReleasedTime: number
@@ -183,6 +187,8 @@ interface AppState {
   setDragActive: (active: boolean) => void
   setInternalDragReq: (req: import('../../shared/types').DragRequest | null) => void
   setPreviewItemId: (id: string | null, rect?: { x?: number; y?: number; width?: number; height?: number }) => void
+  setEditTextItemId: (id: string | null, rect?: { x?: number; y?: number; width?: number; height?: number }) => void
+  updateItemText: (id: string, text: string) => Promise<boolean>
   styleFlyoutOpen: boolean
   styleFlyoutAnchorRect: { x?: number; y?: number; width?: number; height?: number } | null
   setStyleFlyoutOpen: (open: boolean, rect?: { x?: number; y?: number; width?: number; height?: number } | null) => void
@@ -257,6 +263,7 @@ export const useStore = create<AppState>((set, get) => ({
     // The list remounts on filter change; leave the flyout open and it
     // would float over a tab that no longer contains the source card.
     if (get().previewItemId) get().setPreviewItemId(null)
+    if (get().editTextItemId) get().setEditTextItemId(null)
   },
   open: false,
   settingsOpen: false,
@@ -279,6 +286,8 @@ export const useStore = create<AppState>((set, get) => ({
         settingsOpen: false,
         previewItemId: null,
         previewItemRect: null,
+        editTextItemId: null,
+        editTextItemRect: null,
         previewFlyoutRect: null,
         styleFlyoutOpen: false,
         styleFlyoutAnchorRect: null,
@@ -313,6 +322,8 @@ export const useStore = create<AppState>((set, get) => ({
   updateInfo: null,
   previewItemId: null,
   previewItemRect: null,
+  editTextItemId: null,
+  editTextItemRect: null,
   sliderActive: false,
   sliderReleasedTime: 0,
   setSliderActive: (active) => set({
@@ -513,7 +524,13 @@ export const useStore = create<AppState>((set, get) => ({
     const prevItems = get().items
     if (
       prevItems.length === items.length &&
-      prevItems.every((it, i) => it.id === items[i]?.id && it.pinned === items[i]?.pinned && it.hitCount === items[i]?.hitCount && it.capturedAt === items[i]?.capturedAt && itemMetaKey(it) === itemMetaKey(items[i]))
+      prevItems.every((it, i) =>
+        it.id === items[i]?.id &&
+        it.pinned === items[i]?.pinned &&
+        it.hitCount === items[i]?.hitCount &&
+        it.capturedAt === items[i]?.capturedAt &&
+        itemRenderKey(it) === itemRenderKey(items[i])
+      )
     ) {
       return
     }
@@ -552,7 +569,7 @@ export const useStore = create<AppState>((set, get) => ({
       // NOTE: Do NOT reset styleFlyoutOpen here — closePanel() handles the
       // sequencing so the flyout exit animation completes before the panel closes.
       // Only reset previewItemId so the normal preview flyout clears correctly.
-      set({ previewItemId: null, previewItemRect: null, expandedStackId: null, cardMenu: null, cardMenuRect: null, cardMenuStayUntil: 0 })
+      set({ previewItemId: null, previewItemRect: null, editTextItemId: null, editTextItemRect: null, expandedStackId: null, cardMenu: null, cardMenuRect: null, cardMenuStayUntil: 0 })
       edge.setPreviewMode(false)
     }
   },
@@ -562,6 +579,8 @@ export const useStore = create<AppState>((set, get) => ({
       settingsTab: 'behaviour',
       previewItemId: null,
       previewItemRect: null,
+      editTextItemId: null,
+      editTextItemRect: null,
       previewFlyoutRect: null,
       styleFlyoutOpen: false,
       styleFlyoutAnchorRect: null,
@@ -585,7 +604,21 @@ export const useStore = create<AppState>((set, get) => ({
   previewFlyoutRect: null,
   setPreviewFlyoutRect: (rect) => set({ previewFlyoutRect: rect }),
   setPreviewItemId: (id, rect) => {
-    set({ previewItemId: id, previewItemRect: rect || null, ...(id ? {} : { previewFlyoutRect: null }) })
+    set({
+      previewItemId: id,
+      previewItemRect: rect || null,
+      ...(id ? { editTextItemId: null } : { previewFlyoutRect: null })
+    })
+    if (id) {
+      edge.setPreviewMode(true)
+    }
+  },
+  setEditTextItemId: (id, rect) => {
+    set({
+      editTextItemId: id,
+      editTextItemRect: rect || null,
+      ...(id ? { previewItemId: null } : { previewFlyoutRect: null })
+    })
     if (id) {
       edge.setPreviewMode(true)
     }
@@ -603,7 +636,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
     flareTimer = setTimeout(() => {
       set({ copyFlareActive: false })
-      if (!get().open && !get().previewItemId && !get().styleFlyoutOpen) {
+      if (!get().open && !get().previewItemId && !get().editTextItemId && !get().styleFlyoutOpen) {
         edge.setPreviewMode(false)
       }
       flareTimer = null
@@ -755,6 +788,40 @@ export const useStore = create<AppState>((set, get) => ({
     } catch {
       set({ items: get().items.map((it) => (it.id === id ? before : it)) })
       get().pushToast({ id: `meta-${Date.now()}`, message: t('toast.noteFailed'), tone: 'error' })
+    }
+  },
+
+  async updateItemText(id, text) {
+    const before = get().items.find((it) => it.id === id)
+    if (!before || before.data.kind !== 'text') return false
+    const trimmed = text.trim()
+    const isUrl = isLinkText(trimmed)
+    const isColor = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(trimmed)
+    const previewText = text.slice(0, 300)
+    const optimisticData = {
+      ...before.data,
+      text: text.length > 300 ? previewText : text,
+      previewText: text.length > 300 ? previewText : undefined,
+      hasFullPayload: text.length > 300,
+      isUrl,
+      isColor,
+      linkTitle: isUrl ? before.data.linkTitle : undefined
+    }
+    set({
+      items: get().items.map((it) => (it.id === id ? { ...it, data: optimisticData } : it))
+    })
+    if (get().demo) return true
+    try {
+      const items = await edge.updateItemText(id, text)
+      if (Array.isArray(items)) {
+        set({ items })
+      }
+      return true
+    } catch (err) {
+      console.error('[Store] updateItemText failed:', err)
+      set({ items: get().items.map((it) => (it.id === id ? before : it)) })
+      get().pushToast({ id: `edit-${Date.now()}`, message: 'Failed to update text', tone: 'error' })
+      return false
     }
   },
 

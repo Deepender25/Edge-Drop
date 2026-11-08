@@ -86,7 +86,7 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     useStore.getState().setExpandedStackId(v ? item.id : null)
   }, [item.id])
 
-  const isPreviewing = useStore((s) => s.previewItemId === item.id)
+  const isPreviewing = useStore((s) => s.previewItemId === item.id || s.editTextItemId === item.id)
   const isMenuTarget = useStore((s) => s.cardMenu?.itemId === item.id)
   // In-app drag: the card a drop would merge into, and the whole card being dragged.
   const isDropTarget = useStore((s) => s.dropTargetId === item.id)
@@ -241,7 +241,8 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     // Track if THIS card was the actively previewed (blurred) card when pointer clicked
-    wasPreviewingRef.current = (useStore.getState().previewItemId === item.id) || isPreviewing
+    const s = useStore.getState()
+    wasPreviewingRef.current = (s.previewItemId === item.id || s.editTextItemId === item.id) || isPreviewing
     if (e.button !== 0) return // right-click opens the menu; nothing to stage
     pointerStartRef.current = { x: e.clientX, y: e.clientY, moved: false }
     handlePrestage()
@@ -274,23 +275,28 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
     pointerStartRef.current = null
 
     // In that particular scenario only:
-    // When this card is open in preview flyout (blurred), clicking it only
-    // minimizes the preview flyout and does NOT paste
+    // When this card is open in preview flyout or edit flyout (blurred), clicking it only
+    // minimizes the flyout and does NOT paste
     const currentPreviewId = useStore.getState().previewItemId
-    if (currentPreviewId === item.id || isPreviewing || wasPreviewingRef.current) {
+    const currentEditId = useStore.getState().editTextItemId
+    if (currentPreviewId === item.id || currentEditId === item.id || isPreviewing || wasPreviewingRef.current) {
       wasPreviewingRef.current = false
       e.stopPropagation()
       e.preventDefault()
       playCardExpandSound(false)
-      useStore.getState().setPreviewItemId(null)
+      if (currentPreviewId) useStore.getState().setPreviewItemId(null)
+      if (currentEditId) useStore.getState().setEditTextItemId(null)
       return
     }
     wasPreviewingRef.current = false
 
-    // If another card was previewing and user clicked this card to paste:
-    // Dismiss the other card's preview and proceed with pasting this card
+    // If another card was previewing/editing and user clicked this card to paste:
+    // Dismiss the other card's flyout and proceed with pasting this card
     if (currentPreviewId && currentPreviewId !== item.id) {
       useStore.getState().setPreviewItemId(null)
+    }
+    if (currentEditId && currentEditId !== item.id) {
+      useStore.getState().setEditTextItemId(null)
     }
 
     if (isBundle && !expanded) {
@@ -475,7 +481,11 @@ const ClipboardItemBase = forwardRef<HTMLDivElement, Props>(({ item }, ref) => {
               playCardExpandSound(!isPreviewing)
               const rect = e.currentTarget.closest('.item-main')?.getBoundingClientRect()
               const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
-              useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+              if (useStore.getState().editTextItemId === item.id) {
+                useStore.getState().setEditTextItemId(null)
+              } else {
+                useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+              }
             }}
           >
             {isPreviewing ? <ContractIcon /> : <ExpandIcon />}
@@ -715,7 +725,7 @@ function HorizontalBundleExpanded({
   onDragStart: (e: React.DragEvent, req: DragRequest) => void
 }) {
   const { t } = useTranslation()
-  const isPreviewing = useStore((s) => s.previewItemId === item.id)
+  const isPreviewing = useStore((s) => s.previewItemId === item.id || s.editTextItemId === item.id)
   const isImageCollection = item.data.kind === 'image-collection'
   const isFiles = item.data.kind === 'files'
   const images = item.data.kind === 'image-collection' ? item.data.images : []
@@ -772,7 +782,11 @@ function HorizontalBundleExpanded({
               playCardExpandSound(!isPreviewing)
               const rect = e.currentTarget.closest('.item-main, .item')?.getBoundingClientRect()
               const rectData = rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : undefined
-              useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+              if (useStore.getState().editTextItemId === item.id) {
+                useStore.getState().setEditTextItemId(null)
+              } else {
+                useStore.getState().setPreviewItemId(isPreviewing ? null : item.id, rectData)
+              }
             }}
           >
             {isPreviewing ? <ContractIcon width={12} height={12} /> : <ExpandIcon width={12} height={12} />}
@@ -1626,6 +1640,7 @@ function Preview({ item }: { item: ClipboardItemDto }) {
               showCopyButton={false}
               compact={true}
               maxLines={5}
+              wrap={true}
             />
           </div>
         )

@@ -184,6 +184,7 @@ const api = {
   deleteBatchItems: (ids: string[]) => invoke('item:delete-batch', ids),
   clearItems: () => invoke('item:clear'),
   getFullText: (id: string) => invoke('item:get-full-text', id),
+  updateItemText: (id: string, text: string) => invoke('item:update-text', id, text),
   copyItem: (id: string) => invoke('item:copy', id),
   copySubitem: (req: import('../../shared/types').DragRequest) => invoke('item:copy-subitem', req),
   pasteItem: (id: string, opts?: { plain?: boolean }) => invoke('item:paste', id, opts),

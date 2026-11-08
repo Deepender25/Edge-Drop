@@ -35,6 +35,8 @@ export type CodeBlockProps = Omit<React.ComponentProps<'div'>, 'children'> & {
   maxLines?: number
   /** Compact styling for inside the card preview. */
   compact?: boolean
+  /** Wrap lines to prevent horizontal overflow and text cutoffs. Defaults to true. */
+  wrap?: boolean
 }
 
 function resolvePageMode(): 'dark' | 'light' {
@@ -289,6 +291,7 @@ export function CodeBlock({
   highlightLines,
   maxLines,
   compact = false,
+  wrap = true,
   className = '',
   style,
   ...props
@@ -448,13 +451,17 @@ export function CodeBlock({
                 style={{
                   margin: 0,
                   padding: 0,
-                  width: 'max-content',
+                  width: wrap ? '100%' : 'max-content',
                   minWidth: '100%',
+                  maxWidth: wrap ? '100%' : undefined,
                   fontFamily: 'var(--font-mono)',
                   fontSize,
                   lineHeight,
                   tabSize: 2,
                   boxSizing: 'border-box',
+                  whiteSpace: wrap ? 'pre-wrap' : 'pre',
+                  wordBreak: wrap ? 'break-word' : 'normal',
+                  overflowWrap: wrap ? 'anywhere' : 'normal',
                 }}
               >
                 {tokens.map((line, i) => {
@@ -470,6 +477,7 @@ export function CodeBlock({
                         position: 'relative',
                         display: 'flex',
                         minWidth: '100%',
+                        maxWidth: wrap ? '100%' : undefined,
                         padding: `0 ${paddingX}`,
                         background: isHighlighted ? 'var(--cb-line-wash)' : undefined,
                         boxSizing: 'border-box',
@@ -486,12 +494,22 @@ export function CodeBlock({
                             userSelect: 'none',
                             width: gutterWidth,
                             fontSize: compact ? '10px' : '12px',
+                            alignSelf: 'flex-start',
                           }}
                         >
                           {lineNumber}
                         </span>
                       )}
-                      <span style={{ paddingRight: showFrame ? paddingX : '8px', whiteSpace: 'pre', wordBreak: 'normal' }}>
+                      <span
+                        style={{
+                          paddingRight: showFrame ? paddingX : '8px',
+                          whiteSpace: wrap ? 'pre-wrap' : 'pre',
+                          wordBreak: wrap ? 'break-word' : 'normal',
+                          overflowWrap: wrap ? 'anywhere' : 'normal',
+                          minWidth: 0,
+                          flex: 1,
+                        }}
+                      >
                         {line.map((token, key) => (
                           <span key={key} {...getTokenProps({ token })} />
                         ))}

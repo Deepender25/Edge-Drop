@@ -52,7 +52,7 @@ const PREVIEW_EDGE_MARGIN = 18
  * publishes how far it reaches, and the zone grows to match (never shrinks).
  */
 function flyoutWide(state: ReturnType<typeof useStore.getState>): number {
-  const reach = state.previewItemId ? state.previewFlyoutRect?.reach : undefined
+  const reach = (state.previewItemId || state.editTextItemId) ? state.previewFlyoutRect?.reach : undefined
   return reach ? Math.max(PREVIEW_WIDE, reach + PREVIEW_EDGE_MARGIN) : PREVIEW_WIDE
 }
 
@@ -281,6 +281,7 @@ export function useEdgeHover(): void {
       const s = useStore.getState()
       if (s.styleFlyoutOpen) s.setStyleFlyoutOpen(false)
       if (s.languageFlyoutOpen) s.setLanguageFlyoutOpen(false)
+      if (s.editTextItemId) s.setEditTextItemId(null)
       s.setOpen(false)
       if (interactiveTimer !== undefined) window.clearTimeout(interactiveTimer)
       interactiveTimer = window.setTimeout(() => {
@@ -310,10 +311,11 @@ export function useEdgeHover(): void {
         return
       }
 
-      // If the preview screen is open, close the preview screen first,
+      // If the preview screen or edit text flyout is open, close it first,
       // and after a delay let the main clipboard panel start retracting.
-      if (state.previewItemId) {
-        state.setPreviewItemId(null)
+      if (state.previewItemId || state.editTextItemId) {
+        if (state.previewItemId) state.setPreviewItemId(null)
+        if (state.editTextItemId) state.setEditTextItemId(null)
         if (graceTimer !== undefined) window.clearTimeout(graceTimer)
         graceTimer = window.setTimeout(() => {
           graceTimer = undefined
@@ -437,7 +439,7 @@ export function useEdgeHover(): void {
       const { x, y } = lastClient.current
       if (x < -BUFFER_PX || y < 0) return true // unknown — be conservative, don't close
       const s = state.settings
-      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
+      const hasFlyout = !!(state.previewItemId || state.editTextItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
       const currentPanelWide = hasFlyout ? flyoutWide(state) : PANEL_WIDE
 
       if (s.stickPosition === 'top') {
@@ -565,7 +567,7 @@ export function useEdgeHover(): void {
         cancelClose()
         return
       }
-      const hasFlyout = !!(state.previewItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
+      const hasFlyout = !!(state.previewItemId || state.editTextItemId || state.styleFlyoutOpen || state.languageFlyoutOpen)
       const currentKeepOpenPx = hasFlyout ? flyoutWide(state) - 15 : KEEP_OPEN_PX
       const currentStartClosePx = hasFlyout ? flyoutWide(state) + 20 : START_CLOSE_PX
 

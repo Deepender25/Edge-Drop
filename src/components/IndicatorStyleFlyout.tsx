@@ -170,7 +170,7 @@ export function IndicatorStyleFlyout({ isRight }: { isRight: boolean }) {
     <AnimatePresence onExitComplete={() => {
       const s = useStore.getState()
       const isHoriz = s.settings.stickPosition === 'top'
-      if (!isHoriz && !s.styleFlyoutOpen && !s.previewItemId) {
+      if (!isHoriz && !s.styleFlyoutOpen && !s.previewItemId && !s.editTextItemId) {
         window.edge.setPreviewMode(false)
       }
     }}>

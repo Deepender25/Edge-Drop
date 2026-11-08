@@ -10,7 +10,7 @@
  *   - Persist the index to JSON and image bytes to per-item PNG files.
  *   - Convert internal items to the serializable DTO form for the renderer.
  */
-import { existsSync, readFileSync, writeFileSync, rmSync, statSync, readdirSync, openSync, writeSync, fsyncSync, closeSync, renameSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, statSync, readdirSync, openSync, writeSync, fsyncSync, closeSync, renameSync } from 'node:fs'
 import { join, extname, basename as pathBasename } from 'node:path'
 import { nativeImage, safeStorage } from 'electron'
 import { thumbnailUrlForFile, thumbnailUrlForStoredImage } from '../main/imageProtocol'
@@ -28,7 +28,9 @@ import { createId } from './ids'
 import { contentSignature } from './signature'
 import { MAX_ITEM_HTML_CHARS } from '../clipboard/formats'
 import { isKept, joinNotes, normalizeNote, noteFromLegacy, type ItemMetaPatch } from '../../shared/itemMeta'
-import { linkTitleFromHtml } from '../../shared/linkText'
+import { isLinkText, linkTitleFromHtml } from '../../shared/linkText'
+
+const COLOR_HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
 
 /** Write an already-normalized note, removing the field when empty. */
 function applyNote(it: ClipboardItem, note: string | undefined): void {
@@ -477,6 +479,59 @@ export class ItemStore {
     return true
   }
 
+  /**
+   * Update a text item's text payload.
+   * Updates full text payload, previewText, and derived flags (isUrl, isColor).
+   */
+  updateText(id: string, rawText: string): boolean {
+    const it = this.items.find((x) => x.id === id)
+    if (!it || it.data.kind !== 'text' || typeof rawText !== 'string') return false
+
+    // Cap at 500,000 characters like addItem
+    let text = rawText
+    if (text.length > 500000) {
+      text = text.slice(0, 500000)
+    }
+
+    const trimmed = text.trim()
+    const isUrl = isLinkText(trimmed)
+    const isColor = COLOR_HEX_RE.test(trimmed)
+
+    // Remove old signature from sigToId
+    this.sigToId.delete(this.signatureOf(it))
+
+    if (text.length > 300) {
+      this.writeTextPayload(id, text)
+      it.data = {
+        ...it.data,
+        hasFullPayload: true,
+        previewText: text.slice(0, 300),
+        text: text.slice(0, 300),
+        isUrl,
+        isColor,
+        linkTitle: isUrl ? it.data.linkTitle : undefined
+      }
+    } else {
+      if (it.data.hasFullPayload) {
+        this.removeTextPayload(id)
+      }
+      it.data = {
+        ...it.data,
+        hasFullPayload: false,
+        previewText: undefined,
+        text,
+        isUrl,
+        isColor,
+        linkTitle: isUrl ? it.data.linkTitle : undefined
+      }
+    }
+
+    // Re-register new signature
+    this.sigToId.set(this.signatureOf(it), it.id)
+    this.persist()
+    return true
+  }
+
   delete(id: string): void {
     const idx = this.items.findIndex((x) => x.id === id)
     if (idx < 0) return
@@ -909,6 +964,8 @@ export class ItemStore {
 
   private writeTextPayload(id: string, text: string): void {
     try {
+      const dir = PATHS.payloadsDir()
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
       writeFileSync(this.textPayloadPath(id), text, 'utf8')
     } catch { /* ignore */ }
   }

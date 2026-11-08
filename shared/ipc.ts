@@ -34,6 +34,9 @@ export interface InvokeMap {
   /** Fetch the full text payload from disk for a large text item on-demand. */
   'item:get-full-text': { args: [id: string]; result: string }
 
+  /** Update a text item's text payload. Returns the updated item list. */
+  'item:update-text': { args: [id: string, text: string]; result: ClipboardItemDto[] }
+
   /** Remove a specific sub-item from a bundle. */
   'item:remove-subitem': { args: [req: DragRequest]; result: boolean }
 
