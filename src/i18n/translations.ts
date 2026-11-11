@@ -7636,7 +7636,7 @@ export const hi: TranslationKeys = {
     "updates": "अपडेट",
     "behaviour": "व्यवहार",
     "position": "स्थिति",
-    "appearance": "रूप"
+    "appearance": "दिखावट"
   },
   "header": {
     "searchPlaceholder": "इतिहास खोजें...",
@@ -7714,8 +7714,8 @@ export const hi: TranslationKeys = {
     "working": "प्रक्रिया जारी है"
   },
   "position": {
-    "right": "दाएँ",
-    "left": "बाएँ",
+    "right": "दायाँ",
+    "left": "बायाँ",
     "horizontalPositionDesc": "स्क्रीन के किनारे के साथ क्षैतिज संरेखण समायोजित करें",
     "horizontalPositionTitle": "क्षैतिज स्थिति",
     "bottomEdge": "निचला किनारा",
@@ -7728,11 +7728,11 @@ export const hi: TranslationKeys = {
     "displayDesc": "चुनें कि Edge-Drop किस मॉनिटर से जुड़ता है",
     "primaryDisplay": "प्राथमिक डिस्प्ले",
     "loadingDisplays": "लोड हो रहा है...",
-    "verticalPositionTitle": "वर्टिकल स्थिति",
-    "verticalPositionDesc": "स्क्रीन किनारे के साथ वर्टिकल संरेखण समायोजित करें",
-    "top": "शीर्ष",
+    "verticalPositionTitle": "लंबवत स्थिति",
+    "verticalPositionDesc": "स्क्रीन के किनारे के साथ लंबवत संरेखण समायोजित करें",
+    "top": "ऊपर",
     "center": "केंद्र",
-    "bottom": "निचला",
+    "bottom": "नीचे",
     "triggerZone": "ट्रिगर ज़ोन",
     "edgeLocationHintTitle": "किनारा स्थान संकेत",
     "edgeLocationHintDesc": "गलत स्थिति पर किनारा छूने पर स्क्रीन किनारे पर संकेतक को हल्के से रोशन करें",
@@ -7744,7 +7744,7 @@ export const hi: TranslationKeys = {
     "edgeTriggerThicknessTitle": "किनारा ट्रिगर मोटाई",
     "edgeTriggerThicknessDesc": "अदृश्य ट्रिगर स्ट्रिप की भौतिक मोटाई",
     "panelHeightTitle": "पैनल ऊँचाई",
-    "panelHeightDesc": "क्लिपबोर्ड शेल्फ़ का वर्टिकल आकार",
+    "panelHeightDesc": "क्लिपबोर्ड शेल्फ़ का लंबवत आकार",
     "displayN": "डिस्प्ले {n}",
     "thicknessMin": "कम",
     "thicknessMid": "मध्य",
@@ -7787,7 +7787,7 @@ export const hi: TranslationKeys = {
     "dropToSaveDesc": "कोई भी फ़ाइल, छवि, लिंक या टेक्स्ट",
     "justNow": "अभी",
     "ago": "पहले",
-    "expand": "विस्तारित करें",
+    "expand": "खोलें",
     "textItem": "टेक्स्ट",
     "imageItem": "छवि",
     "fileItem": "फ़ाइल",
@@ -7802,7 +7802,7 @@ export const hi: TranslationKeys = {
     "singleFile": "1 फ़ाइल",
     "scrollToTop": "शीर्ष पर स्क्रॉल करें",
     "backToSpot": "जहाँ थे वहीं लौटें",
-    "clearLast1h": "पिछले 1 घंटे को साफ़ करें",
+    "clearLast1h": "पिछले 1 घंटे साफ़ करें",
     "clearLast6h": "पिछले 6 घंटे साफ़ करें",
     "clearLast24h": "पिछले 24 घंटे साफ़ करें",
     "clearAll": "पूरा इतिहास साफ़ करें",
@@ -7906,7 +7906,7 @@ export const hi: TranslationKeys = {
     "findTitle": "नोट और खोज",
     "findDesc": "किसी कार्ड पर राइट-क्लिक करें और नोट जोड़ें चुनें। खोज हर कार्ड को उसके टेक्स्ट, फ़ाइल के नाम या नोट से ढूँढ लेती है।",
     "configTitle": "अपना किनारा चुनें",
-    "configDesc": "शेल्फ़ को स्क्रीन के बाएँ, ऊपर या दाएँ किनारे पर रखें। आप इसे कभी भी सेटिंग्स में बदल सकते हैं।",
+    "configDesc": "शेल्फ़ को स्क्रीन के बायाँ, ऊपर या दायाँ किनारे पर रखें। आप इसे कभी भी सेटिंग्स में बदल सकते हैं।",
     "skip": "छोड़ें",
     "back": "पीछे",
     "next": "अगला",
@@ -7917,8 +7917,8 @@ export const hi: TranslationKeys = {
     "dropToExtract": "अलग कार्ड में वापस निकालने के लिए छोड़ें",
     "proTips": "प्रो युक्तियाँ",
     "proTip1": "शेल्फ़ तुरंत टॉगल करने के लिए Alt + C दबाएँ।",
-    "proTip2": "गियर आइकन (ऊपर दाएँ) के माध्यम से कभी भी सेटिंग्स एक्सेस करें।",
-    "proTip3": "जोड़ने के लिए फ़ाइलें बाएँ किनारे पर खींचें और छोड़ें।",
+    "proTip2": "गियर आइकन (ऊपर दायाँ) के माध्यम से कभी भी सेटिंग्स एक्सेस करें।",
+    "proTip3": "जोड़ने के लिए फ़ाइलें बायाँ किनारे पर खींचें और छोड़ें।",
     "proTip4": "टेक्स्ट बॉक्स पर क्लिक करें, फिर स्वतः-पेस्ट के लिए क्लिपबोर्ड आइटम पर क्लिक करें।"
   },
   "tray": {
@@ -7935,7 +7935,7 @@ export const hi: TranslationKeys = {
     "display": "डिस्प्ले",
     "quit": "Edge-Drop से बाहर",
     "welcomeTitle": "Edge-Drop क्लिपबोर्ड शेल्फ़",
-    "welcomeBody": "मध्य-बाएँ स्क्रीन किनारे के साथ होवर करें, या अपनी शेल्फ़ खोलने के लिए Alt+C दबाएँ।"
+    "welcomeBody": "मध्य-बायाँ स्क्रीन किनारे के साथ होवर करें, या अपनी शेल्फ़ खोलने के लिए Alt+C दबाएँ।"
   },
   "flyout": {
     "clickToDeselect": "चयन हटाने के लिए क्लिक करें",
