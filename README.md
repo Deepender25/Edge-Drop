@@ -381,6 +381,9 @@ npm install
 npm run dev          # Electron + Vite with hot reload
 ```
 
+> [!IMPORTANT]
+> Don't open `index.html` directly in your browser: it is the Electron renderer entry point, not a standalone website. Opening it directly can show a blank page because the TypeScript modules and Electron preload API are not available. Use `npm run dev` from the repository folder to launch the desktop app instead.
+
 | Command | What it does |
 | :--- | :--- |
 | `npm run dev` | Run the app in development mode |
